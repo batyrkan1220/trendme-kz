@@ -69,10 +69,18 @@ Deno.serve(async (req: Request) => {
     };
 
     // Compute trend score for a video
+    // Extract publication date from TikTok API response
+    const getPublishedAt = (video: any): string => {
+      if (video.createTime) return new Date(video.createTime * 1000).toISOString();
+      if (video.created_at) return new Date(video.created_at).toISOString();
+      if (video.create_time) return new Date(video.create_time * 1000).toISOString();
+      return new Date().toISOString();
+    };
+
     const computeTrend = (video: any) => {
       const stats = video.stats || {};
-      const createdAt = new Date(video.created_at || video.createTime * 1000);
-      const hoursSince = Math.max(1, (Date.now() - createdAt.getTime()) / 3600000);
+      const publishedAt = new Date(getPublishedAt(video));
+      const hoursSince = Math.max(1, (Date.now() - publishedAt.getTime()) / 3600000);
       const vViews = (stats.views || video.views || video.playCount || 0) / hoursSince;
       const vLikes = (stats.likes || video.likes || video.diggCount || 0) / hoursSince;
       const vComments = (stats.comments || video.comments || video.commentCount || 0) / hoursSince;
@@ -81,6 +89,7 @@ Deno.serve(async (req: Request) => {
         velocity_likes: vLikes,
         velocity_comments: vComments,
         trend_score: 0.6 * vViews + 0.3 * vLikes + 0.1 * vComments,
+        published_at: publishedAt.toISOString(),
       };
     };
 
