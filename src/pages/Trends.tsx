@@ -117,6 +117,15 @@ export default function Trends() {
       <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <h1 className="text-2xl font-bold text-foreground">Тренды 🔥</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Обновление..." : "Обновить"}
+            </button>
           <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow">
             {([7, 30] as const).map((p) => (
               <button
