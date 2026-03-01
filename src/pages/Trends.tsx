@@ -9,8 +9,23 @@ import { toast } from "sonner";
 export default function Trends() {
   const [period, setPeriod] = useState<7 | 30>(7);
   const [tab, setTab] = useState<"all" | "kz" | "world">("all");
+  const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const { error } = await supabase.functions.invoke("refresh-trends");
+      if (error) throw error;
+      toast.success("Тренды обновлены!");
+      queryClient.invalidateQueries({ queryKey: ["trends"] });
+    } catch (e: any) {
+      toast.error("Ошибка обновления: " + (e.message || "Попробуйте позже"));
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const { data: videos = [] } = useQuery({
     queryKey: ["trends", period, tab],
