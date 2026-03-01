@@ -100,7 +100,14 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined} style={{ zIndex: 60 }}>
         <SheetTitle className="sr-only">Анализ видео</SheetTitle>
-
+        {showScript ? (
+          <ScriptGenerationPanel
+            transcript={transcript}
+            summary={summary}
+            caption={video.caption || ""}
+            onBack={() => setShowScript(false)}
+          />
+        ) : (
         <div className="flex flex-col md:flex-row h-full">
           {/* Left panel — video + stats */}
           <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
