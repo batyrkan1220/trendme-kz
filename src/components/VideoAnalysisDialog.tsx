@@ -61,6 +61,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     if (!open) {
       lastAnalyzedUrl.current = null;
       setIsPlaying(false);
+      setShowScript(false);
     }
   }, [open, video]);
 
