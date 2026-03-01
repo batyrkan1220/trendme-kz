@@ -1,5 +1,6 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Radar, LayoutDashboard, TrendingUp, Search, BarChart3,
   Video, UserCircle, BookOpen, Star, ScrollText,
@@ -37,6 +38,15 @@ interface AppSidebarProps {
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const initials = user?.email?.charAt(0).toUpperCase() || "U";
 
   return (
     <aside
@@ -45,7 +55,6 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         collapsed ? "w-[68px]" : "w-[240px]"
       )}
     >
-      {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border shrink-0">
         <Flame className="h-6 w-6 text-primary shrink-0" />
         {!collapsed && (
@@ -55,8 +64,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         )}
       </div>
 
-      {/* Main Nav */}
-      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto scrollbar-thin">
+      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
         {mainItems.map((item) => {
           const active = location.pathname === item.path;
           return (
@@ -79,7 +87,6 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         })}
       </nav>
 
-      {/* Bottom */}
       <div className="border-t border-sidebar-border py-3 px-2 space-y-0.5 shrink-0">
         {bottomItems.map((item) => {
           const active = location.pathname === item.path;
@@ -108,15 +115,29 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           collapsed && "justify-center px-0"
         )}>
           <div className="h-8 w-8 rounded-full gradient-hero shrink-0 flex items-center justify-center text-xs font-bold text-primary-foreground">
-            U
+            {initials}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">Пользователь</p>
-              <p className="text-xs text-sidebar-foreground truncate">user@example.com</p>
+              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">
+                {user?.email?.split("@")[0] || "Пользователь"}
+              </p>
+              <p className="text-xs text-sidebar-foreground truncate">{user?.email || ""}</p>
             </div>
           )}
         </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-colors",
+            collapsed && "justify-center px-0"
+          )}
+        >
+          <LogOut className="h-[18px] w-[18px]" />
+          {!collapsed && <span>Выйти</span>}
+        </button>
 
         {/* Collapse Toggle */}
         <button
