@@ -161,52 +161,137 @@ export default function Trends() {
         </div>
 
         {videos.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {videos.map((video: any, i: number) => (
-              <div
-                key={video.id}
-                className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all cursor-pointer relative"
-                style={{ animationDelay: `${i * 0.03}s` }}
-                onClick={() => window.open(video.url, '_blank')}
-              >
-                {video._region === "kz" && (
-                  <span className="absolute top-3 left-3 z-10 bg-primary/90 text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    🇰🇿 KZ
-                  </span>
-                )}
-                {video._region === "world" && (
-                  <span className="absolute top-3 left-3 z-10 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    🌍
-                  </span>
-                )}
-                {video.cover_url && (
-                  <img src={video.cover_url} alt="" className="w-full h-48 object-cover" />
-                )}
-                <div className="p-4 space-y-2">
-                  <p className="text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
-                  <p className="text-xs text-primary font-semibold">@{video.author_username}</p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{Number(video.views).toLocaleString("ru-RU")}</span>
-                    <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" />{Number(video.likes).toLocaleString("ru-RU")}</span>
-                    <span className="flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{Number(video.comments).toLocaleString("ru-RU")}</span>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                    <span className="text-xs font-bold gradient-text">
-                      Score: {(video.trend_score || 0).toFixed(1)}
-                    </span>
-                    <button onClick={(e) => { e.stopPropagation(); toggleFav(video.id); }}>
-                      <Star
-                        className={`h-4 w-4 transition-all ${
-                          userFavorites.includes(video.id)
-                            ? "text-yellow-400 fill-yellow-400 scale-110"
-                            : "text-muted-foreground/40 hover:text-yellow-400"
-                        }`}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {videos.map((video: any, i: number) => {
+              const fmt = (n: number) => {
+                if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+                if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+                return String(n);
+              };
+              const score = video.trend_score || 0;
+              const scoreColor = score > 10000 ? "text-red-500" : score > 1000 ? "text-orange-500" : "text-primary";
+              const publishedDate = video.published_at ? new Date(video.published_at) : null;
+              const timeAgo = publishedDate
+                ? (() => {
+                    const h = Math.floor((Date.now() - publishedDate.getTime()) / 3600000);
+                    if (h < 1) return "только что";
+                    if (h < 24) return `${h}ч назад`;
+                    const d = Math.floor(h / 24);
+                    return `${d}д назад`;
+                  })()
+                : "";
+
+              return (
+                <div
+                  key={video.id}
+                  className="group bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover:shadow-xl hover:border-primary/20 transition-all duration-300 cursor-pointer relative flex flex-col"
+                  style={{ animationDelay: `${i * 0.02}s` }}
+                  onClick={() => window.open(video.url, "_blank")}
+                >
+                  {/* Cover — full TikTok ratio */}
+                  <div className="relative aspect-[9/12] bg-muted overflow-hidden">
+                    {video.cover_url ? (
+                      <img
+                        src={video.cover_url}
+                        alt=""
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                    </button>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Play className="h-12 w-12 text-muted-foreground/20" />
+                      </div>
+                    )}
+
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                    {/* Region badge */}
+                    {video._region === "kz" && (
+                      <span className="absolute top-2.5 left-2.5 z-10 bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm shadow-lg">
+                        🇰🇿 KZ
+                      </span>
+                    )}
+                    {video._region === "world" && (
+                      <span className="absolute top-2.5 left-2.5 z-10 bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm shadow-lg">
+                        🌍 World
+                      </span>
+                    )}
+
+                    {/* Trend score flame */}
+                    <div className={`absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full ${scoreColor}`}>
+                      <Flame className="h-3.5 w-3.5" />
+                      <span className="text-[11px] font-bold">{score > 1000 ? fmt(score) : score.toFixed(0)}</span>
+                    </div>
+
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                        <Play className="h-7 w-7 text-white fill-white ml-1" />
+                      </div>
+                    </div>
+
+                    {/* Bottom stats on cover */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+                      <div className="flex items-center gap-3 text-white/90 text-[11px] font-medium">
+                        <span className="flex items-center gap-1">
+                          <Eye className="h-3.5 w-3.5" />{fmt(Number(video.views))}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-3.5 w-3.5" />{fmt(Number(video.likes))}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MessageCircle className="h-3.5 w-3.5" />{fmt(Number(video.comments))}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Share2 className="h-3.5 w-3.5" />{fmt(Number(video.shares || 0))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info section */}
+                  <div className="p-3.5 flex flex-col gap-2 flex-1">
+                    <p className="text-sm font-medium text-foreground line-clamp-2 leading-snug">
+                      {video.caption || "Без описания"}
+                    </p>
+
+                    <div className="flex items-center justify-between mt-auto pt-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {video.author_avatar_url && (
+                          <img
+                            src={video.author_avatar_url}
+                            alt=""
+                            className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                          />
+                        )}
+                        <span className="text-xs text-primary font-semibold truncate">
+                          @{video.author_username}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {timeAgo && (
+                          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                            <Clock className="h-3 w-3" />{timeAgo}
+                          </span>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleFav(video.id); }}
+                          className="hover:scale-125 transition-transform"
+                        >
+                          <Star
+                            className={`h-4 w-4 transition-all ${
+                              userFavorites.includes(video.id)
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-muted-foreground/30 hover:text-yellow-400"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-20">
