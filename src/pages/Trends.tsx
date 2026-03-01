@@ -84,6 +84,7 @@ export default function Trends() {
           .select("*")
             .eq("region", tab)
             .gte("fetched_at", since.toISOString())
+            .gte("published_at", maxAge.toISOString())
           .order("trend_score", { ascending: false })
           .limit(500);
         return (data || []).map(v => ({ ...v, _region: tab }));
