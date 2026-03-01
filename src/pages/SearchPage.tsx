@@ -128,7 +128,7 @@ export default function SearchPage() {
                   className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all"
                   style={{ animationDelay: `${i * 0.03}s` }}
                 >
-                  <div className="flex gap-4 p-4">
+                  <div className="flex gap-4 p-4 cursor-pointer" onClick={() => window.open(video.url, '_blank')}>
                     {video.cover_url && (
                       <img
                         src={video.cover_url}
