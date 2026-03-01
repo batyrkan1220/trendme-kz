@@ -70,11 +70,12 @@ Deno.serve(async (req: Request) => {
 
     // Compute trend score for a video
     const computeTrend = (video: any) => {
+      const stats = video.stats || {};
       const createdAt = new Date(video.created_at || video.createTime * 1000);
       const hoursSince = Math.max(1, (Date.now() - createdAt.getTime()) / 3600000);
-      const vViews = (video.views || video.playCount || 0) / hoursSince;
-      const vLikes = (video.likes || video.diggCount || 0) / hoursSince;
-      const vComments = (video.comments || video.commentCount || 0) / hoursSince;
+      const vViews = (stats.views || video.views || video.playCount || 0) / hoursSince;
+      const vLikes = (stats.likes || video.likes || video.diggCount || 0) / hoursSince;
+      const vComments = (stats.comments || video.comments || video.commentCount || 0) / hoursSince;
       return {
         velocity_views: vViews,
         velocity_likes: vLikes,
@@ -93,7 +94,23 @@ Deno.serve(async (req: Request) => {
           count: String(limit),
         });
 
-        const videos = data.data || data.items || data || [];
+        let videos: any[] = [];
+        if (Array.isArray(data)) {
+          videos = data;
+        } else if (Array.isArray(data?.data?.results)) {
+          videos = data.data.results;
+        } else if (Array.isArray(data?.data)) {
+          videos = data.data;
+        } else if (Array.isArray(data?.items)) {
+          videos = data.items;
+        } else if (Array.isArray(data?.videos)) {
+          videos = data.videos;
+        } else if (Array.isArray(data?.result)) {
+          videos = data.result;
+        } else {
+          console.log("SocialKit unexpected response format:", JSON.stringify(data).slice(0, 500));
+          videos = [];
+        }
 
         // Save search query
         const { data: queryRow } = await userClient
@@ -117,20 +134,21 @@ Deno.serve(async (req: Request) => {
           if (!videoId) continue;
 
           const trends = computeTrend(v);
+          const stats = v.stats || {};
           const videoRow = {
             platform: "tiktok",
             platform_video_id: String(videoId),
-            url: v.url || v.video_url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
-            caption: v.caption || v.desc || v.title || "",
-            cover_url: v.cover_url || v.cover || v.thumbnail || v.originCover || "",
-            author_username: v.author_username || v.author?.uniqueId || v.author?.unique_id || "",
-            author_display_name: v.author_display_name || v.author?.nickname || "",
-            author_avatar_url: v.author_avatar_url || v.author?.avatarThumb || "",
-            views: v.views || v.playCount || v.play_count || 0,
-            likes: v.likes || v.diggCount || v.digg_count || 0,
-            comments: v.comments || v.commentCount || v.comment_count || 0,
-            shares: v.shares || v.shareCount || v.share_count || 0,
-            duration_sec: v.duration_sec || v.duration || null,
+            url: v.url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
+            caption: v.desc || v.caption || v.title || "",
+            cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
+            author_username: v.author?.uniqueId || v.author?.unique_id || v.author_username || "",
+            author_display_name: v.author?.nickname || v.author_display_name || "",
+            author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
+            views: stats.views || v.views || v.playCount || 0,
+            likes: stats.likes || v.likes || v.diggCount || 0,
+            comments: stats.comments || v.comments || v.commentCount || 0,
+            shares: stats.shares || v.shares || v.shareCount || 0,
+            duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
             fetched_at: new Date().toISOString(),
             source_query_id: queryRow?.id || null,
             ...trends,
