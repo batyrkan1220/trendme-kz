@@ -99,7 +99,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
         <SheetTitle className="sr-only">Анализ видео</SheetTitle>
         <button
           onClick={() => onOpenChange(false)}
-          className="fixed top-4 right-4 z-[60] w-10 h-10 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors"
+          className="absolute top-3 right-3 z-[70] w-10 h-10 rounded-full bg-background/95 border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors"
         >
           <X className="h-5 w-5 text-foreground" />
         </button>
