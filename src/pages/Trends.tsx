@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function Trends() {
-  const [period, setPeriod] = useState<7 | 30>(7);
+  const [period, setPeriod] = useState<1 | 3 | 7>(7);
   const [tab, setTab] = useState<"all" | "kz" | "world">("all");
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
