@@ -193,6 +193,7 @@ export type Database = {
           likes: number | null
           platform: string
           platform_video_id: string
+          published_at: string | null
           region: string
           shares: number | null
           source_query_id: string | null
@@ -217,6 +218,7 @@ export type Database = {
           likes?: number | null
           platform?: string
           platform_video_id: string
+          published_at?: string | null
           region?: string
           shares?: number | null
           source_query_id?: string | null
@@ -241,6 +243,7 @@ export type Database = {
           likes?: number | null
           platform?: string
           platform_video_id?: string
+          published_at?: string | null
           region?: string
           shares?: number | null
           source_query_id?: string | null
