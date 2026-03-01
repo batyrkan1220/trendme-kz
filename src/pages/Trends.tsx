@@ -254,6 +254,36 @@ export default function Trends() {
                           </div>
                         </div>
 
+                        {/* Trend indicators */}
+                        {(() => {
+                          const score = video.trend_score || 0;
+                          const velViews = video.velocity_views || 0;
+                          const isRocket = score > 500;
+                          const isFire = score > 100;
+                          if (!isFire) return null;
+                          return (
+                            <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
+                              {isRocket ? (
+                                <div className="flex items-center gap-1 bg-orange-500/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg animate-[pulse_1.5s_ease-in-out_infinite]">
+                                  <Rocket className="h-3.5 w-3.5 text-white" />
+                                  <span className="text-[10px] font-bold text-white">Взлетает!</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 bg-red-500/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
+                                  <Flame className="h-3.5 w-3.5 text-white" />
+                                  <span className="text-[10px] font-bold text-white">В тренде</span>
+                                </div>
+                              )}
+                              {velViews > 10 && (
+                                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
+                                  <TrendingUp className="h-3 w-3 text-white" />
+                                  <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+
                         {/* Open in TikTok button */}
                         <button
                           onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
