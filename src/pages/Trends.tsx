@@ -319,7 +319,7 @@ export default function Trends() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.location.href = `/video-analysis?url=${encodeURIComponent(video.url)}`;
+                        setAnalysisVideo(video);
                       }}
                       className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
                     >
