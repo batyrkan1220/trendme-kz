@@ -402,15 +402,9 @@ export default function Trends() {
             })}
           </div>
 
-          {/* Load more */}
           {hasMore && (
-            <div className="flex justify-center pt-4">
-              <button
-                onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
-                className="px-8 py-3 rounded-xl bg-primary/10 text-primary font-semibold text-sm border border-primary/30 hover:bg-primary/20 transition-all"
-              >
-                Показать ещё ({allVideos.length - visibleCount} осталось)
-              </button>
+            <div ref={loaderRef} className="flex justify-center py-8">
+              <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             </div>
           )}
           </>
