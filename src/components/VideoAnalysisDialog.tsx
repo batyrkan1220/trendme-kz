@@ -107,12 +107,26 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
         <div className="flex flex-col md:flex-row h-full">
           {/* Left panel — video + stats */}
           <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
-            <div className="aspect-[9/14] bg-muted relative rounded-2xl overflow-hidden m-2">
-              {video.cover_url ? (
-                <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
+            <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
+              {isPlaying ? (
+                <iframe
+                  src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                  className="w-full h-full border-0"
+                  allow="autoplay; encrypted-media; fullscreen"
+                  allowFullScreen
+                />
+              ) : video.cover_url ? (
+                <div className="relative w-full h-full cursor-pointer group" onClick={() => setIsPlaying(true)}>
+                  <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+                    <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Play className="h-6 w-6 text-foreground ml-1" fill="currentColor" />
+                    </div>
+                  </div>
+                </div>
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Sparkles className="h-12 w-12 text-muted-foreground/20" />
+                <div className="w-full h-full flex items-center justify-center cursor-pointer" onClick={() => setIsPlaying(true)}>
+                  <Play className="h-12 w-12 text-muted-foreground/30" />
                 </div>
               )}
             </div>
