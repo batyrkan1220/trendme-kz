@@ -35,6 +35,9 @@ export default function Trends() {
     queryFn: async () => {
       const since = new Date();
       since.setDate(since.getDate() - period);
+      // Also filter by published_at to exclude videos with bad/old dates
+      const maxAge = new Date();
+      maxAge.setDate(maxAge.getDate() - 7);
 
       if (tab === "all") {
         // 80% KZ, 20% world
@@ -47,6 +50,7 @@ export default function Trends() {
             .select("*")
             .eq("region", "kz")
             .gte("fetched_at", since.toISOString())
+            .gte("published_at", maxAge.toISOString())
             .order("trend_score", { ascending: false })
             .limit(kzLimit),
           supabase
@@ -54,6 +58,7 @@ export default function Trends() {
             .select("*")
             .eq("region", "world")
             .gte("fetched_at", since.toISOString())
+            .gte("published_at", maxAge.toISOString())
             .order("trend_score", { ascending: false })
             .limit(worldLimit),
         ]);
@@ -79,6 +84,7 @@ export default function Trends() {
           .select("*")
             .eq("region", tab)
             .gte("fetched_at", since.toISOString())
+            .gte("published_at", maxAge.toISOString())
           .order("trend_score", { ascending: false })
           .limit(500);
         return (data || []).map(v => ({ ...v, _region: tab }));
