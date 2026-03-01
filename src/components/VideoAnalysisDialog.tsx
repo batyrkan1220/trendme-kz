@@ -35,6 +35,7 @@ const fmt = (n: number) => {
 
 export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [activeSection, setActiveSection] = useState<string>("all");
+  const lastAnalyzedUrl = useRef<string | null>(null);
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async (videoUrl: string) => {
@@ -54,13 +55,16 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     },
   });
 
-  const handleOpen = (isOpen: boolean) => {
-    if (isOpen && video) {
+  useEffect(() => {
+    if (open && video && video.url !== lastAnalyzedUrl.current) {
+      lastAnalyzedUrl.current = video.url;
       reset();
       analyze(video.url);
     }
-    onOpenChange(isOpen);
-  };
+    if (!open) {
+      lastAnalyzedUrl.current = null;
+    }
+  }, [open, video]);
 
   if (!video) return null;
 
