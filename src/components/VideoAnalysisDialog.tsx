@@ -392,6 +392,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             )}
           </div>
         </div>
+        )}
       </SheetContent>
     </Sheet>
   );
