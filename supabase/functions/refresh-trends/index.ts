@@ -178,9 +178,9 @@ Deno.serve(async (req: Request) => {
       }
     };
 
-    // Run KZ searches (pick 3 random)
-    const shuffledKz = kzQueries.sort(() => Math.random() - 0.5).slice(0, 10);
-    const shuffledWorld = worldQueries.sort(() => Math.random() - 0.5).slice(0, 5);
+    // 80% KZ, 20% world
+    const shuffledKz = kzQueries.sort(() => Math.random() - 0.5).slice(0, 16);
+    const shuffledWorld = worldQueries.sort(() => Math.random() - 0.5).slice(0, 4);
 
     const results: Record<string, number> = {};
 
