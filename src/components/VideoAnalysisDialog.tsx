@@ -169,7 +169,13 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           </div>
 
           {/* Right panel — analysis */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-background">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-background relative">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="sticky top-0 float-right z-[70] w-10 h-10 rounded-full bg-background border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors ml-2 mb-2"
+            >
+              <X className="h-5 w-5 text-foreground" />
+            </button>
             {isPending ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <div className="relative">
