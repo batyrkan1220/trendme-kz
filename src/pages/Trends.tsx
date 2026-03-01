@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function Trends() {
-  const [period, setPeriod] = useState<7 | 30>(7);
+  const [period, setPeriod] = useState<1 | 3 | 7>(7);
   const [tab, setTab] = useState<"all" | "kz" | "world">("all");
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -46,14 +46,14 @@ export default function Trends() {
             .from("videos")
             .select("*")
             .eq("region", "kz")
-            .gte("published_at", since.toISOString())
+            .gte("fetched_at", since.toISOString())
             .order("trend_score", { ascending: false })
             .limit(kzLimit),
           supabase
             .from("videos")
             .select("*")
             .eq("region", "world")
-            .gte("published_at", since.toISOString())
+            .gte("fetched_at", since.toISOString())
             .order("trend_score", { ascending: false })
             .limit(worldLimit),
         ]);
@@ -77,8 +77,8 @@ export default function Trends() {
         const { data } = await supabase
           .from("videos")
           .select("*")
-          .eq("region", tab)
-          .gte("published_at", since.toISOString())
+            .eq("region", tab)
+            .gte("fetched_at", since.toISOString())
           .order("trend_score", { ascending: false })
           .limit(500);
         return (data || []).map(v => ({ ...v, _region: tab }));
@@ -130,17 +130,17 @@ export default function Trends() {
               {refreshing ? "Обновление..." : "Обновить"}
             </button>
           <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow">
-            {([7, 30] as const).map((p) => (
+            {([1, 3, 7] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                   period === p
                     ? "gradient-hero text-primary-foreground glow-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {p} дней
+                {p === 1 ? "24ч" : `${p}д`}
               </button>
             ))}
           </div>
