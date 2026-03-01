@@ -104,6 +104,22 @@ export default function Trends() {
   }, [allVideos, visibleCount]);
 
   const hasMore = visibleCount < allVideos.length;
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => c + PAGE_SIZE);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    const el = loaderRef.current;
+    if (el) observer.observe(el);
+    return () => { if (el) observer.unobserve(el); };
+  }, [hasMore, visibleCount]);
 
   const { data: userFavorites = [] } = useQuery({
     queryKey: ["user-favorites", user?.id],
