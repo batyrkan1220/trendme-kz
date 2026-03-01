@@ -192,7 +192,7 @@ export default function Trends() {
                   <div className="relative aspect-[9/12] bg-black overflow-hidden">
                     {playingId === video.id ? (
                       <iframe
-                        src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?autoplay=1&music_info=1&description=0&mute=0`}
+                        src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
                         className="w-full h-full border-0"
                         allow="autoplay; encrypted-media; fullscreen"
                         allowFullScreen
