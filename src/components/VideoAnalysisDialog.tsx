@@ -77,8 +77,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const transcript = analysis?.analysis?.transcript_text;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0 gap-0 rounded-2xl border-border/50">
+    <Sheet open={open} onOpenChange={handleOpen}>
+      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden">
         <button
           onClick={() => onOpenChange(false)}
           className="absolute top-4 right-4 z-50 w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors"
@@ -86,9 +86,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           <X className="h-4 w-4 text-foreground" />
         </button>
 
-        <div className="flex flex-col md:flex-row max-h-[90vh]">
+        <div className="flex flex-col md:flex-row h-full">
           {/* Left panel — video + stats */}
-          <div className="w-full md:w-[340px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
+          <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
             {/* Video cover */}
             <div className="aspect-[9/14] bg-muted relative">
               {video.cover_url ? (
