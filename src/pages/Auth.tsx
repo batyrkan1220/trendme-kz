@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { Flame, Mail, Lock, ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,53 +48,64 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm space-y-8 animate-fade-in">
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl gradient-hero glow-primary">
-            <Flame className="h-7 w-7 text-primary-foreground" />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-pink-200/30 to-transparent rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-cyan-200/30 to-transparent rounded-full blur-3xl" />
+
+      <div className="w-full max-w-sm space-y-8 animate-fade-in relative">
+        {/* Logo */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl gradient-hero glow-primary animate-bounce-soft">
+            <Flame className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Trend TikTok</h1>
-          <p className="text-sm text-muted-foreground">
-            {isLogin ? "Войдите в свой аккаунт" : "Создайте аккаунт"}
-          </p>
+          <div>
+            <h1 className="text-3xl font-bold gradient-text">Trend TikTok</h1>
+            <p className="text-sm text-muted-foreground mt-2 flex items-center justify-center gap-1">
+              <Sparkles className="h-3.5 w-3.5" />
+              {isLogin ? "Войдите в свой аккаунт" : "Создайте аккаунт"}
+            </p>
+          </div>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 bg-secondary border-border"
-              disabled={loading}
-            />
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 bg-secondary border-border"
-              disabled={loading}
-            />
+          <div className="space-y-3">
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-11 h-12 bg-card border-border rounded-xl card-shadow"
+                disabled={loading}
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="password"
+                placeholder="Пароль"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-11 h-12 bg-card border-border rounded-xl card-shadow"
+                disabled={loading}
+              />
+            </div>
           </div>
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity"
+            className="w-full h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl text-base font-semibold"
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
                 {isLogin ? "Войти" : "Зарегистрироваться"}
-                <ArrowRight className="h-4 w-4 ml-2" />
+                <ArrowRight className="h-5 w-5 ml-2" />
               </>
             )}
           </Button>
@@ -104,7 +115,7 @@ export default function Auth() {
           {isLogin ? "Нет аккаунта?" : "Уже есть аккаунт?"}{" "}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:underline font-medium"
+            className="text-primary hover:underline font-semibold"
           >
             {isLogin ? "Зарегистрироваться" : "Войти"}
           </button>

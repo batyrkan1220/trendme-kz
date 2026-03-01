@@ -78,7 +78,7 @@ export default function SearchPage() {
     <AppLayout>
       <div className="p-6 lg:p-8 flex gap-6 animate-fade-in">
         <div className="flex-1 space-y-6 min-w-0">
-          <h1 className="text-2xl font-bold text-foreground">Поиск</h1>
+          <h1 className="text-2xl font-bold text-foreground">Поиск 🔍</h1>
 
           <div className="flex gap-3">
             <Input
@@ -86,12 +86,12 @@ export default function SearchPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="flex-1 bg-secondary border-border"
+              className="flex-1 h-12 bg-card border-border rounded-xl card-shadow"
             />
             <Button
               onClick={handleSearch}
               disabled={isSearching}
-              className="gradient-hero text-primary-foreground border-0 px-6 glow-primary hover:opacity-90 transition-opacity"
+              className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold"
             >
               {isSearching ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -104,48 +104,65 @@ export default function SearchPage() {
             </Button>
           </div>
 
+          <div className="flex gap-2 flex-wrap">
+            {["7 дней", "30 дней", "Все время"].map((f) => (
+              <button
+                key={f}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors border border-border card-shadow"
+              >
+                {f}
+              </button>
+            ))}
+            <select className="px-4 py-2 rounded-xl text-xs font-semibold bg-card text-muted-foreground border border-border card-shadow">
+              <option>По трендовости</option>
+              <option>По просмотрам</option>
+              <option>По дате</option>
+            </select>
+          </div>
+
           {results.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {results.map((video: any) => (
+              {results.map((video: any, i: number) => (
                 <div
                   key={video.id}
-                  className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/30 transition-colors"
+                  className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all"
+                  style={{ animationDelay: `${i * 0.03}s` }}
                 >
                   <div className="flex gap-4 p-4">
                     {video.cover_url && (
                       <img
                         src={video.cover_url}
                         alt=""
-                        className="h-24 w-[68px] object-cover rounded-lg shrink-0"
+                        className="h-28 w-20 object-cover rounded-xl shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0 space-y-2">
-                      <p className="text-sm text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
-                      <p className="text-xs text-muted-foreground">@{video.author_username}</p>
+                      <p className="text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
+                      <p className="text-xs text-primary font-semibold">@{video.author_username}</p>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
+                          <Eye className="h-3.5 w-3.5" />
                           {Number(video.views).toLocaleString("ru-RU")}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Heart className="h-3 w-3" />
+                          <Heart className="h-3.5 w-3.5" />
                           {Number(video.likes).toLocaleString("ru-RU")}
                         </span>
                         <span className="flex items-center gap-1">
-                          <MessageCircle className="h-3 w-3" />
+                          <MessageCircle className="h-3.5 w-3.5" />
                           {Number(video.comments).toLocaleString("ru-RU")}
                         </span>
                       </div>
                     </div>
                     <button
                       onClick={() => toggleFav(video.id)}
-                      className="shrink-0 self-start"
+                      className="shrink-0 self-start p-1"
                     >
                       <Star
-                        className={`h-5 w-5 transition-colors ${
+                        className={`h-5 w-5 transition-all ${
                           userFavorites.includes(video.id)
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-muted-foreground hover:text-yellow-400"
+                            ? "text-yellow-400 fill-yellow-400 scale-110"
+                            : "text-muted-foreground/40 hover:text-yellow-400"
                         }`}
                       />
                     </button>
@@ -155,8 +172,10 @@ export default function SearchPage() {
             </div>
           ) : !isSearching ? (
             <div className="text-center py-20">
-              <SearchIcon className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-muted-foreground text-sm">
+              <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                <SearchIcon className="h-10 w-10 text-muted-foreground/30" />
+              </div>
+              <p className="text-muted-foreground font-medium">
                 Введите запрос для поиска видео в TikTok
               </p>
             </div>
@@ -164,13 +183,15 @@ export default function SearchPage() {
         </div>
 
         <div className="w-72 shrink-0 hidden xl:block">
-          <div className="bg-card rounded-xl p-5 border border-border sticky top-6">
+          <div className="bg-card rounded-2xl p-5 border border-border/50 sticky top-6 card-shadow">
             <div className="flex items-center gap-2 mb-4">
-              <Clock className="h-4 w-4 text-primary" />
-              <h3 className="font-medium text-sm text-foreground">Последние запросы</h3>
+              <div className="h-7 w-7 rounded-lg gradient-card flex items-center justify-center">
+                <Clock className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <h3 className="font-semibold text-sm text-foreground">Последние запросы</h3>
             </div>
             {recentQueries && recentQueries.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {recentQueries.map((q) => (
                   <button
                     key={q.id}
@@ -178,7 +199,7 @@ export default function SearchPage() {
                       setQuery(q.query_text);
                       doSearch(q.query_text);
                     }}
-                    className="w-full text-left px-2 py-1.5 rounded text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors truncate"
+                    className="w-full text-left px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors truncate"
                   >
                     {q.query_text}
                   </button>
