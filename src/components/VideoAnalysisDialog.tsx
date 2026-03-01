@@ -1,6 +1,6 @@
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, X, Target, Copy } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ const fmt = (n: number) => {
 
 export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [activeSection, setActiveSection] = useState<string>("all");
+  const lastAnalyzedUrl = useRef<string | null>(null);
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async (videoUrl: string) => {
@@ -54,13 +55,16 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     },
   });
 
-  const handleOpen = (isOpen: boolean) => {
-    if (isOpen && video) {
+  useEffect(() => {
+    if (open && video && video.url !== lastAnalyzedUrl.current) {
+      lastAnalyzedUrl.current = video.url;
       reset();
       analyze(video.url);
     }
-    onOpenChange(isOpen);
-  };
+    if (!open) {
+      lastAnalyzedUrl.current = null;
+    }
+  }, [open, video]);
 
   if (!video) return null;
 
@@ -77,8 +81,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const transcript = analysis?.analysis?.transcript_text;
 
   return (
-    <Sheet open={open} onOpenChange={handleOpen}>
-      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined}>
+        <SheetTitle className="sr-only">Анализ видео</SheetTitle>
         <button
           onClick={() => onOpenChange(false)}
           className="absolute top-4 right-4 z-50 w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors"
