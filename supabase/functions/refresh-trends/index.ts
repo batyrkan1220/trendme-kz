@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
 
     // KZ search queries for fresh content
     const kzQueries = [
-      // Хэштеги казахские
+      // Хэштеги казахские — основные
       "#қазақ", "#қазақстан", "#қазақша", "#kz", "#казахстан",
       "#алматы", "#астана", "#шымкент", "#караганда", "#актау",
       "#атырау", "#павлодар", "#семей", "#костанай", "#тараз",
@@ -91,11 +91,28 @@ Deno.serve(async (req: Request) => {
       "#қазақмода", "#казахстанмода", "#kzfashion",
       "#димаш", "#dimash", "#кайрат", "#казахстанзвезды",
       "#қазақскетч", "#казахстанскетч",
+      // Города и регионы
+      "#манғыстау", "#mangystau", "#түркістан", "#turkestan",
+      "#балхаш", "#қарағанды", "#экибастуз", "#рудный", "#темиртау",
+      "#жезказган", "#каскелен", "#капшагай", "#конаев",
+      "#бурабай", "#боровое", "#медеу", "#шымбулак",
+      // Тематические
+      "#қазақстанlife", "#kzlife", "#қазақстанreels", "#kzreels", "#казреелс",
+      "#қазақстандети", "#kzkids", "#қазақстанмама", "#kzmom",
+      "#қазақстанприрода", "#kznature", "#қазақстанзож", "#kzhealth",
+      "#қазақстандом", "#kzhome", "#қазақстантехно", "#kztech",
+      "#қазақстандизайн", "#kzdesign", "#қазақстанарт", "#kzart",
+      "#қазақстанобразование", "#kzedu",
+      "#қазақстанинвестиции", "#kzinvest", "#қазақстанкрипто", "#kzcrypto",
+      "#қазақстанsmm", "#kzsmm", "#қазақстанживотные", "#kzpets",
+      "#қазақстанбокс", "#kzboxing", "#kzmma",
+      "#қазақстанфутбол", "#kzfootball", "#казнет", "#казтикток", "#тиктоккз",
       // Слова казахские
       "қазақ тикток тренд", "қазақша тренд 2026", "қазақстан вирал",
       "қазақша приколдар", "қазақша вайн", "қазақша күлкілі",
       "қазақ жастары", "қазақша әндер хит", "қазақша челлендж",
       "қазақ дизайн", "қазақ той", "қазақ мода",
+      "қазақша рецепт", "қазақша лайфхак", "қазақ кино", "қазақ сериал",
       // Слова русские
       "казахстан тренд тикток", "алматы тренд тикток", "астана тренд тикток",
       "казакша приколы", "казахстан вайн 2026", "казахстан вирусное видео",
@@ -106,11 +123,15 @@ Deno.serve(async (req: Request) => {
       "казахстан еда рецепт", "казахстан путешествие", "казахстан авто тикток",
       "казахстан бизнес тикток", "казахстан красота тикток",
       "казахстан свадьба тикток", "казахстан фитнес",
+      "казахстан нейросети", "казахстан стартап", "казахстан айти",
+      "казахстан фриланс", "казахстан студент", "казахстан недвижимость",
       // English
       "kazakhstan viral tiktok", "kazakhstan trending 2026", "almaty viral",
       "astana tiktok trend", "kazakh tiktok", "kz fyp viral",
       "kazakhstan dance challenge", "kazakh music trending",
       "kazakhstan comedy tiktok", "kazakhstan food tiktok",
+      "kazakhstan travel vlog", "kazakhstan nature viral",
+      "kazakhstan boxing", "kazakhstan tech startup",
     ];
 
     // World search queries
@@ -125,7 +146,24 @@ Deno.serve(async (req: Request) => {
       "satisfying tiktok", "tiktok life hacks", "tiktok food viral",
       "tiktok fashion trend", "tiktok beauty viral", "tiktok sports viral",
       "tiktok pet viral", "tiktok art trending", "tiktok travel viral",
+      // Новые мировые хэштеги
+      "#viralvideo", "#tiktok2026", "#trending2026", "#fypシ",
+      "#memes", "#relatable", "#storytime", "#pov", "#grwm",
+      "#ootd", "#asmr", "#satisfying", "#motivation", "#fitness",
+      "#recipe", "#cooking", "#diy", "#tutorial", "#lifehack",
+      "#skincare", "#makeup", "#haul", "#unboxing", "#review",
+      "#gaming", "#anime", "#cosplay", "#booktok",
+      "#gym", "#workout", "#transformation",
+      "#cat", "#dog", "#pets", "#nature", "#travel",
+      "#ai", "#tech", "#coding", "#entrepreneur", "#startup",
+      "#investing", "#crypto", "#finance",
+      // Фразы мировые
+      "tiktok pov trending", "tiktok grwm viral", "tiktok storytime best",
+      "tiktok asmr satisfying", "tiktok transformation viral",
+      "tiktok meme compilation 2026", "tiktok couple goals",
+      "tiktok cooking hack", "tiktok outfit ideas", "tiktok gym motivation",
     ];
+
 
     const searchAndSave = async (query: string, region: string) => {
       try {
