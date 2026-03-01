@@ -103,12 +103,21 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
             <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
               {isPlaying ? (
-                <iframe
-                  src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                  className="w-full h-full border-0"
-                  allow="autoplay; encrypted-media; fullscreen"
-                  allowFullScreen
-                />
+                <>
+                  <iframe
+                    src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                    className="w-full h-full border-0"
+                    allow="autoplay; encrypted-media; fullscreen"
+                    allowFullScreen
+                  />
+                  <button
+                    onClick={() => setIsPlaying(false)}
+                    className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                    aria-label="Закрыть видео"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </>
               ) : video.cover_url ? (
                 <div className="relative w-full h-full cursor-pointer group" onClick={() => setIsPlaying(true)}>
                   <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
