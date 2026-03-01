@@ -169,7 +169,7 @@ Deno.serve(async (req: Request) => {
       try {
         const data = await callSocialKit("/tiktok/search", {
           query,
-          count: "30",
+          count: "50",
         });
 
         let videos: any[] = [];
@@ -234,8 +234,8 @@ Deno.serve(async (req: Request) => {
       else if (body?.mass) mode = "mass";
     } catch { /* no body = cron call */ }
 
-    const kzCount = mode === "lite" ? 8 : mode === "mass" ? kzQueries.length : 80;
-    const worldCount = mode === "lite" ? 2 : mode === "mass" ? worldQueries.length : 20;
+    const kzCount = mode === "lite" ? 8 : mode === "mass" ? kzQueries.length : 120;
+    const worldCount = mode === "lite" ? 2 : mode === "mass" ? worldQueries.length : 30;
 
     const shuffledKz = kzQueries.sort(() => Math.random() - 0.5).slice(0, kzCount);
     const shuffledWorld = worldQueries.sort(() => Math.random() - 0.5).slice(0, worldCount);
@@ -246,7 +246,7 @@ Deno.serve(async (req: Request) => {
     ];
 
     const results: Record<string, number> = {};
-    const BATCH_SIZE = mode === "mass" ? 10 : 5;
+    const BATCH_SIZE = mode === "mass" ? 15 : 10;
 
     for (let i = 0; i < allTasks.length; i += BATCH_SIZE) {
       const batch = allTasks.slice(i, i + BATCH_SIZE);
