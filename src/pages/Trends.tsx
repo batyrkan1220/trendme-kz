@@ -35,6 +35,9 @@ export default function Trends() {
     queryFn: async () => {
       const since = new Date();
       since.setDate(since.getDate() - period);
+      // Also filter by published_at to exclude videos with bad/old dates
+      const maxAge = new Date();
+      maxAge.setDate(maxAge.getDate() - 7);
 
       if (tab === "all") {
         // 80% KZ, 20% world
