@@ -1,5 +1,6 @@
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, X, Target, Copy, Play } from "lucide-react";
+import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
@@ -35,6 +36,7 @@ const fmt = (n: number) => {
 
 export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showScript, setShowScript] = useState(false);
   const lastAnalyzedUrl = useRef<string | null>(null);
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
@@ -59,6 +61,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     if (!open) {
       lastAnalyzedUrl.current = null;
       setIsPlaying(false);
+      setShowScript(false);
     }
   }, [open, video]);
 
@@ -97,7 +100,14 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined} style={{ zIndex: 60 }}>
         <SheetTitle className="sr-only">Анализ видео</SheetTitle>
-
+        {showScript ? (
+          <ScriptGenerationPanel
+            transcript={transcript}
+            summary={summary}
+            caption={video.caption || ""}
+            onBack={() => setShowScript(false)}
+          />
+        ) : (
         <div className="flex flex-col md:flex-row h-full">
           {/* Left panel — video + stats */}
           <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
@@ -263,7 +273,10 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 )}
 
                 {/* Generate Scenario Button */}
-                <button className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setShowScript(true)}
+                  className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                >
                   <Sparkles className="h-5 w-5" />
                   Генерация сценария
                 </button>
@@ -379,6 +392,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             )}
           </div>
         </div>
+        )}
       </SheetContent>
     </Sheet>
   );
