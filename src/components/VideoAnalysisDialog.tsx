@@ -105,7 +105,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
         <div className="flex flex-col md:flex-row h-full">
           {/* Left panel — video + stats */}
           <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
-            <div className="aspect-[9/14] bg-muted relative">
+            <div className="aspect-[9/14] bg-muted relative rounded-2xl overflow-hidden m-2">
               {video.cover_url ? (
                 <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
               ) : (
