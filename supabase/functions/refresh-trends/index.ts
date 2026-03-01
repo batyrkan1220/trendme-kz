@@ -58,21 +58,47 @@ Deno.serve(async (req: Request) => {
 
     // KZ search queries for fresh content
     const kzQueries = [
-      "казахстан тренд тикток",
+      // Казахский язык
       "қазақша тренд",
-      "алматы астана тренд",
-      "казакша приколы",
-      "kazakhstan viral",
-      "казахстан 2026",
       "қазақ тикток тренд",
+      "қазақстан тренд",
+      "қазақша вайн",
+      "қазақша приколдар",
+      "қазақша хит",
+      "қазақша әндер тренд",
+      "қазақ жастары тикток",
+      "қазақша күлкілі",
+      "қазақша челлендж",
+      "қазақстан вирал",
+      // Русский язык
+      "казахстан тренд тикток",
+      "алматы тренд тикток",
+      "астана тренд тикток",
+      "казакша приколы",
+      "казахстан вайн",
+      "казахстан вирусное видео",
+      "казахстан юмор тикток",
+      "казахстан танцы тренд",
+      "шымкент тренд",
+      "караганда тикток",
+      "казахстан 2026 тренд",
+      "казахстан челлендж",
+      "казахстан музыка тренд",
+      "казахский тикток популярное",
+      // English
+      "kazakhstan viral tiktok",
+      "kazakhstan trending",
+      "almaty viral",
     ];
 
     // World search queries
     const worldQueries = [
-      "trending viral",
-      "fyp trending",
-      "dance trend",
-      "funny viral",
+      "trending viral tiktok",
+      "fyp trending 2026",
+      "dance trend tiktok",
+      "funny viral video",
+      "tiktok challenge trending",
+      "viral music tiktok",
     ];
 
     const searchAndSave = async (query: string, region: string) => {
