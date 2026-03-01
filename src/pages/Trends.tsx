@@ -185,26 +185,50 @@ export default function Trends() {
               return (
                 <div
                   key={video.id}
-                  className="group bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover:shadow-xl hover:border-primary/20 transition-all duration-300 cursor-pointer relative flex flex-col"
+                  className="group bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover:shadow-xl hover:border-primary/20 transition-all duration-300 relative flex flex-col"
                   style={{ animationDelay: `${i * 0.02}s` }}
-                  onClick={() => window.open(video.url, "_blank")}
                 >
-                  {/* Cover — full TikTok ratio */}
-                  <div className="relative aspect-[9/12] bg-muted overflow-hidden">
-                    {video.cover_url ? (
-                      <img
-                        src={video.cover_url}
-                        alt=""
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  {/* Cover / Embedded player */}
+                  <div className="relative aspect-[9/12] bg-black overflow-hidden">
+                    {playingId === video.id ? (
+                      <iframe
+                        src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?autoplay=1&music_info=1&description=0`}
+                        className="w-full h-full border-0"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Play className="h-12 w-12 text-muted-foreground/20" />
-                      </div>
-                    )}
+                      <>
+                        {video.cover_url ? (
+                          <img
+                            src={video.cover_url}
+                            alt=""
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                            onClick={() => setPlayingId(video.id)}
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center justify-center cursor-pointer"
+                            onClick={() => setPlayingId(video.id)}
+                          >
+                            <Play className="h-12 w-12 text-muted-foreground/20" />
+                          </div>
+                        )}
 
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+                        {/* Play button overlay */}
+                        <div
+                          className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                          onClick={() => setPlayingId(video.id)}
+                        >
+                          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                            <Play className="h-8 w-8 text-white fill-white ml-1" />
+                          </div>
+                        </div>
+                      </>
+                    )}
 
                     {/* Region badge */}
                     {video._region === "kz" && (
@@ -224,30 +248,25 @@ export default function Trends() {
                       <span className="text-[11px] font-bold">{score > 1000 ? fmt(score) : score.toFixed(0)}</span>
                     </div>
 
-                    {/* Play button overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
-                        <Play className="h-7 w-7 text-white fill-white ml-1" />
-                      </div>
-                    </div>
-
                     {/* Bottom stats on cover */}
-                    <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-                      <div className="flex items-center gap-3 text-white/90 text-[11px] font-medium">
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3.5 w-3.5" />{fmt(Number(video.views))}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Heart className="h-3.5 w-3.5" />{fmt(Number(video.likes))}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MessageCircle className="h-3.5 w-3.5" />{fmt(Number(video.comments))}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Share2 className="h-3.5 w-3.5" />{fmt(Number(video.shares || 0))}
-                        </span>
+                    {playingId !== video.id && (
+                      <div className="absolute bottom-0 left-0 right-0 p-3 z-10 pointer-events-none">
+                        <div className="flex items-center gap-3 text-white/90 text-[11px] font-medium">
+                          <span className="flex items-center gap-1">
+                            <Eye className="h-3.5 w-3.5" />{fmt(Number(video.views))}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Heart className="h-3.5 w-3.5" />{fmt(Number(video.likes))}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MessageCircle className="h-3.5 w-3.5" />{fmt(Number(video.comments))}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Share2 className="h-3.5 w-3.5" />{fmt(Number(video.shares || 0))}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Info section */}
