@@ -113,6 +113,11 @@ Deno.serve(async (req: Request) => {
           videos = [];
         }
 
+        if (videos.length > 0) {
+          console.log("First video keys:", Object.keys(videos[0]));
+          console.log("First video sample:", JSON.stringify(videos[0]).slice(0, 1500));
+        }
+
         // Save search query
         const { data: queryRow } = await userClient
           .from("search_queries")
