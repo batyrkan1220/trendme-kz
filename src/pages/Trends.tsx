@@ -27,7 +27,7 @@ export default function Trends() {
             .from("videos")
             .select("*")
             .eq("region", "kz")
-            .gte("fetched_at", since.toISOString())
+            .gte("published_at", since.toISOString())
             .order("trend_score", { ascending: false })
             .limit(kzLimit),
           supabase
