@@ -10,6 +10,7 @@ export default function Trends() {
   const [period, setPeriod] = useState<7 | 30>(7);
   const [tab, setTab] = useState<"all" | "kz" | "world">("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
