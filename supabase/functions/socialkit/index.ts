@@ -98,6 +98,8 @@ Deno.serve(async (req: Request) => {
         let videos: any[] = [];
         if (Array.isArray(data)) {
           videos = data;
+        } else if (Array.isArray(data?.data?.results)) {
+          videos = data.data.results;
         } else if (Array.isArray(data?.data)) {
           videos = data.data;
         } else if (Array.isArray(data?.items)) {
@@ -107,7 +109,7 @@ Deno.serve(async (req: Request) => {
         } else if (Array.isArray(data?.result)) {
           videos = data.result;
         } else {
-          console.log("SocialKit full response:", JSON.stringify(data).slice(0, 500));
+          console.log("SocialKit full response:", JSON.stringify(data).slice(0, 1000));
           videos = [];
         }
 
