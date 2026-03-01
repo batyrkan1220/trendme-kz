@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music } from "lucide-react";
 import { useState } from "react";
+import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ export default function Trends() {
   const [tab, setTab] = useState<"all" | "kz" | "world">("all");
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -317,7 +319,7 @@ export default function Trends() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.location.href = `/video-analysis?url=${encodeURIComponent(video.url)}`;
+                        setAnalysisVideo(video);
                       }}
                       className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
                     >
@@ -339,6 +341,11 @@ export default function Trends() {
           </div>
         )}
       </div>
+      <VideoAnalysisDialog
+        video={analysisVideo}
+        open={!!analysisVideo}
+        onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
+      />
     </AppLayout>
   );
 }
