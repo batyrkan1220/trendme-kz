@@ -16,7 +16,7 @@ export default function Trends() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const { error } = await supabase.functions.invoke("refresh-trends");
+      const { error } = await supabase.functions.invoke("refresh-trends", { body: { lite: true } });
       if (error) throw error;
       toast.success("Тренды обновлены!");
       queryClient.invalidateQueries({ queryKey: ["trends"] });
