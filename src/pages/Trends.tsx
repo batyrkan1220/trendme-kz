@@ -77,7 +77,7 @@ export default function Trends() {
           .eq("region", tab)
           .gte("published_at", since.toISOString())
           .order("trend_score", { ascending: false })
-          .limit(50);
+          .limit(500);
         return (data || []).map(v => ({ ...v, _region: tab }));
       }
     },
