@@ -50,6 +50,7 @@ export default function Trends() {
             .select("*")
             .eq("region", "kz")
             .gte("fetched_at", since.toISOString())
+            .gte("published_at", maxAge.toISOString())
             .order("trend_score", { ascending: false })
             .limit(kzLimit),
           supabase
@@ -57,6 +58,7 @@ export default function Trends() {
             .select("*")
             .eq("region", "world")
             .gte("fetched_at", since.toISOString())
+            .gte("published_at", maxAge.toISOString())
             .order("trend_score", { ascending: false })
             .limit(worldLimit),
         ]);
