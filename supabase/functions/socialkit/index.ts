@@ -203,9 +203,10 @@ Deno.serve(async (req: Request) => {
         const { video_url } = body;
         if (!video_url) return json({ error: "video_url is required" }, 400);
 
-        // 1. Fetch transcript, stats, comments from SocialKit in parallel
-        const [transcriptRes, statsRes, commentsRes] = await Promise.allSettled([
+        // 1. Fetch transcript, summarize, stats, comments from SocialKit in parallel
+        const [transcriptRes, summarizeRes, statsRes, commentsRes] = await Promise.allSettled([
           callSocialKit("/tiktok/transcript", { url: video_url }),
+          callSocialKit("/tiktok/summarize", { url: video_url }),
           callSocialKit("/tiktok/stats", { url: video_url }),
           callSocialKit("/tiktok/comments", { url: video_url }),
         ]);
@@ -226,6 +227,17 @@ Deno.serve(async (req: Request) => {
           console.error("Transcript fetch failed:", transcriptRes.reason);
         }
 
+        // Extract SocialKit AI summary
+        let skSummary = "";
+        if (summarizeRes.status === "fulfilled") {
+          const sData = summarizeRes.value?.data || summarizeRes.value;
+          skSummary = sData?.summary || sData?.text || "";
+          if (typeof sData === "string") skSummary = sData;
+          console.log("SocialKit summary extracted, length:", skSummary.length);
+        } else {
+          console.error("Summarize fetch failed:", summarizeRes.reason);
+        }
+
         // Extract stats
         let statsData: any = null;
         if (statsRes.status === "fulfilled") {
@@ -233,20 +245,43 @@ Deno.serve(async (req: Request) => {
           console.log("Stats keys:", JSON.stringify(Object.keys(statsData || {})));
         }
 
-        // Extract comments
+        // Extract comments (get top comment texts for AI context)
         let commentsData: any = null;
+        let topCommentsText = "";
         if (commentsRes.status === "fulfilled") {
           commentsData = commentsRes.value?.data || commentsRes.value;
-          console.log("Comments fetched");
+          // Extract top comments text for AI context
+          const commentsList = Array.isArray(commentsData) ? commentsData : commentsData?.comments || [];
+          if (Array.isArray(commentsList)) {
+            topCommentsText = commentsList.slice(0, 10).map((c: any) => c.text || c.comment || c.content || "").filter(Boolean).join("\n");
+          }
+          console.log("Comments fetched, top comments:", topCommentsText.length);
         }
 
-        // 2. Use Lovable AI to generate structured analysis from transcript
+        // 2. Use Lovable AI to generate structured analysis
+        // Run even without transcript — use description, summary, stats, comments
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        
-        if (LOVABLE_API_KEY && transcriptText) {
+        const caption = body.caption || "";
+        const videoTitle = statsData?.title || statsData?.description || caption || "";
+        const videoDescription = statsData?.description || caption || "";
+        const videoDuration = statsData?.duration || "";
+
+        // Build context for AI from all available data
+        const contextParts: string[] = [];
+        if (videoTitle) contextParts.push(`Название/описание: ${videoTitle}`);
+        if (videoDuration) contextParts.push(`Длительность: ${videoDuration} сек`);
+        if (statsData) {
+          contextParts.push(`Статистика: ${statsData.views || 0} просмотров, ${statsData.likes || 0} лайков, ${statsData.comments || 0} комментариев, ${statsData.shares || 0} репостов`);
+        }
+        if (skSummary) contextParts.push(`AI-резюме от SocialKit: ${skSummary}`);
+        if (transcriptText) contextParts.push(`Транскрипт:\n${transcriptText.slice(0, 8000)}`);
+        if (topCommentsText) contextParts.push(`Топ комментарии:\n${topCommentsText.slice(0, 2000)}`);
+
+        const hasContent = contextParts.length > 1; // At least URL + something
+
+        if (LOVABLE_API_KEY && hasContent) {
           try {
-            const caption = body.caption || "";
             const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
               method: "POST",
               headers: {
@@ -258,19 +293,13 @@ Deno.serve(async (req: Request) => {
                 messages: [
                   {
                     role: "system",
-                    content: `Ты — эксперт по анализу вирусного контента в TikTok. Проанализируй видео на основе транскрипта и верни структурированный JSON.
+                    content: `Ты — эксперт по анализу вирусного контента в TikTok. Проанализируй видео на основе всей доступной информации (описание, статистика, транскрипт если есть, комментарии) и верни структурированный анализ.
 
-ВАЖНО: Отвечай ТОЛЬКО вызовом функции, без лишнего текста.`
+ВАЖНО: Отвечай ТОЛЬКО вызовом функции video_analysis, без лишнего текста. Если транскрипт недоступен, анализируй по описанию, статистике и комментариям.`
                   },
                   {
                     role: "user",
-                    content: `Проанализируй это TikTok видео.
-
-Описание: ${caption}
-URL: ${video_url}
-
-Транскрипт:
-${transcriptText.slice(0, 8000)}`
+                    content: `Проанализируй это TikTok видео.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
                   }
                 ],
                 tools: [
@@ -339,6 +368,8 @@ ${transcriptText.slice(0, 8000)}`
                 } catch (e) {
                   console.error("Failed to parse AI response:", e);
                 }
+              } else {
+                console.error("No tool call in AI response:", JSON.stringify(aiData).slice(0, 500));
               }
             } else {
               const errText = await aiResponse.text();
@@ -347,6 +378,8 @@ ${transcriptText.slice(0, 8000)}`
           } catch (e) {
             console.error("AI analysis error:", e);
           }
+        } else {
+          console.log("Skipping AI analysis: LOVABLE_API_KEY:", !!LOVABLE_API_KEY, "hasContent:", hasContent);
         }
 
         // 3. Combine everything into summary_json
