@@ -149,6 +149,12 @@ Deno.serve(async (req: Request) => {
           if (!videoId) continue;
 
           const trends = computeTrend(v);
+
+          // Skip videos older than 7 days
+          const publishedDate = new Date(trends.published_at);
+          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
+          if (publishedDate < sevenDaysAgo) continue;
+
           const stats = v.stats || {};
           const videoRow = {
             platform: "tiktok",
