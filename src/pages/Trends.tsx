@@ -35,8 +35,8 @@ export default function Trends() {
 
       if (tab === "all") {
         // 80% KZ, 20% world
-        const kzLimit = 40;
-        const worldLimit = 10;
+        const kzLimit = 400;
+        const worldLimit = 100;
 
         const [kzRes, worldRes] = await Promise.all([
           supabase
@@ -77,7 +77,7 @@ export default function Trends() {
           .eq("region", tab)
           .gte("published_at", since.toISOString())
           .order("trend_score", { ascending: false })
-          .limit(50);
+          .limit(500);
         return (data || []).map(v => ({ ...v, _region: tab }));
       }
     },
