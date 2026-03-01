@@ -34,21 +34,15 @@ const fmt = (n: number) => {
 };
 
 export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
-  const [activeSection, setActiveSection] = useState<string>("all");
   const lastAnalyzedUrl = useRef<string | null>(null);
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
-    mutationFn: async (videoUrl: string) => {
-      const [statsRes, analysisRes] = await Promise.all([
-        supabase.functions.invoke("socialkit", {
-          body: { action: "video_stats", video_url: videoUrl },
-        }),
-        supabase.functions.invoke("socialkit", {
-          body: { action: "analyze_video", video_url: videoUrl },
-        }),
-      ]);
-      if (analysisRes.error) throw analysisRes.error;
-      return { stats: statsRes.data, analysis: analysisRes.data };
+    mutationFn: async (v: VideoData) => {
+      const { data, error } = await supabase.functions.invoke("socialkit", {
+        body: { action: "analyze_video", video_url: v.url, caption: v.caption || "" },
+      });
+      if (error) throw error;
+      return data;
     },
     onError: (err: Error) => {
       toast.error("Не удалось проанализировать: " + err.message);
@@ -59,7 +53,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     if (open && video && video.url !== lastAnalyzedUrl.current) {
       lastAnalyzedUrl.current = video.url;
       reset();
-      analyze(video.url);
+      analyze(video);
     }
     if (!open) {
       lastAnalyzedUrl.current = null;
@@ -74,11 +68,28 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const shares = Number(video.shares || 0);
   const er = views > 0 ? ((likes + commentsCount + shares) / views * 100).toFixed(2) : "0";
 
-  const publishedDate = video.published_at ? new Date(video.published_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
+  const publishedDate = video.published_at
+    ? new Date(video.published_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : "";
 
-  const summaryJson = analysis?.analysis?.summary_json;
-  const summary = typeof summaryJson === "string" ? (() => { try { return JSON.parse(summaryJson); } catch { return null; } })() : summaryJson;
-  const transcript = analysis?.analysis?.transcript_text;
+  // Parse summary_json
+  const rawSummary = analysis?.summary_json;
+  const summary = typeof rawSummary === "string"
+    ? (() => { try { return JSON.parse(rawSummary); } catch { return null; } })()
+    : rawSummary;
+
+  // Parse transcript
+  let transcript = analysis?.transcript_text || "";
+  if (typeof transcript !== "string") {
+    try { transcript = JSON.stringify(transcript); } catch { transcript = ""; }
+  }
+  // Clean up transcript if it's still JSON-like
+  if (transcript.startsWith("{") || transcript.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(transcript);
+      transcript = parsed?.transcript || parsed?.text || parsed?.data?.transcript || transcript;
+    } catch { /* keep as is */ }
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -94,7 +105,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
         <div className="flex flex-col md:flex-row h-full">
           {/* Left panel — video + stats */}
           <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
-            {/* Video cover */}
             <div className="aspect-[9/14] bg-muted relative">
               {video.cover_url ? (
                 <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
@@ -105,7 +115,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
               )}
             </div>
 
-            {/* Date + actions */}
             <div className="flex items-center justify-between px-4 pt-3">
               <span className="text-sm text-muted-foreground">{publishedDate}</span>
               <div className="flex items-center gap-2">
@@ -121,7 +130,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
               </div>
             </div>
 
-            {/* Author */}
             <div className="flex items-center gap-3 px-4 py-3">
               {video.author_avatar_url ? (
                 <img src={video.author_avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-border/50" />
@@ -131,7 +139,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
               <span className="text-sm font-semibold text-primary truncate">@{video.author_username}</span>
             </div>
 
-            {/* Stats */}
             <div className="px-4 pb-4 space-y-1">
               {[
                 { icon: Eye, label: "Просмотры", value: fmt(views) },
@@ -161,13 +168,13 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   </div>
                 </div>
                 <p className="text-muted-foreground font-medium text-center">
-                  Анализируем, транскрибируем и переводим видео
+                  Анализируем, транскрибируем и переводим видео...
                 </p>
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
               </div>
             ) : analysis ? (
               <>
-                {/* Topic + Title */}
+                {/* Topic */}
                 {summary?.topic && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Тема видео</p>
@@ -179,12 +186,15 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 {summary?.language && (
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground">Язык:</span>
-                    <span className="font-medium text-foreground">{summary.language}</span>
+                    <span className="font-medium text-foreground">
+                      {summary.language === "Русский" ? "🇷🇺 " : summary.language === "English" ? "🇺🇸 " : ""}
+                      {summary.language}
+                    </span>
                   </div>
                 )}
 
                 {/* Tags */}
-                {summary?.tags && Array.isArray(summary.tags) && summary.tags.length > 0 && (
+                {summary?.tags?.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {summary.tags.map((tag: string, i: number) => (
                       <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
@@ -195,7 +205,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 )}
 
                 {/* Niches */}
-                {summary?.niches && Array.isArray(summary.niches) && summary.niches.length > 0 && (
+                {summary?.niches?.length > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">К каким нишам подойдет</p>
                     <div className="flex flex-wrap gap-2">
@@ -233,7 +243,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   Генерация сценария
                 </button>
 
-                {/* Summary */}
+                {/* Summary / Суть */}
                 {summary?.summary && (
                   <div>
                     <h3 className="text-lg font-bold text-foreground mb-3">Суть</h3>
@@ -244,7 +254,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 )}
 
                 {/* Structure / Timeline */}
-                {summary?.structure && Array.isArray(summary.structure) && summary.structure.length > 0 && (
+                {summary?.structure?.length > 0 && (
                   <div>
                     <h3 className="text-lg font-bold text-foreground mb-4">Структура</h3>
                     <div className="relative pl-8 space-y-6">
@@ -259,7 +269,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                             {i === summary.structure.length - 1 && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
                           </div>
                           <div className="flex items-start gap-3">
-                            <span className="text-xs text-muted-foreground whitespace-nowrap mt-0.5 min-w-[60px]">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap mt-0.5 min-w-[70px]">
                               <Clock className="h-3 w-3 inline mr-1" />
                               {seg.time || seg.timestamp || ""}
                             </span>
@@ -304,11 +314,17 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 {summary?.funnel && (
                   <div>
                     <h3 className="text-lg font-bold text-foreground mb-3">Воронка / Маркетинг</h3>
-                    <div className="bg-card rounded-xl border border-border/50 p-4">
+                    <div className="bg-card rounded-xl border border-border/50 p-4 space-y-2">
                       {summary.funnel.direction && (
-                        <div className="mb-2">
+                        <div>
                           <p className="text-sm font-bold text-foreground">Куда ведет</p>
                           <p className="text-sm text-foreground/80">{summary.funnel.direction}</p>
+                        </div>
+                      )}
+                      {summary.funnel.goal && (
+                        <div>
+                          <p className="text-sm font-bold text-foreground">Цель</p>
+                          <p className="text-sm text-foreground/80">{summary.funnel.goal}</p>
                         </div>
                       )}
                       {typeof summary.funnel === "string" && (
@@ -319,23 +335,13 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 )}
 
                 {/* Fallback: raw JSON if no structured data */}
-                {!summary && analysis?.analysis?.summary_json && (
+                {!summary?.topic && !summary?.summary && analysis?.summary_json && (
                   <div>
-                    <h3 className="text-lg font-bold text-foreground mb-3">Анализ</h3>
+                    <h3 className="text-lg font-bold text-foreground mb-3">Анализ (raw)</h3>
                     <pre className="text-xs text-foreground/80 bg-card rounded-xl border border-border/50 p-4 overflow-auto max-h-96 whitespace-pre-wrap">
-                      {typeof analysis.analysis.summary_json === "string"
-                        ? analysis.analysis.summary_json
-                        : JSON.stringify(analysis.analysis.summary_json, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {/* Comments */}
-                {analysis?.analysis?.comments_json && (
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-3">Комментарии</h3>
-                    <pre className="text-xs text-foreground/80 bg-card rounded-xl border border-border/50 p-4 overflow-auto max-h-60 whitespace-pre-wrap">
-                      {JSON.stringify(analysis.analysis.comments_json, null, 2)}
+                      {typeof analysis.summary_json === "string"
+                        ? analysis.summary_json
+                        : JSON.stringify(analysis.summary_json, null, 2)}
                     </pre>
                   </div>
                 )}

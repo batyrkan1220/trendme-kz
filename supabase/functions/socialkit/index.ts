@@ -14,7 +14,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -28,7 +27,6 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY")!;
 
-    // Verify user
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -41,7 +39,6 @@ Deno.serve(async (req: Request) => {
     }
     const userId = user.id;
 
-    // Service role client for writing to videos table
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();
@@ -53,22 +50,23 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
-    // SocialKit API helper
     const callSocialKit = async (path: string, params: Record<string, string>) => {
       const url = new URL(`${SOCIALKIT_BASE}${path}`);
       Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+      console.log(`SocialKit call: ${path}`, url.toString());
       const res = await fetch(url.toString(), {
         headers: { "x-access-key": socialKitKey },
       });
       if (!res.ok) {
         const text = await res.text();
+        console.error(`SocialKit error ${res.status} for ${path}:`, text);
         throw new Error(`SocialKit error ${res.status}: ${text}`);
       }
-      return res.json();
+      const data = await res.json();
+      console.log(`SocialKit ${path} response keys:`, JSON.stringify(Object.keys(data)));
+      return data;
     };
 
-    // Compute trend score for a video
-    // Extract publication date from TikTok API response
     const getPublishedAt = (video: any): string => {
       if (video.createTime) return new Date(video.createTime * 1000).toISOString();
       if (video.created_at) return new Date(video.created_at).toISOString();
@@ -103,24 +101,17 @@ Deno.serve(async (req: Request) => {
         });
 
         let videos: any[] = [];
-        if (Array.isArray(data)) {
-          videos = data;
-        } else if (Array.isArray(data?.data?.results)) {
-          videos = data.data.results;
-        } else if (Array.isArray(data?.data)) {
-          videos = data.data;
-        } else if (Array.isArray(data?.items)) {
-          videos = data.items;
-        } else if (Array.isArray(data?.videos)) {
-          videos = data.videos;
-        } else if (Array.isArray(data?.result)) {
-          videos = data.result;
-        } else {
-          console.log("SocialKit unexpected response format:", JSON.stringify(data).slice(0, 500));
+        if (Array.isArray(data)) videos = data;
+        else if (Array.isArray(data?.data?.results)) videos = data.data.results;
+        else if (Array.isArray(data?.data)) videos = data.data;
+        else if (Array.isArray(data?.items)) videos = data.items;
+        else if (Array.isArray(data?.videos)) videos = data.videos;
+        else if (Array.isArray(data?.result)) videos = data.result;
+        else {
+          console.log("SocialKit unexpected response:", JSON.stringify(data).slice(0, 500));
           videos = [];
         }
 
-        // Save search query
         const { data: queryRow } = await userClient
           .from("search_queries")
           .upsert(
@@ -135,7 +126,6 @@ Deno.serve(async (req: Request) => {
           .select()
           .single();
 
-        // Upsert videos using service role
         const upsertedVideos = [];
         for (const v of videos) {
           const videoId = v.id || v.video_id || v.aweme_id;
@@ -172,7 +162,6 @@ Deno.serve(async (req: Request) => {
           if (upserted) upsertedVideos.push(upserted);
         }
 
-        // Activity log
         await userClient.from("activity_log").insert({
           user_id: userId,
           type: "search_run",
@@ -187,9 +176,8 @@ Deno.serve(async (req: Request) => {
         if (!video_url) return json({ error: "video_url is required" }, 400);
 
         const data = await callSocialKit("/tiktok/stats", { url: video_url });
-
-        // Update video in DB if exists
         const videoData = data.data || data;
+
         if (videoData) {
           const videoId = videoData.id || videoData.video_id || videoData.aweme_id;
           if (videoId) {
@@ -215,23 +203,167 @@ Deno.serve(async (req: Request) => {
         const { video_url } = body;
         if (!video_url) return json({ error: "video_url is required" }, 400);
 
-        // Call all three endpoints
-        const [summary, transcript, commentsData] = await Promise.allSettled([
-          callSocialKit("/tiktok/summarize", { url: video_url }),
+        // 1. Fetch transcript, stats, comments from SocialKit in parallel
+        const [transcriptRes, statsRes, commentsRes] = await Promise.allSettled([
           callSocialKit("/tiktok/transcript", { url: video_url }),
+          callSocialKit("/tiktok/stats", { url: video_url }),
           callSocialKit("/tiktok/comments", { url: video_url }),
         ]);
 
+        // Extract transcript text
+        let transcriptText = "";
+        if (transcriptRes.status === "fulfilled") {
+          const tData = transcriptRes.value?.data || transcriptRes.value;
+          transcriptText = tData?.transcript || tData?.text || "";
+          if (!transcriptText && tData?.segments && Array.isArray(tData.segments)) {
+            transcriptText = tData.segments.map((s: any) => s.text || s.content || "").join(" ");
+          }
+          if (!transcriptText && typeof tData === "string") {
+            transcriptText = tData;
+          }
+          console.log("Transcript extracted, length:", transcriptText.length);
+        } else {
+          console.error("Transcript fetch failed:", transcriptRes.reason);
+        }
+
+        // Extract stats
+        let statsData: any = null;
+        if (statsRes.status === "fulfilled") {
+          statsData = statsRes.value?.data || statsRes.value;
+          console.log("Stats keys:", JSON.stringify(Object.keys(statsData || {})));
+        }
+
+        // Extract comments
+        let commentsData: any = null;
+        if (commentsRes.status === "fulfilled") {
+          commentsData = commentsRes.value?.data || commentsRes.value;
+          console.log("Comments fetched");
+        }
+
+        // 2. Use Lovable AI to generate structured analysis from transcript
+        let aiAnalysis: any = null;
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        
+        if (LOVABLE_API_KEY && transcriptText) {
+          try {
+            const caption = body.caption || "";
+            const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                messages: [
+                  {
+                    role: "system",
+                    content: `Ты — эксперт по анализу вирусного контента в TikTok. Проанализируй видео на основе транскрипта и верни структурированный JSON.
+
+ВАЖНО: Отвечай ТОЛЬКО вызовом функции, без лишнего текста.`
+                  },
+                  {
+                    role: "user",
+                    content: `Проанализируй это TikTok видео.
+
+Описание: ${caption}
+URL: ${video_url}
+
+Транскрипт:
+${transcriptText.slice(0, 8000)}`
+                  }
+                ],
+                tools: [
+                  {
+                    type: "function",
+                    function: {
+                      name: "video_analysis",
+                      description: "Структурированный анализ TikTok видео",
+                      parameters: {
+                        type: "object",
+                        properties: {
+                          topic: { type: "string", description: "Тема видео — краткий заголовок 5-15 слов" },
+                          language: { type: "string", description: "Язык видео (Русский, English, etc.)" },
+                          tags: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "2-4 формата/типа контента, например: Говорящая голова 🗣, Обзор товара / Распаковка 📦, Сравнение (Versus) 🆚, Сторителлинг 📖, Лайфхак 💡, Юмор 😂, Туториал 📚"
+                          },
+                          niches: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "2-4 ниши с эмодзи, например: 💼 Лайфстайл, 🏠 Дом, Уют и Ремонт, 🧠 Новости нейросетей"
+                          },
+                          summary: { type: "string", description: "Суть видео — подробное описание в 2-4 предложениях" },
+                          structure: {
+                            type: "array",
+                            items: {
+                              type: "object",
+                              properties: {
+                                time: { type: "string", description: "Временной диапазон, например: 0-3 сек, 3-152 сек, Конец видео" },
+                                title: { type: "string", description: "Название сегмента" },
+                                description: { type: "string", description: "Описание что происходит в этом сегменте" }
+                              },
+                              required: ["time", "title", "description"]
+                            },
+                            description: "3-5 сегментов структуры видео с таймкодами"
+                          },
+                          hook_phrase: { type: "string", description: "Первая фраза-хук которая цепляет внимание" },
+                          visual_hook: { type: "string", description: "Описание визуального хука — что видит зритель в первые секунды" },
+                          text_hook: { type: "string", description: "Текст на экране в первые секунды (если есть)" },
+                          funnel: {
+                            type: "object",
+                            properties: {
+                              direction: { type: "string", description: "Куда ведет видео — например: 🔴 Без призыва (Работа на охват), В профиль, На ссылку в био, В комментарии" },
+                              goal: { type: "string", description: "Цель видео — охват, продажи, подписки и т.д." }
+                            },
+                            required: ["direction", "goal"]
+                          }
+                        },
+                        required: ["topic", "language", "tags", "niches", "summary", "structure", "hook_phrase", "visual_hook", "text_hook", "funnel"]
+                      }
+                    }
+                  }
+                ],
+                tool_choice: { type: "function", function: { name: "video_analysis" } },
+              }),
+            });
+
+            if (aiResponse.ok) {
+              const aiData = await aiResponse.json();
+              const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+              if (toolCall?.function?.arguments) {
+                try {
+                  aiAnalysis = JSON.parse(toolCall.function.arguments);
+                  console.log("AI analysis generated successfully, keys:", Object.keys(aiAnalysis));
+                } catch (e) {
+                  console.error("Failed to parse AI response:", e);
+                }
+              }
+            } else {
+              const errText = await aiResponse.text();
+              console.error("AI gateway error:", aiResponse.status, errText);
+            }
+          } catch (e) {
+            console.error("AI analysis error:", e);
+          }
+        }
+
+        // 3. Combine everything into summary_json
+        const summaryJson = {
+          ...(aiAnalysis || {}),
+          stats: statsData ? {
+            views: statsData.playCount || statsData.views || 0,
+            likes: statsData.diggCount || statsData.likes || 0,
+            comments: statsData.commentCount || statsData.comments || 0,
+            shares: statsData.shareCount || statsData.shares || 0,
+          } : null,
+        };
+
         const result = {
-          summary_json: summary.status === "fulfilled" ? summary.value : null,
-          transcript_text:
-            transcript.status === "fulfilled"
-              ? typeof transcript.value === "string"
-                ? transcript.value
-                : JSON.stringify(transcript.value)
-              : null,
-          comments_json:
-            commentsData.status === "fulfilled" ? commentsData.value : null,
+          summary_json: summaryJson,
+          transcript_text: transcriptText || null,
+          comments_json: commentsData,
         };
 
         // Save analysis
@@ -246,7 +378,6 @@ Deno.serve(async (req: Request) => {
           .select()
           .single();
 
-        // Activity log
         await userClient.from("activity_log").insert({
           user_id: userId,
           type: "video_analysis",
@@ -258,22 +389,14 @@ Deno.serve(async (req: Request) => {
 
       case "account_stats": {
         const { profile_url } = body;
-        if (!profile_url)
-          return json({ error: "profile_url is required" }, 400);
+        if (!profile_url) return json({ error: "profile_url is required" }, 400);
 
-        const data = await callSocialKit("/tiktok/channel-stats", {
-          url: profile_url,
-        });
-
+        const data = await callSocialKit("/tiktok/channel-stats", { url: profile_url });
         const accountData = data.data || data;
 
-        // Upsert account
         const username =
-          accountData.uniqueId ||
-          accountData.unique_id ||
-          accountData.username ||
-          profile_url.split("@").pop()?.split("?")[0] ||
-          "";
+          accountData.uniqueId || accountData.unique_id || accountData.username ||
+          profile_url.split("@").pop()?.split("?")[0] || "";
 
         const { data: account } = await userClient
           .from("accounts_tracked")
@@ -297,7 +420,6 @@ Deno.serve(async (req: Request) => {
           .select()
           .single();
 
-        // Activity log
         await userClient.from("activity_log").insert({
           user_id: userId,
           type: "account_analysis",
