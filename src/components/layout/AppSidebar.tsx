@@ -52,18 +52,22 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     <aside
       className={cn(
         "h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 shrink-0 z-30",
-        collapsed ? "w-[68px]" : "w-[240px]"
+        collapsed ? "w-[68px]" : "w-[248px]"
       )}
     >
+      {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border shrink-0">
-        <Flame className="h-6 w-6 text-primary shrink-0" />
+        <div className="h-9 w-9 rounded-xl gradient-hero flex items-center justify-center shrink-0 glow-primary">
+          <Flame className="h-5 w-5 text-primary-foreground" />
+        </div>
         {!collapsed && (
-          <span className="font-bold text-lg text-sidebar-accent-foreground whitespace-nowrap">
+          <span className="font-bold text-lg text-foreground whitespace-nowrap gradient-text">
             Trend TikTok
           </span>
         )}
       </div>
 
+      {/* Main Nav */}
       <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
         {mainItems.map((item) => {
           const active = location.pathname === item.path;
@@ -73,20 +77,24 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
               to={item.path}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
                 active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                  : "text-sidebar-foreground hover:bg-muted hover:text-foreground",
                 collapsed && "justify-center px-0"
               )}
             >
-              <item.icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-primary")} />
+              <item.icon className={cn(
+                "h-[18px] w-[18px] shrink-0 transition-colors",
+                active && "text-primary"
+              )} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
+      {/* Bottom */}
       <div className="border-t border-sidebar-border py-3 px-2 space-y-0.5 shrink-0">
         {bottomItems.map((item) => {
           const active = location.pathname === item.path;
@@ -96,14 +104,17 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
               to={item.path}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
                 active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                  : "text-sidebar-foreground hover:bg-muted hover:text-foreground",
                 collapsed && "justify-center px-0"
               )}
             >
-              <item.icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-primary")} />
+              <item.icon className={cn(
+                "h-[18px] w-[18px] shrink-0",
+                active && "text-primary"
+              )} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           );
@@ -111,18 +122,18 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
         {/* User Profile */}
         <div className={cn(
-          "flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg",
+          "flex items-center gap-3 px-3 py-2.5 mt-2 rounded-xl",
           collapsed && "justify-center px-0"
         )}>
-          <div className="h-8 w-8 rounded-full gradient-hero shrink-0 flex items-center justify-center text-xs font-bold text-primary-foreground">
+          <div className="h-9 w-9 rounded-full gradient-hero shrink-0 flex items-center justify-center text-xs font-bold text-primary-foreground shadow-md">
             {initials}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">
+              <p className="text-sm font-semibold text-foreground truncate">
                 {user?.email?.split("@")[0] || "Пользователь"}
               </p>
-              <p className="text-xs text-sidebar-foreground truncate">{user?.email || ""}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
             </div>
           )}
         </div>
@@ -131,7 +142,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         <button
           onClick={handleLogout}
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-colors",
+            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-colors",
             collapsed && "justify-center px-0"
           )}
         >
@@ -143,7 +154,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         <button
           onClick={onToggle}
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground w-full transition-colors",
+            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-muted hover:text-foreground w-full transition-colors",
             collapsed && "justify-center px-0"
           )}
         >

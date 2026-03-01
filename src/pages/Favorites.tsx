@@ -31,31 +31,31 @@ export default function Favorites() {
   return (
     <AppLayout>
       <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Избранное</h1>
+        <h1 className="text-2xl font-bold text-foreground">Избранное ⭐</h1>
 
         {favorites.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {favorites.map((fav: any) => {
               const video = fav.videos;
               if (!video) return null;
               return (
-                <div key={fav.id} className="bg-card rounded-xl border border-border overflow-hidden">
+                <div key={fav.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all">
                   {video.cover_url && (
                     <img src={video.cover_url} alt="" className="w-full h-48 object-cover" />
                   )}
                   <div className="p-4 space-y-2">
-                    <p className="text-sm text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
-                    <p className="text-xs text-muted-foreground">@{video.author_username}</p>
+                    <p className="text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
+                    <p className="text-xs text-primary font-semibold">@{video.author_username}</p>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{Number(video.views).toLocaleString("ru-RU")}</span>
-                      <span className="flex items-center gap-1"><Heart className="h-3 w-3" />{Number(video.likes).toLocaleString("ru-RU")}</span>
-                      <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{Number(video.comments).toLocaleString("ru-RU")}</span>
+                      <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{Number(video.views).toLocaleString("ru-RU")}</span>
+                      <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" />{Number(video.likes).toLocaleString("ru-RU")}</span>
+                      <span className="flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{Number(video.comments).toLocaleString("ru-RU")}</span>
                     </div>
-                    <div className="flex justify-between items-center pt-2">
+                    <div className="flex justify-between items-center pt-2 border-t border-border/50">
                       <span className="text-xs text-muted-foreground">
                         {new Date(fav.created_at).toLocaleDateString("ru-RU")}
                       </span>
-                      <button onClick={() => removeFav(fav.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                      <button onClick={() => removeFav(fav.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors p-1">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -66,8 +66,10 @@ export default function Favorites() {
           </div>
         ) : (
           <div className="text-center py-20">
-            <Star className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground text-sm">
+            <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+              <Star className="h-10 w-10 text-muted-foreground/30" />
+            </div>
+            <p className="text-muted-foreground font-medium">
               Нет избранных видео. Добавьте видео в избранное через поиск.
             </p>
           </div>
