@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket } from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,6 +104,22 @@ export default function Trends() {
   }, [allVideos, visibleCount]);
 
   const hasMore = visibleCount < allVideos.length;
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => c + PAGE_SIZE);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    const el = loaderRef.current;
+    if (el) observer.observe(el);
+    return () => { if (el) observer.unobserve(el); };
+  }, [hasMore, visibleCount]);
 
   const { data: userFavorites = [] } = useQuery({
     queryKey: ["user-favorites", user?.id],
@@ -386,15 +402,9 @@ export default function Trends() {
             })}
           </div>
 
-          {/* Load more */}
           {hasMore && (
-            <div className="flex justify-center pt-4">
-              <button
-                onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
-                className="px-8 py-3 rounded-xl bg-primary/10 text-primary font-semibold text-sm border border-primary/30 hover:bg-primary/20 transition-all"
-              >
-                Показать ещё ({allVideos.length - visibleCount} осталось)
-              </button>
+            <div ref={loaderRef} className="flex justify-center py-8">
+              <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             </div>
           )}
           </>
