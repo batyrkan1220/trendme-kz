@@ -169,7 +169,7 @@ Deno.serve(async (req: Request) => {
       try {
         const data = await callSocialKit("/tiktok/search", {
           query,
-          count: "30",
+          count: "50",
         });
 
         let videos: any[] = [];
