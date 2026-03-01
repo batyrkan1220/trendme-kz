@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
+  const [region, setRegion] = useState<"kz" | "world">("kz");
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
