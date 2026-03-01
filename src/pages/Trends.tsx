@@ -77,8 +77,8 @@ export default function Trends() {
         const { data } = await supabase
           .from("videos")
           .select("*")
-          .eq("region", tab)
-          .gte("published_at", since.toISOString())
+            .eq("region", tab)
+            .gte("fetched_at", since.toISOString())
           .order("trend_score", { ascending: false })
           .limit(500);
         return (data || []).map(v => ({ ...v, _region: tab }));
