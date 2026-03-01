@@ -20,11 +20,9 @@ export default function VideoAnalysis() {
 
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async (videoUrl: string) => {
-      // First get stats
       const { data: statsData } = await supabase.functions.invoke("socialkit", {
         body: { action: "video_stats", video_url: videoUrl },
       });
-      // Then full analysis
       const { data: analysisData, error } = await supabase.functions.invoke("socialkit", {
         body: { action: "analyze_video", video_url: videoUrl },
       });
@@ -47,7 +45,7 @@ export default function VideoAnalysis() {
   return (
     <AppLayout>
       <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Анализ видео</h1>
+        <h1 className="text-2xl font-bold text-foreground">Анализ видео 🎬</h1>
 
         <div className="flex gap-3">
           <Input
@@ -55,12 +53,12 @@ export default function VideoAnalysis() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-            className="flex-1 bg-secondary border-border"
+            className="flex-1 h-12 bg-card border-border rounded-xl card-shadow"
           />
           <Button
             onClick={handleAnalyze}
             disabled={isPending}
-            className="gradient-hero text-primary-foreground border-0 px-6 glow-primary hover:opacity-90 transition-opacity"
+            className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold"
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
               <><Video className="h-4 w-4 mr-2" />Анализировать</>
@@ -68,15 +66,15 @@ export default function VideoAnalysis() {
           </Button>
         </div>
 
-        <div className="flex gap-1 bg-secondary rounded-lg p-1 border border-border w-fit">
+        <div className="flex gap-1 bg-card rounded-xl p-1 border border-border/50 w-fit card-shadow">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                 activeTab === tab.id
-                  ? "gradient-hero text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "gradient-hero text-primary-foreground glow-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
               <tab.icon className="h-4 w-4" />
@@ -86,35 +84,27 @@ export default function VideoAnalysis() {
         </div>
 
         {analysis ? (
-          <div className="bg-card rounded-xl border border-border p-6">
+          <div className="bg-card rounded-2xl border border-border/50 p-6 card-shadow">
             {activeTab === "stats" && stats && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="gradient-card rounded-lg p-4 text-center">
-                  <Eye className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{Number(stats.playCount || stats.views || 0).toLocaleString("ru-RU")}</p>
-                  <p className="text-xs text-muted-foreground">Просмотры</p>
-                </div>
-                <div className="gradient-card rounded-lg p-4 text-center">
-                  <Heart className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{Number(stats.diggCount || stats.likes || 0).toLocaleString("ru-RU")}</p>
-                  <p className="text-xs text-muted-foreground">Лайки</p>
-                </div>
-                <div className="gradient-card rounded-lg p-4 text-center">
-                  <MessageCircle className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{Number(stats.commentCount || stats.comments || 0).toLocaleString("ru-RU")}</p>
-                  <p className="text-xs text-muted-foreground">Комментарии</p>
-                </div>
-                <div className="gradient-card rounded-lg p-4 text-center">
-                  <Share2 className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{Number(stats.shareCount || stats.shares || 0).toLocaleString("ru-RU")}</p>
-                  <p className="text-xs text-muted-foreground">Репосты</p>
-                </div>
+                {[
+                  { icon: Eye, value: stats.playCount || stats.views || 0, label: "Просмотры" },
+                  { icon: Heart, value: stats.diggCount || stats.likes || 0, label: "Лайки" },
+                  { icon: MessageCircle, value: stats.commentCount || stats.comments || 0, label: "Комментарии" },
+                  { icon: Share2, value: stats.shareCount || stats.shares || 0, label: "Репосты" },
+                ].map((s) => (
+                  <div key={s.label} className="gradient-card rounded-xl p-5 text-center hover-lift transition-transform">
+                    <s.icon className="h-6 w-6 text-primary mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-foreground">{Number(s.value).toLocaleString("ru-RU")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+                  </div>
+                ))}
               </div>
             )}
             {activeTab === "summary" && (
-              <div className="prose prose-invert max-w-none">
+              <div>
                 {analysisData?.summary_json ? (
-                  <pre className="text-sm text-foreground whitespace-pre-wrap bg-secondary rounded-lg p-4">
+                  <pre className="text-sm text-foreground whitespace-pre-wrap bg-muted rounded-xl p-5">
                     {typeof analysisData.summary_json === "string"
                       ? analysisData.summary_json
                       : JSON.stringify(analysisData.summary_json, null, 2)}
@@ -127,7 +117,7 @@ export default function VideoAnalysis() {
             {activeTab === "transcript" && (
               <div>
                 {analysisData?.transcript_text ? (
-                  <p className="text-sm text-foreground whitespace-pre-wrap bg-secondary rounded-lg p-4">
+                  <p className="text-sm text-foreground whitespace-pre-wrap bg-muted rounded-xl p-5">
                     {analysisData.transcript_text}
                   </p>
                 ) : (
@@ -138,7 +128,7 @@ export default function VideoAnalysis() {
             {activeTab === "comments" && (
               <div>
                 {analysisData?.comments_json ? (
-                  <pre className="text-sm text-foreground whitespace-pre-wrap bg-secondary rounded-lg p-4 max-h-96 overflow-y-auto">
+                  <pre className="text-sm text-foreground whitespace-pre-wrap bg-muted rounded-xl p-5 max-h-96 overflow-y-auto">
                     {JSON.stringify(analysisData.comments_json, null, 2)}
                   </pre>
                 ) : (
@@ -148,9 +138,11 @@ export default function VideoAnalysis() {
             )}
           </div>
         ) : !isPending ? (
-          <div className="bg-card rounded-xl border border-border p-12 text-center">
-            <Video className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground text-sm">Вставьте ссылку на видео, чтобы начать анализ</p>
+          <div className="bg-card rounded-2xl border border-border/50 p-12 text-center card-shadow">
+            <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+              <Video className="h-10 w-10 text-muted-foreground/30" />
+            </div>
+            <p className="text-muted-foreground font-medium">Вставьте ссылку на видео, чтобы начать анализ</p>
           </div>
         ) : null}
       </div>
