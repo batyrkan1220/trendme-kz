@@ -41,7 +41,7 @@ export default function Favorites() {
               return (
                 <div key={fav.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all">
                   {video.cover_url && (
-                    <img src={video.cover_url} alt="" className="w-full h-48 object-cover" />
+                    <img src={video.cover_url} alt="" className="w-full h-48 object-cover rounded-2xl p-2" />
                   )}
                   <div className="p-4 space-y-2">
                     <p className="text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>

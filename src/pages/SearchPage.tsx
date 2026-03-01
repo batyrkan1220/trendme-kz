@@ -151,7 +151,7 @@ export default function SearchPage() {
                       <img
                         src={video.cover_url}
                         alt=""
-                        className="h-28 w-20 object-cover rounded-xl shrink-0"
+                        className="h-28 w-20 object-cover rounded-2xl shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0 space-y-2">

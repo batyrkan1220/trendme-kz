@@ -191,7 +191,7 @@ export default function Trends() {
                   style={{ animationDelay: `${i * 0.02}s` }}
                 >
                   {/* Video area */}
-                  <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-t-2xl">
+                  <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
                     {playingId === video.id ? (
                       <iframe
                         src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
