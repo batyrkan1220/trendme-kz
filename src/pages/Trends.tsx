@@ -239,12 +239,6 @@ export default function Trends() {
                             <span className="text-[11px] font-bold text-foreground">Tik-Tok</span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            {video._region === "kz" && (
-                              <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">🇰🇿</span>
-                            )}
-                            {video._region === "world" && (
-                              <span className="bg-accent text-accent-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">🌍</span>
-                            )}
                             <button
                               onClick={(e) => { e.stopPropagation(); toggleFav(video.id); }}
                               className="pointer-events-auto w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
