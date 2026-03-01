@@ -182,9 +182,18 @@ Deno.serve(async (req: Request) => {
       }
     };
 
-    // 80% KZ, 20% world
-    const shuffledKz = kzQueries.sort(() => Math.random() - 0.5).slice(0, 80);
-    const shuffledWorld = worldQueries.sort(() => Math.random() - 0.5).slice(0, 20);
+    // Check if this is a manual (lite) or cron (full) refresh
+    let isLite = false;
+    try {
+      const body = await req.json();
+      isLite = body?.lite === true;
+    } catch { /* no body = cron call */ }
+
+    const kzCount = isLite ? 8 : 80;
+    const worldCount = isLite ? 2 : 20;
+
+    const shuffledKz = kzQueries.sort(() => Math.random() - 0.5).slice(0, kzCount);
+    const shuffledWorld = worldQueries.sort(() => Math.random() - 0.5).slice(0, worldCount);
 
     const results: Record<string, number> = {};
 
