@@ -94,8 +94,6 @@ Deno.serve(async (req: Request) => {
           count: String(limit),
         });
 
-        console.log("SocialKit raw response keys:", Object.keys(data || {}));
-        
         let videos: any[] = [];
         if (Array.isArray(data)) {
           videos = data;
@@ -110,13 +108,8 @@ Deno.serve(async (req: Request) => {
         } else if (Array.isArray(data?.result)) {
           videos = data.result;
         } else {
-          console.log("SocialKit full response:", JSON.stringify(data).slice(0, 1000));
+          console.log("SocialKit unexpected response format:", JSON.stringify(data).slice(0, 500));
           videos = [];
-        }
-
-        if (videos.length > 0) {
-          console.log("First video keys:", Object.keys(videos[0]));
-          console.log("First video sample:", JSON.stringify(videos[0]).slice(0, 1500));
         }
 
         // Save search query
