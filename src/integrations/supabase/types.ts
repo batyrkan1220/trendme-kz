@@ -14,13 +14,248 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      accounts_tracked: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          bio_link: string | null
+          created_at: string
+          fetched_at: string
+          followers: number | null
+          following: number | null
+          id: string
+          profile_url: string
+          total_likes: number | null
+          total_videos: number | null
+          user_id: string
+          username: string
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          bio_link?: string | null
+          created_at?: string
+          fetched_at?: string
+          followers?: number | null
+          following?: number | null
+          id?: string
+          profile_url: string
+          total_likes?: number | null
+          total_videos?: number | null
+          user_id: string
+          username: string
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          bio_link?: string | null
+          created_at?: string
+          fetched_at?: string
+          followers?: number | null
+          following?: number | null
+          id?: string
+          profile_url?: string
+          total_likes?: number | null
+          total_videos?: number | null
+          user_id?: string
+          username?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      activity_log: {
+        Row: {
+          created_at: string
+          id: string
+          payload_json: Json | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload_json?: Json | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload_json?: Json | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      search_queries: {
+        Row: {
+          created_at: string
+          id: string
+          last_run_at: string
+          query_text: string
+          total_results_saved: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_run_at?: string
+          query_text: string
+          total_results_saved?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_run_at?: string
+          query_text?: string
+          total_results_saved?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      video_analysis: {
+        Row: {
+          analyzed_at: string
+          comments_json: Json | null
+          id: string
+          platform_video_id: string | null
+          summary_json: Json | null
+          transcript_text: string | null
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          analyzed_at?: string
+          comments_json?: Json | null
+          id?: string
+          platform_video_id?: string | null
+          summary_json?: Json | null
+          transcript_text?: string | null
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          analyzed_at?: string
+          comments_json?: Json | null
+          id?: string
+          platform_video_id?: string | null
+          summary_json?: Json | null
+          transcript_text?: string | null
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          author_avatar_url: string | null
+          author_display_name: string | null
+          author_username: string | null
+          caption: string | null
+          comments: number | null
+          cover_url: string | null
+          created_at: string
+          duration_sec: number | null
+          fetched_at: string
+          id: string
+          likes: number | null
+          platform: string
+          platform_video_id: string
+          shares: number | null
+          source_query_id: string | null
+          trend_score: number | null
+          url: string
+          velocity_comments: number | null
+          velocity_likes: number | null
+          velocity_views: number | null
+          views: number | null
+        }
+        Insert: {
+          author_avatar_url?: string | null
+          author_display_name?: string | null
+          author_username?: string | null
+          caption?: string | null
+          comments?: number | null
+          cover_url?: string | null
+          created_at?: string
+          duration_sec?: number | null
+          fetched_at?: string
+          id?: string
+          likes?: number | null
+          platform?: string
+          platform_video_id: string
+          shares?: number | null
+          source_query_id?: string | null
+          trend_score?: number | null
+          url: string
+          velocity_comments?: number | null
+          velocity_likes?: number | null
+          velocity_views?: number | null
+          views?: number | null
+        }
+        Update: {
+          author_avatar_url?: string | null
+          author_display_name?: string | null
+          author_username?: string | null
+          caption?: string | null
+          comments?: number | null
+          cover_url?: string | null
+          created_at?: string
+          duration_sec?: number | null
+          fetched_at?: string
+          id?: string
+          likes?: number | null
+          platform?: string
+          platform_video_id?: string
+          shares?: number | null
+          source_query_id?: string | null
+          trend_score?: number | null
+          url?: string
+          velocity_comments?: number | null
+          velocity_likes?: number | null
+          velocity_views?: number | null
+          views?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_owner: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
