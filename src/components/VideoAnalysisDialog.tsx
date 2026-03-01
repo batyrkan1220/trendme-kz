@@ -82,7 +82,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden">
+      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined}>
+        <SheetTitle className="sr-only">Анализ видео</SheetTitle>
         <button
           onClick={() => onOpenChange(false)}
           className="absolute top-4 right-4 z-50 w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors"
