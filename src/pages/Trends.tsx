@@ -141,6 +141,7 @@ export default function Trends() {
               </button>
             ))}
           </div>
+          </div>
         </div>
 
         <div className="flex gap-2">
