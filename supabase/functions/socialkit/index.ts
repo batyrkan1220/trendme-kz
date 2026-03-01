@@ -70,11 +70,12 @@ Deno.serve(async (req: Request) => {
 
     // Compute trend score for a video
     const computeTrend = (video: any) => {
+      const stats = video.stats || {};
       const createdAt = new Date(video.created_at || video.createTime * 1000);
       const hoursSince = Math.max(1, (Date.now() - createdAt.getTime()) / 3600000);
-      const vViews = (video.views || video.playCount || 0) / hoursSince;
-      const vLikes = (video.likes || video.diggCount || 0) / hoursSince;
-      const vComments = (video.comments || video.commentCount || 0) / hoursSince;
+      const vViews = (stats.views || video.views || video.playCount || 0) / hoursSince;
+      const vLikes = (stats.likes || video.likes || video.diggCount || 0) / hoursSince;
+      const vComments = (stats.comments || video.comments || video.commentCount || 0) / hoursSince;
       return {
         velocity_views: vViews,
         velocity_likes: vLikes,
