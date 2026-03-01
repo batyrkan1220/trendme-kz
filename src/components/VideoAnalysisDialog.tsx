@@ -36,6 +36,7 @@ const fmt = (n: number) => {
 
 export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showScript, setShowScript] = useState(false);
   const lastAnalyzedUrl = useRef<string | null>(null);
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
