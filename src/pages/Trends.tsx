@@ -35,8 +35,8 @@ export default function Trends() {
 
       if (tab === "all") {
         // 80% KZ, 20% world
-        const kzLimit = 40;
-        const worldLimit = 10;
+        const kzLimit = 400;
+        const worldLimit = 100;
 
         const [kzRes, worldRes] = await Promise.all([
           supabase
