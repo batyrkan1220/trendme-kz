@@ -93,7 +93,23 @@ Deno.serve(async (req: Request) => {
           count: String(limit),
         });
 
-        const videos = data.data || data.items || data || [];
+        console.log("SocialKit raw response keys:", Object.keys(data || {}));
+        
+        let videos: any[] = [];
+        if (Array.isArray(data)) {
+          videos = data;
+        } else if (Array.isArray(data?.data)) {
+          videos = data.data;
+        } else if (Array.isArray(data?.items)) {
+          videos = data.items;
+        } else if (Array.isArray(data?.videos)) {
+          videos = data.videos;
+        } else if (Array.isArray(data?.result)) {
+          videos = data.result;
+        } else {
+          console.log("SocialKit full response:", JSON.stringify(data).slice(0, 500));
+          videos = [];
+        }
 
         // Save search query
         const { data: queryRow } = await userClient
