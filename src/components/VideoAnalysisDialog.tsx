@@ -266,7 +266,10 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 )}
 
                 {/* Generate Scenario Button */}
-                <button className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setShowScript(true)}
+                  className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                >
                   <Sparkles className="h-5 w-5" />
                   Генерация сценария
                 </button>
