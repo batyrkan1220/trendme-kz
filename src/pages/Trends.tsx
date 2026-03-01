@@ -1,11 +1,29 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+const fmt = (n: number) => {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  return String(n);
+};
+
+const getTimeAgo = (published_at: string | null) => {
+  if (!published_at) return "";
+  const h = Math.floor((Date.now() - new Date(published_at).getTime()) / 3600000);
+  if (h < 1) return "только что";
+  if (h < 24) return `${h}ч назад`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}д назад`;
+  return `${Math.floor(d / 30)} мес. назад`;
+};
+
+const PAGE_SIZE = 30;
 
 export default function Trends() {
   const [period, setPeriod] = useState<1 | 3 | 7>(7);
@@ -13,6 +31,7 @@ export default function Trends() {
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -30,81 +49,73 @@ export default function Trends() {
     }
   };
 
-  const { data: videos = [] } = useQuery({
+  const { data: allVideos = [], isLoading } = useQuery({
     queryKey: ["trends", period, tab],
     queryFn: async () => {
       const since = new Date();
       since.setDate(since.getDate() - period);
-      // Also filter by published_at to exclude videos with bad/old dates
       const maxAge = new Date();
       maxAge.setDate(maxAge.getDate() - 7);
 
-      if (tab === "all") {
-        // 80% KZ, 20% world
-        const kzLimit = 400;
-        const worldLimit = 100;
+      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region";
 
+      if (tab === "all") {
         const [kzRes, worldRes] = await Promise.all([
-          supabase
-            .from("videos")
-            .select("*")
+          supabase.from("videos").select(selectFields)
             .eq("region", "kz")
             .gte("fetched_at", since.toISOString())
             .gte("published_at", maxAge.toISOString())
             .order("trend_score", { ascending: false })
-            .limit(kzLimit),
-          supabase
-            .from("videos")
-            .select("*")
+            .limit(400),
+          supabase.from("videos").select(selectFields)
             .eq("region", "world")
             .gte("fetched_at", since.toISOString())
             .gte("published_at", maxAge.toISOString())
             .order("trend_score", { ascending: false })
-            .limit(worldLimit),
+            .limit(100),
         ]);
 
         const kzVideos = (kzRes.data || []).map(v => ({ ...v, _region: "kz" as const }));
         const worldVideos = (worldRes.data || []).map(v => ({ ...v, _region: "world" as const }));
 
-        // Interleave: every 5th is world
         const merged: any[] = [];
         let ki = 0, wi = 0;
         while (ki < kzVideos.length || wi < worldVideos.length) {
-          for (let j = 0; j < 4 && ki < kzVideos.length; j++) {
-            merged.push(kzVideos[ki++]);
-          }
-          if (wi < worldVideos.length) {
-            merged.push(worldVideos[wi++]);
-          }
+          for (let j = 0; j < 4 && ki < kzVideos.length; j++) merged.push(kzVideos[ki++]);
+          if (wi < worldVideos.length) merged.push(worldVideos[wi++]);
         }
         return merged;
       } else {
-        const { data } = await supabase
-          .from("videos")
-          .select("*")
-            .eq("region", tab)
-            .gte("fetched_at", since.toISOString())
-            .gte("published_at", maxAge.toISOString())
+        const { data } = await supabase.from("videos").select(selectFields)
+          .eq("region", tab)
+          .gte("fetched_at", since.toISOString())
+          .gte("published_at", maxAge.toISOString())
           .order("trend_score", { ascending: false })
           .limit(500);
         return (data || []).map(v => ({ ...v, _region: tab }));
       }
     },
+    staleTime: 60_000,
   });
+
+  // Reset visible count when tab/period changes
+  const videos = useMemo(() => {
+    return allVideos.slice(0, visibleCount);
+  }, [allVideos, visibleCount]);
+
+  const hasMore = visibleCount < allVideos.length;
 
   const { data: userFavorites = [] } = useQuery({
     queryKey: ["user-favorites", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("favorites")
-        .select("video_id")
-        .eq("user_id", user!.id);
+      const { data } = await supabase.from("favorites").select("video_id").eq("user_id", user!.id);
       return data?.map((f) => f.video_id) || [];
     },
     enabled: !!user,
+    staleTime: 30_000,
   });
 
-  const toggleFav = async (videoId: string) => {
+  const toggleFav = useCallback(async (videoId: string) => {
     if (!user) return;
     const isFav = userFavorites.includes(videoId);
     if (isFav) {
@@ -113,7 +124,7 @@ export default function Trends() {
       await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
     }
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
-  };
+  }, [user, userFavorites, queryClient]);
 
   const tabs = [
     { key: "all" as const, label: "Все (80% KZ)" },
@@ -139,7 +150,7 @@ export default function Trends() {
             {([1, 3, 7] as const).map((p) => (
               <button
                 key={p}
-                onClick={() => setPeriod(p)}
+                onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                   period === p
                     ? "gradient-hero text-primary-foreground glow-primary"
@@ -157,7 +168,7 @@ export default function Trends() {
           {tabs.map((t) => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key)}
+              onClick={() => { setTab(t.key); setVisibleCount(PAGE_SIZE); }}
               className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
                 tab === t.key
                   ? "bg-primary/10 text-primary border-primary/30"
@@ -167,34 +178,39 @@ export default function Trends() {
               {t.label}
             </button>
           ))}
+          {allVideos.length > 0 && (
+            <span className="self-center text-xs text-muted-foreground ml-2">
+              {allVideos.length} видео
+            </span>
+          )}
         </div>
 
-        {videos.length > 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse">
+                <div className="aspect-[9/14] bg-muted m-2 rounded-2xl" />
+                <div className="px-3 py-3 space-y-2">
+                  <div className="h-4 bg-muted rounded w-2/3" />
+                  <div className="h-3 bg-muted rounded w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : videos.length > 0 ? (
+          <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {videos.map((video: any, i: number) => {
-              const fmt = (n: number) => {
-                if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-                if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
-                return String(n);
-              };
-              const publishedDate = video.published_at ? new Date(video.published_at) : null;
-              const timeAgo = publishedDate
-                ? (() => {
-                    const h = Math.floor((Date.now() - publishedDate.getTime()) / 3600000);
-                    if (h < 1) return "только что";
-                    if (h < 24) return `${h}ч назад`;
-                    const d = Math.floor(h / 24);
-                    if (d < 30) return `${d}д назад`;
-                    const m = Math.floor(d / 30);
-                    return `${m} мес. назад`;
-                  })()
-                : "";
+              const timeAgo = getTimeAgo(video.published_at);
+              const score = video.trend_score || 0;
+              const velViews = video.velocity_views || 0;
+              const isRocket = score > 500;
+              const isFire = score > 100;
 
               return (
                 <div
                   key={video.id}
-                  className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-all duration-300 relative flex flex-col"
-                  style={{ animationDelay: `${i * 0.02}s` }}
+                  className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col"
                 >
                   {/* Video area */}
                   <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
@@ -220,6 +236,8 @@ export default function Trends() {
                           <img
                             src={video.cover_url}
                             alt=""
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover cursor-pointer"
                             onClick={() => setPlayingId(video.id)}
                           />
@@ -255,34 +273,27 @@ export default function Trends() {
                         </div>
 
                         {/* Trend indicators */}
-                        {(() => {
-                          const score = video.trend_score || 0;
-                          const velViews = video.velocity_views || 0;
-                          const isRocket = score > 500;
-                          const isFire = score > 100;
-                          if (!isFire) return null;
-                          return (
-                            <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
-                              {isRocket ? (
-                                <div className="flex items-center gap-1 bg-orange-500/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg animate-[pulse_1.5s_ease-in-out_infinite]">
-                                  <Rocket className="h-3.5 w-3.5 text-white" />
-                                  <span className="text-[10px] font-bold text-white">Взлетает!</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 bg-red-500/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
-                                  <Flame className="h-3.5 w-3.5 text-white" />
-                                  <span className="text-[10px] font-bold text-white">В тренде</span>
-                                </div>
-                              )}
-                              {velViews > 10 && (
-                                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
-                                  <TrendingUp className="h-3 w-3 text-white" />
-                                  <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
+                        {isFire && (
+                          <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
+                            {isRocket ? (
+                              <div className="flex items-center gap-1 bg-orange-500/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg animate-[pulse_1.5s_ease-in-out_infinite]">
+                                <Rocket className="h-3.5 w-3.5 text-white" />
+                                <span className="text-[10px] font-bold text-white">Взлетает!</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 bg-red-500/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
+                                <Flame className="h-3.5 w-3.5 text-white" />
+                                <span className="text-[10px] font-bold text-white">В тренде</span>
+                              </div>
+                            )}
+                            {velViews > 10 && (
+                              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
+                                <TrendingUp className="h-3 w-3 text-white" />
+                                <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Open in TikTok button */}
                         <button
@@ -302,7 +313,7 @@ export default function Trends() {
                           </div>
                         </div>
 
-                        {/* Bottom stats bar — like TikTok */}
+                        {/* Bottom stats bar */}
                         <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10 pointer-events-none">
                           <div className="flex items-center justify-center gap-2">
                             <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
@@ -333,6 +344,7 @@ export default function Trends() {
                       <img
                         src={video.author_avatar_url}
                         alt=""
+                        loading="lazy"
                         className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0"
                       />
                     ) : (
@@ -373,6 +385,19 @@ export default function Trends() {
               );
             })}
           </div>
+
+          {/* Load more */}
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+                className="px-8 py-3 rounded-xl bg-primary/10 text-primary font-semibold text-sm border border-primary/30 hover:bg-primary/20 transition-all"
+              >
+                Показать ещё ({allVideos.length - visibleCount} осталось)
+              </button>
+            </div>
+          )}
+          </>
         ) : (
           <div className="text-center py-20">
             <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
