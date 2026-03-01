@@ -81,7 +81,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const transcript = analysis?.analysis?.transcript_text;
 
   return (
-    <Sheet open={open} onOpenChange={handleOpen}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden">
         <button
           onClick={() => onOpenChange(false)}
