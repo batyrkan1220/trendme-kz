@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
+  const [region, setRegion] = useState<"kz" | "world">("kz");
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -29,7 +30,7 @@ export default function SearchPage() {
   const { data: searchResults, isPending: isSearching, mutate: doSearch } = useMutation({
     mutationFn: async (q: string) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "search", query: q, limit: 50 },
+        body: { action: "search", query: q, limit: 50, region },
       });
       if (error) throw error;
       return data.videos || [];
@@ -104,7 +105,24 @@ export default function SearchPage() {
             </Button>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
+            {([
+              { key: "kz" as const, label: "🇰🇿 Казахстан" },
+              { key: "world" as const, label: "🌍 Мировые" },
+            ]).map((r) => (
+              <button
+                key={r.key}
+                onClick={() => setRegion(r.key)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors border ${
+                  region === r.key
+                    ? "bg-primary/10 text-primary border-primary/30"
+                    : "bg-card text-muted-foreground hover:text-foreground hover:bg-muted border-border card-shadow"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+            <div className="h-6 border-l border-border mx-1" />
             {["7 дней", "30 дней", "Все время"].map((f) => (
               <button
                 key={f}

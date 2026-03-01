@@ -1,0 +1,1 @@
+ALTER TABLE public.videos ADD COLUMN region text NOT NULL DEFAULT 'world';

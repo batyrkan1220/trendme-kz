@@ -86,7 +86,7 @@ Deno.serve(async (req: Request) => {
 
     switch (action) {
       case "search": {
-        const { query, limit = 20 } = body;
+        const { query, limit = 20, region = "world" } = body;
         if (!query) return json({ error: "query is required" }, 400);
 
         const data = await callSocialKit("/tiktok/search", {
@@ -151,6 +151,7 @@ Deno.serve(async (req: Request) => {
             duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
             fetched_at: new Date().toISOString(),
             source_query_id: queryRow?.id || null,
+            region: region || "world",
             ...trends,
           };
 
