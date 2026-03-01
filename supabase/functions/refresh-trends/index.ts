@@ -115,12 +115,16 @@ Deno.serve(async (req: Request) => {
 
     // World search queries
     const worldQueries = [
-      "trending viral tiktok",
-      "fyp trending 2026",
-      "dance trend tiktok",
-      "funny viral video",
-      "tiktok challenge trending",
-      "viral music tiktok",
+      "trending viral tiktok", "fyp trending 2026", "dance trend tiktok",
+      "funny viral video", "tiktok challenge trending", "viral music tiktok",
+      "#viral", "#trending", "#fyp", "#foryou", "#foryoupage",
+      "#dance", "#funny", "#comedy", "#music", "#challenge",
+      "#duet", "#trend", "#tiktokviral", "#explore",
+      "tiktok viral 2026", "best tiktok trends", "new tiktok challenge",
+      "tiktok dance 2026", "viral comedy tiktok", "tiktok music hit",
+      "satisfying tiktok", "tiktok life hacks", "tiktok food viral",
+      "tiktok fashion trend", "tiktok beauty viral", "tiktok sports viral",
+      "tiktok pet viral", "tiktok art trending", "tiktok travel viral",
     ];
 
     const searchAndSave = async (query: string, region: string) => {
