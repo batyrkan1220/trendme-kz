@@ -130,17 +130,17 @@ export default function Trends() {
               {refreshing ? "Обновление..." : "Обновить"}
             </button>
           <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow">
-            {([7, 30] as const).map((p) => (
+            {([1, 3, 7] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                   period === p
                     ? "gradient-hero text-primary-foreground glow-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {p} дней
+                {p === 1 ? "24ч" : `${p}д`}
               </button>
             ))}
           </div>
