@@ -188,29 +188,40 @@ Deno.serve(async (req: Request) => {
       }
     };
 
-    // Check if this is a manual (lite) or cron (full) refresh
-    let isLite = false;
+    // Check mode: lite, mass, or full (cron)
+    let mode = "full";
     try {
       const body = await req.json();
-      isLite = body?.lite === true;
+      if (body?.lite) mode = "lite";
+      else if (body?.mass) mode = "mass";
     } catch { /* no body = cron call */ }
 
-    const kzCount = isLite ? 8 : 80;
-    const worldCount = isLite ? 2 : 20;
+    const kzCount = mode === "lite" ? 8 : mode === "mass" ? kzQueries.length : 80;
+    const worldCount = mode === "lite" ? 2 : mode === "mass" ? worldQueries.length : 20;
 
     const shuffledKz = kzQueries.sort(() => Math.random() - 0.5).slice(0, kzCount);
     const shuffledWorld = worldQueries.sort(() => Math.random() - 0.5).slice(0, worldCount);
 
+    const allTasks = [
+      ...shuffledKz.map(q => ({ q, region: "kz" })),
+      ...shuffledWorld.map(q => ({ q, region: "world" })),
+    ];
+
     const results: Record<string, number> = {};
+    const BATCH_SIZE = mode === "mass" ? 10 : 5;
 
-    for (const q of shuffledKz) {
-      results[`kz:${q}`] = await searchAndSave(q, "kz");
-    }
-    for (const q of shuffledWorld) {
-      results[`world:${q}`] = await searchAndSave(q, "world");
+    for (let i = 0; i < allTasks.length; i += BATCH_SIZE) {
+      const batch = allTasks.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.allSettled(
+        batch.map(({ q, region }) => searchAndSave(q, region))
+      );
+      batch.forEach(({ q, region }, idx) => {
+        const r = batchResults[idx];
+        results[`${region}:${q}`] = r.status === "fulfilled" ? r.value : 0;
+      });
     }
 
-    console.log("Refresh trends completed:", results);
+    console.log("Refresh trends completed, mode:", mode, "total queries:", allTasks.length);
 
     return new Response(JSON.stringify({ success: true, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
