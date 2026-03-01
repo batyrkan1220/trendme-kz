@@ -34,7 +34,7 @@ export default function Trends() {
             .from("videos")
             .select("*")
             .eq("region", "world")
-            .gte("fetched_at", since.toISOString())
+            .gte("published_at", since.toISOString())
             .order("trend_score", { ascending: false })
             .limit(worldLimit),
         ]);
