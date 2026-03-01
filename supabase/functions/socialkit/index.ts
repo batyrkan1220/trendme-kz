@@ -151,6 +151,7 @@ Deno.serve(async (req: Request) => {
             duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
             fetched_at: new Date().toISOString(),
             source_query_id: queryRow?.id || null,
+            region: region || "world",
             ...trends,
           };
 
