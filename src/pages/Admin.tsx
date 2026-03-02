@@ -859,7 +859,13 @@ function StatsSection() {
           </div>
           <span className="text-sm text-muted-foreground w-20 text-right">{totalAll}</span>
           <Badge variant="default" className="text-xs w-16 justify-center">{recentAll} / 7д</Badge>
-          <span className="w-20" />
+          <Input
+            type="number"
+            className="w-20 h-7 text-xs text-center"
+            placeholder="∞"
+            value={effectiveLimits["__kz_total"] ?? ""}
+            onChange={(e) => updateLimit("__kz_total", e.target.value)}
+          />
         </div>
         <div className="flex items-center gap-3 px-2 text-xs text-muted-foreground">
           <span className="w-28">Категория</span>
