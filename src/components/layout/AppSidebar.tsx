@@ -14,7 +14,7 @@ interface NavItem {
 }
 
 const mainItems: NavItem[] = [
-  { label: "Разведка", icon: Radar, path: "/razvedka" },
+  
   { label: "Дашборд", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Тренды", icon: TrendingUp, path: "/trends" },
   { label: "Поиск", icon: Search, path: "/search" },
