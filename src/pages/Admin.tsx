@@ -432,7 +432,7 @@ function RefreshSection() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="grid grid-cols-2 gap-2 text-center">
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{grandTotal}</p>
                       <p className="text-xs text-muted-foreground">Всего видео</p>
@@ -440,10 +440,6 @@ function RefreshSection() {
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{totalNiche}</p>
                       <p className="text-xs text-muted-foreground">По категориям</p>
-                    </div>
-                    <div className="bg-muted/40 rounded-md p-2">
-                      <p className="text-lg font-bold text-foreground">{totalGeneral}</p>
-                      <p className="text-xs text-muted-foreground">Общие KZ</p>
                     </div>
                   </div>
 
@@ -481,7 +477,6 @@ function RefreshSection() {
 function KeywordsSection() {
   const queryClient = useQueryClient();
   const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
-  const [selectedGeneralKz, setSelectedGeneralKz] = useState(false);
   const [newQuery, setNewQuery] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -494,14 +489,6 @@ function KeywordsSection() {
     },
   });
 
-  const { data: generalKzQueries = [], isLoading: gkzLoading } = useQuery({
-    queryKey: ["trend-settings", "general_kz_queries"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "general_kz_queries").single();
-      return (data?.value as string[]) || [];
-    },
-  });
-
   const saveMutation = useMutation({
     mutationFn: async (updated: Record<string, string[]>) => {
       const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "niche_queries");
@@ -511,20 +498,9 @@ function KeywordsSection() {
     onError: () => toast.error("Ошибка сохранения"),
   });
 
-  const saveGkzMutation = useMutation({
-    mutationFn: async (updated: string[]) => {
-      const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "general_kz_queries");
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Общие KZ запросы сохранены"); },
-    onError: () => toast.error("Ошибка сохранения"),
-  });
-
   const addQuery = () => {
     if (!newQuery.trim()) return;
-    if (selectedGeneralKz) {
-      saveGkzMutation.mutate([...generalKzQueries, newQuery.trim()]);
-    } else if (selectedNiche) {
+    if (selectedNiche) {
       const updated = { ...nicheQueries };
       updated[selectedNiche] = [...(updated[selectedNiche] || []), newQuery.trim()];
       saveMutation.mutate(updated);
@@ -533,9 +509,7 @@ function KeywordsSection() {
   };
 
   const removeQuery = (index: number) => {
-    if (selectedGeneralKz) {
-      saveGkzMutation.mutate(generalKzQueries.filter((_, i) => i !== index));
-    } else if (selectedNiche) {
+    if (selectedNiche) {
       const updated = { ...nicheQueries };
       updated[selectedNiche] = updated[selectedNiche].filter((_, i) => i !== index);
       saveMutation.mutate(updated);
@@ -593,30 +567,19 @@ function KeywordsSection() {
   };
 
   const selectNiche = (niche: string) => {
-    setSelectedGeneralKz(false);
     setSelectedNiche(selectedNiche === niche ? null : niche);
     setAiSuggestions([]);
   };
 
-  const selectGeneralKz = () => {
-    setSelectedNiche(null);
-    setSelectedGeneralKz(!selectedGeneralKz);
-    setAiSuggestions([]);
-  };
-
   const niches = Object.keys(nicheQueries).sort();
-  const activeQueries = selectedGeneralKz ? generalKzQueries : (selectedNiche ? nicheQueries[selectedNiche] || [] : []);
-  const activeLabel = selectedGeneralKz ? "Общие KZ" : selectedNiche || "";
-  const isActive = selectedGeneralKz || !!selectedNiche;
+  const activeQueries = selectedNiche ? nicheQueries[selectedNiche] || [] : [];
+  const activeLabel = selectedNiche || "";
+  const isActive = !!selectedNiche;
 
-  if (isLoading || gkzLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <Badge variant={selectedGeneralKz ? "default" : "outline"} className="cursor-pointer text-sm border-primary/40" onClick={selectGeneralKz}>
-          🇰🇿 Общие KZ ({generalKzQueries.length})
-        </Badge>
-        <div className="w-px bg-border mx-1" />
         {niches.map((niche) => (
           <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => selectNiche(niche)}>
             {niche} ({nicheQueries[niche]?.length || 0})
@@ -639,7 +602,7 @@ function KeywordsSection() {
           <CardContent className="space-y-3">
             <div className="flex gap-2">
               <Input placeholder="Новый запрос или хэштег..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addQuery()} />
-              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending || saveGkzMutation.isPending}><Plus className="h-4 w-4" /></Button>
+              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending}><Plus className="h-4 w-4" /></Button>
             </div>
 
             {aiSuggestions.length > 0 && (
@@ -709,7 +672,6 @@ function SettingsSection() {
         <CardHeader><CardTitle className="text-lg">Пороги и лимиты</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
-          <SettingRow label="Лимит всех видео KZ (пропуск общих KZ запросов)" value={current.full_general_kz_threshold ?? 200} onChange={(v) => updateField("full_general_kz_threshold", v)} />
           <SettingRow label="Мин. trend_score для зарубежных видео" value={current.min_foreign_trend_score ?? 500} onChange={(v) => updateField("min_foreign_trend_score", v)} />
           <div className="pt-2 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на категорию</p>
@@ -718,10 +680,6 @@ function SettingsSection() {
           <div className="pt-2 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на слабую категорию</p>
             {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.weak_queries_per_niche?.[mode] ?? 6} onChange={(v) => updateField(`weak_queries_per_niche.${mode}`, v)} />))}
-          </div>
-          <div className="pt-2 border-t border-border">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Общих KZ запросов</p>
-            {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.general_kz_count?.[mode] ?? 5} onChange={(v) => updateField(`general_kz_count.${mode}`, v)} />))}
           </div>
           {localThresholds && (
             <Button onClick={() => saveMutation.mutate(localThresholds)} disabled={saveMutation.isPending} className="w-full">
