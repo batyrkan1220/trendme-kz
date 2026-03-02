@@ -41,13 +41,21 @@ const NICHE_QUERIES: Record<string, string[]> = {
   humor: ["юмор тикток", "смешные видео 2026", "приколы тикток", "скетч комедия", "мемы тикток", "#юмор", "#приколы", "#смешно", "#funny", "#comedy", "#memes", "funny tiktok compilation", "comedy sketch viral", "қазақ юмор тикток", "күлкілі видео қазақша", "#қазақприкол", "#қазақвайн", "қазақ мем", "қазақ скетч"],
 };
 
-// Extra general KZ/CIS queries to fill gaps
+// Extra general KZ/CIS queries to fill gaps — expanded for better KZ coverage
 const GENERAL_KZ_QUERIES = [
   "#қазақстан", "#kz", "#казахстан", "#алматы", "#астана",
   "#казахстантренд", "#kztiktok", "#снг", "#рекомендации",
   "қазақ тикток тренд", "казахстан тренд тикток 2026",
   "#қазақша", "#қазақтикток", "#kzviral", "#қазақвирал",
   "қазақстан вирал 2026", "#шымкент", "#караганда", "#актау",
+  "#қарағанды", "#атырау", "#павлодар", "#тараз", "#өскемен",
+  "#қостанай", "#семей", "#маңғыстау", "#түркістан",
+  "қазақ блогер тикток", "казахстан влог", "#kztrend",
+  "қазақша тикток 2026", "#қазақвайн", "#казахстанвирал",
+  "алматы влог 2026", "астана тренд", "#almaty", "#astana",
+  "казахстанский тикток", "#қазақстантікток", "#kzfyp",
+  "#казнет", "#qazaqstan", "кз тренды", "#kzreels",
+  "қазақстандық тікток", "#казахскийтикток", "казакша видео",
 ];
 
 Deno.serve(async (req: Request) => {
@@ -174,7 +182,8 @@ Deno.serve(async (req: Request) => {
     // lite mode: 2 queries per niche, weak get 4
     const queriesPerNiche = mode === "mass" ? 6 : mode === "lite" ? 2 : 3;
     const weakQueriesPerNiche = mode === "mass" ? 12 : mode === "lite" ? 4 : 8;
-    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 5 : 3;
+    // Increased general KZ count significantly to prioritize KZ content
+    const generalKzCount = mode === "lite" ? 5 : mode === "mass" ? 15 : 8;
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -236,11 +245,16 @@ Deno.serve(async (req: Request) => {
       
       await Promise.all(nichesBatch.map(async (nicheKey) => {
         const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-        // Combine static + AI-generated queries, prioritizing AI ones
+        // Combine static + AI-generated queries, prioritizing KZ/RU over EN
         const aiNicheQueries = aiQueries[nicheKey] || [];
-        const staticQueries = [...NICHE_QUERIES[nicheKey]].sort(() => Math.random() - 0.5);
-        const combinedQueries = [...aiNicheQueries, ...staticQueries];
-        // Deduplicate and take qCount
+        const staticQueries = [...NICHE_QUERIES[nicheKey]];
+        // Split: KZ/RU queries first (non-latin or hashtags with cyrillic), EN last
+        const isKzRu = (q: string) => /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(q);
+        const kzRuQueries = staticQueries.filter(isKzRu).sort(() => Math.random() - 0.5);
+        const enQueries = staticQueries.filter(q => !isKzRu(q)).sort(() => Math.random() - 0.5);
+        // KZ/RU first, then AI, then only a few EN
+        const maxEnQueries = Math.max(1, Math.floor(qCount * 0.2)); // max 20% EN
+        const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
         const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
         const queries = uniqueQueries;
         let nicheSaved = 0;
@@ -258,13 +272,25 @@ Deno.serve(async (req: Request) => {
               const publishedDate = new Date(trends.published_at);
               if (publishedDate < sevenDaysAgo) return null;
               const stats = v.stats || {};
+              const caption = v.desc || v.caption || v.title || "";
+              const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
+              
+              // Detect if video is likely KZ/RU content (cyrillic in caption/username or KZ hashtags)
+              const isKzRuContent = /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(caption) || 
+                /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(username) ||
+                /#(kz|қаз|каз|almaty|astana)/i.test(caption);
+              
+              // Foreign videos: only keep if trend_score is high (top trending)
+              const MIN_FOREIGN_TREND_SCORE = 500;
+              if (!isKzRuContent && trends.trend_score < MIN_FOREIGN_TREND_SCORE) return null;
+
               return {
                 platform: "tiktok",
                 platform_video_id: String(videoId),
-                url: v.url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
-                caption: v.desc || v.caption || v.title || "",
+                url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
+                caption,
                 cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-                author_username: v.author?.uniqueId || v.author?.unique_id || v.author_username || "",
+                author_username: username,
                 author_display_name: v.author?.nickname || v.author_display_name || "",
                 author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
                 views: stats.views || v.views || v.playCount || 0,
