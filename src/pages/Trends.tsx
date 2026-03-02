@@ -86,7 +86,7 @@ export default function Trends() {
         const { error } = await supabase.functions.invoke("refresh-trends", { body: { mass: true, batch } });
         if (error) console.error(`Batch ${batch} error:`, error);
       }
-      toast.success("Тренды обновлены! Все 28 ниш загружены", { id: "refresh" });
+      toast.success("Тренды обновлены! Все 30 категорий загружены", { id: "refresh" });
       queryClient.invalidateQueries({ queryKey: ["trends"] });
     } catch (e: any) {
       toast.error("Ошибка обновления: " + (e.message || "Попробуйте позже"), { id: "refresh" });
