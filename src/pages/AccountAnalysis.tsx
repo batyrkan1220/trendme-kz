@@ -230,7 +230,7 @@ export default function AccountAnalysis() {
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" /> Топ видео по просмотрам
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
                   {topVideos.map((v, i) => (
                     <div
                       key={v.id || i}

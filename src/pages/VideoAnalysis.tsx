@@ -193,7 +193,7 @@ export default function VideoAnalysis() {
             </div>
 
             {/* Right panel — analysis (same as VideoAnalysisDialog) */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-card rounded-2xl border border-border/50 card-shadow">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 bg-card rounded-xl md:rounded-2xl border border-border/50 card-shadow">
               {/* Topic */}
               {summary?.topic && (
                 <div>
