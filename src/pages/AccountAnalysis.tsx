@@ -1,9 +1,10 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import {
   UserCircle, Users, Heart, Video, Loader2, Check, Eye, MessageCircle, Share2,
-  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw
+  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X
 } from "lucide-react";
 import { useState } from "react";
+import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +26,8 @@ interface TopVideo {
 
 export default function AccountAnalysis() {
   const [url, setUrl] = useState("");
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -192,45 +195,129 @@ export default function AccountAnalysis() {
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" /> Топ видео по просмотрам
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {topVideos.map((v, i) => (
-                    <a
+                    <div
                       key={v.id || i}
-                      href={v.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group bg-card rounded-xl border border-border/50 overflow-hidden card-shadow hover-lift transition-all"
+                      className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col"
                     >
-                      <div className="relative aspect-[9/12] bg-muted">
-                        {v.cover ? (
-                          <img src={v.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      {/* Video area */}
+                      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
+                        {playingId === v.id ? (
+                          <>
+                            <iframe
+                              src={`https://www.tiktok.com/player/v1/${v.id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                              className="w-full h-full border-0"
+                              allow="autoplay; encrypted-media; fullscreen"
+                              allowFullScreen
+                            />
+                            <button
+                              onClick={() => setPlayingId(null)}
+                              className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </>
                         ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Video className="h-8 w-8 text-muted-foreground/30" />
-                          </div>
-                        )}
-                        {/* Rank badge */}
-                        <div className="absolute top-2 left-2 h-6 w-6 rounded-full gradient-hero flex items-center justify-center text-xs font-bold text-primary-foreground shadow">
-                          {i + 1}
-                        </div>
-                        {/* Duration */}
-                        {v.duration > 0 && (
-                          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
-                            {Math.floor(v.duration / 60)}:{String(v.duration % 60).padStart(2, "0")}
-                          </div>
+                          <>
+                            {v.cover ? (
+                              <img
+                                src={v.cover}
+                                alt=""
+                                loading="lazy"
+                                className="w-full h-full object-cover cursor-pointer"
+                                onClick={() => setPlayingId(v.id)}
+                              />
+                            ) : (
+                              <div
+                                className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
+                                onClick={() => setPlayingId(v.id)}
+                              >
+                                <Play className="h-12 w-12 text-muted-foreground/30" />
+                              </div>
+                            )}
+
+                            {/* Rank badge */}
+                            <div className="absolute top-2.5 left-2.5 z-10">
+                              <div className="h-7 w-7 rounded-full gradient-hero flex items-center justify-center text-xs font-bold text-primary-foreground shadow-lg">
+                                {i + 1}
+                              </div>
+                            </div>
+
+                            {/* Open in TikTok */}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); window.open(v.url, '_blank'); }}
+                              className="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+                            </button>
+
+                            {/* Play button center */}
+                            <div
+                              className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                              onClick={() => setPlayingId(v.id)}
+                            >
+                              <div className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
+                                <Play className="h-7 w-7 text-white fill-white ml-0.5" />
+                              </div>
+                            </div>
+
+                            {/* Duration */}
+                            {v.duration > 0 && (
+                              <div className="absolute bottom-2.5 left-2.5 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
+                                {Math.floor(v.duration / 60)}:{String(v.duration % 60).padStart(2, "0")}
+                              </div>
+                            )}
+
+                            {/* Bottom stats bar */}
+                            <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10 pointer-events-none">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
+                                  <Eye className="h-4 w-4 text-white mb-0.5" />
+                                  <span className="text-white text-[11px] font-bold">{formatNum(v.views)}</span>
+                                </div>
+                                <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
+                                  <Heart className="h-4 w-4 text-white mb-0.5" />
+                                  <span className="text-white text-[11px] font-bold">{formatNum(v.likes)}</span>
+                                </div>
+                                <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
+                                  <MessageCircle className="h-4 w-4 text-white mb-0.5" />
+                                  <span className="text-white text-[11px] font-bold">{formatNum(v.comments)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </>
                         )}
                       </div>
-                      <div className="p-3 space-y-2">
-                        {v.desc && (
-                          <p className="text-xs text-foreground line-clamp-2 font-medium">{v.desc}</p>
-                        )}
-                        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                          <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" /> {formatNum(v.views)}</span>
-                          <span className="flex items-center gap-0.5"><Heart className="h-3 w-3" /> {formatNum(v.likes)}</span>
-                          <span className="flex items-center gap-0.5"><MessageCircle className="h-3 w-3" /> {formatNum(v.comments)}</span>
-                        </div>
+
+                      {/* Caption */}
+                      <div className="px-3 pt-1.5 pb-1">
+                        <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">
+                          {v.desc || "Без описания"}
+                        </p>
                       </div>
-                    </a>
+
+                      {/* Analyze button */}
+                      <div className="px-3 pb-3 mt-auto">
+                        <button
+                          onClick={() => setAnalysisVideo({
+                            id: v.id,
+                            platform_video_id: v.id,
+                            url: v.url,
+                            caption: v.desc,
+                            cover_url: v.cover,
+                            views: v.views,
+                            likes: v.likes,
+                            comments: v.comments,
+                            shares: v.shares,
+                            author_username: account?.username,
+                          })}
+                          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                        >
+                          Анализ видео
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -306,6 +393,11 @@ export default function AccountAnalysis() {
           </div>
         )}
       </div>
+      <VideoAnalysisDialog
+        video={analysisVideo}
+        open={!!analysisVideo}
+        onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
+      />
     </AppLayout>
   );
 }
