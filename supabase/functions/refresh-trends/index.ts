@@ -214,6 +214,67 @@ Deno.serve(async (req: Request) => {
       return {};
     };
 
+    // AI viral detection - analyze videos for viral potential
+    const detectViralWithAI = async (videos: any[], nicheKey: string): Promise<Map<string, number>> => {
+      const viralScores = new Map<string, number>();
+      if (videos.length === 0) return viralScores;
+
+      // Take top 30 candidates by basic metrics for AI analysis
+      const candidates = videos.slice(0, 30).map((v, i) => {
+        const stats = v.stats || {};
+        const views = stats.views || v.views || v.playCount || 0;
+        const likes = stats.likes || v.likes || v.diggCount || 0;
+        const comments = stats.comments || v.comments || v.commentCount || 0;
+        const caption = (v.desc || v.caption || v.title || "").slice(0, 150);
+        const duration = v.video?.duration || v.duration_sec || v.duration || 0;
+        const id = v.id || v.video_id || v.aweme_id;
+        return { idx: i, id: String(id), views, likes, comments, caption, duration };
+      });
+
+      try {
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              {
+                role: "system",
+                content: `Ты эксперт по вирусному контенту в TikTok Казахстана. Проанализируй видео и оцени вирусный потенциал каждого от 0 до 100. Учитывай:
+- Engagement rate (лайки/просмотры, комменты/просмотры)
+- Скорость набора (много лайков при мало просмотров = потенциально вирусное)
+- Тематика caption (хайповые темы, эмоции, провокация)
+- Длительность (короткие видео чаще вирусятся)
+- Даже видео с 0-500 просмотрами может быть вирусным если caption цепляющий и engagement высокий
+Возвращай ТОЛЬКО JSON массив: [{"id":"video_id","score":85,"reason":"короткое объяснение"},...]`
+              },
+              {
+                role: "user",
+                content: `Ниша: ${nicheKey}\nВидео:\n${JSON.stringify(candidates)}`
+              }
+            ],
+          }),
+        });
+        const aiData = await res.json();
+        const content = aiData?.choices?.[0]?.message?.content || "";
+        const match = content.match(/\[[\s\S]*\]/);
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          for (const item of parsed) {
+            if (item.id && typeof item.score === "number") {
+              viralScores.set(String(item.id), item.score);
+              if (item.score >= 70) {
+                console.log(`🔥 AI viral: ${nicheKey} | id=${item.id} score=${item.score} | ${item.reason}`);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error(`AI viral detection failed for ${nicheKey}:`, e);
+      }
+      return viralScores;
+    };
+
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
     const now = new Date().toISOString();
     const nicheStats: Record<string, number> = { ...existingNicheStats };
