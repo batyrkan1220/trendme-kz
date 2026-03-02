@@ -54,7 +54,7 @@ export default function SearchPage() {
         body: { action: "search", query: q, limit: 100 },
       });
       if (error) throw error;
-      return data.videos || [];
+      return { videos: data.videos || [], relatedKeywords: data.relatedKeywords || [] };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
