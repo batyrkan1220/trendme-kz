@@ -663,7 +663,7 @@ function SettingsSection() {
           <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
           <SettingRow label="Мин. trend_score для зарубежных видео" value={current.min_foreign_trend_score ?? 500} onChange={(v) => updateField("min_foreign_trend_score", v)} />
           <div className="pt-2 border-t border-border">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на нишу</p>
+            <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на категорию</p>
             {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.queries_per_niche?.[mode] ?? 3} onChange={(v) => updateField(`queries_per_niche.${mode}`, v)} />))}
           </div>
           <div className="pt-2 border-t border-border">
