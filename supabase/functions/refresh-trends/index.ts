@@ -272,13 +272,25 @@ Deno.serve(async (req: Request) => {
               const publishedDate = new Date(trends.published_at);
               if (publishedDate < sevenDaysAgo) return null;
               const stats = v.stats || {};
+              const caption = v.desc || v.caption || v.title || "";
+              const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
+              
+              // Detect if video is likely KZ/RU content (cyrillic in caption/username or KZ hashtags)
+              const isKzRuContent = /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(caption) || 
+                /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(username) ||
+                /#(kz|қаз|каз|almaty|astana)/i.test(caption);
+              
+              // Foreign videos: only keep if trend_score is high (top trending)
+              const MIN_FOREIGN_TREND_SCORE = 500;
+              if (!isKzRuContent && trends.trend_score < MIN_FOREIGN_TREND_SCORE) return null;
+
               return {
                 platform: "tiktok",
                 platform_video_id: String(videoId),
-                url: v.url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
-                caption: v.desc || v.caption || v.title || "",
+                url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
+                caption,
                 cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-                author_username: v.author?.uniqueId || v.author?.unique_id || v.author_username || "",
+                author_username: username,
                 author_display_name: v.author?.nickname || v.author_display_name || "",
                 author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
                 views: stats.views || v.views || v.playCount || 0,
