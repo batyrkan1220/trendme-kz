@@ -118,6 +118,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         {renderGroup("Поиск контента", searchItems)}
         {renderGroup("Инструменты", toolItems)}
         {renderGroup("Идеи", ideaItems)}
+        {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin" }])}
       </nav>
 
       {/* Bottom */}
