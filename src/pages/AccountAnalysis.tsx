@@ -1,9 +1,9 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import {
   UserCircle, Users, Heart, Video, Loader2, Check, Eye, MessageCircle, Share2,
-  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X, Sparkles
+  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X, Sparkles, Star
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,19 @@ function formatNum(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   return n.toLocaleString("ru-RU");
+}
+
+function getTimeAgo(ts: number): string {
+  if (!ts) return "";
+  const d = new Date(ts * 1000);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const days = Math.floor(diffMs / 86400000);
+  if (days < 1) return "сегодня";
+  if (days < 7) return `${days}д назад`;
+  if (days < 30) return `${Math.floor(days / 7)}нед назад`;
+  if (days < 365) return `${Math.floor(days / 30)} мес. назад`;
+  return `${Math.floor(days / 365)}г назад`;
 }
 
 interface TopVideo {
@@ -44,6 +57,28 @@ export default function AccountAnalysis() {
     },
     enabled: !!user,
   });
+
+  // Favorites
+  const { data: userFavorites = [] } = useQuery({
+    queryKey: ["user-favorites", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("favorites").select("video_id").eq("user_id", user!.id);
+      return data?.map((f) => f.video_id) || [];
+    },
+    enabled: !!user,
+    staleTime: 30_000,
+  });
+
+  const toggleFav = useCallback(async (videoId: string) => {
+    if (!user) return;
+    const isFav = userFavorites.includes(videoId);
+    if (isFav) {
+      await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+    } else {
+      await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+    }
+    queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
+  }, [user, userFavorites, queryClient]);
 
   const { data: account, isPending, mutate: analyze } = useMutation({
     mutationFn: async (profileUrl: string) => {
@@ -244,13 +279,21 @@ export default function AccountAnalysis() {
                               </div>
                             </div>
 
-                            {/* Open in TikTok */}
-                            <button
-                              onClick={(e) => { e.stopPropagation(); window.open(v.url, '_blank'); }}
-                              className="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                            >
-                              <ExternalLink className="h-3.5 w-3.5 text-foreground" />
-                            </button>
+                            {/* Fav + Open in TikTok */}
+                            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); toggleFav(v.id); }}
+                                className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                              >
+                                <Heart className={`h-3.5 w-3.5 transition-all ${userFavorites.includes(v.id) ? "text-primary fill-primary" : "text-foreground"}`} />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); window.open(v.url, '_blank'); }}
+                                className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+                              </button>
+                            </div>
 
                             {/* Play button center */}
                             <div
@@ -297,7 +340,13 @@ export default function AccountAnalysis() {
                         </p>
                       </div>
 
-                      {/* Analyze button */}
+                      {/* Date */}
+                      {v.createTime > 0 && (
+                        <div className="px-3 pb-1">
+                          <span className="text-[11px] text-muted-foreground">{getTimeAgo(v.createTime)}</span>
+                        </div>
+                      )}
+
                       <div className="px-3 pb-3 mt-auto">
                         <button
                           onClick={() => setAnalysisVideo({
