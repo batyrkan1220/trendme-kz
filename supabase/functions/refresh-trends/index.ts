@@ -405,16 +405,16 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Log to trend_refresh_logs
-    await adminClient.from("trend_refresh_logs").insert({
-      mode,
-      status: "done",
-      total_saved: totalSaved,
-      general_saved: generalSaved,
-      niche_stats: nicheStats,
-      triggered_by: userId,
-      finished_at: new Date().toISOString(),
-    });
+    // Update the running log entry to "done"
+    if (logEntry?.id) {
+      await adminClient.from("trend_refresh_logs").update({
+        status: "done",
+        total_saved: totalSaved,
+        general_saved: generalSaved,
+        niche_stats: nicheStats,
+        finished_at: new Date().toISOString(),
+      }).eq("id", logEntry.id);
+    }
 
     console.log(`Refresh done. Mode: ${mode}, total niche: ${totalSaved}, general: ${generalSaved}`);
     console.log("Per-niche stats:", JSON.stringify(nicheStats));
@@ -424,6 +424,15 @@ Deno.serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("Refresh trends error:", err);
+    // Try to mark log as error
+    try {
+      const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      await adminClient.from("trend_refresh_logs").update({
+        status: "error",
+        error_message: String(err),
+        finished_at: new Date().toISOString(),
+      }).eq("status", "running").order("started_at", { ascending: false }).limit(1);
+    } catch {}
     return new Response(
       JSON.stringify({ error: "Unable to process request. Please try again later." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
