@@ -210,19 +210,6 @@ export default function Trends() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => { setTab(t.key); setVisibleCount(PAGE_SIZE); }}
-              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
-                tab === t.key
-                  ? "bg-primary/10 text-primary border-primary/30"
-                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted/50"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
           {allVideos.length > 0 && (
             <span className="self-center text-xs text-muted-foreground ml-2">
               {allVideos.length} видео
