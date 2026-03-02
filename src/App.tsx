@@ -42,7 +42,8 @@ const AppRoutes = () => (
   <Routes>
     <Route element={<PageTransition />}>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      <Route path="/landing" element={<Landing />} />
+      <Route path="/" element={<Index />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
       <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
