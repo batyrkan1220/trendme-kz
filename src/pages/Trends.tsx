@@ -250,9 +250,9 @@ export default function Trends() {
               {t.label}
             </button>
           ))}
-          {filteredVideos.length > 0 && (
+          {allVideos.length > 0 && (
             <span className="self-center text-xs text-muted-foreground ml-2">
-              {filteredVideos.length} видео
+              {allVideos.length} видео
             </span>
           )}
         </div>
