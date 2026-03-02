@@ -569,14 +569,10 @@ function KeywordsSection() {
   const activeLabel = selectedNiche || "";
   const isActive = !!selectedNiche;
 
-  if (isLoading || gkzLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <Badge variant={selectedGeneralKz ? "default" : "outline"} className="cursor-pointer text-sm border-primary/40" onClick={selectGeneralKz}>
-          🇰🇿 Общие KZ ({generalKzQueries.length})
-        </Badge>
-        <div className="w-px bg-border mx-1" />
         {niches.map((niche) => (
           <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => selectNiche(niche)}>
             {niche} ({nicheQueries[niche]?.length || 0})
