@@ -109,9 +109,34 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           />
         ) : (
         <div className="flex flex-col md:flex-row h-full">
-          {/* Left panel — video + stats */}
-          <div className="w-full md:w-[280px] flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 overflow-y-auto bg-card max-h-[50vh] md:max-h-none">
-            <div className="aspect-[9/14] bg-black relative rounded-xl md:rounded-2xl overflow-hidden m-1.5 md:m-2">
+          {/* Mobile: compact stats bar only (no video) */}
+          <div className="flex md:hidden items-center gap-3 p-3 border-b border-border/50 bg-card">
+            {video.cover_url && (
+              <img src={video.cover_url} alt="" className="w-12 h-16 rounded-lg object-cover flex-shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              {video.author_username && (
+                <span className="text-xs font-semibold text-primary block truncate mb-1">@{video.author_username}</span>
+              )}
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                <span className="flex items-center gap-1"><Eye className="h-3 w-3 text-muted-foreground" /><b>{fmt(views)}</b></span>
+                <span className="flex items-center gap-1"><Heart className="h-3 w-3 text-primary" /><b>{fmt(likes)}</b></span>
+                <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3 text-green-500" /><b>{fmt(commentsCount)}</b></span>
+                <span className="flex items-center gap-1"><Share2 className="h-3 w-3 text-blue-500" /><b>{fmt(shares)}</b></span>
+                <span className="flex items-center gap-1"><Target className="h-3 w-3 text-muted-foreground" />ER <b>{er}%</b></span>
+              </div>
+            </div>
+            <button
+              onClick={() => window.open(video.url, "_blank")}
+              className="text-muted-foreground flex-shrink-0"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Desktop: full video + stats sidebar */}
+          <div className="hidden md:flex md:w-[280px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card flex-col">
+            <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
               {isPlaying ? (
                 <>
                   <iframe
