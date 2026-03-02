@@ -51,13 +51,13 @@ export default function Dashboard() {
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-5 md:space-y-7 animate-fade-in max-w-5xl">
         {/* Hero */}
-        <div className="gradient-hero rounded-2xl p-7 glow-primary relative overflow-hidden">
+        <div className="gradient-hero rounded-2xl p-5 md:p-7 glow-primary relative overflow-hidden">
           <div className="relative flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">
+              <h1 className="text-lg md:text-xl font-bold text-white">
                 Привет, {name} 👋
               </h1>
-              <p className="text-white/70 text-sm mt-1">
+              <p className="text-white/70 text-xs md:text-sm mt-1">
                 Что будем исследовать сегодня?
               </p>
             </div>
@@ -79,7 +79,7 @@ export default function Dashboard() {
               <Link
                 key={a.path}
                 to={a.path}
-                className="flex items-center gap-3 bg-card rounded-xl px-4 py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[180px] group"
+                className="flex items-center gap-3 bg-card rounded-xl px-3 md:px-4 py-2.5 md:py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[160px] md:min-w-[180px] group"
               >
                 <span className="text-xl">{a.emoji}</span>
                 <div>
@@ -92,19 +92,19 @@ export default function Dashboard() {
         </div>
 
         {/* Stats row */}
-        <div className="flex gap-4">
-          <div className="bg-card rounded-xl border border-border/60 px-5 py-3 card-shadow flex items-center gap-3">
+        <div className="flex gap-3 md:gap-4">
+          <div className="bg-card rounded-xl border border-border/60 px-4 md:px-5 py-2.5 md:py-3 card-shadow flex items-center gap-3 flex-1 sm:flex-initial">
             <Heart className="h-4 w-4 text-primary" />
             <div>
-              <p className="text-lg font-bold text-foreground">{favCount}</p>
-              <p className="text-[11px] text-muted-foreground">В избранном</p>
+              <p className="text-base md:text-lg font-bold text-foreground">{favCount}</p>
+              <p className="text-[10px] md:text-[11px] text-muted-foreground">В избранном</p>
             </div>
           </div>
-          <div className="bg-card rounded-xl border border-border/60 px-5 py-3 card-shadow flex items-center gap-3">
+          <div className="bg-card rounded-xl border border-border/60 px-4 md:px-5 py-2.5 md:py-3 card-shadow flex items-center gap-3 flex-1 sm:flex-initial">
             <TrendingUp className="h-4 w-4 text-accent" />
             <div>
-              <p className="text-lg font-bold text-foreground">{trendingVideos.length}</p>
-              <p className="text-[11px] text-muted-foreground">Видео в трендах</p>
+              <p className="text-base md:text-lg font-bold text-foreground">{trendingVideos.length}</p>
+              <p className="text-[10px] md:text-[11px] text-muted-foreground">Видео в трендах</p>
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function Dashboard() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="bg-card rounded-xl border border-border/60 overflow-hidden animate-pulse">
                   <div className="aspect-video bg-muted" />
@@ -131,7 +131,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : trendingVideos.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {trendingVideos.map((video) => (
                 <a
                   key={video.id}

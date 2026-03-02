@@ -60,38 +60,40 @@ export default function Library() {
   return (
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Библиотека 📚</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-foreground">Библиотека 📚</h1>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-fit">
+        <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-full sm:w-fit">
           <button
             onClick={() => setTab("favorites")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === "favorites"
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Heart className="h-4 w-4" />
-            Избранное ({favorites.length})
+            <span>Избранное</span>
+            <span className="text-xs text-muted-foreground">({favorites.length})</span>
           </button>
           <button
             onClick={() => setTab("scripts")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === "scripts"
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Sparkles className="h-4 w-4" />
-            Сценарии ({scripts.length})
+            <span>Сценарии</span>
+            <span className="text-xs text-muted-foreground">({scripts.length})</span>
           </button>
         </div>
 
         {/* Favorites tab */}
         {tab === "favorites" && (
           favorites.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
               {favorites.map((fav: any) => {
                 const video = fav.videos;
                 if (!video) return null;

@@ -160,24 +160,28 @@ export default function Trends() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <h1 className="text-2xl font-bold text-foreground">Тренды 🔥</h1>
-          <div className="flex items-center gap-3">
+      <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Тренды 🔥</h1>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
+              className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-sm font-semibold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-              {refreshing ? "Обновление..." : "Обновить"}
+              <span className="hidden sm:inline">{refreshing ? "Обновление..." : "Обновить"}</span>
             </button>
-          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto">
+          </div>
+
+          {/* Period tabs - scrollable on mobile */}
+          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto w-fit">
             {([1, 3, 7, 30, 0] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
-                className={`px-3 md:px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-semibold transition-all whitespace-nowrap ${
                   period === p
                     ? "gradient-hero text-primary-foreground glow-primary"
                     : "text-muted-foreground hover:text-foreground"
@@ -186,7 +190,6 @@ export default function Trends() {
                 {p === 0 ? "Все" : p === 1 ? "24ч" : `${p}д`}
               </button>
             ))}
-          </div>
           </div>
         </div>
 
@@ -223,7 +226,7 @@ export default function Trends() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse">
                 <div className="aspect-[9/14] bg-muted m-2 rounded-2xl" />
@@ -236,7 +239,7 @@ export default function Trends() {
           </div>
         ) : videos.length > 0 ? (
           <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
             {videos.map((video: any, i: number) => {
               const timeAgo = getTimeAgo(video.published_at);
               const score = video.trend_score || 0;
@@ -351,23 +354,23 @@ export default function Trends() {
                         </div>
 
                         {/* Bottom stats bar */}
-                        <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10 pointer-events-none">
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                              <Eye className="h-4 w-4 text-white mb-0.5" />
-                              <span className="text-white text-[11px] font-bold">{fmt(Number(video.views))}</span>
+                        <div className="absolute bottom-0 left-0 right-0 p-1.5 md:p-2.5 z-10 pointer-events-none">
+                          <div className="flex items-center justify-center gap-1 md:gap-2">
+                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl px-2 md:px-3 py-1 md:py-1.5">
+                              <Eye className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                              <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.views))}</span>
                             </div>
-                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                              <Heart className="h-4 w-4 text-white mb-0.5" />
-                              <span className="text-white text-[11px] font-bold">{fmt(Number(video.likes))}</span>
+                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl px-2 md:px-3 py-1 md:py-1.5">
+                              <Heart className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                              <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.likes))}</span>
                             </div>
-                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                              <MessageCircle className="h-4 w-4 text-white mb-0.5" />
-                              <span className="text-white text-[11px] font-bold">{fmt(Number(video.comments))}</span>
+                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl px-2 md:px-3 py-1 md:py-1.5">
+                              <MessageCircle className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                              <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.comments))}</span>
                             </div>
-                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                              <Share2 className="h-4 w-4 text-white mb-0.5" />
-                              <span className="text-white text-[11px] font-bold">{fmt(Number(video.shares || 0))}</span>
+                            <div className="hidden sm:flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl px-2 md:px-3 py-1 md:py-1.5">
+                              <Share2 className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                              <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.shares || 0))}</span>
                             </div>
                           </div>
                         </div>
