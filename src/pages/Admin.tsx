@@ -55,19 +55,13 @@ export default function Admin() {
             <TabsTrigger value="platform"><Activity className="h-4 w-4 mr-1" />Платформа</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Пользователи</TabsTrigger>
             <TabsTrigger value="tariffs"><CreditCard className="h-4 w-4 mr-1" />Тарифы</TabsTrigger>
-            <TabsTrigger value="keywords"><Hash className="h-4 w-4 mr-1" />Запросы</TabsTrigger>
-            <TabsTrigger value="refresh"><Play className="h-4 w-4 mr-1" />Обновление</TabsTrigger>
-            <TabsTrigger value="settings"><Settings className="h-4 w-4 mr-1" />Настройки</TabsTrigger>
-            <TabsTrigger value="stats"><BarChart3 className="h-4 w-4 mr-1" />По нишам</TabsTrigger>
+            <TabsTrigger value="trends"><RefreshCw className="h-4 w-4 mr-1" />Тренды</TabsTrigger>
           </TabsList>
 
           <TabsContent value="platform"><PlatformTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="tariffs"><TariffsTab /></TabsContent>
-          <TabsContent value="keywords"><NicheKeywordsTab /></TabsContent>
-          <TabsContent value="refresh"><RefreshTab /></TabsContent>
-          <TabsContent value="settings"><SettingsTab /></TabsContent>
-          <TabsContent value="stats"><StatsTab /></TabsContent>
+          <TabsContent value="trends"><TrendsManagementTab /></TabsContent>
         </Tabs>
       </div>
     </AppLayout>
@@ -320,151 +314,59 @@ function RoleAssigner({
   );
 }
 
-/* ==================== NICHE KEYWORDS TAB ==================== */
-function NicheKeywordsTab() {
-  const queryClient = useQueryClient();
-  const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
-  const [newQuery, setNewQuery] = useState("");
-
-  const { data: nicheQueries = {}, isLoading } = useQuery({
-    queryKey: ["trend-settings", "niche_queries"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("trend_settings")
-        .select("value")
-        .eq("key", "niche_queries")
-        .single();
-      return (data?.value as Record<string, string[]>) || {};
-    },
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (updated: Record<string, string[]>) => {
-      const { error } = await supabase
-        .from("trend_settings")
-        .update({ value: updated as any, updated_at: new Date().toISOString() })
-        .eq("key", "niche_queries");
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trend-settings"] });
-      toast.success("Запросы сохранены");
-    },
-    onError: () => toast.error("Ошибка сохранения"),
-  });
-
-  const addQuery = () => {
-    if (!selectedNiche || !newQuery.trim()) return;
-    const updated = { ...nicheQueries };
-    updated[selectedNiche] = [...(updated[selectedNiche] || []), newQuery.trim()];
-    saveMutation.mutate(updated);
-    setNewQuery("");
-  };
-
-  const removeQuery = (niche: string, index: number) => {
-    const updated = { ...nicheQueries };
-    updated[niche] = updated[niche].filter((_, i) => i !== index);
-    saveMutation.mutate(updated);
-  };
-
-  const niches = Object.keys(nicheQueries).sort();
-
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+/* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
+function TrendsManagementTab() {
+  const [section, setSection] = useState<"refresh" | "keywords" | "settings" | "stats">("refresh");
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        {niches.map((niche) => (
-          <Badge
-            key={niche}
-            variant={selectedNiche === niche ? "default" : "outline"}
-            className="cursor-pointer text-sm"
-            onClick={() => setSelectedNiche(selectedNiche === niche ? null : niche)}
-          >
-            {niche} ({nicheQueries[niche]?.length || 0})
-          </Badge>
+        {[
+          { key: "refresh" as const, label: "Обновление", icon: Play },
+          { key: "keywords" as const, label: "Запросы", icon: Hash },
+          { key: "settings" as const, label: "Настройки", icon: Settings },
+          { key: "stats" as const, label: "По нишам", icon: BarChart3 },
+        ].map(({ key, label, icon: Icon }) => (
+          <Button key={key} variant={section === key ? "default" : "outline"} size="sm" onClick={() => setSection(key)} className="gap-1.5">
+            <Icon className="h-4 w-4" />{label}
+          </Button>
         ))}
       </div>
-
-      {selectedNiche && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">
-              Запросы для ниши: <span className="text-primary">{selectedNiche}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Новый запрос или хэштег..."
-                value={newQuery}
-                onChange={(e) => setNewQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addQuery()}
-              />
-              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
-              {(nicheQueries[selectedNiche] || []).map((q, i) => (
-                <Badge key={i} variant="secondary" className="gap-1 pr-1">
-                  {q}
-                  <button
-                    onClick={() => removeQuery(selectedNiche, i)}
-                    className="ml-1 hover:text-destructive transition-colors"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {section === "refresh" && <RefreshSection />}
+      {section === "keywords" && <KeywordsSection />}
+      {section === "settings" && <SettingsSection />}
+      {section === "stats" && <StatsSection />}
     </div>
   );
 }
 
-/* ==================== REFRESH TAB ==================== */
-function RefreshTab() {
+function RefreshSection() {
   const [refreshing, setRefreshing] = useState<string | null>(null);
-
   const triggerRefresh = async (mode: string) => {
     setRefreshing(mode);
     try {
       const body: any = {};
       if (mode === "lite") body.lite = true;
       else if (mode === "mass") body.mass = true;
-
       const { error } = await supabase.functions.invoke("refresh-trends", { body });
       if (error) throw error;
       toast.success(`Обновление (${mode}) запущено`);
     } catch {
       toast.info(`Обновление (${mode}) запущено — может занять несколько минут`);
-    } finally {
-      setRefreshing(null);
-    }
+    } finally { setRefreshing(null); }
   };
-
   const { data: logs = [] } = useQuery({
     queryKey: ["refresh-logs"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("trend_refresh_logs")
-        .select("*")
-        .order("started_at", { ascending: false })
-        .limit(20);
+      const { data } = await supabase.from("trend_refresh_logs").select("*").order("started_at", { ascending: false }).limit(20);
       return data || [];
     },
     refetchInterval: 10000,
   });
-
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Запуск обновления трендов</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Запуск обновления трендов</CardTitle></CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
             {[
@@ -472,18 +374,8 @@ function RefreshTab() {
               { mode: "full", label: "Full", desc: "Стандартное (3 запроса/ниша)" },
               { mode: "mass", label: "Mass", desc: "Полное (6 запросов/ниша)" },
             ].map(({ mode, label, desc }) => (
-              <Button
-                key={mode}
-                onClick={() => triggerRefresh(mode)}
-                disabled={!!refreshing}
-                variant={mode === "mass" ? "default" : "outline"}
-                className="flex-col h-auto py-3 px-6"
-              >
-                {refreshing === mode ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-5 w-5" />
-                )}
+              <Button key={mode} onClick={() => triggerRefresh(mode)} disabled={!!refreshing} variant={mode === "mass" ? "default" : "outline"} className="flex-col h-auto py-3 px-6">
+                {refreshing === mode ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
                 <span className="font-semibold">{label}</span>
                 <span className="text-xs opacity-70">{desc}</span>
               </Button>
@@ -491,26 +383,17 @@ function RefreshTab() {
           </div>
         </CardContent>
       </Card>
-
       {logs.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Последние обновления</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-lg">Последние обновления</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {logs.map((log: any) => (
                 <div key={log.id} className="flex items-center gap-3 text-sm p-2 rounded-lg bg-muted/30">
-                  <Badge variant={log.status === "completed" ? "default" : log.status === "running" ? "secondary" : "destructive"}>
-                    {log.status}
-                  </Badge>
-                  <span className="text-muted-foreground">
-                    {new Date(log.started_at).toLocaleString("ru-RU")}
-                  </span>
+                  <Badge variant={log.status === "completed" ? "default" : log.status === "running" ? "secondary" : "destructive"}>{log.status}</Badge>
+                  <span className="text-muted-foreground">{new Date(log.started_at).toLocaleString("ru-RU")}</span>
                   <span className="font-medium">{log.mode}</span>
-                  <span className="text-muted-foreground">
-                    Сохранено: {log.total_saved} + {log.general_saved} общих
-                  </span>
+                  <span className="text-muted-foreground">Сохранено: {log.total_saved} + {log.general_saved} общих</span>
                 </div>
               ))}
             </div>
@@ -521,113 +404,121 @@ function RefreshTab() {
   );
 }
 
-/* ==================== SETTINGS TAB ==================== */
-function SettingsTab() {
+function KeywordsSection() {
   const queryClient = useQueryClient();
+  const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
+  const [newQuery, setNewQuery] = useState("");
+  const { data: nicheQueries = {}, isLoading } = useQuery({
+    queryKey: ["trend-settings", "niche_queries"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
+      return (data?.value as Record<string, string[]>) || {};
+    },
+  });
+  const saveMutation = useMutation({
+    mutationFn: async (updated: Record<string, string[]>) => {
+      const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "niche_queries");
+      if (error) throw error;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Запросы сохранены"); },
+    onError: () => toast.error("Ошибка сохранения"),
+  });
+  const addQuery = () => {
+    if (!selectedNiche || !newQuery.trim()) return;
+    const updated = { ...nicheQueries };
+    updated[selectedNiche] = [...(updated[selectedNiche] || []), newQuery.trim()];
+    saveMutation.mutate(updated);
+    setNewQuery("");
+  };
+  const removeQuery = (niche: string, index: number) => {
+    const updated = { ...nicheQueries };
+    updated[niche] = updated[niche].filter((_, i) => i !== index);
+    saveMutation.mutate(updated);
+  };
+  const niches = Object.keys(nicheQueries).sort();
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {niches.map((niche) => (
+          <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => setSelectedNiche(selectedNiche === niche ? null : niche)}>
+            {niche} ({nicheQueries[niche]?.length || 0})
+          </Badge>
+        ))}
+      </div>
+      {selectedNiche && (
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Запросы для ниши: <span className="text-primary">{selectedNiche}</span></CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex gap-2">
+              <Input placeholder="Новый запрос или хэштег..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addQuery()} />
+              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending}><Plus className="h-4 w-4" /></Button>
+            </div>
+            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
+              {(nicheQueries[selectedNiche] || []).map((q, i) => (
+                <Badge key={i} variant="secondary" className="gap-1 pr-1">
+                  {q}
+                  <button onClick={() => removeQuery(selectedNiche, i)} className="ml-1 hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
 
+function SettingsSection() {
+  const queryClient = useQueryClient();
   const { data: thresholds, isLoading } = useQuery({
     queryKey: ["trend-settings", "thresholds"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("trend_settings")
-        .select("value")
-        .eq("key", "thresholds")
-        .single();
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "thresholds").single();
       return (data?.value as any) || {};
     },
   });
-
   const [localThresholds, setLocalThresholds] = useState<any>(null);
   const current = localThresholds || thresholds || {};
-
   const saveMutation = useMutation({
     mutationFn: async (updated: any) => {
-      const { error } = await supabase
-        .from("trend_settings")
-        .update({ value: updated, updated_at: new Date().toISOString() })
-        .eq("key", "thresholds");
+      const { error } = await supabase.from("trend_settings").update({ value: updated, updated_at: new Date().toISOString() }).eq("key", "thresholds");
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trend-settings"] });
-      toast.success("Настройки сохранены");
-      setLocalThresholds(null);
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Настройки сохранены"); setLocalThresholds(null); },
     onError: () => toast.error("Ошибка сохранения"),
   });
-
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-
   const updateField = (path: string, value: number) => {
     const updated = { ...current };
     const keys = path.split(".");
     let obj = updated;
-    for (let i = 0; i < keys.length - 1; i++) {
-      obj[keys[i]] = { ...obj[keys[i]] };
-      obj = obj[keys[i]];
-    }
+    for (let i = 0; i < keys.length - 1; i++) { obj[keys[i]] = { ...obj[keys[i]] }; obj = obj[keys[i]]; }
     obj[keys[keys.length - 1]] = value;
     setLocalThresholds(updated);
   };
-
   return (
     <div className="space-y-4 max-w-lg">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Пороги и лимиты</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Пороги и лимиты</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <SettingRow
-            label="Порог слабой ниши (видео за 7 дней)"
-            value={current.weak_niche_threshold || 20}
-            onChange={(v) => updateField("weak_niche_threshold", v)}
-          />
-          <SettingRow
-            label="Мин. trend_score для зарубежных видео"
-            value={current.min_foreign_trend_score || 500}
-            onChange={(v) => updateField("min_foreign_trend_score", v)}
-          />
-
+          <SettingRow label="Порог слабой ниши (видео за 7 дней)" value={current.weak_niche_threshold || 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
+          <SettingRow label="Мин. trend_score для зарубежных видео" value={current.min_foreign_trend_score || 500} onChange={(v) => updateField("min_foreign_trend_score", v)} />
           <div className="pt-2 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на нишу</p>
-            {["lite", "full", "mass"].map((mode) => (
-              <SettingRow
-                key={mode}
-                label={`${mode} режим`}
-                value={current.queries_per_niche?.[mode] || 3}
-                onChange={(v) => updateField(`queries_per_niche.${mode}`, v)}
-              />
-            ))}
+            {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.queries_per_niche?.[mode] || 3} onChange={(v) => updateField(`queries_per_niche.${mode}`, v)} />))}
           </div>
-
           <div className="pt-2 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на слабую нишу</p>
-            {["lite", "full", "mass"].map((mode) => (
-              <SettingRow
-                key={mode}
-                label={`${mode} режим`}
-                value={current.weak_queries_per_niche?.[mode] || 6}
-                onChange={(v) => updateField(`weak_queries_per_niche.${mode}`, v)}
-              />
-            ))}
+            {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.weak_queries_per_niche?.[mode] || 6} onChange={(v) => updateField(`weak_queries_per_niche.${mode}`, v)} />))}
           </div>
-
           <div className="pt-2 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-2">Общих KZ запросов</p>
-            {["lite", "full", "mass"].map((mode) => (
-              <SettingRow
-                key={mode}
-                label={`${mode} режим`}
-                value={current.general_kz_count?.[mode] || 5}
-                onChange={(v) => updateField(`general_kz_count.${mode}`, v)}
-              />
-            ))}
+            {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.general_kz_count?.[mode] || 5} onChange={(v) => updateField(`general_kz_count.${mode}`, v)} />))}
           </div>
-
           {localThresholds && (
             <Button onClick={() => saveMutation.mutate(localThresholds)} disabled={saveMutation.isPending} className="w-full">
-              <Save className="h-4 w-4 mr-2" />
-              Сохранить настройки
+              <Save className="h-4 w-4 mr-2" />Сохранить настройки
             </Button>
           )}
         </CardContent>
@@ -640,13 +531,49 @@ function SettingRow({ label, value, onChange }: { label: string; value: number; 
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-foreground">{label}</span>
-      <Input
-        type="number"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-24 text-center"
-      />
+      <Input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-24 text-center" />
     </div>
+  );
+}
+
+function StatsSection() {
+  const { data: nicheStats = [], isLoading } = useQuery({
+    queryKey: ["admin-niche-stats"],
+    queryFn: async () => {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
+      const { data: allVideos } = await supabase.from("videos").select("niche");
+      const { data: recentVideos } = await supabase.from("videos").select("niche").gte("published_at", sevenDaysAgo);
+      const totalMap: Record<string, number> = {};
+      const recentMap: Record<string, number> = {};
+      for (const v of allVideos || []) { const n = v.niche || "uncategorized"; totalMap[n] = (totalMap[n] || 0) + 1; }
+      for (const v of recentVideos || []) { const n = v.niche || "uncategorized"; recentMap[n] = (recentMap[n] || 0) + 1; }
+      return Object.keys(totalMap).map((niche) => ({ niche, total: totalMap[niche] || 0, recent: recentMap[niche] || 0 })).sort((a, b) => b.total - a.total);
+    },
+    refetchInterval: 30000,
+  });
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+  const totalAll = nicheStats.reduce((s, n) => s + n.total, 0);
+  const recentAll = nicheStats.reduce((s, n) => s + n.recent, 0);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">Статистика по нишам <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-1 max-h-[500px] overflow-y-auto">
+          {nicheStats.map((s) => (
+            <div key={s.niche} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/30">
+              <span className="text-sm font-medium w-28 truncate">{s.niche}</span>
+              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${Math.min(100, (s.total / (nicheStats[0]?.total || 1)) * 100)}%` }} />
+              </div>
+              <span className="text-sm text-muted-foreground w-20 text-right">{s.total}</span>
+              <Badge variant={s.recent < 20 ? "destructive" : "default"} className="text-xs w-16 justify-center">{s.recent} / 7д</Badge>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -654,151 +581,52 @@ function SettingRow({ label, value, onChange }: { label: string; value: number; 
 function TariffsTab() {
   const queryClient = useQueryClient();
   const [editPlan, setEditPlan] = useState<any | null>(null);
-  const [assignDialog, setAssignDialog] = useState<{ open: boolean; userId?: string; email?: string }>({ open: false });
+  const [assignDialog, setAssignDialog] = useState<{ open: boolean }>({ open: false });
 
   const { data: plans = [], isLoading: plansLoading } = useQuery({
     queryKey: ["admin-plans"],
     queryFn: async () => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-plans`,
-        {
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-plans`, {
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      });
       if (!res.ok) throw new Error("Failed");
-      const d = await res.json();
-      return d.plans || [];
+      return (await res.json()).plans || [];
     },
   });
 
   const { data: subscriptions = [], isLoading: subsLoading } = useQuery({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-subscriptions`,
-        {
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-subscriptions`, {
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      });
       if (!res.ok) throw new Error("Failed");
-      const d = await res.json();
-      return d.subscriptions || [];
+      return (await res.json()).subscriptions || [];
     },
   });
 
-  const upsertPlan = useMutation({
-    mutationFn: async (plan: any) => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=upsert-plan`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(plan),
-        }
-      );
-      if (!res.ok) throw new Error("Failed");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-plans"] });
-      toast.success("Тариф сохранён");
-      setEditPlan(null);
-    },
-    onError: () => toast.error("Ошибка сохранения тарифа"),
-  });
+  const adminFetch = async (action: string, body: any) => {
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=${action}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error("Failed");
+  };
 
-  const deletePlan = useMutation({
-    mutationFn: async (plan_id: string) => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=delete-plan`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ plan_id }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-plans"] });
-      toast.success("Тариф удалён");
-    },
-    onError: () => toast.error("Ошибка удаления"),
-  });
-
-  const assignSub = useMutation({
-    mutationFn: async (body: any) => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=assign-subscription`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        }
-      );
-      if (!res.ok) throw new Error("Failed");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-subscriptions", "admin-users-list"] });
-      toast.success("Подписка назначена");
-      setAssignDialog({ open: false });
-    },
-    onError: () => toast.error("Ошибка назначения подписки"),
-  });
-
-  const revokeSub = useMutation({
-    mutationFn: async (subscription_id: string) => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=revoke-subscription`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subscription_id }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
-      toast.success("Подписка отозвана");
-    },
-    onError: () => toast.error("Ошибка"),
-  });
+  const upsertPlan = useMutation({ mutationFn: (plan: any) => adminFetch("upsert-plan", plan), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-plans"] }); toast.success("Тариф сохранён"); setEditPlan(null); }, onError: () => toast.error("Ошибка") });
+  const deletePlan = useMutation({ mutationFn: (plan_id: string) => adminFetch("delete-plan", { plan_id }), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-plans"] }); toast.success("Тариф удалён"); }, onError: () => toast.error("Ошибка") });
+  const assignSub = useMutation({ mutationFn: (body: any) => adminFetch("assign-subscription", body), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-subscriptions", "admin-users-list"] }); toast.success("Подписка назначена"); setAssignDialog({ open: false }); }, onError: () => toast.error("Ошибка") });
+  const revokeSub = useMutation({ mutationFn: (id: string) => adminFetch("revoke-subscription", { subscription_id: id }), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] }); toast.success("Подписка отозвана"); }, onError: () => toast.error("Ошибка") });
 
   if (plansLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
 
   return (
     <div className="space-y-6">
-      {/* Plans management */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Crown className="h-5 w-5 text-primary" /> Тарифные планы
-          </CardTitle>
-          <Button size="sm" onClick={() => setEditPlan({ name: "", price_rub: 0, duration_days: 30, max_requests: 100, max_tracked_accounts: 5, features: [], is_active: true, sort_order: plans.length + 1 })}>
-            <Plus className="h-4 w-4 mr-1" /> Новый тариф
-          </Button>
+          <CardTitle className="text-lg flex items-center gap-2"><Crown className="h-5 w-5 text-primary" /> Тарифные планы</CardTitle>
+          <Button size="sm" onClick={() => setEditPlan({ name: "", price_rub: 0, duration_days: 30, max_requests: 100, max_tracked_accounts: 5, features: [], is_active: true, sort_order: plans.length + 1 })}><Plus className="h-4 w-4 mr-1" /> Новый тариф</Button>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -824,18 +652,13 @@ function TariffsTab() {
         </CardContent>
       </Card>
 
-      {/* Assign subscription */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Подписки пользователей</CardTitle>
-          <Button size="sm" onClick={() => setAssignDialog({ open: true })}>
-            <Plus className="h-4 w-4 mr-1" /> Назначить
-          </Button>
+          <Button size="sm" onClick={() => setAssignDialog({ open: true })}><Plus className="h-4 w-4 mr-1" /> Назначить</Button>
         </CardHeader>
         <CardContent>
-          {subsLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" />
-          ) : subscriptions.length === 0 ? (
+          {subsLoading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" /> : subscriptions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">Нет подписок</p>
           ) : (
             <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -843,19 +666,9 @@ function TariffsTab() {
                 <div key={sub.id} className="flex items-center gap-3 text-sm p-2 rounded-lg bg-muted/30">
                   <span className="font-medium truncate max-w-40">{sub.user_email}</span>
                   <Badge variant={sub.is_active ? "default" : "secondary"}>{sub.plans?.name || "—"}</Badge>
-                  <span className="text-muted-foreground text-xs">
-                    до {new Date(sub.expires_at).toLocaleDateString("ru-RU")}
-                  </span>
-                  {sub.is_active && (
-                    <Badge variant={new Date(sub.expires_at) > new Date() ? "default" : "destructive"} className="text-xs">
-                      {new Date(sub.expires_at) > new Date() ? "Активна" : "Истекла"}
-                    </Badge>
-                  )}
-                  {sub.is_active && (
-                    <Button size="sm" variant="ghost" className="ml-auto h-7 text-xs text-destructive hover:text-destructive" onClick={() => revokeSub.mutate(sub.id)}>
-                      Отозвать
-                    </Button>
-                  )}
+                  <span className="text-muted-foreground text-xs">до {new Date(sub.expires_at).toLocaleDateString("ru-RU")}</span>
+                  {sub.is_active && <Badge variant={new Date(sub.expires_at) > new Date() ? "default" : "destructive"} className="text-xs">{new Date(sub.expires_at) > new Date() ? "Активна" : "Истекла"}</Badge>}
+                  {sub.is_active && <Button size="sm" variant="ghost" className="ml-auto h-7 text-xs text-destructive hover:text-destructive" onClick={() => revokeSub.mutate(sub.id)}>Отозвать</Button>}
                 </div>
               ))}
             </div>
@@ -863,36 +676,21 @@ function TariffsTab() {
         </CardContent>
       </Card>
 
-      {/* Edit plan dialog */}
-      {editPlan && (
-        <PlanEditDialog plan={editPlan} onClose={() => setEditPlan(null)} onSave={(p) => upsertPlan.mutate(p)} saving={upsertPlan.isPending} />
-      )}
-
-      {/* Assign subscription dialog */}
-      {assignDialog.open && (
-        <AssignSubDialog plans={plans} onClose={() => setAssignDialog({ open: false })} onAssign={(data) => assignSub.mutate(data)} saving={assignSub.isPending} />
-      )}
+      {editPlan && <PlanEditDialog plan={editPlan} onClose={() => setEditPlan(null)} onSave={(p) => upsertPlan.mutate(p)} saving={upsertPlan.isPending} />}
+      {assignDialog.open && <AssignSubDialog plans={plans} onClose={() => setAssignDialog({ open: false })} onAssign={(data) => assignSub.mutate(data)} saving={assignSub.isPending} />}
     </div>
   );
 }
 
 function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose: () => void; onSave: (p: any) => void; saving: boolean }) {
   const [form, setForm] = useState({ ...plan, features: Array.isArray(plan.features) ? plan.features.join("\n") : "" });
-
   const handleSave = () => {
     onSave({
-      ...(plan.id ? { id: plan.id } : {}),
-      name: form.name,
-      price_rub: Number(form.price_rub),
-      duration_days: Number(form.duration_days),
-      max_requests: Number(form.max_requests),
-      max_tracked_accounts: Number(form.max_tracked_accounts),
-      features: form.features.split("\n").map((f: string) => f.trim()).filter(Boolean),
-      is_active: form.is_active,
-      sort_order: Number(form.sort_order),
+      ...(plan.id ? { id: plan.id } : {}), name: form.name, price_rub: Number(form.price_rub), duration_days: Number(form.duration_days),
+      max_requests: Number(form.max_requests), max_tracked_accounts: Number(form.max_tracked_accounts),
+      features: form.features.split("\n").map((f: string) => f.trim()).filter(Boolean), is_active: form.is_active, sort_order: Number(form.sort_order),
     });
   };
-
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent>
@@ -908,10 +706,7 @@ function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose:
             <div><label className="text-sm text-muted-foreground">Макс авторов (-1 = ∞)</label><Input type="number" value={form.max_tracked_accounts} onChange={(e) => setForm({ ...form, max_tracked_accounts: e.target.value })} /></div>
           </div>
           <div><label className="text-sm text-muted-foreground">Фичи (по одной на строку)</label><textarea className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-20" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} /></div>
-          <div className="flex items-center gap-2">
-            <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded" />
-            <span className="text-sm">Активен</span>
-          </div>
+          <div className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded" /><span className="text-sm">Активен</span></div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Отмена</Button>
@@ -927,7 +722,6 @@ function AssignSubDialog({ plans, onClose, onAssign, saving }: { plans: any[]; o
   const [planId, setPlanId] = useState("");
   const [days, setDays] = useState("30");
   const [note, setNote] = useState("");
-
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent>
@@ -938,11 +732,7 @@ function AssignSubDialog({ plans, onClose, onAssign, saving }: { plans: any[]; o
             <label className="text-sm text-muted-foreground">Тариф</label>
             <Select value={planId} onValueChange={setPlanId}>
               <SelectTrigger><SelectValue placeholder="Выберите тариф" /></SelectTrigger>
-              <SelectContent>
-                {plans.filter((p) => p.is_active).map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}</SelectItem>
-                ))}
-              </SelectContent>
+              <SelectContent>{plans.filter((p) => p.is_active).map((p) => (<SelectItem key={p.id} value={p.id}>{p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}</SelectItem>))}</SelectContent>
             </Select>
           </div>
           <div><label className="text-sm text-muted-foreground">Срок (дней)</label><Input type="number" value={days} onChange={(e) => setDays(e.target.value)} /></div>
@@ -950,86 +740,9 @@ function AssignSubDialog({ plans, onClose, onAssign, saving }: { plans: any[]; o
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Отмена</Button>
-          <Button onClick={() => onAssign({ user_id: userId, plan_id: planId, duration_days: Number(days), note })} disabled={saving || !userId || !planId}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Назначить"}
-          </Button>
+          <Button onClick={() => onAssign({ user_id: userId, plan_id: planId, duration_days: Number(days), note })} disabled={saving || !userId || !planId}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Назначить"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-/* ==================== STATS TAB ==================== */
-function StatsTab() {
-  const { data: nicheStats = [], isLoading } = useQuery({
-    queryKey: ["admin-niche-stats"],
-    queryFn: async () => {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      
-      const { data: allVideos } = await supabase
-        .from("videos")
-        .select("niche");
-      
-      const { data: recentVideos } = await supabase
-        .from("videos")
-        .select("niche")
-        .gte("published_at", sevenDaysAgo);
-
-      const totalMap: Record<string, number> = {};
-      const recentMap: Record<string, number> = {};
-      
-      for (const v of allVideos || []) {
-        const n = v.niche || "uncategorized";
-        totalMap[n] = (totalMap[n] || 0) + 1;
-      }
-      for (const v of recentVideos || []) {
-        const n = v.niche || "uncategorized";
-        recentMap[n] = (recentMap[n] || 0) + 1;
-      }
-
-      return Object.keys(totalMap)
-        .map((niche) => ({
-          niche,
-          total: totalMap[niche] || 0,
-          recent: recentMap[niche] || 0,
-        }))
-        .sort((a, b) => b.total - a.total);
-    },
-    refetchInterval: 30000,
-  });
-
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-
-  const totalAll = nicheStats.reduce((s, n) => s + n.total, 0);
-  const recentAll = nicheStats.reduce((s, n) => s + n.recent, 0);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          Статистика по нишам
-          <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-1 max-h-[500px] overflow-y-auto">
-          {nicheStats.map((s) => (
-            <div key={s.niche} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/30">
-              <span className="text-sm font-medium w-28 truncate">{s.niche}</span>
-              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-primary h-full rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (s.total / (nicheStats[0]?.total || 1)) * 100)}%` }}
-                />
-              </div>
-              <span className="text-sm text-muted-foreground w-20 text-right">{s.total}</span>
-              <Badge variant={s.recent < 20 ? "destructive" : "default"} className="text-xs w-16 justify-center">
-                {s.recent} / 7д
-              </Badge>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
   );
 }
