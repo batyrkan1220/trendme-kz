@@ -90,9 +90,9 @@ export default function Trends() {
   };
 
   const { data: allVideos = [], isLoading } = useQuery({
-    queryKey: ["trends", period, tab],
+    queryKey: ["trends", period, tab, niche],
     queryFn: async () => {
-      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region";
+      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche";
 
       const buildQuery = (region: string, limit: number) => {
         let q = supabase.from("videos").select(selectFields).eq("region", region);
@@ -100,6 +100,9 @@ export default function Trends() {
           const since = new Date();
           since.setDate(since.getDate() - period);
           q = q.gte("published_at", since.toISOString());
+        }
+        if (niche !== "all") {
+          q = q.eq("niche", niche);
         }
         return q.order("trend_score", { ascending: false }).limit(limit);
       };
@@ -128,22 +131,11 @@ export default function Trends() {
     staleTime: 60_000,
   });
 
-  // Reset visible count when tab/period changes
-  const filteredVideos = useMemo(() => {
-    if (niche === "all") return allVideos;
-    const nicheObj = NICHES.find(n => n.key === niche);
-    if (!nicheObj || nicheObj.keywords.length === 0) return allVideos;
-    return allVideos.filter((v: any) => {
-      const text = (v.caption || "").toLowerCase();
-      return nicheObj.keywords.some(kw => text.includes(kw));
-    });
-  }, [allVideos, niche]);
-
   const videos = useMemo(() => {
-    return filteredVideos.slice(0, visibleCount);
-  }, [filteredVideos, visibleCount]);
+    return allVideos.slice(0, visibleCount);
+  }, [allVideos, visibleCount]);
 
-  const hasMore = visibleCount < filteredVideos.length;
+  const hasMore = visibleCount < allVideos.length;
   const loaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -258,9 +250,9 @@ export default function Trends() {
               {t.label}
             </button>
           ))}
-          {filteredVideos.length > 0 && (
+          {allVideos.length > 0 && (
             <span className="self-center text-xs text-muted-foreground ml-2">
-              {filteredVideos.length} видео
+              {allVideos.length} видео
             </span>
           )}
         </div>
