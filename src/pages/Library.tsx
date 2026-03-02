@@ -63,28 +63,30 @@ export default function Library() {
         <h1 className="text-xl md:text-2xl font-bold text-foreground">Библиотека 📚</h1>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-fit">
+        <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-full sm:w-fit">
           <button
             onClick={() => setTab("favorites")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === "favorites"
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Heart className="h-4 w-4" />
-            Избранное ({favorites.length})
+            <span>Избранное</span>
+            <span className="text-xs text-muted-foreground">({favorites.length})</span>
           </button>
           <button
             onClick={() => setTab("scripts")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === "scripts"
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Sparkles className="h-4 w-4" />
-            Сценарии ({scripts.length})
+            <span>Сценарии</span>
+            <span className="text-xs text-muted-foreground">({scripts.length})</span>
           </button>
         </div>
 
