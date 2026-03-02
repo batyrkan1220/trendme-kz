@@ -35,8 +35,8 @@ export default function Dashboard() {
         .limit(6);
       return data || [];
     },
-    refetchInterval: 60_000,
-    staleTime: 30_000,
+    staleTime: 24 * 60 * 60 * 1000,
+    refetchInterval: 24 * 60 * 60 * 1000,
   });
 
   const { data: favCount = 0 } = useQuery({
