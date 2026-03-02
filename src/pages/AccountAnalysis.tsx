@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import {
   UserCircle, Users, Heart, Video, Loader2, Check, Eye, MessageCircle, Share2,
-  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X
+  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X, Sparkles
 } from "lucide-react";
 import { useState } from "react";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
