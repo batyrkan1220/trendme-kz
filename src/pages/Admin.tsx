@@ -490,31 +490,6 @@ function KeywordsSection() {
     },
   });
 
-  const { data: generalKzQueries = [], isLoading: gkzLoading } = useQuery({
-    queryKey: ["trend-settings", "general_kz_queries"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "general_kz_queries").single();
-      return (data?.value as string[]) || [];
-    },
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (updated: Record<string, string[]>) => {
-      const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "niche_queries");
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Запросы сохранены"); },
-    onError: () => toast.error("Ошибка сохранения"),
-  });
-
-  const saveGkzMutation = useMutation({
-    mutationFn: async (updated: string[]) => {
-      const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "general_kz_queries");
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Общие KZ запросы сохранены"); },
-    onError: () => toast.error("Ошибка сохранения"),
-  });
 
   const addQuery = () => {
     if (!newQuery.trim()) return;
