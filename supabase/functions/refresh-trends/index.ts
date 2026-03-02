@@ -157,14 +157,13 @@ Deno.serve(async (req: Request) => {
       .single();
     const thresholds = (thresholdsRow?.value as any) || {};
     const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
-    const fullNicheThreshold = thresholds.full_niche_threshold ?? 100;
     const fullGeneralKzThreshold = thresholds.full_general_kz_threshold ?? 200;
     const minForeignTrendScore = thresholds.min_foreign_trend_score ?? 500;
     const qPerNiche = thresholds.queries_per_niche || {};
     const wqPerNiche = thresholds.weak_queries_per_niche || {};
     const gkzCount = thresholds.general_kz_count || {};
 
-    // Load per-category limits from DB
+    // Load per-category limits from DB (only source of limits now)
     const { data: categoryLimitsRow } = await adminClient
       .from("trend_settings")
       .select("value")
@@ -187,19 +186,18 @@ Deno.serve(async (req: Request) => {
     const WEAK_NICHES = new Set(
       allNicheKeys.filter(n => (nicheCountMap[n] || 0) < weakNicheThreshold)
     );
+    // Skip category only if it has a per-category limit set and count >= that limit
     const FULL_NICHES = new Set(
       allNicheKeys.filter(n => {
-        const count = nicheCountMap[n] || 0;
-        const limit = categoryLimits[n] && categoryLimits[n] > 0 ? categoryLimits[n] : fullNicheThreshold;
-        return count >= limit;
+        const limit = categoryLimits[n];
+        if (!limit || limit <= 0) return false; // no limit set = never skip
+        return (nicheCountMap[n] || 0) >= limit;
       })
     );
     if (batchIndex === 0) {
       console.log(`Weak categories (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
-      console.log(`Full categories (at limit, skipping): ${[...FULL_NICHES].join(", ") || "none"}`);
-      if (Object.keys(categoryLimits).length > 0) {
-        console.log(`Per-category limits: ${JSON.stringify(categoryLimits)}`);
-      }
+      console.log(`Full categories (at per-category limit, skipping): ${[...FULL_NICHES].join(", ") || "none"}`);
+      console.log(`Per-category limits: ${JSON.stringify(categoryLimits)}`);
     }
 
     // Use DB thresholds for query counts
