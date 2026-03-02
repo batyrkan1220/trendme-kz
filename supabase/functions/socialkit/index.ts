@@ -109,27 +109,96 @@ Deno.serve(async (req: Request) => {
       };
     };
 
+    // Helper: extract videos from various response formats
+    const extractVideos = (data: any): any[] => {
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.data?.results)) return data.data.results;
+      if (Array.isArray(data?.data)) return data.data;
+      if (Array.isArray(data?.items)) return data.items;
+      if (Array.isArray(data?.videos)) return data.videos;
+      if (Array.isArray(data?.result)) return data.result;
+      console.log("SocialKit unexpected response:", JSON.stringify(data).slice(0, 500));
+      return [];
+    };
+
+    // Helper: generate hashtags from query using AI
+    const generateHashtags = async (query: string): Promise<string[]> => {
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) return [];
+      try {
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              {
+                role: "system",
+                content: "Generate 3-5 TikTok hashtags (without #) for searching videos related to the user's query. Return ONLY a JSON array of strings, no explanation. Hashtags should be in the same language as the query and also include popular English equivalents. Example: [\"алматы\",\"almaty\",\"казахстан\",\"kazakhstan\"]"
+              },
+              { role: "user", content: query }
+            ],
+          }),
+        });
+        const aiData = await res.json();
+        const content = aiData?.choices?.[0]?.message?.content || "";
+        // Parse JSON array from response
+        const match = content.match(/\[[\s\S]*?\]/);
+        if (match) {
+          const tags = JSON.parse(match[0]);
+          console.log("AI generated hashtags:", tags);
+          return Array.isArray(tags) ? tags.filter((t: any) => typeof t === "string" && t.length > 0).slice(0, 5) : [];
+        }
+      } catch (e) {
+        console.error("Hashtag generation failed:", e);
+      }
+      return [];
+    };
+
     switch (action) {
       case "search": {
         const { query, limit = 20, region = "world" } = body;
         if (!query) return json({ error: "query is required" }, 400);
 
-        const data = await callSocialKit("/tiktok/search", {
-          query,
-          limit: String(limit),
-        });
+        // 1. Generate hashtags + do keyword search in parallel
+        const [keywordData, hashtags] = await Promise.all([
+          callSocialKit("/tiktok/search", { query, limit: String(limit) }),
+          generateHashtags(query),
+        ]);
 
-        let videos: any[] = [];
-        if (Array.isArray(data)) videos = data;
-        else if (Array.isArray(data?.data?.results)) videos = data.data.results;
-        else if (Array.isArray(data?.data)) videos = data.data;
-        else if (Array.isArray(data?.items)) videos = data.items;
-        else if (Array.isArray(data?.videos)) videos = data.videos;
-        else if (Array.isArray(data?.result)) videos = data.result;
-        else {
-          console.log("SocialKit unexpected response:", JSON.stringify(data).slice(0, 500));
-          videos = [];
+        let allVideos: any[] = extractVideos(keywordData);
+        console.log(`Keyword search returned ${allVideos.length} videos`);
+
+        // 2. Search by hashtags in parallel (limit per hashtag to save credits)
+        if (hashtags.length > 0) {
+          const hashtagLimit = Math.min(30, Math.ceil(Number(limit) / hashtags.length));
+          const hashtagResults = await Promise.allSettled(
+            hashtags.map(tag =>
+              callSocialKit("/tiktok/hashtag-search", { hashtag: tag, limit: String(hashtagLimit) })
+            )
+          );
+          for (const result of hashtagResults) {
+            if (result.status === "fulfilled") {
+              const vids = extractVideos(result.value);
+              console.log(`Hashtag search returned ${vids.length} videos`);
+              allVideos.push(...vids);
+            }
+          }
         }
+
+        // 3. Deduplicate by video id
+        const seen = new Set<string>();
+        const uniqueVideos: any[] = [];
+        for (const v of allVideos) {
+          const vid = String(v.id || v.video_id || v.aweme_id || "");
+          if (!vid || seen.has(vid)) continue;
+          seen.add(vid);
+          uniqueVideos.push(v);
+        }
+        console.log(`Total unique videos after dedup: ${uniqueVideos.length}`);
 
         const { data: queryRow } = await userClient
           .from("search_queries")
@@ -138,7 +207,7 @@ Deno.serve(async (req: Request) => {
               user_id: userId,
               query_text: query,
               last_run_at: new Date().toISOString(),
-              total_results_saved: videos.length,
+              total_results_saved: uniqueVideos.length,
             },
             { onConflict: "user_id,query_text", ignoreDuplicates: false }
           )
@@ -146,7 +215,7 @@ Deno.serve(async (req: Request) => {
           .single();
 
         const upsertedVideos = [];
-        for (const v of videos) {
+        for (const v of uniqueVideos) {
           const videoId = v.id || v.video_id || v.aweme_id;
           if (!videoId) continue;
 
@@ -184,10 +253,10 @@ Deno.serve(async (req: Request) => {
         await userClient.from("activity_log").insert({
           user_id: userId,
           type: "search_run",
-          payload_json: { query, results_count: upsertedVideos.length },
+          payload_json: { query, hashtags, results_count: upsertedVideos.length },
         });
 
-        return json({ videos: upsertedVideos, query: queryRow });
+        return json({ videos: upsertedVideos, query: queryRow, hashtags });
       }
 
       case "video_stats": {
