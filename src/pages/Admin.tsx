@@ -214,12 +214,16 @@ function UsersTab() {
                     <th className="text-left p-3 text-muted-foreground font-medium">Email</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Регистрация</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Посл. вход</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Тариф</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Действия</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u: any) => (
+                  {users.map((u: any) => {
+                    const sub = u.subscription;
+                    const isExpired = sub && new Date(sub.expires_at) < new Date();
+                    return (
                     <tr key={u.id} className="border-b border-border/50 hover:bg-muted/30">
                       <td className="p-3 font-medium">{u.email}</td>
                       <td className="p-3 text-muted-foreground">
@@ -229,6 +233,21 @@ function UsersTab() {
                         {u.last_sign_in_at
                           ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU")
                           : "—"}
+                      </td>
+                      <td className="p-3">
+                        {sub ? (
+                          <div className="flex flex-col gap-0.5">
+                            <Badge variant={isExpired ? "destructive" : "default"} className="text-xs w-fit">
+                              <CreditCard className="h-3 w-3 mr-1" />
+                              {sub.plans?.name || "—"}
+                            </Badge>
+                            <span className={`text-xs ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
+                              до {new Date(sub.expires_at).toLocaleDateString("ru-RU")}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </td>
                       <td className="p-3">
                         <div className="flex gap-1">
@@ -261,7 +280,8 @@ function UsersTab() {
                         />
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
