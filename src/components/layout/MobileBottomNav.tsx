@@ -20,7 +20,7 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/60 md:hidden safe-area-bottom" style={{ zIndex: 9999 }}>
+    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.08)] md:hidden safe-area-bottom" style={{ zIndex: 9999 }}>
       <div className="flex items-center justify-around px-1 py-1.5">
         {navItems.map((item) => {
           const active = location.pathname === item.path;
