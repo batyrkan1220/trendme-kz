@@ -280,8 +280,12 @@ Deno.serve(async (req: Request) => {
     const nicheStats: Record<string, number> = { ...existingNicheStats };
     let totalSaved = existingTotalSaved;
 
-    // Create log entry on first batch only
+    // Create log entry on first batch only; cancel any stale running logs first
     if (!logId) {
+      await adminClient.from("trend_refresh_logs")
+        .update({ status: "error", error_message: "Superseded by new run", finished_at: new Date().toISOString() })
+        .eq("status", "running");
+
       const { data: logEntry } = await adminClient.from("trend_refresh_logs").insert({
         mode,
         status: "running",
