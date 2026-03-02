@@ -246,7 +246,9 @@ Deno.serve(async (req: Request) => {
     ];
 
     const results: Record<string, number> = {};
-    const BATCH_SIZE = mode === "mass" ? 15 : 10;
+    const BATCH_SIZE = mode === "mass" ? 5 : 5;
+
+    const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
     for (let i = 0; i < allTasks.length; i += BATCH_SIZE) {
       const batch = allTasks.slice(i, i + BATCH_SIZE);
@@ -257,6 +259,10 @@ Deno.serve(async (req: Request) => {
         const r = batchResults[idx];
         results[`${region}:${q}`] = r.status === "fulfilled" ? r.value : 0;
       });
+      // Пауза между батчами чтобы не перегружать API
+      if (i + BATCH_SIZE < allTasks.length) {
+        await delay(1500);
+      }
     }
 
     console.log("Refresh trends completed, mode:", mode, "total queries:", allTasks.length);
