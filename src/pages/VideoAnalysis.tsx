@@ -457,17 +457,17 @@ export default function VideoAnalysis() {
             </div>
           </div>
         ) : isPending ? (
-          <div className="flex flex-col items-center justify-center py-32 gap-4">
-            <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
-              <Sparkles className="h-8 w-8 text-primary-foreground animate-pulse" />
+          <div className="flex flex-col items-center justify-center py-16 md:py-32 gap-4">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
+              <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary-foreground animate-pulse" />
             </div>
-            <p className="text-muted-foreground font-medium text-center">
+            <p className="text-muted-foreground font-medium text-center text-sm md:text-base">
               Анализируем, транскрибируем и переводим видео...
             </p>
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="bg-card rounded-2xl border border-border/50 p-16 text-center card-shadow">
+          <div className="bg-card rounded-2xl border border-border/50 p-8 md:p-16 text-center card-shadow">
             <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
               <Video className="h-10 w-10 text-muted-foreground/30" />
             </div>
