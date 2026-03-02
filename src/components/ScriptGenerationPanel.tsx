@@ -391,7 +391,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
               </div>
             ) : (
               /* Original script/transcript tab */
-              <div className="p-6">
+              <div className="p-3 md:p-6">
                 <div className="flex justify-end mb-4">
                   <button
                     onClick={() => { navigator.clipboard.writeText(transcript || ""); toast.success("Скопировано!"); }}
