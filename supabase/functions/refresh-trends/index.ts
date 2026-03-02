@@ -297,8 +297,8 @@ Deno.serve(async (req: Request) => {
       logId = logEntry?.id || null;
     }
 
-    // Self-chaining helper
-    const chainNextBatch = async (nextBatch: number, updatedNicheStats: Record<string, number>, updatedTotalSaved: number) => {
+    // Self-chaining helper - reads accumulated stats from DB log
+    const chainNextBatch = async (nextBatch: number) => {
       try {
         await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
           method: "POST",
@@ -310,8 +310,6 @@ Deno.serve(async (req: Request) => {
             mode,
             batch: nextBatch,
             logId,
-            nicheStats: updatedNicheStats,
-            totalSaved: updatedTotalSaved,
           }),
         });
       } catch (e) {
