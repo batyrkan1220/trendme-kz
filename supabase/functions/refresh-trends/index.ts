@@ -219,6 +219,7 @@ Deno.serve(async (req: Request) => {
         totalSaved += nicheSaved;
         console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos`);
       }));
+    }
 
     // Also run general KZ queries (tagged region=kz, niche assigned by AI later)
     const shuffledGeneral = GENERAL_KZ_QUERIES.sort(() => Math.random() - 0.5).slice(0, generalKzCount);
