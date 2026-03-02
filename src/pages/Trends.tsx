@@ -1,6 +1,45 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket } from "lucide-react";
+import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket, ChevronDown } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const NICHES = [
+  { key: "all", label: "Все ниши", emoji: "🔥", keywords: [] },
+  { key: "finance", label: "Финансы и Инвестиции", emoji: "💰", keywords: ["финанс", "инвест", "крипто", "биткоин", "деньг", "заработ", "доход", "трейд", "акци", "finance", "invest", "crypto", "money", "trading"] },
+  { key: "marketing", label: "Маркетинг и SMM", emoji: "📱", keywords: ["маркетинг", "smm", "реклам", "продвиж", "таргет", "контент", "бренд", "marketing", "brand", "target", "воронк"] },
+  { key: "business", label: "Бизнес и Продажи", emoji: "💼", keywords: ["бизнес", "продаж", "предприним", "стартап", "business", "startup", "магазин", "товар", "оптов"] },
+  { key: "psychology", label: "Психология отношений", emoji: "❤️", keywords: ["психолог", "отношен", "любов", "пар", "свидан", "брак", "развод", "чувств", "эмоци", "relationship"] },
+  { key: "therapy", label: "Терапия и мышление", emoji: "🧠", keywords: ["терапи", "мышлен", "медитац", "осознан", "саморазвит", "мотивац", "therapy", "mindset", "motivation"] },
+  { key: "education", label: "Образование и языки", emoji: "🇬🇧", keywords: ["образован", "учеб", "урок", "английск", "язык", "школ", "универ", "курс", "education", "english", "learn"] },
+  { key: "mama", label: "Мама-блоги и материнство", emoji: "🍼", keywords: ["мам", "ребенок", "дет", "малыш", "беременн", "родител", "воспитан", "baby", "mom", "mother", "parenting"] },
+  { key: "beauty", label: "Бьюти и косметология", emoji: "💄", keywords: ["бьюти", "косметик", "макияж", "уход", "кожа", "крем", "beauty", "makeup", "skincare", "маникюр", "волос"] },
+  { key: "fitness", label: "Фитнес и Спорт", emoji: "💪", keywords: ["фитнес", "спорт", "тренировк", "зал", "похуде", "диет", "fitness", "sport", "workout", "gym", "йог"] },
+  { key: "fashion", label: "Мода и Стиль", emoji: "👠", keywords: ["мода", "стиль", "одежд", "образ", "тренд", "outfit", "fashion", "style", "look", "бренд", "шопинг"] },
+  { key: "law", label: "Юристы и Налоги", emoji: "⚖️", keywords: ["юрист", "налог", "закон", "прав", "суд", "штраф", "lawyer", "tax", "legal", "документ"] },
+  { key: "realestate", label: "Недвижимость", emoji: "🏠", keywords: ["недвижимост", "квартир", "дом", "ипотек", "аренд", "жиль", "ремонт", "стройк", "realestate", "apartment"] },
+  { key: "esoteric", label: "Эзотерика и Таро", emoji: "🔮", keywords: ["эзотерик", "таро", "гороскоп", "астролог", "карт", "знак зодиак", "магия", "энерги", "tarot", "astrology"] },
+  { key: "food", label: "Еда и Рецепты", emoji: "🍳", keywords: ["еда", "рецепт", "готов", "кухн", "блюд", "вкусн", "food", "recipe", "cooking", "торт", "выпечк"] },
+  { key: "home", label: "Дом, Уют и Ремонт", emoji: "🪴", keywords: ["дом", "уют", "ремонт", "интерьер", "декор", "мебел", "уборк", "home", "interior", "design", "организац"] },
+  { key: "travel", label: "Путешествия", emoji: "✈️", keywords: ["путешеств", "travel", "туризм", "отдых", "отпуск", "страна", "город", "поездк", "виз"] },
+  { key: "lifestyle", label: "Лайфстайл", emoji: "🎬", keywords: ["лайфстайл", "lifestyle", "жизн", "влог", "vlog", "день", "рутин", "routine", "мотивац"] },
+  { key: "animals", label: "Животные", emoji: "🐾", keywords: ["животн", "кот", "собак", "питомец", "pet", "cat", "dog", "щенок", "котенок", "animal"] },
+  { key: "gaming", label: "Игры и Гик-культура", emoji: "🎮", keywords: ["игр", "game", "gaming", "геймер", "ps5", "xbox", "steam", "компьютер", "аниме", "anime", "комикс"] },
+  { key: "music", label: "Музыка, Кино и Арт", emoji: "🎸", keywords: ["музык", "кино", "фильм", "песн", "music", "movie", "film", "арт", "art", "творчеств", "рисов"] },
+  { key: "tattoo", label: "Тату и Пирсинг", emoji: "✒️", keywords: ["тату", "пирсинг", "tattoo", "piercing", "ink", "мастер"] },
+  { key: "career", label: "Карьера и Фриланс", emoji: "💻", keywords: ["карьер", "фриланс", "работ", "вакансии", "резюме", "career", "freelance", "remote", "удаленн"] },
+  { key: "auto", label: "Авто и Мото", emoji: "🚗", keywords: ["авто", "машин", "мото", "car", "auto", "тачк", "водител", "дтп", "гараж"] },
+  { key: "diy", label: "Рукоделие и DIY", emoji: "🧶", keywords: ["рукодел", "diy", "своими рукам", "handmade", "craft", "вяза", "шить", "поделк"] },
+  { key: "kids", label: "Дети и Воспитание", emoji: "👶", keywords: ["дет", "воспитан", "ребенок", "малыш", "школ", "kids", "children", "развит"] },
+  { key: "ai_news", label: "Новости нейросетей", emoji: "🤖", keywords: ["нейросет", "ии", "ai", "chatgpt", "gpt", "искусственн интеллект", "neural", "машинн обучен"] },
+  { key: "ai_art", label: "AI Art и Генерации", emoji: "🪐", keywords: ["ai art", "генерац", "midjourney", "stable diffusion", "dall-e", "нейросет рису", "сгенериров"] },
+  { key: "ai_avatar", label: "AI Аватары", emoji: "🗣️", keywords: ["ai аватар", "цифров аватар", "deepfake", "виртуальн", "avatar", "digital human"] },
+  { key: "humor", label: "Юмор и Скетчи", emoji: "😂", keywords: ["юмор", "смешн", "скетч", "прикол", "шутк", "comedy", "funny", "мем", "humor", "ржач"] },
+] as const;
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
