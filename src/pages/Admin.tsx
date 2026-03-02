@@ -755,13 +755,17 @@ function StatsSection() {
         let from = 0;
         const PAGE = 1000;
         while (true) {
-          let q = supabase.from("videos").select("niche", { count: "exact" }).range(from, from + PAGE - 1);
+          let q = supabase.from("videos").select("categories", { count: "exact" }).range(from, from + PAGE - 1);
           if (filter?.gte) q = q.gte("published_at", filter.gte);
           const { data, error } = await q;
           if (error || !data || data.length === 0) break;
           for (const v of data) {
-            const n = v.niche || "uncategorized";
-            counts[n] = (counts[n] || 0) + 1;
+            const cats = (v as any).categories as string[] | null;
+            if (cats && cats.length > 0) {
+              for (const c of cats) counts[c] = (counts[c] || 0) + 1;
+            } else {
+              counts["uncategorized"] = (counts["uncategorized"] || 0) + 1;
+            }
           }
           if (data.length < PAGE) break;
           from += PAGE;

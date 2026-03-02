@@ -98,7 +98,7 @@ export default function Trends() {
   const { data: allVideos = [], isLoading } = useQuery({
     queryKey: ["trends", period, niche],
     queryFn: async () => {
-      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche";
+      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,categories";
 
       let q = supabase.from("videos").select(selectFields);
       if (period > 0) {
@@ -107,7 +107,7 @@ export default function Trends() {
         q = q.gte("published_at", since.toISOString());
       }
       if (niche !== "all") {
-        q = q.eq("niche", niche);
+        q = q.contains("categories", [niche]);
       }
       const { data } = await q.order("trend_score", { ascending: false }).limit(1000);
       return data || [];
