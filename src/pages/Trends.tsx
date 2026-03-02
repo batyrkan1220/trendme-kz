@@ -354,24 +354,20 @@ export default function Trends() {
                         </div>
 
                         {/* Bottom stats bar */}
-                        <div className="absolute bottom-0 left-0 right-0 p-1 md:p-2 z-10 pointer-events-none">
-                          <div className="flex items-center justify-center gap-0.5 md:gap-1">
-                            <div className="flex items-center gap-0.5 bg-white/20 backdrop-blur-md rounded-md px-1.5 md:px-2 py-0.5 md:py-1">
-                              <Eye className="h-2.5 md:h-3.5 w-2.5 md:w-3.5 text-white" />
-                              <span className="text-white text-[8px] md:text-[10px] font-bold">{fmt(Number(video.views))}</span>
-                            </div>
-                            <div className="flex items-center gap-0.5 bg-white/20 backdrop-blur-md rounded-md px-1.5 md:px-2 py-0.5 md:py-1">
-                              <Heart className="h-2.5 md:h-3.5 w-2.5 md:w-3.5 text-white" />
-                              <span className="text-white text-[8px] md:text-[10px] font-bold">{fmt(Number(video.likes))}</span>
-                            </div>
-                            <div className="flex items-center gap-0.5 bg-white/20 backdrop-blur-md rounded-md px-1.5 md:px-2 py-0.5 md:py-1">
-                              <MessageCircle className="h-2.5 md:h-3.5 w-2.5 md:w-3.5 text-white" />
-                              <span className="text-white text-[8px] md:text-[10px] font-bold">{fmt(Number(video.comments))}</span>
-                            </div>
-                            <div className="hidden sm:flex items-center gap-0.5 bg-white/20 backdrop-blur-md rounded-md px-1.5 md:px-2 py-0.5 md:py-1">
-                              <Share2 className="h-2.5 md:h-3.5 w-2.5 md:w-3.5 text-white" />
-                              <span className="text-white text-[8px] md:text-[10px] font-bold">{fmt(Number(video.shares || 0))}</span>
-                            </div>
+                        <div className="absolute bottom-0 left-0 right-0 p-1 md:p-1.5 z-10 pointer-events-none">
+                          <div className="flex items-center justify-between px-1">
+                            <span className="flex items-center gap-0.5 text-white text-[8px] md:text-[9px] font-bold">
+                              <Eye className="h-2.5 w-2.5 text-white/80" />{fmt(Number(video.views))}
+                            </span>
+                            <span className="flex items-center gap-0.5 text-white text-[8px] md:text-[9px] font-bold">
+                              <Heart className="h-2.5 w-2.5 text-white/80" />{fmt(Number(video.likes))}
+                            </span>
+                            <span className="flex items-center gap-0.5 text-white text-[8px] md:text-[9px] font-bold">
+                              <MessageCircle className="h-2.5 w-2.5 text-white/80" />{fmt(Number(video.comments))}
+                            </span>
+                            <span className="hidden sm:flex items-center gap-0.5 text-white text-[8px] md:text-[9px] font-bold">
+                              <Share2 className="h-2.5 w-2.5 text-white/80" />{fmt(Number(video.shares || 0))}
+                            </span>
                           </div>
                         </div>
                       </>
