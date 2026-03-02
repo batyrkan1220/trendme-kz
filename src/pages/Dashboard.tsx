@@ -1,7 +1,8 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Search, Video, UserCircle, BookOpen, ArrowRight, Eye, Heart, MessageCircle, Sparkles, Plus, Play } from "lucide-react";
+import { TrendingUp, Search, Video, UserCircle, BookOpen, ArrowRight, Eye, Heart, MessageCircle, Sparkles, Plus, Play, X, ExternalLink, Music, Share2, Flame, Rocket } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,7 +14,7 @@ const quickActions = [
   { label: "Библиотека", desc: "Сохранённое", icon: BookOpen, path: "/library", emoji: "📚" },
 ];
 
-function formatNum(n: number) {
+function fmt(n: number) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return String(n);
@@ -22,13 +23,14 @@ function formatNum(n: number) {
 export default function Dashboard() {
   const { user } = useAuth();
   const name = user?.email?.split("@")[0] || "друг";
+  const [playingId, setPlayingId] = useState<string | null>(null);
 
   const { data: trendingVideos = [], isLoading } = useQuery({
     queryKey: ["dashboard-trends"],
     queryFn: async () => {
       const { data } = await supabase
         .from("videos")
-        .select("id, caption, cover_url, author_username, views, likes, comments, trend_score, url, published_at")
+        .select("id, platform_video_id, caption, cover_url, author_username, author_avatar_url, views, likes, comments, shares, trend_score, velocity_views, url, published_at")
         .order("trend_score", { ascending: false })
         .limit(6);
       return data || [];
@@ -71,7 +73,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Actions - horizontal scrollable */}
+        {/* Quick Actions */}
         <div className="space-y-3">
           <p className="section-label">Быстрые действия</p>
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
@@ -109,7 +111,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Trending Videos */}
+        {/* Trending Videos — same style as Trends page */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="section-label">Топ тренды</p>
@@ -119,88 +121,151 @@ export default function Dashboard() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-card rounded-xl border border-border/60 overflow-hidden animate-pulse">
-                  <div className="aspect-video bg-muted" />
-                  <div className="p-3 space-y-2">
-                    <div className="h-3.5 bg-muted rounded w-3/4" />
-                    <div className="h-3 bg-muted rounded w-1/2" />
+                <div key={i} className="bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse">
+                  <div className="aspect-[9/14] bg-muted m-2 rounded-2xl" />
+                  <div className="px-3 py-3 space-y-2">
+                    <div className="h-4 bg-muted rounded w-2/3" />
+                    <div className="h-3 bg-muted rounded w-full" />
                   </div>
                 </div>
               ))}
             </div>
           ) : trendingVideos.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-3">
-              {trendingVideos.map((video, idx) => (
-                <a
-                  key={video.id}
-                  href={video.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group bg-card rounded-xl overflow-hidden border border-border/60 hover-lift card-shadow-hover transition-all relative"
-                >
-                  {/* Cover */}
-                  <div className="aspect-[3/4] relative overflow-hidden">
-                    {video.cover_url ? (
-                      <img
-                        src={video.cover_url}
-                        alt=""
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <Video className="h-6 w-6 text-muted-foreground/20" />
-                      </div>
-                    )}
+              {trendingVideos.map((video) => {
+                const score = video.trend_score || 0;
+                const velViews = video.velocity_views || 0;
+                const isRocket = score > 500;
+                const isFire = score > 100;
 
-                    {/* Play button */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
-                        <Play className="h-5 w-5 md:h-6 md:w-6 text-white fill-white ml-0.5" />
-                      </div>
-                    </div>
+                return (
+                  <div
+                    key={video.id}
+                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col"
+                  >
+                    {/* Video area */}
+                    <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-1.5 md:m-2">
+                      {playingId === video.id ? (
+                        <>
+                          <iframe
+                            src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                            className="w-full h-full border-0"
+                            allow="autoplay; encrypted-media; fullscreen"
+                            allowFullScreen
+                          />
+                          <button
+                            onClick={() => setPlayingId(null)}
+                            className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {video.cover_url ? (
+                            <img
+                              src={video.cover_url}
+                              alt=""
+                              loading="lazy"
+                              className="w-full h-full object-cover cursor-pointer"
+                              onClick={() => setPlayingId(video.id)}
+                            />
+                          ) : (
+                            <div
+                              className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
+                              onClick={() => setPlayingId(video.id)}
+                            >
+                              <Play className="h-12 w-12 text-muted-foreground/30" />
+                            </div>
+                          )}
 
-                    {/* Gradient overlay at bottom */}
-                    <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                          {/* TikTok header */}
+                          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2 z-10 pointer-events-none">
+                            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm">
+                              <Music className="h-3 w-3 text-foreground" />
+                              <span className="text-[10px] font-bold text-foreground">TikTok</span>
+                            </div>
+                          </div>
 
-                    {/* Rank badge */}
-                    <div className="absolute top-1.5 left-1.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center">
-                      {idx + 1}
-                    </div>
+                          {/* Trend indicators */}
+                          {isFire && (
+                            <div className="absolute top-10 left-2 z-10 flex flex-col gap-1 pointer-events-none">
+                              {isRocket ? (
+                                <div className="flex items-center gap-1 bg-orange-500/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-lg animate-[pulse_1.5s_ease-in-out_infinite]">
+                                  <Rocket className="h-3 w-3 text-white" />
+                                  <span className="text-[9px] font-bold text-white">Взлетает!</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 bg-red-500/80 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-lg">
+                                  <Flame className="h-3 w-3 text-white" />
+                                  <span className="text-[9px] font-bold text-white">В тренде</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
-                    {/* Trend score */}
-                    {video.trend_score != null && video.trend_score > 0 && (
-                      <div className="absolute top-1.5 right-1.5 bg-primary text-primary-foreground text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                        <Sparkles className="h-2.5 w-2.5" /> {Math.round(video.trend_score)}
-                      </div>
-                    )}
+                          {/* Open in TikTok */}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
+                            className="absolute top-10 right-2 z-10 w-6 h-6 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                          >
+                            <ExternalLink className="h-3 w-3 text-foreground" />
+                          </button>
 
-                    {/* Content over image */}
-                    <div className="absolute inset-x-0 bottom-0 p-2 md:p-3">
-                      {video.author_username && (
-                        <p className="text-[10px] md:text-[11px] text-white/80 font-medium truncate">@{video.author_username}</p>
+                          {/* Play button center - always visible on mobile */}
+                          <div
+                            className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"
+                            onClick={() => setPlayingId(video.id)}
+                          >
+                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
+                              <Play className="h-6 w-6 md:h-7 md:w-7 text-white fill-white ml-0.5" />
+                            </div>
+                          </div>
+
+                          {/* Bottom stats */}
+                          <div className="absolute bottom-0 left-0 right-0 p-1.5 md:p-2.5 z-10 pointer-events-none">
+                            <div className="flex items-center justify-center gap-1 md:gap-2">
+                              <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg px-1.5 md:px-3 py-1 md:py-1.5">
+                                <Eye className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                                <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.views))}</span>
+                              </div>
+                              <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg px-1.5 md:px-3 py-1 md:py-1.5">
+                                <Heart className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                                <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.likes))}</span>
+                              </div>
+                              <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg px-1.5 md:px-3 py-1 md:py-1.5">
+                                <MessageCircle className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                                <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.comments))}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
                       )}
-                      <p className="text-[11px] md:text-sm font-semibold text-white line-clamp-2 leading-snug mt-0.5">
+                    </div>
+
+                    {/* Author row */}
+                    <div className="px-2 md:px-3 pt-2 flex items-center gap-2">
+                      {video.author_avatar_url ? (
+                        <img src={video.author_avatar_url} alt="" className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0" />
+                      ) : (
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-muted flex-shrink-0" />
+                      )}
+                      <span className="text-[11px] md:text-sm font-semibold text-foreground truncate">
+                        @{video.author_username}
+                      </span>
+                    </div>
+
+                    {/* Caption */}
+                    <div className="px-2 md:px-3 pt-1 pb-2 md:pb-3">
+                      <p className="text-[10px] md:text-xs text-foreground/80 line-clamp-2 leading-relaxed">
                         {video.caption || "Без описания"}
                       </p>
                     </div>
                   </div>
-
-                  {/* Stats bar */}
-                  <div className="flex items-center justify-around py-1.5 md:py-2 px-1 bg-card border-t border-border/30">
-                    <span className="flex items-center gap-0.5 text-[10px] md:text-[11px] text-muted-foreground">
-                      <Eye className="h-3 w-3" /> {formatNum(Number(video.views) || 0)}
-                    </span>
-                    <span className="flex items-center gap-0.5 text-[10px] md:text-[11px] text-muted-foreground">
-                      <Heart className="h-3 w-3" /> {formatNum(Number(video.likes) || 0)}
-                    </span>
-                    <span className="flex items-center gap-0.5 text-[10px] md:text-[11px] text-muted-foreground">
-                      <MessageCircle className="h-3 w-3" /> {formatNum(Number(video.comments) || 0)}
-                    </span>
-                  </div>
-                </a>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="bg-card rounded-xl p-10 border border-border/60 text-center card-shadow">
