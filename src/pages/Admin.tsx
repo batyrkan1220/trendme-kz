@@ -481,6 +481,7 @@ function RefreshSection() {
 function KeywordsSection() {
   const queryClient = useQueryClient();
   const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
+  const [selectedGeneralKz, setSelectedGeneralKz] = useState(false);
   const [newQuery, setNewQuery] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -492,6 +493,15 @@ function KeywordsSection() {
       return (data?.value as Record<string, string[]>) || {};
     },
   });
+
+  const { data: generalKzQueries = [], isLoading: gkzLoading } = useQuery({
+    queryKey: ["trend-settings", "general_kz_queries"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "general_kz_queries").single();
+      return (data?.value as string[]) || [];
+    },
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (updated: Record<string, string[]>) => {
       const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "niche_queries");
@@ -500,17 +510,36 @@ function KeywordsSection() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Запросы сохранены"); },
     onError: () => toast.error("Ошибка сохранения"),
   });
+
+  const saveGkzMutation = useMutation({
+    mutationFn: async (updated: string[]) => {
+      const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "general_kz_queries");
+      if (error) throw error;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Общие KZ запросы сохранены"); },
+    onError: () => toast.error("Ошибка сохранения"),
+  });
+
   const addQuery = () => {
-    if (!selectedNiche || !newQuery.trim()) return;
-    const updated = { ...nicheQueries };
-    updated[selectedNiche] = [...(updated[selectedNiche] || []), newQuery.trim()];
-    saveMutation.mutate(updated);
+    if (!newQuery.trim()) return;
+    if (selectedGeneralKz) {
+      saveGkzMutation.mutate([...generalKzQueries, newQuery.trim()]);
+    } else if (selectedNiche) {
+      const updated = { ...nicheQueries };
+      updated[selectedNiche] = [...(updated[selectedNiche] || []), newQuery.trim()];
+      saveMutation.mutate(updated);
+    }
     setNewQuery("");
   };
-  const removeQuery = (niche: string, index: number) => {
-    const updated = { ...nicheQueries };
-    updated[niche] = updated[niche].filter((_, i) => i !== index);
-    saveMutation.mutate(updated);
+
+  const removeQuery = (index: number) => {
+    if (selectedGeneralKz) {
+      saveGkzMutation.mutate(generalKzQueries.filter((_, i) => i !== index));
+    } else if (selectedNiche) {
+      const updated = { ...nicheQueries };
+      updated[selectedNiche] = updated[selectedNiche].filter((_, i) => i !== index);
+      saveMutation.mutate(updated);
+    }
   };
 
   const generateWithAI = async () => {
@@ -537,11 +566,8 @@ function KeywordsSection() {
       }
       const data = await res.json();
       setAiSuggestions(data.keywords || []);
-      if ((data.keywords || []).length === 0) {
-        toast.info("AI не сгенерировал новых запросов");
-      } else {
-        toast.success(`Сгенерировано ${data.keywords.length} запросов`);
-      }
+      if ((data.keywords || []).length === 0) toast.info("AI не сгенерировал новых запросов");
+      else toast.success(`Сгенерировано ${data.keywords.length} запросов`);
     } catch (e: any) {
       toast.error(e.message || "Ошибка AI генерации");
     } finally {
@@ -566,32 +592,54 @@ function KeywordsSection() {
     toast.success("Все запросы добавлены");
   };
 
+  const selectNiche = (niche: string) => {
+    setSelectedGeneralKz(false);
+    setSelectedNiche(selectedNiche === niche ? null : niche);
+    setAiSuggestions([]);
+  };
+
+  const selectGeneralKz = () => {
+    setSelectedNiche(null);
+    setSelectedGeneralKz(!selectedGeneralKz);
+    setAiSuggestions([]);
+  };
+
   const niches = Object.keys(nicheQueries).sort();
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+  const activeQueries = selectedGeneralKz ? generalKzQueries : (selectedNiche ? nicheQueries[selectedNiche] || [] : []);
+  const activeLabel = selectedGeneralKz ? "Общие KZ" : selectedNiche || "";
+  const isActive = selectedGeneralKz || !!selectedNiche;
+
+  if (isLoading || gkzLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
+        <Badge variant={selectedGeneralKz ? "default" : "outline"} className="cursor-pointer text-sm border-primary/40" onClick={selectGeneralKz}>
+          🇰🇿 Общие KZ ({generalKzQueries.length})
+        </Badge>
+        <div className="w-px bg-border mx-1" />
         {niches.map((niche) => (
-          <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => { setSelectedNiche(selectedNiche === niche ? null : niche); setAiSuggestions([]); }}>
+          <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => selectNiche(niche)}>
             {niche} ({nicheQueries[niche]?.length || 0})
           </Badge>
         ))}
       </div>
-      {selectedNiche && (
+      {isActive && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Запросы для категории: <span className="text-primary">{selectedNiche}</span></CardTitle>
-              <Button onClick={generateWithAI} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
-                {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                AI запросы
-              </Button>
+              <CardTitle className="text-lg">Запросы: <span className="text-primary">{activeLabel}</span></CardTitle>
+              {selectedNiche && (
+                <Button onClick={generateWithAI} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
+                  {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  AI запросы
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex gap-2">
               <Input placeholder="Новый запрос или хэштег..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addQuery()} />
-              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending}><Plus className="h-4 w-4" /></Button>
+              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending || saveGkzMutation.isPending}><Plus className="h-4 w-4" /></Button>
             </div>
 
             {aiSuggestions.length > 0 && (
@@ -613,10 +661,10 @@ function KeywordsSection() {
             )}
 
             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
-              {(nicheQueries[selectedNiche] || []).map((q, i) => (
+              {activeQueries.map((q, i) => (
                 <Badge key={i} variant="secondary" className="gap-1 pr-1">
                   {q}
-                  <button onClick={() => removeQuery(selectedNiche, i)} className="ml-1 hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                  <button onClick={() => removeQuery(i)} className="ml-1 hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
                 </Badge>
               ))}
             </div>
