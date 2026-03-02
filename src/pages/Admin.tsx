@@ -480,6 +480,7 @@ function KeywordsSection() {
   const [newQuery, setNewQuery] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const { data: nicheQueries = {}, isLoading } = useQuery({
     queryKey: ["trend-settings", "niche_queries"],
