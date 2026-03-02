@@ -105,11 +105,12 @@ export default function VideoAnalysis() {
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-4 lg:p-6 space-y-3 md:space-y-4 animate-fade-in h-full">
+      <div className="p-3 md:p-4 lg:p-6 animate-fade-in h-full flex flex-col">
         {/* Header */}
-        <h1 className="text-lg md:text-2xl font-bold text-foreground">Анализ видео 🎬</h1>
+        <h1 className="text-lg md:text-2xl font-bold text-foreground mb-3">Анализ видео 🎬</h1>
+
         {/* URL Input */}
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 mb-3 md:mb-4">
           <Input
             placeholder="Вставьте ссылку на TikTok видео..."
             value={url}
@@ -128,8 +129,18 @@ export default function VideoAnalysis() {
           </Button>
         </div>
 
-        {/* Main content */}
-        {analysis ? (
+        {/* Loading state - centered */}
+        {isPending ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-5">
+            <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
+              <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
+            </div>
+            <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
+              Анализируем, транскрибируем и переводим видео...
+            </p>
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        ) : analysis ? (
           <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}
             {/* Mobile: horizontal compact card; Desktop: vertical sidebar */}
@@ -456,22 +467,14 @@ export default function VideoAnalysis() {
               )}
             </div>
           </div>
-        ) : isPending ? (
-          <div className="flex flex-col items-center justify-center py-16 md:py-32 gap-4">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
-              <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary-foreground animate-pulse" />
-            </div>
-            <p className="text-muted-foreground font-medium text-center text-sm md:text-base">
-              Анализируем, транскрибируем и переводим видео...
-            </p>
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          </div>
         ) : (
-          <div className="bg-card rounded-2xl border border-border/50 p-8 md:p-16 text-center card-shadow">
-            <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-              <Video className="h-10 w-10 text-muted-foreground/30" />
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="bg-card rounded-2xl border border-border/50 p-8 md:p-16 text-center card-shadow">
+              <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                <Video className="h-10 w-10 text-muted-foreground/30" />
+              </div>
+              <p className="text-muted-foreground font-medium">Вставьте ссылку на видео, чтобы начать анализ</p>
             </div>
-            <p className="text-muted-foreground font-medium">Вставьте ссылку на видео, чтобы начать анализ</p>
           </div>
         )}
       </div>
