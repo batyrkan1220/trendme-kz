@@ -359,6 +359,26 @@ export default function Trends() {
                     )}
                   </div>
 
+                  {/* Stats bar - outside video area */}
+                  <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
+                    <span className="flex flex-col items-center gap-0.5">
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.views))}</span>
+                    </span>
+                    <span className="flex flex-col items-center gap-0.5">
+                      <Heart className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.likes))}</span>
+                    </span>
+                    <span className="flex flex-col items-center gap-0.5">
+                      <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span>
+                    </span>
+                    <span className="flex flex-col items-center gap-0.5">
+                      <Share2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.shares || 0))}</span>
+                    </span>
+                  </div>
+
                   {/* Author row */}
                   <div className="px-3 pt-3 flex items-center gap-2">
                     {video.author_avatar_url ? (
