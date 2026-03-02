@@ -128,6 +128,10 @@ export default function SearchPage() {
 
 
           {results.length > 0 ? (
+            <>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{results.length}</span> видео найдено
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {results.map((video: any, i: number) => {
                 const timeAgo = getTimeAgo(video.published_at);
