@@ -227,9 +227,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
         <h2 className="text-base font-bold text-foreground">AI Сценарист</h2>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left — Chat */}
-        <div className="w-full md:w-[320px] flex-shrink-0 border-r border-border/50 flex flex-col bg-card">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        {/* Chat panel */}
+        <div className="w-full md:w-[320px] flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 flex flex-col bg-card max-h-[40vh] md:max-h-none">
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
