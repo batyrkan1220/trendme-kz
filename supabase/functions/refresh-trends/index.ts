@@ -441,16 +441,17 @@ Deno.serve(async (req: Request) => {
 
         nicheStats[nicheKey] = nicheSaved;
         totalSaved += nicheSaved;
-        console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos (AI boosted)`);
-      }));
-    }
 
-    // Update log with progress
-    if (logId) {
-      await adminClient.from("trend_refresh_logs").update({
-        total_saved: totalSaved,
-        niche_stats: nicheStats,
-      }).eq("id", logId);
+        // Update log IMMEDIATELY after each niche upsert
+        if (logId) {
+          await adminClient.from("trend_refresh_logs").update({
+            total_saved: totalSaved,
+            niche_stats: nicheStats,
+          }).eq("id", logId);
+        }
+
+        console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos (AI boosted), total: ${totalSaved}`);
+      }));
     }
 
     // Chain to next batch or finish
