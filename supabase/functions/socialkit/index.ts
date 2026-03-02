@@ -663,6 +663,63 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         });
       }
 
+      case "bulk_categorize": {
+        const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other"];
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        if (!LOVABLE_API_KEY) return json({ error: "AI not configured" }, 500);
+
+        // Get uncategorized videos in batches
+        const batchSize = 30;
+        const maxBatches = 10; // ~300 videos per call, run multiple times
+        let totalCategorized = 0;
+
+        for (let b = 0; b < maxBatches; b++) {
+          const { data: uncategorized } = await adminClient
+            .from("videos")
+            .select("id, caption")
+            .is("niche", null)
+            .limit(batchSize);
+
+          if (!uncategorized || uncategorized.length === 0) break;
+
+          const videoCaptions = uncategorized.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+
+          try {
+            const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash-lite",
+                messages: [
+                  { role: "system", content: `Classify each video into ONE niche from this list: ${NICHE_KEYS.join(", ")}. Return ONLY a JSON object mapping index to niche key. Example: {"0":"food","1":"beauty","2":"fitness"}` },
+                  { role: "user", content: videoCaptions }
+                ],
+              }),
+            });
+            const aiData = await res.json();
+            const content = aiData?.choices?.[0]?.message?.content || "";
+            const match = content.match(/\{[\s\S]*?\}/);
+            if (match) {
+              const mapping = JSON.parse(match[0]);
+              const updates: Promise<any>[] = [];
+              for (const [idx, nicheKey] of Object.entries(mapping)) {
+                const video = uncategorized[Number(idx)];
+                if (video && NICHE_KEYS.includes(nicheKey as string)) {
+                  updates.push(adminClient.from("videos").update({ niche: nicheKey as string }).eq("id", video.id));
+                  totalCategorized++;
+                }
+              }
+              await Promise.all(updates);
+            }
+          } catch (e) {
+            console.error("Batch categorization error:", e);
+          }
+        }
+
+        console.log(`Bulk categorized ${totalCategorized} videos`);
+        return json({ categorized: totalCategorized });
+      }
+
       default:
         return json({ error: `Unknown action: ${action}` }, 400);
     }
