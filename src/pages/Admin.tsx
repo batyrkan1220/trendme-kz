@@ -14,7 +14,11 @@ import { toast } from "sonner";
 import {
   RefreshCw, Settings, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
   Users, Activity, Video, Search, BookOpen, Heart, UserCircle, ScrollText,
+  CreditCard, Crown, X, Edit2,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
