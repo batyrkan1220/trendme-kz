@@ -177,8 +177,7 @@ Deno.serve(async (req: Request) => {
       console.log(`Per-category limits: ${JSON.stringify(categoryLimits)}`);
     }
 
-    const queriesPerNiche = mode === "mass" ? (qPerNiche.mass ?? 8) : mode === "lite" ? (qPerNiche.lite ?? 3) : (qPerNiche.full ?? 5);
-    const weakQueriesPerNiche = mode === "mass" ? (wqPerNiche.mass ?? 15) : mode === "lite" ? (wqPerNiche.lite ?? 5) : (wqPerNiche.full ?? 8);
+    // queriesPerNiche and weakQueriesPerNiche already set above from thresholds
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
