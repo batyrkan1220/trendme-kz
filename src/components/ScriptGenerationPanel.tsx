@@ -191,6 +191,24 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
     toast.success("Сценарий скопирован!");
   };
 
+  const saveScript = async () => {
+    if (!user || !scriptContent || isSaving) return;
+    setIsSaving(true);
+    const title = caption?.slice(0, 80) || "Сценарий";
+    const { error } = await supabase.from("saved_scripts" as any).insert({
+      user_id: user.id,
+      title,
+      content: scriptRef.current || scriptContent,
+      source_video_url: null,
+    });
+    if (error) {
+      toast.error("Ошибка сохранения");
+    } else {
+      toast.success("Сценарий сохранён в Библиотеку! 📚");
+    }
+    setIsSaving(false);
+  };
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
