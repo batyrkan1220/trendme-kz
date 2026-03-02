@@ -121,7 +121,7 @@ export default function AccountAnalysis() {
         <h1 className="text-xl md:text-2xl font-bold text-foreground">Анализ аккаунта 👤</h1>
 
         {/* Search */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="Вставьте ссылку на профиль TikTok..."
             value={url}
