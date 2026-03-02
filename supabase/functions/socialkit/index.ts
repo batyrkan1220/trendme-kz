@@ -670,7 +670,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         // Get uncategorized videos in batches
         const batchSize = 30;
-        const maxBatches = 60; // up to 1800 videos per call
+        const maxBatches = 10; // ~300 videos per call, run multiple times
         let totalCategorized = 0;
 
         for (let b = 0; b < maxBatches; b++) {
