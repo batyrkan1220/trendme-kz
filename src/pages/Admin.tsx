@@ -502,9 +502,7 @@ function KeywordsSection() {
   };
 
   const removeQuery = (index: number) => {
-    if (selectedGeneralKz) {
-      saveGkzMutation.mutate(generalKzQueries.filter((_, i) => i !== index));
-    } else if (selectedNiche) {
+    if (selectedNiche) {
       const updated = { ...nicheQueries };
       updated[selectedNiche] = updated[selectedNiche].filter((_, i) => i !== index);
       saveMutation.mutate(updated);
