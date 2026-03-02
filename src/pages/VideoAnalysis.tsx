@@ -105,7 +105,9 @@ export default function VideoAnalysis() {
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-4 lg:p-6 space-y-4 animate-fade-in h-full">
+      <div className="p-3 md:p-4 lg:p-6 space-y-3 md:space-y-4 animate-fade-in h-full">
+        {/* Header */}
+        <h1 className="text-lg md:text-2xl font-bold text-foreground">Анализ видео 🎬</h1>
         {/* URL Input */}
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
