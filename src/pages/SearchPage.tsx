@@ -52,7 +52,7 @@ export default function SearchPage() {
   const { data: searchResults, isPending: isSearching, mutate: doSearch } = useMutation({
     mutationFn: async (q: string) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "search", query: q, limit: 100, region },
+        body: { action: "search", query: q, limit: 100 },
       });
       if (error) throw error;
       return data.videos || [];
