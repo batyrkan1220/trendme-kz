@@ -328,7 +328,7 @@ Deno.serve(async (req: Request) => {
             if (cyrillicRows.length > 0) {
               const { data: upserted } = await adminClient
                 .from("videos")
-                .upsert(videoRows, { onConflict: "platform_video_id" })
+                .upsert(cyrillicRows, { onConflict: "platform_video_id" })
                 .select("id");
               nicheSaved += upserted?.length || 0;
             }
