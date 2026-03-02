@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import {
   RefreshCw, Settings, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
   Users, Activity, Video, Search, BookOpen, Heart, UserCircle, ScrollText,
-  CreditCard, Crown, X, Edit2,
+  CreditCard, Crown, X, Edit2, Sparkles, Check,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -408,6 +408,9 @@ function KeywordsSection() {
   const queryClient = useQueryClient();
   const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
   const [newQuery, setNewQuery] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+
   const { data: nicheQueries = {}, isLoading } = useQuery({
     queryKey: ["trend-settings", "niche_queries"],
     queryFn: async () => {
@@ -435,25 +438,106 @@ function KeywordsSection() {
     updated[niche] = updated[niche].filter((_, i) => i !== index);
     saveMutation.mutate(updated);
   };
+
+  const generateWithAI = async () => {
+    if (!selectedNiche) return;
+    setAiLoading(true);
+    setAiSuggestions([]);
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-keywords`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          niche: selectedNiche,
+          existing_queries: nicheQueries[selectedNiche] || [],
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Ошибка генерации");
+      }
+      const data = await res.json();
+      setAiSuggestions(data.keywords || []);
+      if ((data.keywords || []).length === 0) {
+        toast.info("AI не сгенерировал новых запросов");
+      } else {
+        toast.success(`Сгенерировано ${data.keywords.length} запросов`);
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Ошибка AI генерации");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const acceptSuggestion = (keyword: string) => {
+    if (!selectedNiche) return;
+    const updated = { ...nicheQueries };
+    updated[selectedNiche] = [...(updated[selectedNiche] || []), keyword];
+    saveMutation.mutate(updated);
+    setAiSuggestions((prev) => prev.filter((k) => k !== keyword));
+  };
+
+  const acceptAllSuggestions = () => {
+    if (!selectedNiche || aiSuggestions.length === 0) return;
+    const updated = { ...nicheQueries };
+    updated[selectedNiche] = [...(updated[selectedNiche] || []), ...aiSuggestions];
+    saveMutation.mutate(updated);
+    setAiSuggestions([]);
+    toast.success("Все запросы добавлены");
+  };
+
   const niches = Object.keys(nicheQueries).sort();
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         {niches.map((niche) => (
-          <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => setSelectedNiche(selectedNiche === niche ? null : niche)}>
+          <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => { setSelectedNiche(selectedNiche === niche ? null : niche); setAiSuggestions([]); }}>
             {niche} ({nicheQueries[niche]?.length || 0})
           </Badge>
         ))}
       </div>
       {selectedNiche && (
         <Card>
-          <CardHeader><CardTitle className="text-lg">Запросы для ниши: <span className="text-primary">{selectedNiche}</span></CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Запросы для ниши: <span className="text-primary">{selectedNiche}</span></CardTitle>
+              <Button onClick={generateWithAI} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
+                {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                AI запросы
+              </Button>
+            </div>
+          </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex gap-2">
               <Input placeholder="Новый запрос или хэштег..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addQuery()} />
               <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending}><Plus className="h-4 w-4" /></Button>
             </div>
+
+            {aiSuggestions.length > 0 && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-primary" />AI предложения</span>
+                  <Button size="sm" variant="default" onClick={acceptAllSuggestions} className="h-7 text-xs gap-1">
+                    <Check className="h-3 w-3" />Добавить все ({aiSuggestions.length})
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {aiSuggestions.map((k, i) => (
+                    <Badge key={i} variant="outline" className="gap-1 pr-1 cursor-pointer border-primary/40 hover:bg-primary/10" onClick={() => acceptSuggestion(k)}>
+                      <Plus className="h-3 w-3 text-primary" />{k}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
               {(nicheQueries[selectedNiche] || []).map((q, i) => (
                 <Badge key={i} variant="secondary" className="gap-1 pr-1">
