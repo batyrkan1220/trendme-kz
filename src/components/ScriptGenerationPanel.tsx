@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye } from "lucide-react";
+import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye, BookOpen } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
