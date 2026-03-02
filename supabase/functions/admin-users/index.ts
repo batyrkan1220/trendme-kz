@@ -53,6 +53,12 @@ Deno.serve(async (req) => {
       // Get all roles
       const { data: allRoles } = await adminClient.from("user_roles").select("*");
 
+      // Get all active subscriptions with plan info
+      const { data: allSubs } = await adminClient
+        .from("user_subscriptions")
+        .select("*, plans(*)")
+        .eq("is_active", true);
+
       const enriched = users
         .filter((u: any) => !search || u.email?.toLowerCase().includes(search.toLowerCase()))
         .map((u: any) => ({
@@ -61,6 +67,7 @@ Deno.serve(async (req) => {
           created_at: u.created_at,
           last_sign_in_at: u.last_sign_in_at,
           roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
+          subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
         }));
 
       return new Response(JSON.stringify({ users: enriched, total: users.length }), {
@@ -159,6 +166,118 @@ Deno.serve(async (req) => {
         totalAccounts,
         activityBreakdown,
       }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ==================== PLANS CRUD ====================
+
+    // LIST PLANS
+    if (req.method === "GET" && action === "list-plans") {
+      const { data, error } = await adminClient
+        .from("plans")
+        .select("*")
+        .order("sort_order");
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ plans: data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // CREATE/UPDATE PLAN
+    if (req.method === "POST" && action === "upsert-plan") {
+      const plan = await req.json();
+      const { error } = await adminClient.from("plans").upsert(plan);
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // DELETE PLAN
+    if (req.method === "POST" && action === "delete-plan") {
+      const { plan_id } = await req.json();
+      if (!plan_id) throw new Error("plan_id required");
+
+      const { error } = await adminClient.from("plans").delete().eq("id", plan_id);
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ==================== SUBSCRIPTIONS ====================
+
+    // ASSIGN SUBSCRIPTION
+    if (req.method === "POST" && action === "assign-subscription") {
+      const { user_id, plan_id, duration_days, note } = await req.json();
+      if (!user_id || !plan_id) throw new Error("user_id and plan_id required");
+
+      // Deactivate existing subscriptions
+      await adminClient
+        .from("user_subscriptions")
+        .update({ is_active: false })
+        .eq("user_id", user_id)
+        .eq("is_active", true);
+
+      const expires_at = new Date(Date.now() + (duration_days || 30) * 86400000).toISOString();
+
+      const { error } = await adminClient.from("user_subscriptions").insert({
+        user_id,
+        plan_id,
+        expires_at,
+        assigned_by: user.id,
+        note: note || null,
+      });
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // REVOKE SUBSCRIPTION
+    if (req.method === "POST" && action === "revoke-subscription") {
+      const { subscription_id } = await req.json();
+      if (!subscription_id) throw new Error("subscription_id required");
+
+      const { error } = await adminClient
+        .from("user_subscriptions")
+        .update({ is_active: false })
+        .eq("id", subscription_id);
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // LIST SUBSCRIPTIONS
+    if (req.method === "GET" && action === "list-subscriptions") {
+      const { data, error } = await adminClient
+        .from("user_subscriptions")
+        .select("*, plans(name, price_rub)")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+
+      // Enrich with user emails
+      const userIds = [...new Set((data || []).map((s: any) => s.user_id))];
+      const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const userMap: Record<string, string> = {};
+      for (const u of allUsers || []) {
+        userMap[u.id] = u.email || "";
+      }
+
+      const enriched = (data || []).map((s: any) => ({
+        ...s,
+        user_email: userMap[s.user_id] || "unknown",
+      }));
+
+      return new Response(JSON.stringify({ subscriptions: enriched }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

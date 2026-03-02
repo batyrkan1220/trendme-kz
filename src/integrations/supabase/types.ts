@@ -118,6 +118,48 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          created_at: string
+          duration_days: number
+          features: Json
+          id: string
+          is_active: boolean
+          max_requests: number
+          max_tracked_accounts: number
+          name: string
+          price_rub: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_days?: number
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_requests?: number
+          max_tracked_accounts?: number
+          name: string
+          price_rub?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_days?: number
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_requests?: number
+          max_tracked_accounts?: number
+          name?: string
+          price_rub?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       saved_scripts: {
         Row: {
           content: string
@@ -252,6 +294,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          note: string | null
+          plan_id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          plan_id: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          plan_id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       video_analysis: {
         Row: {
