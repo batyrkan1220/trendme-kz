@@ -248,7 +248,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
           </div>
 
           {/* Regenerate + input */}
-          <div className="p-3 border-t border-border/50 space-y-2">
+          <div className="p-2 md:p-3 border-t border-border/50 space-y-2">
             <button
               onClick={handleRegenerate}
               disabled={isGenerating}
