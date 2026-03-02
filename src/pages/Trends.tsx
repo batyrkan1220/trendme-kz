@@ -26,7 +26,7 @@ const getTimeAgo = (published_at: string | null) => {
 const PAGE_SIZE = 30;
 
 export default function Trends() {
-  const [period, setPeriod] = useState<1 | 3 | 7>(7);
+  const [period, setPeriod] = useState<1 | 3 | 7 | 30 | 0>(7);
   const [tab, setTab] = useState<"all" | "kz" | "world">("all");
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
