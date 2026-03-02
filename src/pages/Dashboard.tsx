@@ -51,13 +51,13 @@ export default function Dashboard() {
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-5 md:space-y-7 animate-fade-in max-w-5xl">
         {/* Hero */}
-        <div className="gradient-hero rounded-2xl p-7 glow-primary relative overflow-hidden">
+        <div className="gradient-hero rounded-2xl p-5 md:p-7 glow-primary relative overflow-hidden">
           <div className="relative flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">
+              <h1 className="text-lg md:text-xl font-bold text-white">
                 Привет, {name} 👋
               </h1>
-              <p className="text-white/70 text-sm mt-1">
+              <p className="text-white/70 text-xs md:text-sm mt-1">
                 Что будем исследовать сегодня?
               </p>
             </div>
