@@ -461,7 +461,7 @@ Deno.serve(async (req: Request) => {
     const nextBatch = batchIndex + 1;
     if (nextBatch < totalBatches) {
       console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
-      await chainNextBatch(nextBatch, nicheStats, totalSaved);
+      await chainNextBatch(nextBatch);
     } else {
       // All batches done — mark as complete
       console.log(`Refresh COMPLETE. Total saved: ${totalSaved}`);
