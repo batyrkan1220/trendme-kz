@@ -132,47 +132,65 @@ export default function Dashboard() {
             </div>
           ) : trendingVideos.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-3">
-              {trendingVideos.map((video) => (
+              {trendingVideos.map((video, idx) => (
                 <a
                   key={video.id}
                   href={video.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group bg-card rounded-xl overflow-hidden border border-border/60 hover-lift card-shadow-hover transition-all"
+                  className="group bg-card rounded-xl overflow-hidden border border-border/60 hover-lift card-shadow-hover transition-all relative"
                 >
-                  {video.cover_url ? (
-                    <div className="aspect-square md:aspect-[4/5] relative overflow-hidden">
+                  {/* Cover */}
+                  <div className="aspect-[3/4] relative overflow-hidden">
+                    {video.cover_url ? (
                       <img
                         src={video.cover_url}
                         alt=""
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      {video.trend_score != null && video.trend_score > 0 && (
-                        <div className="absolute top-1.5 right-1.5 bg-primary text-primary-foreground text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                          🔥 {Math.round(video.trend_score)}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="aspect-square md:aspect-[4/5] bg-muted flex items-center justify-center">
-                      <Video className="h-6 w-6 text-muted-foreground/20" />
-                    </div>
-                  )}
-                  <div className="p-1.5 md:p-3">
-                    <p className="text-xs md:text-sm font-medium text-foreground line-clamp-2 leading-snug">
-                      {video.caption || "Без описания"}
-                    </p>
-                    {video.author_username && (
-                      <p className="text-[10px] md:text-[11px] text-primary font-medium mt-0.5 md:mt-1 truncate">@{video.author_username}</p>
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <Video className="h-6 w-6 text-muted-foreground/20" />
+                      </div>
                     )}
-                    <div className="flex items-center gap-2 md:gap-3 text-[10px] md:text-[11px] text-muted-foreground mt-1 md:mt-2">
-                      <span className="flex items-center gap-0.5">
-                        <Eye className="h-3 w-3" /> {formatNum(Number(video.views) || 0)}
-                      </span>
-                      <span className="flex items-center gap-0.5">
-                        <Heart className="h-3 w-3" /> {formatNum(Number(video.likes) || 0)}
-                      </span>
+
+                    {/* Gradient overlay at bottom */}
+                    <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+                    {/* Rank badge */}
+                    <div className="absolute top-1.5 left-1.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center">
+                      {idx + 1}
                     </div>
+
+                    {/* Trend score */}
+                    {video.trend_score != null && video.trend_score > 0 && (
+                      <div className="absolute top-1.5 right-1.5 bg-primary text-primary-foreground text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                        <Sparkles className="h-2.5 w-2.5" /> {Math.round(video.trend_score)}
+                      </div>
+                    )}
+
+                    {/* Content over image */}
+                    <div className="absolute inset-x-0 bottom-0 p-2 md:p-3">
+                      {video.author_username && (
+                        <p className="text-[10px] md:text-[11px] text-white/80 font-medium truncate">@{video.author_username}</p>
+                      )}
+                      <p className="text-[11px] md:text-sm font-semibold text-white line-clamp-2 leading-snug mt-0.5">
+                        {video.caption || "Без описания"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Stats bar */}
+                  <div className="flex items-center justify-around py-1.5 md:py-2 px-1 bg-card border-t border-border/30">
+                    <span className="flex items-center gap-0.5 text-[10px] md:text-[11px] text-muted-foreground">
+                      <Eye className="h-3 w-3" /> {formatNum(Number(video.views) || 0)}
+                    </span>
+                    <span className="flex items-center gap-0.5 text-[10px] md:text-[11px] text-muted-foreground">
+                      <Heart className="h-3 w-3" /> {formatNum(Number(video.likes) || 0)}
+                    </span>
+                    <span className="flex items-center gap-0.5 text-[10px] md:text-[11px] text-muted-foreground">
+                      <MessageCircle className="h-3 w-3" /> {formatNum(Number(video.comments) || 0)}
+                    </span>
                   </div>
                 </a>
               ))}
