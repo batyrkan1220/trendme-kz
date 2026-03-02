@@ -418,6 +418,7 @@ export default function SearchPage() {
         open={!!analysisVideo}
         onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
       />
-    </AppLayout>
+      </>
+      )}
   );
 }
