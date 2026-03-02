@@ -446,46 +446,20 @@ Deno.serve(async (req: Request) => {
         if (!profile_url) return json({ error: "profile_url is required" }, 400);
         if (!validateTikTokUrl(profile_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
-        // Fetch channel stats and top videos in parallel
-        const [channelRes, videosRes] = await Promise.allSettled([
-          callSocialKit("/tiktok/channel-stats", { url: profile_url }),
-          callSocialKit("/tiktok/channel-videos", { url: profile_url, count: "30" }),
-        ]);
+        // Fetch channel stats
+        const channelData = await callSocialKit("/tiktok/channel-stats", { url: profile_url });
+        const accountData = channelData?.data || channelData || {};
+        console.log("Channel stats raw data:", JSON.stringify(accountData).slice(0, 1000));
 
-        const accountData = channelRes.status === "fulfilled"
-          ? (channelRes.value?.data || channelRes.value)
-          : {};
-
-        let topVideos: any[] = [];
-        if (videosRes.status === "fulfilled") {
-          const vData = videosRes.value;
-          const rawVideos = Array.isArray(vData) ? vData
-            : Array.isArray(vData?.data) ? vData.data
-            : Array.isArray(vData?.items) ? vData.items
-            : Array.isArray(vData?.videos) ? vData.videos
-            : [];
-          topVideos = rawVideos.map((v: any) => ({
-            id: v.id || v.video_id || v.aweme_id,
-            desc: v.desc || v.caption || v.title || "",
-            cover: v.video?.cover || v.cover_url || v.cover || "",
-            url: v.url || `https://www.tiktok.com/@${accountData.uniqueId || "user"}/video/${v.id || v.video_id}`,
-            views: v.stats?.views || v.playCount || v.views || 0,
-            likes: v.stats?.likes || v.diggCount || v.likes || 0,
-            comments: v.stats?.comments || v.commentCount || v.comments || 0,
-            shares: v.stats?.shares || v.shareCount || v.shares || 0,
-            duration: v.video?.duration || v.duration || 0,
-            createTime: v.createTime || v.create_time || 0,
-          }));
-          topVideos.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
-        }
-
+        // Extract username from profile URL or response
         const username =
-          accountData.uniqueId || accountData.unique_id || accountData.username ||
-          profile_url.split("@").pop()?.split("?")[0] || "";
+          accountData.username || accountData.uniqueId || accountData.unique_id ||
+          profile_url.split("@").pop()?.split("?")[0]?.split("/")[0] || "";
 
-        const followers = accountData.followerCount || accountData.followers || 0;
-        const totalLikes = accountData.heartCount || accountData.total_likes || 0;
-        const totalVideos = accountData.videoCount || accountData.total_videos || 0;
+        // Map fields according to SocialKit response format
+        const followers = accountData.followers || accountData.followerCount || 0;
+        const totalLikes = accountData.likes || accountData.heartCount || accountData.total_likes || 0;
+        const totalVideos = accountData.totalVideos || accountData.videoCount || accountData.total_videos || 0;
 
         // Computed metrics
         const avgLikesPerVideo = totalVideos > 0 ? Math.round(totalLikes / totalVideos) : 0;
