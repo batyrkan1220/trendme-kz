@@ -309,7 +309,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
             {activeTab === "new" ? (
               <div className="p-3 md:p-6">
                 {/* Copy button */}
-                <div className="flex justify-end gap-2 mb-4">
+                <div className="flex flex-wrap justify-end gap-2 mb-3 md:mb-4">
                   <button
                     onClick={saveScript}
                     disabled={!scriptContent || isGenerating || isSaving}
