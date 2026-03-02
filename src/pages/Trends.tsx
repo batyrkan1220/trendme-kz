@@ -90,43 +90,21 @@ export default function Trends() {
   };
 
   const { data: allVideos = [], isLoading } = useQuery({
-    queryKey: ["trends", period, tab, niche],
+    queryKey: ["trends", period, niche],
     queryFn: async () => {
       const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche";
 
-      const buildQuery = (region: string, limit: number) => {
-        let q = supabase.from("videos").select(selectFields).eq("region", region);
-        if (period > 0) {
-          const since = new Date();
-          since.setDate(since.getDate() - period);
-          q = q.gte("published_at", since.toISOString());
-        }
-        if (niche !== "all") {
-          q = q.eq("niche", niche);
-        }
-        return q.order("trend_score", { ascending: false }).limit(limit);
-      };
-
-      if (tab === "all") {
-        const [kzRes, worldRes] = await Promise.all([
-          buildQuery("kz", 400),
-          buildQuery("world", 100),
-        ]);
-
-        const kzVideos = (kzRes.data || []).map(v => ({ ...v, _region: "kz" as const }));
-        const worldVideos = (worldRes.data || []).map(v => ({ ...v, _region: "world" as const }));
-
-        const merged: any[] = [];
-        let ki = 0, wi = 0;
-        while (ki < kzVideos.length || wi < worldVideos.length) {
-          for (let j = 0; j < 4 && ki < kzVideos.length; j++) merged.push(kzVideos[ki++]);
-          if (wi < worldVideos.length) merged.push(worldVideos[wi++]);
-        }
-        return merged;
-      } else {
-        const { data } = await buildQuery(tab, 500);
-        return (data || []).map(v => ({ ...v, _region: tab }));
+      let q = supabase.from("videos").select(selectFields);
+      if (period > 0) {
+        const since = new Date();
+        since.setDate(since.getDate() - period);
+        q = q.gte("published_at", since.toISOString());
       }
+      if (niche !== "all") {
+        q = q.eq("niche", niche);
+      }
+      const { data } = await q.order("trend_score", { ascending: false }).limit(500);
+      return data || [];
     },
     staleTime: 60_000,
   });
