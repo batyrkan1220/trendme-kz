@@ -118,6 +118,33 @@ export type Database = {
           },
         ]
       }
+      saved_scripts: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          source_video_url: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          source_video_url?: string | null
+          title?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          source_video_url?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       search_queries: {
         Row: {
           created_at: string
