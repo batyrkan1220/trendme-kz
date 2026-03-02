@@ -59,9 +59,8 @@ export default function Auth() {
             <Flame className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold gradient-text">Trend TikTok</h1>
-            <p className="text-sm text-muted-foreground mt-2 flex items-center justify-center gap-1">
-              <Sparkles className="h-3.5 w-3.5" />
+            <h1 className="text-3xl font-bold gradient-text">TrendTok</h1>
+            <p className="text-sm text-muted-foreground mt-2">
               {isLogin ? "Войдите в свой аккаунт" : "Создайте аккаунт"}
             </p>
           </div>
