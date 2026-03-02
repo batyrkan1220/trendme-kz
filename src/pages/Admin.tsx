@@ -578,6 +578,22 @@ function KeywordsSection() {
     toast.success("Все запросы добавлены");
   };
 
+  const bulkRegenerate = async () => {
+    setBulkLoading(true);
+    try {
+      const res = await supabase.functions.invoke("generate-keywords", { body: { bulk: true } });
+      if (res.error) throw new Error("Ошибка генерации");
+      const stats = res.data?.stats || {};
+      const total = Object.values(stats).reduce((a: number, b: any) => a + (b as number), 0);
+      toast.success(`Обновлено ${Object.keys(stats).length} категорий, всего ${total} запросов`);
+      queryClient.invalidateQueries({ queryKey: ["trend-settings"] });
+    } catch (e: any) {
+      toast.error(e.message || "Ошибка");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   const selectNiche = (niche: string) => {
     setSelectedNiche(selectedNiche === niche ? null : niche);
     setAiSuggestions([]);
@@ -591,6 +607,12 @@ function KeywordsSection() {
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Button onClick={bulkRegenerate} disabled={bulkLoading} variant="outline" className="gap-2">
+          {bulkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          {bulkLoading ? "Генерация..." : "🔄 Обновить все запросы (AI КЗ/РУ)"}
+        </Button>
+      </div>
       <div className="flex flex-wrap gap-2">
         {niches.map((niche) => (
           <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => selectNiche(niche)}>
