@@ -99,9 +99,9 @@ export default function SearchPage() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-6 animate-fade-in">
-        <div className="flex-1 space-y-6 min-w-0">
-          <h1 className="text-2xl font-bold text-foreground">Поиск 🔍</h1>
+      <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 animate-fade-in">
+        <div className="flex-1 space-y-4 md:space-y-6 min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">Поиск 🔍</h1>
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Input
