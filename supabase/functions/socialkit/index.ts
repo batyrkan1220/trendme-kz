@@ -116,7 +116,7 @@ Deno.serve(async (req: Request) => {
 
         const data = await callSocialKit("/tiktok/search", {
           query,
-          count: String(limit),
+          limit: String(limit),
         });
 
         let videos: any[] = [];
