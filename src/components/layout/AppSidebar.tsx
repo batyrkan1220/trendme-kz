@@ -5,7 +5,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import {
   LayoutDashboard, TrendingUp, Search,
   Video, UserCircle, BookOpen, ScrollText,
-  Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight, Shield
+  Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight, Shield, Sparkles
 } from "lucide-react";
 
 interface NavItem {
