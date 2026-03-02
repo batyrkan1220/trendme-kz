@@ -105,11 +105,52 @@ export default function VideoAnalysis() {
 
   return (
     <AppLayout>
+      {!analysis || isPending ? (
+        /* Centered form + loading */
+        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg flex flex-col items-center gap-6">
+            {isPending ? (
+              <>
+                <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
+                  <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
+                </div>
+                <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
+                  Анализируем, транскрибируем и переводим видео...
+                </p>
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </>
+            ) : (
+              <>
+                <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center">
+                  <Video className="h-10 w-10 text-muted-foreground/30" />
+                </div>
+                <h1 className="text-xl md:text-2xl font-bold text-foreground text-center">Анализ видео 🎬</h1>
+                <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на видео, чтобы начать анализ</p>
+              </>
+            )}
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Input
+                placeholder="Вставьте ссылку на TikTok видео..."
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+                className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-sm"
+              />
+              <Button
+                onClick={handleAnalyze}
+                disabled={isPending}
+                className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                  <><Video className="h-4 w-4 mr-2" />Анализировать</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="p-3 md:p-4 lg:p-6 animate-fade-in min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col">
-        {/* Header */}
         <h1 className="text-lg md:text-2xl font-bold text-foreground mb-3">Анализ видео 🎬</h1>
-
-        {/* URL Input */}
         <div className="flex flex-col sm:flex-row gap-2 mb-3 md:mb-4">
           <Input
             placeholder="Вставьте ссылку на TikTok видео..."
@@ -128,19 +169,6 @@ export default function VideoAnalysis() {
             )}
           </Button>
         </div>
-
-        {/* Loading state - centered */}
-        {isPending ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-5 min-h-[50dvh]">
-            <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
-              <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
-            </div>
-            <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
-              Анализируем, транскрибируем и переводим видео...
-            </p>
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          </div>
-        ) : analysis ? (
           <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}
             {/* Mobile: horizontal compact card; Desktop: vertical sidebar */}
@@ -467,17 +495,8 @@ export default function VideoAnalysis() {
               )}
             </div>
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="bg-card rounded-2xl border border-border/50 p-8 md:p-16 text-center card-shadow">
-              <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                <Video className="h-10 w-10 text-muted-foreground/30" />
-              </div>
-              <p className="text-muted-foreground font-medium">Вставьте ссылку на видео, чтобы начать анализ</p>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
