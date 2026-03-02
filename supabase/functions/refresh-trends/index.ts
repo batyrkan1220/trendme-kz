@@ -141,10 +141,13 @@ Deno.serve(async (req: Request) => {
     } catch { /* no body = cron call */ }
 
     // How many queries per niche based on mode
-    const queriesPerNiche = 1; // Default: 1 query per niche per run
+    // mass mode (manual refresh): 5 queries per niche, weak get 8
+    // cron/full mode: 3 queries per niche, weak get 5  
+    // lite mode: 2 queries per niche
     const WEAK_NICHES = new Set(["career", "psychology", "mama", "business", "therapy", "ai_art", "ai_avatar", "ai_news"]);
-    const weakQueriesPerNiche = 3; // Weak niches get 3 queries per run
-    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 3 : 2;
+    const queriesPerNiche = mode === "mass" ? 5 : mode === "lite" ? 2 : 3;
+    const weakQueriesPerNiche = mode === "mass" ? 8 : mode === "lite" ? 3 : 5;
+    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 5 : 3;
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -153,7 +156,7 @@ Deno.serve(async (req: Request) => {
     const nicheStats: Record<string, number> = {};
     let totalSaved = 0;
 
-    // Split niches into 5 batches of ~6
+    // Split niches into batches of 4 (smaller batches to handle more queries per niche)
     const allNicheKeys = Object.keys(NICHE_QUERIES);
     const BATCH_SIZE = 6;
     let nicheKeys: string[];
