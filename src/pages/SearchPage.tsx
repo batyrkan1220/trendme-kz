@@ -318,6 +318,7 @@ export default function SearchPage() {
                 );
               })}
             </div>
+            </>
           ) : isSearching ? (
             <div className="flex flex-col items-center justify-center py-32 gap-4">
               <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
