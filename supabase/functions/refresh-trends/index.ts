@@ -282,10 +282,17 @@ Deno.serve(async (req: Request) => {
       const nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
       
       if (nicheKeys.length > 0) {
-        console.log(`Batch ${batchIndex}: processing niches ${nicheKeys.join(", ")}`);
-        const aiQueries = await generateAiQueries(nicheKeys);
+        // Filter out full categories
+        const activeNicheKeys = nicheKeys.filter(k => !FULL_NICHES.has(k));
+        const skippedKeys = nicheKeys.filter(k => FULL_NICHES.has(k));
+        if (skippedKeys.length > 0) {
+          console.log(`Batch ${batchIndex}: skipping full categories: ${skippedKeys.join(", ")}`);
+          for (const sk of skippedKeys) nicheStats[sk] = nicheCountMap[sk] || 0;
+        }
+        console.log(`Batch ${batchIndex}: processing categories ${activeNicheKeys.join(", ") || "(none)"}`);
+        const aiQueries = activeNicheKeys.length > 0 ? await generateAiQueries(activeNicheKeys) : {};
         
-        await Promise.all(nicheKeys.map(async (nicheKey) => {
+        await Promise.all(activeNicheKeys.map(async (nicheKey) => {
           const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
           const aiNicheQueries = aiQueries[nicheKey] || [];
           const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
