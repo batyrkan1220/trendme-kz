@@ -307,7 +307,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
           {/* Tab content */}
           <div className="flex-1 overflow-y-auto">
             {activeTab === "new" ? (
-              <div className="p-6">
+              <div className="p-3 md:p-6">
                 {/* Copy button */}
                 <div className="flex justify-end gap-2 mb-4">
                   <button
