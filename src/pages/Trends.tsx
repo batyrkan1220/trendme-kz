@@ -343,13 +343,13 @@ export default function Trends() {
                           <ExternalLink className="h-3.5 w-3.5 text-foreground" />
                         </button>
 
-                        {/* Play button center */}
+                        {/* Play button center - always visible on mobile */}
                         <div
-                          className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"
                           onClick={() => setPlayingId(video.id)}
                         >
-                          <div className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
-                            <Play className="h-7 w-7 text-white fill-white ml-0.5" />
+                          <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
+                            <Play className="h-6 w-6 md:h-7 md:w-7 text-white fill-white ml-0.5" />
                           </div>
                         </div>
 
