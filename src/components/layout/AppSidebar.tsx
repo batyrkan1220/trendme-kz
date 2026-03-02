@@ -22,7 +22,6 @@ const mainItems: NavItem[] = [
   { label: "Анализ видео", icon: Video, path: "/video-analysis" },
   { label: "Анализ аккаунт", icon: UserCircle, path: "/account-analysis" },
   { label: "Библиотека", icon: BookOpen, path: "/library" },
-  { label: "Избранное", icon: Star, path: "/favorites" },
   { label: "Журнал", icon: ScrollText, path: "/journal" },
 ];
 
