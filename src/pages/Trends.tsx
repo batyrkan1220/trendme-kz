@@ -129,11 +129,21 @@ export default function Trends() {
   });
 
   // Reset visible count when tab/period changes
-  const videos = useMemo(() => {
-    return allVideos.slice(0, visibleCount);
-  }, [allVideos, visibleCount]);
+  const filteredVideos = useMemo(() => {
+    if (niche === "all") return allVideos;
+    const nicheObj = NICHES.find(n => n.key === niche);
+    if (!nicheObj || nicheObj.keywords.length === 0) return allVideos;
+    return allVideos.filter((v: any) => {
+      const text = (v.caption || "").toLowerCase();
+      return nicheObj.keywords.some(kw => text.includes(kw));
+    });
+  }, [allVideos, niche]);
 
-  const hasMore = visibleCount < allVideos.length;
+  const videos = useMemo(() => {
+    return filteredVideos.slice(0, visibleCount);
+  }, [filteredVideos, visibleCount]);
+
+  const hasMore = visibleCount < filteredVideos.length;
   const loaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
