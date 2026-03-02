@@ -839,8 +839,9 @@ function StatsSection() {
   };
 
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-  const totalAll = nicheStats.reduce((s, n) => s + n.total, 0);
-  const recentAll = nicheStats.reduce((s, n) => s + n.recent, 0);
+  const nicheStats = nicheData?.stats || [];
+  const totalAll = nicheData?.uniqueTotal || 0;
+  const recentAll = nicheData?.uniqueRecent || 0;
   return (
     <Card>
       <CardHeader>
