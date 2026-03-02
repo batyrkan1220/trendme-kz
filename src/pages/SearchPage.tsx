@@ -99,6 +99,48 @@ export default function SearchPage() {
 
   return (
     <AppLayout>
+      {!searchResults && !isSearching ? (
+        /* Centered empty state */
+        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg flex flex-col items-center gap-6">
+            <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center">
+              <SearchIcon className="h-10 w-10 text-muted-foreground/30" />
+            </div>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground text-center">Поиск 🔍</h1>
+            <p className="text-muted-foreground text-sm text-center">Введите запрос для поиска видео в TikTok</p>
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Input
+                placeholder="Введите ключевое слово..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-sm"
+              />
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching}
+                className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
+              >
+                <SearchIcon className="h-4 w-4 mr-2" />Искать
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : isSearching && !searchResults ? (
+        /* Centered loading */
+        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg flex flex-col items-center gap-5">
+            <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
+              <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
+            </div>
+            <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
+              Ищем видео по вашему запросу... Это займёт 1–2 минуты
+            </p>
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        </div>
+      ) : (
+      <>
       <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 animate-fade-in">
         <div className="flex-1 space-y-4 md:space-y-6 min-w-0">
           <h1 className="text-xl md:text-2xl font-bold text-foreground">Поиск 🔍</h1>
@@ -127,8 +169,7 @@ export default function SearchPage() {
             </Button>
           </div>
 
-
-          {results.length > 0 ? (
+          {results.length > 0 && (
             <>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">{results.length}</span> видео найдено
@@ -255,7 +296,7 @@ export default function SearchPage() {
                             <ExternalLink className="h-3.5 w-3.5 text-foreground" />
                           </button>
 
-                          {/* Play button center - always visible on mobile */}
+                          {/* Play button center */}
                           <div
                             className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"
                             onClick={() => setPlayingId(video.id || video.platform_video_id)}
@@ -271,7 +312,7 @@ export default function SearchPage() {
                       )}
                     </div>
 
-                  {/* Stats bar - outside video area */}
+                  {/* Stats bar */}
                   <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
                     <span className="flex flex-col items-center gap-0.5">
                       <Eye className="h-4 w-4 text-muted-foreground" />
@@ -339,25 +380,6 @@ export default function SearchPage() {
               })}
             </div>
             </>
-          ) : isSearching ? (
-            <div className="flex flex-col items-center justify-center py-32 gap-4">
-              <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
-                <Sparkles className="h-8 w-8 text-primary-foreground animate-pulse" />
-              </div>
-              <p className="text-muted-foreground font-medium text-center">
-                Ищем видео по вашему запросу... Это займёт 1–2 минуты
-              </p>
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="text-center py-20">
-              <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                <SearchIcon className="h-10 w-10 text-muted-foreground/30" />
-              </div>
-              <p className="text-muted-foreground font-medium">
-                Введите запрос для поиска видео в TikTok
-              </p>
-            </div>
           )}
         </div>
 
@@ -396,6 +418,8 @@ export default function SearchPage() {
         open={!!analysisVideo}
         onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
       />
+      </>
+      )}
     </AppLayout>
   );
 }
