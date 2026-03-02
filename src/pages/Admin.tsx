@@ -603,7 +603,7 @@ function KeywordsSection() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Запросы: <span className="text-primary">{activeLabel}</span></CardTitle>
               {selectedNiche && (
-                <Button onClick={generateWithAI} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
+                <Button onClick={() => generateWithAI()} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
                   {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   AI запросы
                 </Button>
