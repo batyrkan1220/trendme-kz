@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -19,8 +20,21 @@ interface MobileBottomNavProps {
 export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
   const location = useLocation();
 
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.08)] md:hidden safe-area-bottom" style={{ zIndex: 9999 }}>
+  const nav = (
+    <nav
+      id="mobile-bottom-nav"
+      className="md:hidden safe-area-bottom"
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 99999,
+        background: "hsl(var(--background))",
+        borderTop: "1px solid hsl(var(--border))",
+        boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
+      }}
+    >
       <div className="flex items-center justify-around px-1 py-1.5">
         {navItems.map((item) => {
           const active = location.pathname === item.path;
@@ -30,9 +44,7 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
               to={item.path}
               className={cn(
                 "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
-                active
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                active ? "text-primary" : "text-muted-foreground"
               )}
             >
               <item.icon className={cn("h-5 w-5", active && "text-primary")} />
@@ -50,4 +62,7 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
       </div>
     </nav>
   );
+
+  // Portal to document.body to avoid any parent CSS breaking fixed positioning
+  return createPortal(nav, document.body);
 }
