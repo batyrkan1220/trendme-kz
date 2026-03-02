@@ -173,7 +173,7 @@ export default function AccountAnalysis() {
             </div>
 
             {/* Key Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
               {[
                 { icon: Users, value: account.followers, label: "Подписчики", color: "text-blue-500" },
                 { icon: Heart, value: account.total_likes, label: "Лайки", color: "text-rose-500" },
