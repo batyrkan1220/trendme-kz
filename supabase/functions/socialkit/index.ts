@@ -8,6 +8,25 @@ const corsHeaders = {
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 
+function validateTikTokUrl(url: string): boolean {
+  try {
+    if (url.length > 500) return false;
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+    const allowedHosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com"];
+    return allowedHosts.some(h => parsed.hostname === h || parsed.hostname.endsWith("." + h));
+  } catch {
+    return false;
+  }
+}
+
+function validateTikTokUsername(username: string): boolean {
+  if (!username || username.length > 100) return false;
+  const cleaned = username.startsWith("@") ? username.slice(1) : username;
+  return /^[a-zA-Z0-9_.]+$/.test(cleaned);
+}
+
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
