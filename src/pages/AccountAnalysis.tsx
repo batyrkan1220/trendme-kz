@@ -189,7 +189,7 @@ export default function AccountAnalysis() {
             </div>
 
             {/* Advanced Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
               <div className="bg-card rounded-xl border border-border/50 p-5 card-shadow">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
