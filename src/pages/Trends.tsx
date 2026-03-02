@@ -108,7 +108,7 @@ export default function Trends() {
       if (niche !== "all") {
         q = q.eq("niche", niche);
       }
-      const { data } = await q.order("trend_score", { ascending: false }).limit(500);
+      const { data } = await q.order("trend_score", { ascending: false }).limit(1000);
       return data || [];
     },
     staleTime: 60_000,
