@@ -444,6 +444,7 @@ Deno.serve(async (req: Request) => {
       case "account_stats": {
         const { profile_url } = body;
         if (!profile_url) return json({ error: "profile_url is required" }, 400);
+        if (!validateTikTokUrl(profile_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
         const data = await callSocialKit("/tiktok/channel-stats", { url: profile_url });
         const accountData = data.data || data;
