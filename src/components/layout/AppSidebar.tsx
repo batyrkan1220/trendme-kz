@@ -116,7 +116,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       {/* Main Nav */}
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
         {renderGroup("Поиск контента", searchItems)}
-        {renderGroup("Инструменты", toolItems)}
+        {renderGroup("ИИ Видео", aiVideoItems)}
         {renderGroup("Идеи", ideaItems)}
         {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin" }])}
       </nav>

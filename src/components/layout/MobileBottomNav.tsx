@@ -9,7 +9,7 @@ const navItems = [
   { icon: LayoutDashboard, path: "/dashboard", label: "Главная" },
   { icon: Search, path: "/search", label: "Поиск" },
   { icon: TrendingUp, path: "/trends", label: "Тренды" },
-  { icon: Video, path: "/video-analysis", label: "Анализ" },
+  { icon: Sparkles, path: "/video-analysis", label: "ИИ Видео" },
   { icon: BookOpen, path: "/library", label: "Библиотека" },
 ];
 
