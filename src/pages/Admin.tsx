@@ -516,7 +516,7 @@ function KeywordsSection() {
     }
   };
 
-  const generateWithAI = async () => {
+  const generateWithAI = async (seedWord?: string) => {
     if (!selectedNiche) return;
     setAiLoading(true);
     setAiSuggestions([]);
@@ -532,6 +532,7 @@ function KeywordsSection() {
         body: JSON.stringify({
           niche: selectedNiche,
           existing_queries: nicheQueries[selectedNiche] || [],
+          ...(seedWord ? { seed_word: seedWord } : {}),
         }),
       });
       if (!res.ok) {
@@ -547,6 +548,16 @@ function KeywordsSection() {
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const generateFromSeed = () => {
+    const word = newQuery.trim();
+    if (!word || !selectedNiche) {
+      toast.error("Введите ключевое слово");
+      return;
+    }
+    generateWithAI(word);
+    setNewQuery("");
   };
 
   const acceptSuggestion = (keyword: string) => {
