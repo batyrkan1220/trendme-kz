@@ -182,7 +182,8 @@ Deno.serve(async (req: Request) => {
     // lite mode: 2 queries per niche, weak get 4
     const queriesPerNiche = mode === "mass" ? 6 : mode === "lite" ? 2 : 3;
     const weakQueriesPerNiche = mode === "mass" ? 12 : mode === "lite" ? 4 : 8;
-    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 5 : 3;
+    // Increased general KZ count significantly to prioritize KZ content
+    const generalKzCount = mode === "lite" ? 5 : mode === "mass" ? 15 : 8;
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
