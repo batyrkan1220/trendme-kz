@@ -170,7 +170,8 @@ Deno.serve(async (req: Request) => {
       const nichesBatch = nicheKeys.slice(ni, ni + 5);
       
       await Promise.all(nichesBatch.map(async (nicheKey) => {
-        const queries = [...NICHE_QUERIES[nicheKey]].sort(() => Math.random() - 0.5).slice(0, queriesPerNiche);
+        const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
+        const queries = [...NICHE_QUERIES[nicheKey]].sort(() => Math.random() - 0.5).slice(0, qCount);
         let nicheSaved = 0;
 
         for (const query of queries) {
