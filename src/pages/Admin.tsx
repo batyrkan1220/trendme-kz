@@ -13,11 +13,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   RefreshCw, Settings, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
+  Users, Activity, Video, Search, BookOpen, Heart, UserCircle, ScrollText,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Admin() {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
-  const { user } = useAuth();
 
   if (adminLoading) {
     return (
@@ -39,14 +46,18 @@ export default function Admin() {
           <h1 className="text-2xl font-bold text-foreground">Админ-панель</h1>
         </div>
 
-        <Tabs defaultValue="keywords" className="space-y-4">
-          <TabsList className="grid grid-cols-4 w-full max-w-xl">
+        <Tabs defaultValue="platform" className="space-y-4">
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-3xl">
+            <TabsTrigger value="platform"><Activity className="h-4 w-4 mr-1" />Платформа</TabsTrigger>
+            <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Пользователи</TabsTrigger>
             <TabsTrigger value="keywords"><Hash className="h-4 w-4 mr-1" />Запросы</TabsTrigger>
             <TabsTrigger value="refresh"><Play className="h-4 w-4 mr-1" />Обновление</TabsTrigger>
             <TabsTrigger value="settings"><Settings className="h-4 w-4 mr-1" />Настройки</TabsTrigger>
-            <TabsTrigger value="stats"><BarChart3 className="h-4 w-4 mr-1" />Статистика</TabsTrigger>
+            <TabsTrigger value="stats"><BarChart3 className="h-4 w-4 mr-1" />По нишам</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="platform"><PlatformTab /></TabsContent>
+          <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="keywords"><NicheKeywordsTab /></TabsContent>
           <TabsContent value="refresh"><RefreshTab /></TabsContent>
           <TabsContent value="settings"><SettingsTab /></TabsContent>
@@ -54,6 +65,238 @@ export default function Admin() {
         </Tabs>
       </div>
     </AppLayout>
+  );
+}
+
+/* ==================== PLATFORM TAB ==================== */
+function PlatformTab() {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["admin-platform-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: null,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      // Edge function uses GET with query params, need to use fetch directly
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=platform-stats`,
+        {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("Failed to fetch stats");
+      return res.json();
+    },
+    refetchInterval: 60000,
+  });
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+
+  const statCards = [
+    { label: "Пользователи", value: stats?.totalUsers || 0, icon: Users, color: "text-blue-500" },
+    { label: "Активные (7д)", value: stats?.activeUsers || 0, icon: Activity, color: "text-green-500" },
+    { label: "Видео в базе", value: stats?.totalVideos || 0, icon: Video, color: "text-primary" },
+    { label: "Избранные", value: stats?.totalFavorites || 0, icon: Heart, color: "text-red-500" },
+    { label: "Скрипты", value: stats?.totalScripts || 0, icon: ScrollText, color: "text-amber-500" },
+    { label: "Анализы видео", value: stats?.totalAnalyses || 0, icon: Video, color: "text-violet-500" },
+    { label: "Поисковые запросы", value: stats?.totalSearches || 0, icon: Search, color: "text-cyan-500" },
+    { label: "Отслеживаемые аккаунты", value: stats?.totalAccounts || 0, icon: UserCircle, color: "text-orange-500" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {statCards.map((s) => (
+          <Card key={s.label}>
+            <CardContent className="pt-4 pb-3 px-4">
+              <div className="flex items-center gap-2 mb-1">
+                <s.icon className={`h-4 w-4 ${s.color}`} />
+                <span className="text-xs text-muted-foreground">{s.label}</span>
+              </div>
+              <p className="text-2xl font-bold text-foreground">{s.value?.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {stats?.activityBreakdown && Object.keys(stats.activityBreakdown).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Активность за 24 часа</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(stats.activityBreakdown).map(([type, count]) => (
+                <Badge key={type} variant="secondary" className="text-sm py-1 px-3">
+                  {type}: {count as number}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/* ==================== USERS TAB ==================== */
+function UsersTab() {
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-users-list", search],
+    queryFn: async () => {
+      const params = new URLSearchParams({ action: "list" });
+      if (search) params.set("search", search);
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+
+  const roleMutation = useMutation({
+    mutationFn: async ({ user_id, role, remove }: { user_id: string; role: string; remove?: boolean }) => {
+      const action = remove ? "remove-role" : "assign-role";
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=${action}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_id, role }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
+      toast.success("Роль обновлена");
+    },
+    onError: () => toast.error("Ошибка обновления роли"),
+  });
+
+  const users = data?.users || [];
+
+  return (
+    <div className="space-y-4">
+      <Input
+        placeholder="Поиск по email..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="max-w-sm"
+      />
+
+      {isLoading ? (
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left p-3 text-muted-foreground font-medium">Email</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Регистрация</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Посл. вход</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u: any) => (
+                    <tr key={u.id} className="border-b border-border/50 hover:bg-muted/30">
+                      <td className="p-3 font-medium">{u.email}</td>
+                      <td className="p-3 text-muted-foreground">
+                        {new Date(u.created_at).toLocaleDateString("ru-RU")}
+                      </td>
+                      <td className="p-3 text-muted-foreground">
+                        {u.last_sign_in_at
+                          ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU")
+                          : "—"}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex gap-1">
+                          {u.roles.length === 0 && (
+                            <span className="text-muted-foreground text-xs">user</span>
+                          )}
+                          {u.roles.map((r: string) => (
+                            <Badge
+                              key={r}
+                              variant={r === "admin" ? "default" : "secondary"}
+                              className="gap-1 pr-1 text-xs"
+                            >
+                              {r}
+                              <button
+                                onClick={() => roleMutation.mutate({ user_id: u.id, role: r, remove: true })}
+                                className="ml-0.5 hover:text-destructive"
+                              >
+                                <Trash2 className="h-2.5 w-2.5" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <RoleAssigner
+                          userId={u.id}
+                          currentRoles={u.roles}
+                          onAssign={(role) => roleMutation.mutate({ user_id: u.id, role })}
+                          disabled={roleMutation.isPending}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function RoleAssigner({
+  userId,
+  currentRoles,
+  onAssign,
+  disabled,
+}: {
+  userId: string;
+  currentRoles: string[];
+  onAssign: (role: string) => void;
+  disabled: boolean;
+}) {
+  const availableRoles = ["admin", "moderator", "user"].filter((r) => !currentRoles.includes(r));
+  if (availableRoles.length === 0) return null;
+
+  return (
+    <Select onValueChange={onAssign} disabled={disabled}>
+      <SelectTrigger className="w-32 h-8 text-xs">
+        <SelectValue placeholder="+ Роль" />
+      </SelectTrigger>
+      <SelectContent>
+        {availableRoles.map((r) => (
+          <SelectItem key={r} value={r}>{r}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -164,7 +407,6 @@ function NicheKeywordsTab() {
 
 /* ==================== REFRESH TAB ==================== */
 function RefreshTab() {
-  const { user } = useAuth();
   const [refreshing, setRefreshing] = useState<string | null>(null);
 
   const triggerRefresh = async (mode: string) => {
@@ -178,7 +420,6 @@ function RefreshTab() {
       if (error) throw error;
       toast.success(`Обновление (${mode}) запущено`);
     } catch {
-      // Function might timeout but still running
       toast.info(`Обновление (${mode}) запущено — может занять несколько минут`);
     } finally {
       setRefreshing(null);
@@ -396,7 +637,6 @@ function StatsTab() {
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
       
-      // Get total counts
       const { data: allVideos } = await supabase
         .from("videos")
         .select("niche");
