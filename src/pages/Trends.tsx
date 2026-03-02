@@ -26,7 +26,7 @@ const getTimeAgo = (published_at: string | null) => {
 const PAGE_SIZE = 30;
 
 export default function Trends() {
-  const [period, setPeriod] = useState<1 | 3 | 7>(7);
+  const [period, setPeriod] = useState<1 | 3 | 7 | 30 | 0>(7);
   const [tab, setTab] = useState<"all" | "kz" | "world">("all");
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -52,27 +52,22 @@ export default function Trends() {
   const { data: allVideos = [], isLoading } = useQuery({
     queryKey: ["trends", period, tab],
     queryFn: async () => {
-      const since = new Date();
-      since.setDate(since.getDate() - period);
-      const maxAge = new Date();
-      maxAge.setDate(maxAge.getDate() - 7);
-
       const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region";
+
+      const buildQuery = (region: string, limit: number) => {
+        let q = supabase.from("videos").select(selectFields).eq("region", region);
+        if (period > 0) {
+          const since = new Date();
+          since.setDate(since.getDate() - period);
+          q = q.gte("published_at", since.toISOString());
+        }
+        return q.order("trend_score", { ascending: false }).limit(limit);
+      };
 
       if (tab === "all") {
         const [kzRes, worldRes] = await Promise.all([
-          supabase.from("videos").select(selectFields)
-            .eq("region", "kz")
-            .gte("fetched_at", since.toISOString())
-            .gte("published_at", maxAge.toISOString())
-            .order("trend_score", { ascending: false })
-            .limit(400),
-          supabase.from("videos").select(selectFields)
-            .eq("region", "world")
-            .gte("fetched_at", since.toISOString())
-            .gte("published_at", maxAge.toISOString())
-            .order("trend_score", { ascending: false })
-            .limit(100),
+          buildQuery("kz", 400),
+          buildQuery("world", 100),
         ]);
 
         const kzVideos = (kzRes.data || []).map(v => ({ ...v, _region: "kz" as const }));
@@ -86,12 +81,7 @@ export default function Trends() {
         }
         return merged;
       } else {
-        const { data } = await supabase.from("videos").select(selectFields)
-          .eq("region", tab)
-          .gte("fetched_at", since.toISOString())
-          .gte("published_at", maxAge.toISOString())
-          .order("trend_score", { ascending: false })
-          .limit(500);
+        const { data } = await buildQuery(tab, 500);
         return (data || []).map(v => ({ ...v, _region: tab }));
       }
     },
@@ -163,7 +153,7 @@ export default function Trends() {
               {refreshing ? "Обновление..." : "Обновить"}
             </button>
           <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow">
-            {([1, 3, 7] as const).map((p) => (
+            {([1, 3, 7, 30, 0] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
@@ -173,7 +163,7 @@ export default function Trends() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {p === 1 ? "24ч" : `${p}д`}
+                {p === 0 ? "Все" : p === 1 ? "24ч" : `${p}д`}
               </button>
             ))}
           </div>
