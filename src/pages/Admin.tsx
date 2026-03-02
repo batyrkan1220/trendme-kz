@@ -412,18 +412,81 @@ function RefreshSection() {
       </Card>
       {logs.length > 0 && (
         <Card>
-          <CardHeader><CardTitle className="text-lg">Последние обновления</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {logs.map((log: any) => (
-                <div key={log.id} className="flex items-center gap-3 text-sm p-2 rounded-lg bg-muted/30">
-                  <Badge variant={log.status === "completed" ? "default" : log.status === "running" ? "secondary" : "destructive"}>{log.status}</Badge>
-                  <span className="text-muted-foreground">{new Date(log.started_at).toLocaleString("ru-RU")}</span>
-                  <span className="font-medium">{log.mode}</span>
-                  <span className="text-muted-foreground">Сохранено: {log.total_saved} + {log.general_saved} общих</span>
+          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><BookOpen className="h-5 w-5" />Журнал обновлений</CardTitle></CardHeader>
+          <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
+            {logs.map((log: any) => {
+              const startedAt = new Date(log.started_at);
+              const finishedAt = log.finished_at ? new Date(log.finished_at) : null;
+              const durationMs = finishedAt ? finishedAt.getTime() - startedAt.getTime() : null;
+              const durationStr = durationMs != null
+                ? durationMs < 60000
+                  ? `${Math.round(durationMs / 1000)}с`
+                  : `${Math.floor(durationMs / 60000)}м ${Math.round((durationMs % 60000) / 1000)}с`
+                : "—";
+              const nicheStats: Record<string, number> = (log.niche_stats as any) || {};
+              const nicheEntries = Object.entries(nicheStats).sort(([, a], [, b]) => (b as number) - (a as number));
+              const totalNiche = log.total_saved || 0;
+              const totalGeneral = log.general_saved || 0;
+              const grandTotal = totalNiche + totalGeneral;
+
+              return (
+                <div key={log.id} className="border border-border rounded-lg p-3 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={
+                      log.status === "done" || log.status === "completed" ? "default" 
+                      : log.status === "running" ? "secondary" 
+                      : "destructive"
+                    }>
+                      {log.status === "done" || log.status === "completed" ? "✅ Готово" : log.status === "running" ? "⏳ В процессе" : `❌ ${log.status}`}
+                    </Badge>
+                    <Badge variant="outline">{log.mode?.toUpperCase()}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {startedAt.toLocaleString("ru-RU")}
+                    </span>
+                    {durationMs != null && (
+                      <Badge variant="secondary" className="text-xs">⏱ {durationStr}</Badge>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-muted/40 rounded-md p-2">
+                      <p className="text-lg font-bold text-foreground">{grandTotal}</p>
+                      <p className="text-xs text-muted-foreground">Всего видео</p>
+                    </div>
+                    <div className="bg-muted/40 rounded-md p-2">
+                      <p className="text-lg font-bold text-foreground">{totalNiche}</p>
+                      <p className="text-xs text-muted-foreground">По нишам</p>
+                    </div>
+                    <div className="bg-muted/40 rounded-md p-2">
+                      <p className="text-lg font-bold text-foreground">{totalGeneral}</p>
+                      <p className="text-xs text-muted-foreground">Общие KZ</p>
+                    </div>
+                  </div>
+
+                  {nicheEntries.length > 0 && (
+                    <details className="text-sm">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors text-xs font-medium">
+                        📊 По категориям ({nicheEntries.length} ниш)
+                      </summary>
+                      <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
+                        {nicheEntries.map(([niche, count]) => (
+                          <div key={niche} className="flex items-center justify-between bg-muted/30 rounded px-2 py-1 text-xs">
+                            <span className="truncate font-medium">{niche}</span>
+                            <Badge variant={Number(count) > 0 ? "default" : "secondary"} className="ml-1 text-[10px] px-1.5 py-0">
+                              {count as number}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
+                  {log.error_message && (
+                    <p className="text-xs text-destructive bg-destructive/10 rounded p-2">❌ {log.error_message}</p>
+                  )}
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </CardContent>
         </Card>
       )}
