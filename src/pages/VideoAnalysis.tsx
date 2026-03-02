@@ -494,7 +494,7 @@ export default function VideoAnalysis() {
                 </div>
               )}
             </div>
-          </div>
+            </div>
           </div>
         </div>
       )}
