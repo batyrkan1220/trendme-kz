@@ -132,7 +132,7 @@ export default function AccountAnalysis() {
           <Button
             onClick={handleAnalyze}
             disabled={isPending}
-            className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold"
+            className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
               <><UserCircle className="h-4 w-4 mr-2" />Анализировать</>
