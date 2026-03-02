@@ -652,15 +652,30 @@ function StatsSection() {
     queryKey: ["admin-niche-stats"],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      const { data: allVideos } = await supabase.from("videos").select("niche");
-      const { data: recentVideos } = await supabase.from("videos").select("niche").gte("published_at", sevenDaysAgo);
-      const totalMap: Record<string, number> = {};
-      const recentMap: Record<string, number> = {};
-      for (const v of allVideos || []) { const n = v.niche || "uncategorized"; totalMap[n] = (totalMap[n] || 0) + 1; }
-      for (const v of recentVideos || []) { const n = v.niche || "uncategorized"; recentMap[n] = (recentMap[n] || 0) + 1; }
-      return Object.keys(totalMap).map((niche) => ({ niche, total: totalMap[niche] || 0, recent: recentMap[niche] || 0 })).sort((a, b) => b.total - a.total);
+      // Fetch ALL videos in pages of 1000 to avoid default limit
+      const fetchAll = async (filter?: { gte?: string }) => {
+        const counts: Record<string, number> = {};
+        let from = 0;
+        const PAGE = 1000;
+        while (true) {
+          let q = supabase.from("videos").select("niche", { count: "exact" }).range(from, from + PAGE - 1);
+          if (filter?.gte) q = q.gte("published_at", filter.gte);
+          const { data, error } = await q;
+          if (error || !data || data.length === 0) break;
+          for (const v of data) {
+            const n = v.niche || "uncategorized";
+            counts[n] = (counts[n] || 0) + 1;
+          }
+          if (data.length < PAGE) break;
+          from += PAGE;
+        }
+        return counts;
+      };
+      const [totalMap, recentMap] = await Promise.all([fetchAll(), fetchAll({ gte: sevenDaysAgo })]);
+      const allNiches = new Set([...Object.keys(totalMap), ...Object.keys(recentMap)]);
+      return [...allNiches].map((niche) => ({ niche, total: totalMap[niche] || 0, recent: recentMap[niche] || 0 })).sort((a, b) => b.total - a.total);
     },
-    refetchInterval: 30000,
+    refetchInterval: 5000,
   });
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   const totalAll = nicheStats.reduce((s, n) => s + n.total, 0);
