@@ -100,7 +100,7 @@ export default function Library() {
                 return (
                   <div key={fav.id} className="bg-card rounded-xl md:rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all">
                     {video.cover_url && (
-                      <img src={video.cover_url} alt="" className="w-full h-48 object-cover rounded-2xl p-2" />
+                      <img src={video.cover_url} alt="" className="w-full h-32 md:h-48 object-cover rounded-xl md:rounded-2xl p-1.5 md:p-2" />
                     )}
                     <div className="p-4 space-y-2">
                       <p className="text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
