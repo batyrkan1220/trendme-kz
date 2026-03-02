@@ -325,7 +325,7 @@ function TrendsManagementTab() {
           { key: "refresh" as const, label: "Обновление", icon: Play },
           { key: "keywords" as const, label: "Запросы", icon: Hash },
           { key: "settings" as const, label: "Настройки", icon: Settings },
-          { key: "stats" as const, label: "По нишам", icon: BarChart3 },
+          { key: "stats" as const, label: "По категориям", icon: BarChart3 },
         ].map(({ key, label, icon: Icon }) => (
           <Button key={key} variant={section === key ? "default" : "outline"} size="sm" onClick={() => setSection(key)} className="gap-1.5">
             <Icon className="h-4 w-4" />{label}
