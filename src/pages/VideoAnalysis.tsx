@@ -96,7 +96,7 @@ export default function VideoAnalysis() {
     <AppLayout>
       <div className="p-3 md:p-4 lg:p-6 space-y-4 animate-fade-in h-full">
         {/* URL Input */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="Вставьте ссылку на TikTok видео..."
             value={url}
