@@ -158,7 +158,7 @@ Deno.serve(async (req: Request) => {
 
     // Split niches into batches of 4 (smaller batches to handle more queries per niche)
     const allNicheKeys = Object.keys(NICHE_QUERIES);
-    const BATCH_SIZE = 6;
+    const BATCH_SIZE = 4;
     let nicheKeys: string[];
     if (batchIndex >= 0) {
       const start = batchIndex * BATCH_SIZE;
