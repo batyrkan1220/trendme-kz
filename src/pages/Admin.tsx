@@ -749,12 +749,13 @@ function StatsSection() {
   const [hasChanges, setHasChanges] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  const { data: nicheStats = [], isLoading } = useQuery({
+  const { data: nicheData, isLoading } = useQuery({
     queryKey: ["admin-niche-stats"],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
       const fetchAll = async (filter?: { gte?: string }) => {
         const counts: Record<string, number> = {};
+        let uniqueCount = 0;
         let from = 0;
         const PAGE = 1000;
         while (true) {
@@ -762,6 +763,7 @@ function StatsSection() {
           if (filter?.gte) q = q.gte("published_at", filter.gte);
           const { data, error } = await q;
           if (error || !data || data.length === 0) break;
+          uniqueCount += data.length;
           for (const v of data) {
             const cats = (v as any).categories as string[] | null;
             if (cats && cats.length > 0) {
@@ -773,11 +775,12 @@ function StatsSection() {
           if (data.length < PAGE) break;
           from += PAGE;
         }
-        return counts;
+        return { counts, uniqueCount };
       };
-      const [totalMap, recentMap] = await Promise.all([fetchAll(), fetchAll({ gte: sevenDaysAgo })]);
-      const allNiches = new Set([...Object.keys(totalMap), ...Object.keys(recentMap)]);
-      return [...allNiches].map((niche) => ({ niche, total: totalMap[niche] || 0, recent: recentMap[niche] || 0 })).sort((a, b) => b.total - a.total);
+      const [totalRes, recentRes] = await Promise.all([fetchAll(), fetchAll({ gte: sevenDaysAgo })]);
+      const allNiches = new Set([...Object.keys(totalRes.counts), ...Object.keys(recentRes.counts)]);
+      const stats = [...allNiches].map((niche) => ({ niche, total: totalRes.counts[niche] || 0, recent: recentRes.counts[niche] || 0 })).sort((a, b) => b.total - a.total);
+      return { stats, uniqueTotal: totalRes.uniqueCount, uniqueRecent: recentRes.uniqueCount };
     },
     refetchInterval: 5000,
   });
@@ -836,8 +839,9 @@ function StatsSection() {
   };
 
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-  const totalAll = nicheStats.reduce((s, n) => s + n.total, 0);
-  const recentAll = nicheStats.reduce((s, n) => s + n.recent, 0);
+  const nicheStats = nicheData?.stats || [];
+  const totalAll = nicheData?.uniqueTotal || 0;
+  const recentAll = nicheData?.uniqueRecent || 0;
   return (
     <Card>
       <CardHeader>
