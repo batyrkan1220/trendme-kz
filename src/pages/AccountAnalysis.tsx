@@ -151,7 +151,7 @@ export default function AccountAnalysis() {
             </div>
 
             {/* Advanced Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="bg-card rounded-xl border border-border/50 p-5 card-shadow">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -161,6 +161,17 @@ export default function AccountAnalysis() {
                 </div>
                 <p className="text-2xl font-bold text-foreground">{account.engagement_rate || 0}%</p>
                 <p className="text-xs text-muted-foreground mt-1">Среднее вовлечение на видео</p>
+              </div>
+
+              <div className="bg-card rounded-xl border border-border/50 p-5 card-shadow">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Eye className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">Средние просмотры</span>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{formatNum(account.avg_views || 0)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Среднее по найденным видео</p>
               </div>
 
               <div className="bg-card rounded-xl border border-border/50 p-5 card-shadow">
