@@ -141,6 +141,19 @@ Deno.serve(async (req: Request) => {
       if (typeof body?.batch === "number") batchIndex = body.batch;
     } catch { /* no body = cron call */ }
 
+    // Load thresholds from DB
+    const { data: thresholdsRow } = await adminClient
+      .from("trend_settings")
+      .select("value")
+      .eq("key", "thresholds")
+      .single();
+    const thresholds = (thresholdsRow?.value as any) || {};
+    const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
+    const minForeignTrendScore = thresholds.min_foreign_trend_score ?? 500;
+    const qPerNiche = thresholds.queries_per_niche || {};
+    const wqPerNiche = thresholds.weak_queries_per_niche || {};
+    const gkzCount = thresholds.general_kz_count || {};
+
     // Detect weak niches
     const sevenDaysAgoCheck = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
     const { data: nicheCounts } = await adminClient
@@ -153,16 +166,15 @@ Deno.serve(async (req: Request) => {
       if (row.niche) nicheCountMap[row.niche] = (nicheCountMap[row.niche] || 0) + 1;
     }
 
-    // All niches are weak since DB is empty — no threshold filtering
     const WEAK_NICHES = new Set(
-      allNicheKeys.filter(n => (nicheCountMap[n] || 0) < 10)
+      allNicheKeys.filter(n => (nicheCountMap[n] || 0) < weakNicheThreshold)
     );
-    console.log(`Weak niches: ${[...WEAK_NICHES].join(", ")}`);
+    console.log(`Weak niches (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
 
-    // Maximize queries — no limits
-    const queriesPerNiche = mode === "mass" ? 8 : mode === "lite" ? 3 : 5;
-    const weakQueriesPerNiche = mode === "mass" ? 15 : mode === "lite" ? 5 : 8;
-    const generalKzCount = mode === "lite" ? 8 : mode === "mass" ? 30 : 15;
+    // Use DB thresholds for query counts
+    const queriesPerNiche = mode === "mass" ? (qPerNiche.mass ?? 8) : mode === "lite" ? (qPerNiche.lite ?? 3) : (qPerNiche.full ?? 5);
+    const weakQueriesPerNiche = mode === "mass" ? (wqPerNiche.mass ?? 15) : mode === "lite" ? (wqPerNiche.lite ?? 5) : (wqPerNiche.full ?? 8);
+    const generalKzCount = mode === "mass" ? (gkzCount.mass ?? 30) : mode === "lite" ? (gkzCount.lite ?? 8) : (gkzCount.full ?? 15);
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
