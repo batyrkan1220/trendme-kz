@@ -420,5 +420,6 @@ export default function SearchPage() {
       />
       </>
       )}
+    </AppLayout>
   );
 }
