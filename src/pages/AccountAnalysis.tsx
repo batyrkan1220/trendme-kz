@@ -18,6 +18,19 @@ function formatNum(n: number): string {
   return n.toLocaleString("ru-RU");
 }
 
+function getTimeAgo(ts: number): string {
+  if (!ts) return "";
+  const d = new Date(ts * 1000);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const days = Math.floor(diffMs / 86400000);
+  if (days < 1) return "сегодня";
+  if (days < 7) return `${days}д назад`;
+  if (days < 30) return `${Math.floor(days / 7)}нед назад`;
+  if (days < 365) return `${Math.floor(days / 30)} мес. назад`;
+  return `${Math.floor(days / 365)}г назад`;
+}
+
 interface TopVideo {
   id: string; desc: string; cover: string; url: string;
   views: number; likes: number; comments: number; shares: number;
