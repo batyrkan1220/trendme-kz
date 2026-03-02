@@ -2,7 +2,7 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, TrendingUp, Search, Video, BookOpen, Menu
+  LayoutDashboard, TrendingUp, Search, Sparkles, BookOpen, Menu
 } from "lucide-react";
 
 const navItems = [
