@@ -660,7 +660,7 @@ function SettingsSection() {
       <Card>
         <CardHeader><CardTitle className="text-lg">Пороги и лимиты</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <SettingRow label="Порог слабой ниши (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
+          <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
           <SettingRow label="Мин. trend_score для зарубежных видео" value={current.min_foreign_trend_score ?? 500} onChange={(v) => updateField("min_foreign_trend_score", v)} />
           <div className="pt-2 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на нишу</p>
