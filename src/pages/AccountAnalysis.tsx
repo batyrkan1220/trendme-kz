@@ -180,10 +180,10 @@ export default function AccountAnalysis() {
                 { icon: Video, value: account.total_videos, label: "Видео", color: "text-violet-500" },
                 { icon: Users, value: account.following, label: "Подписки", color: "text-emerald-500" },
               ].map((s) => (
-                <div key={s.label} className="bg-card rounded-xl border border-border/50 p-4 text-center card-shadow hover-lift transition-transform">
-                  <s.icon className={`h-5 w-5 ${s.color} mx-auto mb-2`} />
-                  <p className="text-xl font-bold text-foreground">{formatNum(Number(s.value || 0))}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
+                <div key={s.label} className="bg-card rounded-xl border border-border/50 p-3 md:p-4 text-center card-shadow hover-lift transition-transform">
+                  <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color} mx-auto mb-1 md:mb-2`} />
+                  <p className="text-lg md:text-xl font-bold text-foreground">{formatNum(Number(s.value || 0))}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
