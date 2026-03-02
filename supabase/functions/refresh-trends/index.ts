@@ -216,6 +216,16 @@ Deno.serve(async (req: Request) => {
     const nicheStats: Record<string, number> = {};
     let totalSaved = 0;
 
+    // Create "running" log entry immediately
+    const { data: logEntry } = await adminClient.from("trend_refresh_logs").insert({
+      mode,
+      status: "running",
+      total_saved: 0,
+      general_saved: 0,
+      niche_stats: {},
+      triggered_by: userId,
+    }).select("id").single();
+
     // Batch niches
     const BATCH_SIZE = 4;
     let nicheKeys: string[];
