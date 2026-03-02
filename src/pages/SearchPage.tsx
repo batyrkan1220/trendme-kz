@@ -54,7 +54,7 @@ export default function SearchPage() {
         body: { action: "search", query: q, limit: 100 },
       });
       if (error) throw error;
-      return data.videos || [];
+      return { videos: data.videos || [], relatedKeywords: data.relatedKeywords || [] };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
@@ -94,7 +94,8 @@ export default function SearchPage() {
     doSearch(query.trim());
   };
 
-  const results = searchResults || [];
+  const results = searchResults?.videos || [];
+  const relatedKeywords: string[] = searchResults?.relatedKeywords || [];
 
   return (
     <AppLayout>
@@ -132,6 +133,24 @@ export default function SearchPage() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">{results.length}</span> видео найдено
             </div>
+
+            {relatedKeywords.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {relatedKeywords.map((kw) => (
+                  <button
+                    key={kw}
+                    onClick={() => {
+                      setQuery(kw);
+                      doSearch(kw);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-card border border-border/50 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors card-shadow"
+                  >
+                    {kw}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {results.map((video: any, i: number) => {
                 const timeAgo = getTimeAgo(video.published_at);

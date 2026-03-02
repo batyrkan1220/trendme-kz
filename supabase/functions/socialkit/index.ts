@@ -121,10 +121,10 @@ Deno.serve(async (req: Request) => {
       return [];
     };
 
-    // Helper: generate hashtags from query using AI
-    const generateHashtags = async (query: string): Promise<string[]> => {
+    // Helper: generate hashtags + related keywords from query using AI
+    const generateHashtagsAndKeywords = async (query: string): Promise<{ hashtags: string[], relatedKeywords: string[] }> => {
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-      if (!LOVABLE_API_KEY) return [];
+      if (!LOVABLE_API_KEY) return { hashtags: [], relatedKeywords: [] };
       try {
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -137,7 +137,12 @@ Deno.serve(async (req: Request) => {
             messages: [
               {
                 role: "system",
-                content: "Generate 3-5 TikTok hashtags (without #) for searching videos related to the user's query. Return ONLY a JSON array of strings, no explanation. Hashtags should be in the same language as the query and also include popular English equivalents. Example: [\"алматы\",\"almaty\",\"казахстан\",\"kazakhstan\"]"
+                content: `Given a TikTok search query, generate:
+1. "hashtags": 3-5 TikTok hashtags (without #) in the query language + English equivalents
+2. "related_keywords": 8-12 related single-word search terms that users might also search for. These should be associated words, synonyms, brands, actions related to the query. Mix languages (query language + English).
+
+Return ONLY valid JSON: {"hashtags":["..."],"related_keywords":["..."]}
+Example for "пылесос": {"hashtags":["пылесос","vacuum","уборка","cleaning","cleantok"],"related_keywords":["моющий","dyson","xiaomi","робот","уборка","clean","обзор","лайфхак","квартира","порядок"]}`
               },
               { role: "user", content: query }
             ],
@@ -145,17 +150,19 @@ Deno.serve(async (req: Request) => {
         });
         const aiData = await res.json();
         const content = aiData?.choices?.[0]?.message?.content || "";
-        // Parse JSON array from response
-        const match = content.match(/\[[\s\S]*?\]/);
+        const match = content.match(/\{[\s\S]*?\}/);
         if (match) {
-          const tags = JSON.parse(match[0]);
-          console.log("AI generated hashtags:", tags);
-          return Array.isArray(tags) ? tags.filter((t: any) => typeof t === "string" && t.length > 0).slice(0, 5) : [];
+          const parsed = JSON.parse(match[0]);
+          console.log("AI generated hashtags:", parsed.hashtags, "keywords:", parsed.related_keywords);
+          return {
+            hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags.filter((t: any) => typeof t === "string" && t.length > 0).slice(0, 5) : [],
+            relatedKeywords: Array.isArray(parsed.related_keywords) ? parsed.related_keywords.filter((t: any) => typeof t === "string" && t.length > 0).slice(0, 12) : [],
+          };
         }
       } catch (e) {
-        console.error("Hashtag generation failed:", e);
+        console.error("Hashtag/keyword generation failed:", e);
       }
-      return [];
+      return { hashtags: [], relatedKeywords: [] };
     };
 
     switch (action) {
@@ -164,10 +171,11 @@ Deno.serve(async (req: Request) => {
         if (!query) return json({ error: "query is required" }, 400);
 
         // 1. Generate hashtags + do keyword search in parallel
-        const [keywordData, hashtags] = await Promise.all([
+        const [keywordData, aiResult] = await Promise.all([
           callSocialKit("/tiktok/search", { query, limit: String(limit), cache: "true" }),
-          generateHashtags(query),
+          generateHashtagsAndKeywords(query),
         ]);
+        const { hashtags, relatedKeywords } = aiResult;
 
         let allVideos: any[] = extractVideos(keywordData);
         console.log(`Keyword search returned ${allVideos.length} videos`);
@@ -243,10 +251,10 @@ Deno.serve(async (req: Request) => {
         // 6. Fire-and-forget activity log
         userClient.from("activity_log").insert({
           user_id: userId, type: "search_run",
-          payload_json: { query, hashtags, results_count: upsertedVideos.length },
+          payload_json: { query, hashtags, relatedKeywords, results_count: upsertedVideos.length },
         }).then(() => {}).catch(() => {});
 
-        return json({ videos: upsertedVideos, query: queryRow, hashtags });
+        return json({ videos: upsertedVideos, query: queryRow, hashtags, relatedKeywords });
       }
 
       case "video_stats": {
