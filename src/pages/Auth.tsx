@@ -49,8 +49,8 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: "hsl(221 83% 75%)" }} />
-      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: "hsl(262 83% 75%)" }} />
+      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: "hsl(258 80% 70%)" }} />
+      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: "hsl(168 76% 50%)" }} />
 
       <div className="w-full max-w-sm space-y-8 animate-fade-in relative">
         {/* Logo */}

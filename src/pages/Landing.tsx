@@ -165,7 +165,7 @@ export default function Landing() {
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-44 md:pb-32 px-4 relative">
         <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[150px] pointer-events-none" />
-        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-accent/8 rounded-full blur-[130px] pointer-events-none" />
+        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[130px] pointer-events-none" />
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
