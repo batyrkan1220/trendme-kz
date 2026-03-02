@@ -709,7 +709,6 @@ function SettingsSection() {
         <CardHeader><CardTitle className="text-lg">Пороги и лимиты</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
-          <SettingRow label="Порог заполненной категории (пропуск при обновлении)" value={current.full_niche_threshold ?? 100} onChange={(v) => updateField("full_niche_threshold", v)} />
           <SettingRow label="Лимит всех видео KZ (пропуск общих KZ запросов)" value={current.full_general_kz_threshold ?? 200} onChange={(v) => updateField("full_general_kz_threshold", v)} />
           <SettingRow label="Мин. trend_score для зарубежных видео" value={current.min_foreign_trend_score ?? 500} onChange={(v) => updateField("min_foreign_trend_score", v)} />
           <div className="pt-2 border-t border-border">
