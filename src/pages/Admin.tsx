@@ -560,21 +560,14 @@ function KeywordsSection() {
   };
 
   const selectNiche = (niche: string) => {
-    setSelectedGeneralKz(false);
     setSelectedNiche(selectedNiche === niche ? null : niche);
     setAiSuggestions([]);
   };
 
-  const selectGeneralKz = () => {
-    setSelectedNiche(null);
-    setSelectedGeneralKz(!selectedGeneralKz);
-    setAiSuggestions([]);
-  };
-
   const niches = Object.keys(nicheQueries).sort();
-  const activeQueries = selectedGeneralKz ? generalKzQueries : (selectedNiche ? nicheQueries[selectedNiche] || [] : []);
-  const activeLabel = selectedGeneralKz ? "Общие KZ" : selectedNiche || "";
-  const isActive = selectedGeneralKz || !!selectedNiche;
+  const activeQueries = selectedNiche ? nicheQueries[selectedNiche] || [] : [];
+  const activeLabel = selectedNiche || "";
+  const isActive = !!selectedNiche;
 
   if (isLoading || gkzLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   return (
