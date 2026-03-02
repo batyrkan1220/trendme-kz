@@ -446,13 +446,13 @@ Deno.serve(async (req: Request) => {
         if (i + 3 < shuffledGeneral.length) await delay(500);
       }
 
-      // AI-categorize uncategorized videos (multi-category: duplicate into all matching categories)
+      // AI-categorize uncategorized videos (multi-category via categories array)
       if (generalSaved > 0 && LOVABLE_API_KEY) {
         try {
           const NICHE_KEYS = allNicheKeys.concat(["other"]);
           const { data: uncategorized } = await adminClient
             .from("videos")
-            .select("*")
+            .select("id, caption")
             .is("niche", null)
             .limit(200);
 
@@ -466,7 +466,7 @@ Deno.serve(async (req: Request) => {
                 body: JSON.stringify({
                   model: "google/gemini-2.5-flash-lite",
                   messages: [
-                    { role: "system", content: `Classify each video into 1-3 matching categories from: ${NICHE_KEYS.join(", ")}. A video can belong to multiple categories. Return ONLY JSON: {"0":["food","lifestyle"],"1":["humor"],...}` },
+                    { role: "system", content: `Classify each video into 1-3 matching categories from: ${NICHE_KEYS.join(", ")}. Return ONLY JSON: {"0":["food","lifestyle"],"1":["humor"],...}` },
                     { role: "user", content: captions }
                   ],
                 }),
@@ -479,28 +479,17 @@ Deno.serve(async (req: Request) => {
                 for (const [idx, categories] of Object.entries(mapping)) {
                   const video = batchItems[Number(idx)];
                   if (!video) continue;
-                  // Normalize: support both string and array responses
                   const cats: string[] = Array.isArray(categories) ? categories : [categories as string];
                   const validCats = cats.filter(c => NICHE_KEYS.includes(c) && c !== "other");
-                  if (validCats.length === 0) {
-                    await adminClient.from("videos").update({ niche: "other" }).eq("id", video.id);
-                    continue;
-                  }
-                  // First category: update original
-                  await adminClient.from("videos").update({ niche: validCats[0] }).eq("id", video.id);
-                  // Additional categories: create copies with new platform_video_id
-                  for (let ci = 1; ci < validCats.length; ci++) {
-                    const { id, created_at, ...rest } = video;
-                    await adminClient.from("videos").upsert({
-                      ...rest,
-                      platform_video_id: `${video.platform_video_id}_${validCats[ci]}`,
-                      niche: validCats[ci],
-                    }, { onConflict: "platform_video_id" });
-                  }
+                  const primaryNiche = validCats[0] || "other";
+                  await adminClient.from("videos").update({
+                    niche: primaryNiche,
+                    categories: validCats.length > 0 ? validCats : [primaryNiche],
+                  }).eq("id", video.id);
                 }
               }
             }
-            console.log(`AI-categorized ${uncategorized.length} general videos (multi-category)`);
+            console.log(`AI-categorized ${uncategorized.length} general videos`);
           }
         } catch (e) {
           console.error("AI categorization failed:", e);
