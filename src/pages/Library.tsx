@@ -102,15 +102,15 @@ export default function Library() {
                     {video.cover_url && (
                       <img src={video.cover_url} alt="" className="w-full h-32 md:h-48 object-cover rounded-xl md:rounded-2xl p-1.5 md:p-2" />
                     )}
-                    <div className="p-4 space-y-2">
-                      <p className="text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
-                      <p className="text-xs text-primary font-semibold">@{video.author_username}</p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{Number(video.views).toLocaleString("ru-RU")}</span>
-                        <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" />{Number(video.likes).toLocaleString("ru-RU")}</span>
-                        <span className="flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{Number(video.comments).toLocaleString("ru-RU")}</span>
+                    <div className="p-2 md:p-4 space-y-1.5 md:space-y-2">
+                      <p className="text-xs md:text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
+                      <p className="text-[10px] md:text-xs text-primary font-semibold">@{video.author_username}</p>
+                      <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-xs text-muted-foreground">
+                        <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" />{Number(video.views).toLocaleString("ru-RU")}</span>
+                        <span className="flex items-center gap-0.5"><Heart className="h-3 w-3" />{Number(video.likes).toLocaleString("ru-RU")}</span>
+                        <span className="hidden sm:flex items-center gap-0.5"><MessageCircle className="h-3 w-3" />{Number(video.comments).toLocaleString("ru-RU")}</span>
                       </div>
-                      <div className="flex justify-between items-center pt-2 border-t border-border/50">
+                      <div className="flex justify-between items-center pt-1.5 md:pt-2 border-t border-border/50">
                         <span className="text-xs text-muted-foreground">
                           {new Date(fav.created_at).toLocaleDateString("ru-RU")}
                         </span>
