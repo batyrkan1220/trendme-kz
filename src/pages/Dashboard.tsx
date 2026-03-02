@@ -81,10 +81,10 @@ export default function Dashboard() {
                 to={a.path}
                 className="flex items-center gap-2 bg-card rounded-xl px-3 py-2 md:px-4 md:py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[140px] md:min-w-[180px] group"
               >
-                <span className="text-xl">{a.emoji}</span>
+                <span className="text-lg">{a.emoji}</span>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{a.label}</p>
-                  <p className="text-[11px] text-muted-foreground">{a.desc}</p>
+                  <p className="text-xs md:text-sm font-semibold text-foreground">{a.label}</p>
+                  <p className="text-[10px] md:text-[11px] text-muted-foreground">{a.desc}</p>
                 </div>
               </Link>
             ))}
