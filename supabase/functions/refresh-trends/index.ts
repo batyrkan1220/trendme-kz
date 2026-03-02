@@ -159,6 +159,7 @@ Deno.serve(async (req: Request) => {
       .single();
     const thresholds = (thresholdsRow?.value as any) || {};
     const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
+    const fullNicheThreshold = thresholds.full_niche_threshold ?? 100;
     const minForeignTrendScore = thresholds.min_foreign_trend_score ?? 500;
     const qPerNiche = thresholds.queries_per_niche || {};
     const wqPerNiche = thresholds.weak_queries_per_niche || {};
@@ -179,7 +180,13 @@ Deno.serve(async (req: Request) => {
     const WEAK_NICHES = new Set(
       allNicheKeys.filter(n => (nicheCountMap[n] || 0) < weakNicheThreshold)
     );
-    if (batchIndex === 0) console.log(`Weak niches (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
+    const FULL_NICHES = new Set(
+      allNicheKeys.filter(n => (nicheCountMap[n] || 0) >= fullNicheThreshold)
+    );
+    if (batchIndex === 0) {
+      console.log(`Weak categories (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
+      console.log(`Full categories (>= ${fullNicheThreshold}, skipping): ${[...FULL_NICHES].join(", ") || "none"}`);
+    }
 
     // Use DB thresholds for query counts
     const queriesPerNiche = mode === "mass" ? (qPerNiche.mass ?? 8) : mode === "lite" ? (qPerNiche.lite ?? 3) : (qPerNiche.full ?? 5);
@@ -275,10 +282,17 @@ Deno.serve(async (req: Request) => {
       const nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
       
       if (nicheKeys.length > 0) {
-        console.log(`Batch ${batchIndex}: processing niches ${nicheKeys.join(", ")}`);
-        const aiQueries = await generateAiQueries(nicheKeys);
+        // Filter out full categories
+        const activeNicheKeys = nicheKeys.filter(k => !FULL_NICHES.has(k));
+        const skippedKeys = nicheKeys.filter(k => FULL_NICHES.has(k));
+        if (skippedKeys.length > 0) {
+          console.log(`Batch ${batchIndex}: skipping full categories: ${skippedKeys.join(", ")}`);
+          for (const sk of skippedKeys) nicheStats[sk] = nicheCountMap[sk] || 0;
+        }
+        console.log(`Batch ${batchIndex}: processing categories ${activeNicheKeys.join(", ") || "(none)"}`);
+        const aiQueries = activeNicheKeys.length > 0 ? await generateAiQueries(activeNicheKeys) : {};
         
-        await Promise.all(nicheKeys.map(async (nicheKey) => {
+        await Promise.all(activeNicheKeys.map(async (nicheKey) => {
           const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
           const aiNicheQueries = aiQueries[nicheKey] || [];
           const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
