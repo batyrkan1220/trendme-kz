@@ -581,7 +581,7 @@ function KeywordsSection() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Запросы для ниши: <span className="text-primary">{selectedNiche}</span></CardTitle>
+              <CardTitle className="text-lg">Запросы для категории: <span className="text-primary">{selectedNiche}</span></CardTitle>
               <Button onClick={generateWithAI} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
                 {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 AI запросы
