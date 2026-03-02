@@ -746,57 +746,9 @@ function SettingRow({ label, value, onChange }: { label: string; value: number; 
 
 function StatsSection() {
   const queryClient = useQueryClient();
-  const [categoryLimits, setCategoryLimits] = useState<Record<string, number>>({});
+  const [categoryLimits, setCategoryLimits] = useState<Record<string, number | null>>({});
   const [hasChanges, setHasChanges] = useState(false);
-
-  const { data: nicheStats = [], isLoading } = useQuery({
-    queryKey: ["admin-niche-stats"],
-    queryFn: async () => {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      const fetchAll = async (filter?: { gte?: string }) => {
-        const counts: Record<string, number> = {};
-        let from = 0;
-        const PAGE = 1000;
-        while (true) {
-          let q = supabase.from("videos").select("categories", { count: "exact" }).range(from, from + PAGE - 1);
-          if (filter?.gte) q = q.gte("published_at", filter.gte);
-          const { data, error } = await q;
-          if (error || !data || data.length === 0) break;
-          for (const v of data) {
-            const cats = (v as any).categories as string[] | null;
-            if (cats && cats.length > 0) {
-              for (const c of cats) counts[c] = (counts[c] || 0) + 1;
-            } else {
-              counts["uncategorized"] = (counts["uncategorized"] || 0) + 1;
-            }
-          }
-          if (data.length < PAGE) break;
-          from += PAGE;
-        }
-        return counts;
-      };
-      const [totalMap, recentMap] = await Promise.all([fetchAll(), fetchAll({ gte: sevenDaysAgo })]);
-      const allNiches = new Set([...Object.keys(totalMap), ...Object.keys(recentMap)]);
-      return [...allNiches].map((niche) => ({ niche, total: totalMap[niche] || 0, recent: recentMap[niche] || 0 })).sort((a, b) => b.total - a.total);
-    },
-    refetchInterval: 5000,
-  });
-
-  // Load saved category limits
-  const { data: savedLimits } = useQuery({
-    queryKey: ["category-limits-setting"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
-      return (data?.value as Record<string, number>) || {};
-    },
-  });
-
-  // Initialize local state from saved
-  useState(() => {
-    if (savedLimits) setCategoryLimits(savedLimits);
-  });
-
-  const effectiveLimits = { ...savedLimits, ...categoryLimits };
+  const [initialized, setInitialized] = useState(false);
 
   const saveLimits = useMutation({
     mutationFn: async (limits: Record<string, number>) => {
