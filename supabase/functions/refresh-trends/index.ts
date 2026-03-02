@@ -271,8 +271,8 @@ Deno.serve(async (req: Request) => {
       else if (body?.mass) mode = "mass";
     } catch { /* no body = cron call */ }
 
-    const kzCount = mode === "lite" ? 8 : mode === "mass" ? kzQueries.length : 120;
-    const worldCount = mode === "lite" ? 2 : mode === "mass" ? worldQueries.length : 30;
+    const kzCount = mode === "lite" ? 8 : mode === "mass" ? 40 : 120;
+    const worldCount = mode === "lite" ? 2 : mode === "mass" ? 10 : 30;
 
     const shuffledKz = kzQueries.sort(() => Math.random() - 0.5).slice(0, kzCount);
     const shuffledWorld = worldQueries.sort(() => Math.random() - 0.5).slice(0, worldCount);
