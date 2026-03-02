@@ -149,7 +149,7 @@ export default function AccountAnalysis() {
                 {account.avatar_url ? (
                   <img src={account.avatar_url} alt="" className="h-14 w-14 md:h-20 md:w-20 rounded-full object-cover ring-4 ring-primary/10 shrink-0" />
                 ) : (
-                  <div className="h-20 w-20 rounded-full gradient-hero flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-lg shrink-0">
+                  <div className="h-14 w-14 md:h-20 md:w-20 rounded-full gradient-hero flex items-center justify-center text-xl md:text-2xl font-bold text-primary-foreground shadow-lg shrink-0">
                     {account.username?.charAt(0).toUpperCase()}
                   </div>
                 )}
