@@ -152,11 +152,6 @@ export default function Trends() {
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);
 
-  const tabs = [
-    { key: "all" as const, label: "Все (80% KZ)" },
-    { key: "kz" as const, label: "🇰🇿 Казахстан" },
-    { key: "world" as const, label: "🌍 Мировые" },
-  ];
 
   return (
     <AppLayout>
