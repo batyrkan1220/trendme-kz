@@ -51,7 +51,7 @@ export default function Dashboard() {
     <AppLayout>
       <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-7 animate-fade-in max-w-5xl">
         {/* Hero */}
-        <div className="gradient-hero rounded-2xl p-5 md:p-7 glow-primary relative overflow-hidden">
+        <div className="gradient-hero rounded-xl md:rounded-2xl p-4 md:p-7 glow-primary relative overflow-hidden">
           <div className="relative flex items-center justify-between">
             <div>
               <h1 className="text-lg md:text-xl font-bold text-white">
