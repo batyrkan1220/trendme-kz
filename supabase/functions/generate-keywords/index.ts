@@ -33,25 +33,106 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!roleData) throw new Error("Forbidden");
 
-    const { niche, existing_queries, seed_word } = await req.json();
-    if (!niche) throw new Error("niche is required");
+    const body = await req.json();
+    const { niche, existing_queries, seed_word, bulk } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // === BULK MODE: regenerate all niches at once ===
+    if (bulk) {
+      const { data: nicheRow } = await adminClient
+        .from("trend_settings")
+        .select("value")
+        .eq("key", "niche_queries")
+        .single();
+      const currentNiches: Record<string, string[]> = (nicheRow?.value as any) || {};
+      const nicheKeys = Object.keys(currentNiches);
+      const updatedNiches: Record<string, string[]> = {};
+
+      // Process in batches of 5 niches per AI call
+      for (let i = 0; i < nicheKeys.length; i += 5) {
+        const batch = nicheKeys.slice(i, i + 5);
+        const nicheDescriptions = batch.map(n => `"${n}"`).join(", ");
+
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              {
+                role: "system",
+                content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 20-30 поисковых запросов для поиска ТОЛЬКО казахских и русских видео на TikTok.
+
+КРИТИЧЕСКИ ВАЖНО:
+- ВСЕ запросы ТОЛЬКО на казахском и русском языках
+- НЕ ИСПОЛЬЗУЙ английский язык вообще
+- Включай казахские хэштеги (#қазақстан, #алматы и т.д.)
+- Включай русские хэштеги (#казахстан, #тренды и т.д.)
+- Используй названия городов КЗ: Алматы, Астана, Шымкент, Караганда и т.д.
+- Включай местные казахские тренды, мемы, фразы
+- Используй қазақ тілінде сөздер мен сөз тіркестері
+- Включай слова: кз, қазақстан, казахстан, тренд, тикток
+
+Верни ТОЛЬКО JSON объект: {"niche1":["запрос1","запрос2",...],...}`
+              },
+              {
+                role: "user",
+                content: `Сгенерируй свежие TikTok поисковые запросы (сегодня ${new Date().toLocaleDateString("ru")}) для этих ниш: ${nicheDescriptions}. Только казахский и русский языки!`
+              }
+            ],
+          }),
+        });
+        const aiData = await res.json();
+        const content = aiData?.choices?.[0]?.message?.content || "";
+        const match = content.match(/\{[\s\S]*\}/);
+        if (match) {
+          try {
+            const parsed = JSON.parse(match[0]);
+            for (const [k, v] of Object.entries(parsed)) {
+              if (Array.isArray(v)) updatedNiches[k] = v as string[];
+            }
+          } catch (e) {
+            console.error(`Failed to parse AI response for batch ${i}:`, e);
+          }
+        }
+      }
+
+      // Merge: replace with new AI-generated queries
+      const finalNiches: Record<string, string[]> = {};
+      for (const k of nicheKeys) {
+        finalNiches[k] = updatedNiches[k] || currentNiches[k] || [];
+      }
+
+      await adminClient
+        .from("trend_settings")
+        .update({ value: finalNiches, updated_at: new Date().toISOString(), updated_by: user.id })
+        .eq("key", "niche_queries");
+
+      const stats: Record<string, number> = {};
+      for (const [k, v] of Object.entries(finalNiches)) stats[k] = v.length;
+
+      return new Response(JSON.stringify({ success: true, stats }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // === SINGLE NICHE MODE ===
+    if (!niche) throw new Error("niche is required");
+
     const existingList = (existing_queries || []).join(", ");
 
-    // If seed_word provided, generate based on that word
     const userPrompt = seed_word
       ? `Ниша: "${niche}"
 Ключевое слово: "${seed_word}"
 Существующие запросы: [${existingList}]
 
-На основе ключевого слова "${seed_word}" сгенерируй 15-25 связанных поисковых запросов и хэштегов для TikTok. Включи вариации этого слова, связанные темы, популярные хэштеги с этим словом, фразы на казахском и русском.`
+На основе ключевого слова "${seed_word}" сгенерируй 15-25 связанных поисковых запросов и хэштегов для TikTok. Включи вариации этого слова, связанные темы, популярные хэштеги с этим словом, фразы на казахском и русском. НЕ используй английский язык.`
       : `Ниша: "${niche}"
 Существующие запросы: [${existingList}]
 
-Сгенерируй 10-15 новых уникальных поисковых запросов и хэштегов для этой ниши.`;
+Сгенерируй 10-15 новых уникальных поисковых запросов и хэштегов для этой ниши. Только на казахском и русском языках!`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -67,7 +148,8 @@ Deno.serve(async (req) => {
             content: `Ты — эксперт по TikTok трендам в Казахстане и СНГ. Генерируй поисковые запросы и хэштеги для поиска трендовых видео на TikTok.
 
 Правила:
-- Генерируй на русском и казахском языках
+- Генерируй ТОЛЬКО на русском и казахском языках
+- НЕ используй английский язык
 - Включай хэштеги (с #) и текстовые запросы
 - Фокусируйся на KZ/RU контент
 - Включай города Казахстана, местные тренды

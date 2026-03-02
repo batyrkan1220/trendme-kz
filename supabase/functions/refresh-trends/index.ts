@@ -319,10 +319,16 @@ Deno.serve(async (req: Request) => {
               };
             }).filter(Boolean);
 
-            if (videoRows.length > 0) {
+            // Filter: keep only videos with Cyrillic (Russian/Kazakh) captions
+            const cyrillicRows = videoRows.filter((row: any) => {
+              const cap = row.caption || "";
+              return /[а-яА-ЯёЁәғқңөұүіӘҒҚҢӨҰҮІ]/.test(cap);
+            });
+
+            if (cyrillicRows.length > 0) {
               const { data: upserted } = await adminClient
                 .from("videos")
-                .upsert(videoRows, { onConflict: "platform_video_id" })
+                .upsert(cyrillicRows, { onConflict: "platform_video_id" })
                 .select("id");
               nicheSaved += upserted?.length || 0;
             }
