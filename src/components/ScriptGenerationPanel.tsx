@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ScriptPanelProps {
   transcript: string;
@@ -31,11 +32,17 @@ async function streamScript({
   onDone: () => void;
   onError: (err: string) => void;
 }) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    onError("Необходимо авторизоваться");
+    return;
+  }
+
   const resp = await fetch(SCRIPT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${session.access_token}`,
     },
     body: JSON.stringify({ transcript, summary, caption, messages }),
   });
