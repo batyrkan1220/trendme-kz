@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import {
   UserCircle, Users, Heart, Video, Loader2, Check, Eye, MessageCircle, Share2,
-  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X
+  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X, Sparkles
 } from "lucide-react";
 import { useState } from "react";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
@@ -323,14 +323,24 @@ export default function AccountAnalysis() {
               </div>
             )}
           </div>
-        ) : !isPending ? (
+        ) : isPending ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="h-24 w-24 rounded-2xl gradient-hero flex items-center justify-center shadow-lg mb-6">
+              <Sparkles className="h-12 w-12 text-white/80" />
+            </div>
+            <p className="text-lg text-muted-foreground font-medium mb-4">
+              Анализируем аккаунт...
+            </p>
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : (
           <div className="bg-card rounded-2xl border border-border/50 p-12 text-center card-shadow">
             <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
               <UserCircle className="h-10 w-10 text-muted-foreground/30" />
             </div>
             <p className="text-muted-foreground font-medium">Вставьте ссылку на профиль TikTok для анализа</p>
           </div>
-        ) : null}
+        )}
 
         {/* Tracked Accounts History */}
         {trackedAccounts.length > 0 && (
