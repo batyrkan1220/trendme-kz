@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye } from "lucide-react";
+import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye, BookOpen } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,11 +87,13 @@ async function streamScript({
 }
 
 export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: ScriptPanelProps) {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"new" | "original">("new");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [scriptContent, setScriptContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [chatInput, setChatInput] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef("");
 
@@ -186,6 +189,24 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
   const copyScript = () => {
     navigator.clipboard.writeText(scriptRef.current || scriptContent);
     toast.success("Сценарий скопирован!");
+  };
+
+  const saveScript = async () => {
+    if (!user || !scriptContent || isSaving) return;
+    setIsSaving(true);
+    const title = caption?.slice(0, 80) || "Сценарий";
+    const { error } = await supabase.from("saved_scripts" as any).insert({
+      user_id: user.id,
+      title,
+      content: scriptRef.current || scriptContent,
+      source_video_url: null,
+    });
+    if (error) {
+      toast.error("Ошибка сохранения");
+    } else {
+      toast.success("Сценарий сохранён в Библиотеку! 📚");
+    }
+    setIsSaving(false);
   };
 
   useEffect(() => {
@@ -288,7 +309,15 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
             {activeTab === "new" ? (
               <div className="p-6">
                 {/* Copy button */}
-                <div className="flex justify-end mb-4">
+                <div className="flex justify-end gap-2 mb-4">
+                  <button
+                    onClick={saveScript}
+                    disabled={!scriptContent || isGenerating || isSaving}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-primary-foreground bg-primary hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    {isSaving ? "Сохраняю..." : "В библиотеку"}
+                  </button>
                   <button
                     onClick={copyScript}
                     disabled={!scriptContent}
