@@ -87,11 +87,13 @@ async function streamScript({
 }
 
 export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: ScriptPanelProps) {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"new" | "original">("new");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [scriptContent, setScriptContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [chatInput, setChatInput] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef("");
 
