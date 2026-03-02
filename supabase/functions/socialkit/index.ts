@@ -446,15 +446,60 @@ Deno.serve(async (req: Request) => {
         if (!profile_url) return json({ error: "profile_url is required" }, 400);
         if (!validateTikTokUrl(profile_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
-        // Fetch channel stats
-        const channelData = await callSocialKit("/tiktok/channel-stats", { url: profile_url });
+        // Fetch channel stats and search for user's videos in parallel
+        const usernameFromUrl = profile_url.split("@").pop()?.split("?")[0]?.split("/")[0] || "";
+
+        const [channelRes, searchRes] = await Promise.allSettled([
+          callSocialKit("/tiktok/channel-stats", { url: profile_url }),
+          callSocialKit("/tiktok/search", { query: `@${usernameFromUrl}`, count: "30" }),
+        ]);
+
+        const channelData = channelRes.status === "fulfilled" ? channelRes.value : {};
         const accountData = channelData?.data || channelData || {};
         console.log("Channel stats raw data:", JSON.stringify(accountData).slice(0, 1000));
 
-        // Extract username from profile URL or response
+        // Parse top videos from search results
+        let topVideos: any[] = [];
+        if (searchRes.status === "fulfilled") {
+          const sData = searchRes.value;
+          const rawVideos = Array.isArray(sData) ? sData
+            : Array.isArray(sData?.data?.results) ? sData.data.results
+            : Array.isArray(sData?.data) ? sData.data
+            : Array.isArray(sData?.items) ? sData.items
+            : Array.isArray(sData?.videos) ? sData.videos
+            : Array.isArray(sData?.result) ? sData.result
+            : [];
+          console.log("Search returned", rawVideos.length, "videos");
+
+          // Filter to only this user's videos and map
+          topVideos = rawVideos
+            .filter((v: any) => {
+              const authorId = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
+              return !authorId || authorId.toLowerCase() === usernameFromUrl.toLowerCase();
+            })
+            .map((v: any) => {
+              const stats = v.stats || {};
+              return {
+                id: v.id || v.video_id || v.aweme_id,
+                desc: v.desc || v.caption || v.title || "",
+                cover: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
+                url: v.url || `https://www.tiktok.com/@${usernameFromUrl}/video/${v.id || v.video_id}`,
+                views: stats.views || v.playCount || v.views || 0,
+                likes: stats.likes || v.diggCount || v.likes || 0,
+                comments: stats.comments || v.commentCount || v.comments || 0,
+                shares: stats.shares || v.shareCount || v.shares || 0,
+                duration: v.video?.duration || v.duration || 0,
+                createTime: v.createTime || v.create_time || 0,
+              };
+            });
+          topVideos.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
+        } else {
+          console.error("Search failed:", searchRes.reason);
+        }
+
+        // Extract username from response or URL
         const username =
-          accountData.username || accountData.uniqueId || accountData.unique_id ||
-          profile_url.split("@").pop()?.split("?")[0]?.split("/")[0] || "";
+          accountData.username || accountData.uniqueId || accountData.unique_id || usernameFromUrl;
 
         // Map fields according to SocialKit response format
         const followers = accountData.followers || accountData.followerCount || 0;
@@ -466,6 +511,9 @@ Deno.serve(async (req: Request) => {
         // Computed metrics
         const avgLikesPerVideo = totalVideos > 0 ? Math.round(totalLikes / totalVideos) : 0;
         const engagementRate = followers > 0 ? ((totalLikes / Math.max(totalVideos, 1)) / followers * 100) : 0;
+        const avgViews = topVideos.length > 0
+          ? Math.round(topVideos.reduce((sum: number, v: any) => sum + (v.views || 0), 0) / topVideos.length)
+          : 0;
 
         const { data: account } = await userClient
           .from("accounts_tracked")
@@ -499,8 +547,8 @@ Deno.serve(async (req: Request) => {
           ...account,
           avg_likes_per_video: avgLikesPerVideo,
           engagement_rate: Math.round(engagementRate * 100) / 100,
-          avg_views: 0,
-          top_videos: [],
+          avg_views: avgViews,
+          top_videos: topVideos.slice(0, 12),
         });
       }
 
