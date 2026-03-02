@@ -4,8 +4,8 @@
   "description": "Платформа для мониторинга трендов TikTok, анализа контента и отслеживания аккаунтов",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f3ef",
-  "theme_color": "#e8622a",
+  "background_color": "#f5f6fa",
+  "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "icons": [
     {

@@ -7,7 +7,7 @@ export default function Tokens() {
       <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground">Токены ⚡</h1>
         <div className="bg-card rounded-2xl p-8 card-shadow border border-border/50 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 rounded-full blur-2xl opacity-30" style={{ background: "hsl(340 82% 85%)" }} />
+          <div className="absolute top-0 right-0 w-48 h-48 rounded-full blur-2xl opacity-30" style={{ background: "hsl(262 83% 80%)" }} />
           <div className="relative">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-12 w-12 rounded-xl gradient-hero flex items-center justify-center glow-primary">
