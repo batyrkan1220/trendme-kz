@@ -158,7 +158,7 @@ export default function Dashboard() {
                       <Video className="h-8 w-8 text-muted-foreground/20" />
                     </div>
                   )}
-                  <div className="p-3">
+                  <div className="p-2 md:p-3">
                     <p className="text-sm font-medium text-foreground line-clamp-2 leading-snug">
                       {video.caption || "Без описания"}
                     </p>
