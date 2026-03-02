@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Radar, LayoutDashboard, TrendingUp, Search, BarChart3,
-  Video, UserCircle, BookOpen, Star, ScrollText,
+  Video, UserCircle, BookOpen, ScrollText,
   Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame
 } from "lucide-react";
 
