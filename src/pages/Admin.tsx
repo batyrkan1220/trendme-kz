@@ -602,7 +602,7 @@ function KeywordsSection() {
           <CardContent className="space-y-3">
             <div className="flex gap-2">
               <Input placeholder="Новый запрос или хэштег..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addQuery()} />
-              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending || saveGkzMutation.isPending}><Plus className="h-4 w-4" /></Button>
+              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending}><Plus className="h-4 w-4" /></Button>
             </div>
 
             {aiSuggestions.length > 0 && (
