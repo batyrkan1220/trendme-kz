@@ -220,7 +220,31 @@ export default function Trends() {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+                niche !== "all"
+                  ? "bg-primary/10 text-primary border-primary/30"
+                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted/50"
+              }`}>
+                <span>{NICHES.find(n => n.key === niche)?.emoji} {NICHES.find(n => n.key === niche)?.label || "Ниша"}</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="max-h-80 overflow-y-auto w-56">
+              {NICHES.map((n) => (
+                <DropdownMenuItem
+                  key={n.key}
+                  onClick={() => { setNiche(n.key); setVisibleCount(PAGE_SIZE); }}
+                  className={`cursor-pointer ${niche === n.key ? "bg-primary/10 text-primary" : ""}`}
+                >
+                  <span className="mr-2">{n.emoji}</span> {n.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {tabs.map((t) => (
             <button
               key={t.key}
@@ -234,9 +258,9 @@ export default function Trends() {
               {t.label}
             </button>
           ))}
-          {allVideos.length > 0 && (
+          {filteredVideos.length > 0 && (
             <span className="self-center text-xs text-muted-foreground ml-2">
-              {allVideos.length} видео
+              {filteredVideos.length} видео
             </span>
           )}
         </div>
