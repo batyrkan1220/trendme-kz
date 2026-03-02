@@ -1,9 +1,10 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import {
   UserCircle, Users, Heart, Video, Loader2, Check, Eye, MessageCircle, Share2,
-  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw
+  TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X
 } from "lucide-react";
 import { useState } from "react";
+import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
