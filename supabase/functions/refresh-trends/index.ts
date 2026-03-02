@@ -8,6 +8,46 @@ const corsHeaders = {
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 
+// Niche-specific search queries (KZ/RU + EN)
+const NICHE_QUERIES: Record<string, string[]> = {
+  finance: ["финансы тикток", "инвестиции 2026", "крипто трейдинг", "заработок онлайн", "пассивный доход", "#финансы", "#инвестиции", "#crypto", "#trading", "finance tips tiktok", "investing viral"],
+  marketing: ["маркетинг тикток", "smm продвижение", "таргетированная реклама", "контент маркетинг", "#маркетинг", "#smm", "#digitalmarketing", "marketing strategy tiktok", "social media tips"],
+  business: ["бизнес идеи 2026", "стартап тикток", "продажи онлайн", "предприниматель", "#бизнес", "#стартап", "#business", "#entrepreneur", "business ideas tiktok", "startup viral"],
+  psychology: ["психология отношений", "токсичные отношения", "любовь тикток", "свидания советы", "#психология", "#отношения", "#relationship", "relationship advice tiktok", "dating tips viral"],
+  therapy: ["саморазвитие тикток", "мотивация успех", "медитация утро", "осознанность", "#саморазвитие", "#мотивация", "#mindset", "#meditation", "self improvement tiktok", "motivation viral"],
+  education: ["английский язык тикток", "учеба лайфхаки", "образование онлайн", "уроки тикток", "#английский", "#учеба", "#education", "#learnenglish", "study tips tiktok", "language learning viral"],
+  mama: ["мама блог тикток", "материнство", "ребенок развитие", "беременность", "#мамаблог", "#материнство", "#momlife", "#baby", "#parenting", "mom life tiktok viral", "baby tips"],
+  beauty: ["бьюти тикток", "макияж тренд 2026", "уход за кожей", "косметика обзор", "#бьюти", "#макияж", "#skincare", "#makeup", "#beauty", "beauty hack tiktok viral", "skincare routine"],
+  fitness: ["фитнес тренировка", "спорт тикток", "похудение упражнения", "зал мотивация", "#фитнес", "#тренировка", "#fitness", "#workout", "#gym", "workout tiktok viral", "gym transformation"],
+  fashion: ["мода тренды 2026", "стиль одежда", "аутфит дня", "шопинг тикток", "#мода", "#стиль", "#outfit", "#fashion", "#ootd", "fashion trend tiktok", "outfit ideas viral"],
+  law: ["юрист советы", "налоги 2026", "закон новый", "юридические лайфхаки", "#юрист", "#налоги", "#закон", "#legal", "legal advice tiktok", "tax tips"],
+  realestate: ["недвижимость 2026", "квартира ипотека", "ремонт квартиры", "купить дом", "#недвижимость", "#ипотека", "#квартира", "#realestate", "real estate tiktok", "apartment tour viral"],
+  esoteric: ["таро расклад", "гороскоп 2026", "астрология знаки", "эзотерика энергия", "#таро", "#гороскоп", "#астрология", "#tarot", "#astrology", "tarot reading tiktok", "horoscope viral"],
+  food: ["рецепт быстрый", "еда тикток", "готовим вкусно", "выпечка рецепт", "завтрак идеи", "#рецепт", "#еда", "#готовка", "#recipe", "#cooking", "#foodtiktok", "cooking hack tiktok viral", "food recipe easy"],
+  home: ["уют дом тикток", "ремонт своими руками", "интерьер идеи", "организация дома", "уборка лайфхак", "#уют", "#интерьер", "#ремонт", "#home", "#homedecor", "#organization", "home decor tiktok viral"],
+  travel: ["путешествия тикток", "туризм 2026", "отдых бюджетный", "красивые места", "#путешествия", "#travel", "#туризм", "#wanderlust", "travel tiktok viral", "beautiful places"],
+  lifestyle: ["лайфстайл влог", "день из жизни", "рутина утро", "мотивация жизнь", "#лайфстайл", "#влог", "#vlog", "#lifestyle", "#routine", "day in my life tiktok", "morning routine viral"],
+  animals: ["животные тикток", "кот смешной", "собака тренировка", "питомец уход", "#кот", "#собака", "#питомец", "#cat", "#dog", "#pets", "funny cat tiktok", "cute dog viral"],
+  gaming: ["игры тикток", "геймер стрим", "новая игра 2026", "ps5 обзор", "#игры", "#геймер", "#gaming", "#gamer", "#ps5", "gaming tiktok viral", "game review"],
+  music: ["музыка тикток хит", "новая песня 2026", "кино обзор", "арт творчество", "#музыка", "#кино", "#арт", "#music", "#movie", "#art", "music viral tiktok", "new song trending"],
+  tattoo: ["тату идеи 2026", "тату мастер", "пирсинг тренд", "#тату", "#пирсинг", "#tattoo", "#ink", "tattoo ideas tiktok", "tattoo viral"],
+  career: ["карьера тикток", "фриланс заработок", "удаленная работа", "резюме советы", "#карьера", "#фриланс", "#удаленка", "#career", "#freelance", "#remote", "freelance tips tiktok"],
+  auto: ["авто обзор тикток", "машина тюнинг", "мото тикток", "автоновинки 2026", "#авто", "#машина", "#мото", "#car", "#auto", "car tiktok viral", "auto review"],
+  diy: ["своими руками тикток", "рукоделие идеи", "diy проект", "handmade тренд", "#diy", "#рукоделие", "#handmade", "#craft", "diy tiktok viral", "craft ideas"],
+  kids: ["дети тикток", "воспитание советы", "развитие ребенка", "школа лайфхаки", "#дети", "#воспитание", "#kids", "#children", "#parenting", "kids tiktok funny", "parenting tips viral"],
+  ai_news: ["нейросети новости 2026", "chatgpt новое", "искусственный интеллект", "#нейросети", "#ии", "#ai", "#chatgpt", "#artificialintelligence", "ai news tiktok", "chatgpt viral"],
+  ai_art: ["ai арт генерация", "midjourney новое", "нейросеть рисует", "#aiart", "#midjourney", "#генерация", "ai art tiktok viral", "ai generated"],
+  ai_avatar: ["ai аватар тикток", "цифровой аватар", "deepfake тренд", "#aiavatar", "#deepfake", "#digitalavatar", "ai avatar tiktok viral"],
+  humor: ["юмор тикток", "смешные видео 2026", "приколы тикток", "скетч комедия", "мемы тикток", "#юмор", "#приколы", "#смешно", "#funny", "#comedy", "#memes", "funny tiktok compilation", "comedy sketch viral"],
+};
+
+// Extra general KZ/CIS queries to fill gaps
+const GENERAL_KZ_QUERIES = [
+  "#қазақстан", "#kz", "#казахстан", "#алматы", "#астана",
+  "#казахстантренд", "#kztiktok", "#снг", "#рекомендации",
+  "қазақ тикток тренд", "казахстан тренд тикток 2026",
+];
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -17,8 +57,8 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY")!;
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
-    // Auth: require valid user OR service-role (cron)
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -78,214 +118,17 @@ Deno.serve(async (req: Request) => {
       };
     };
 
-    // KZ + CIS search queries for fresh content
-    const kzQueries = [
-      // Казахстан хэштеги
-      "#қазақ", "#қазақстан", "#қазақша", "#kz", "#казахстан",
-      "#алматы", "#астана", "#шымкент", "#караганда", "#актау",
-      "#атырау", "#павлодар", "#семей", "#костанай", "#тараз",
-      "#актобе", "#орал", "#петропавл", "#кызылорда", "#талдыкорган",
-      "#казахстантикток", "#kztiktok", "#қазақтикток", "#казахстантренд",
-      "#kztrend", "#қазақвайн", "#казвайн", "#қазақприкол", "#казприкол",
-      "#қазақхит", "#казахстанхит", "#kzviral", "#қазақвирал",
-      "#казахстанвирал", "#kzfyp", "#қазақfyp", "#казахстанfyp",
-      "#қазақмузыка", "#казахстанмузыка", "#kzmusic",
-      "#қазақтанцы", "#казахстантанцы", "#kzdance",
-      "#қазақчеллендж", "#казахстанчеллендж", "#kzchallenge",
-      "#қазақкомедия", "#казахстанкомедия", "#kzcomedy",
-      "#қазақблогер", "#казахстанблогер", "#kzblogger",
-      "#қазақәндер", "#казахстанпесни", "#kzsong",
-      "#алматылайф", "#астаналайф", "#шымкентлайф",
-      "#қазақмем", "#казахстанмем", "#kzmeme",
-      "#қазақстайл", "#казахстанстиль", "#kzstyle",
-      "#қазақфуд", "#казахстанеда", "#kzfood",
-      "#қазақспорт", "#казахстанспорт", "#kzsport",
-      "#қазақбизнес", "#казахстанбизнес", "#kzbusiness",
-      "#қазақмотивация", "#казахстанмотивация", "#kzmotivation",
-      "#қазақтревел", "#казахстанпутешествие", "#kztravel",
-      "#қазақбьюти", "#казахстанкрасота", "#kzbeauty",
-      "#қазақавто", "#казахстанавто", "#kzauto",
-      "#қазақфитнес", "#казахстанфитнес", "#kzfitness",
-      "#қазақрецепт", "#казахстанрецепт", "#kzrecipe",
-      "#қазақтой", "#казахстансвадьба", "#kzwedding",
-      "#қазақмода", "#казахстанмода", "#kzfashion",
-      "#димаш", "#dimash", "#кайрат", "#казахстанзвезды",
-      "#манғыстау", "#түркістан", "#балхаш", "#бурабай",
-      "#қазақстанlife", "#kzlife", "#казреелс",
-      // Казахстан фразы
-      "қазақ тикток тренд", "қазақша тренд 2026", "қазақстан вирал",
-      "казахстан тренд тикток", "алматы тренд тикток", "астана тренд тикток",
-      "казахстан вирусное видео", "казахстан юмор тикток",
-
-      // === СНГ СТРАНЫ ===
-
-      // Россия
-      "#россия", "#москва", "#питер", "#спб", "#рф",
-      "#русскийтикток", "#россиятренд", "#русскийвайн",
-      "#российскийтикток", "#москватикток", "#питертикток",
-      "#русскийюмор", "#русскиеприколы", "#россиявирал",
-      "#рекомендации", "#длятебя", "#русскиймем",
-      "#русскаямузыка", "#русскийтренд", "#россияfyp",
-      "россия тренд тикток", "русский тикток вирал 2026",
-      "москва тренд тикток", "русские приколы тикток",
-
-      // Узбекистан
-      "#узбекистан", "#ташкент", "#самарканд", "#бухара",
-      "#узбекскийтикток", "#узбекистантренд", "#узбекистанвирал",
-      "#uzbekistan", "#uztiktok", "#узбекприкол", "#узбекюмор",
-      "#узбекмузыка", "#узбекистанfyp", "#ozbek", "#ozbekiston",
-      "#узбекистантанцы", "#узбекистанмем", "#узбекблогер",
-      "узбекистан тренд тикток", "узбекский тикток вирал",
-
-      // Кыргызстан
-      "#кыргызстан", "#бишкек", "#кыргыз", "#kyrgyzstan",
-      "#кыргызтикток", "#кыргызстантренд", "#кыргызстанвирал",
-      "#кыргызприкол", "#кыргызюмор", "#кыргызмузыка",
-      "#кыргызстанfyp", "#kgtiktok", "#кыргызблогер",
-      "кыргызстан тренд тикток", "кыргызский тикток вирал",
-
-      // Таджикистан
-      "#таджикистан", "#душанбе", "#таджик", "#tajikistan",
-      "#таджикскийтикток", "#таджикистантренд", "#таджикистанвирал",
-      "#таджикприкол", "#таджикюмор", "#таджикмузыка",
-      "#таджикистанfyp", "#tjtiktok", "#таджикблогер",
-      "таджикистан тренд тикток", "таджикский тикток вирал",
-
-      // Туркменистан
-      "#туркменистан", "#ашхабад", "#туркмен", "#turkmenistan",
-      "#туркменскийтикток", "#туркменистантренд", "#tmtiktok",
-      "туркменистан тренд тикток",
-
-      // Азербайджан
-      "#азербайджан", "#баку", "#azerbaijan", "#baku",
-      "#азербайджантикток", "#азербайджантренд", "#азербайджанвирал",
-      "#азерприкол", "#азерюмор", "#азермузыка", "#aztiktok",
-      "#азербайджанfyp", "#азербайджанблогер",
-      "азербайджан тренд тикток", "азербайджанский тикток вирал",
-
-      // Армения
-      "#армения", "#ереван", "#armenia", "#yerevan",
-      "#армянскийтикток", "#армениятренд", "#армениявирал",
-      "#армянприкол", "#армянюмор", "#армянмузыка", "#amtiktok",
-      "армения тренд тикток", "армянский тикток вирал",
-
-      // Грузия
-      "#грузия", "#тбилиси", "#georgia", "#tbilisi",
-      "#грузинскийтикток", "#грузиятренд", "#грузиявирал",
-      "#грузинприкол", "#грузинюмор", "#getiktok",
-      "грузия тренд тикток", "грузинский тикток вирал",
-
-      // Беларусь
-      "#беларусь", "#минск", "#belarus", "#minsk",
-      "#белорусскийтикток", "#беларусьтренд", "#беларусьвирал",
-      "#белорусприкол", "#белорусюмор", "#bytiktok",
-      "беларусь тренд тикток", "белорусский тикток вирал",
-
-      // Молдова
-      "#молдова", "#кишинев", "#moldova", "#chisinau",
-      "#молдоватикток", "#молдоватренд", "#молдовавирал",
-      "#mdtiktok", "молдова тренд тикток",
-
-      // Общие СНГ
-      "#снг", "#снгтикток", "#снгвирал", "#снгтренд",
-      "#снгприколы", "#снгюмор", "#снгмузыка", "#снгблогеры",
-      "#постсоветское", "#русскоязычный", "#русскоязычныйтикток",
-      "снг тренд тикток 2026", "снг вирусное видео", "снг приколы тикток",
-    ];
-
-    // World search queries
-    const worldQueries = [
-      "trending viral tiktok", "fyp trending 2026", "dance trend tiktok",
-      "funny viral video", "tiktok challenge trending", "viral music tiktok",
-      "#viral", "#trending", "#fyp", "#foryou", "#foryoupage",
-      "#dance", "#funny", "#comedy", "#music", "#challenge",
-      "#duet", "#trend", "#tiktokviral", "#explore",
-      "tiktok viral 2026", "best tiktok trends", "new tiktok challenge",
-      "tiktok dance 2026", "viral comedy tiktok", "tiktok music hit",
-      "satisfying tiktok", "tiktok life hacks", "tiktok food viral",
-      "tiktok fashion trend", "tiktok beauty viral", "tiktok sports viral",
-      "tiktok pet viral", "tiktok art trending", "tiktok travel viral",
-      // Новые мировые хэштеги
-      "#viralvideo", "#tiktok2026", "#trending2026", "#fypシ",
-      "#memes", "#relatable", "#storytime", "#pov", "#grwm",
-      "#ootd", "#asmr", "#satisfying", "#motivation", "#fitness",
-      "#recipe", "#cooking", "#diy", "#tutorial", "#lifehack",
-      "#skincare", "#makeup", "#haul", "#unboxing", "#review",
-      "#gaming", "#anime", "#cosplay", "#booktok",
-      "#gym", "#workout", "#transformation",
-      "#cat", "#dog", "#pets", "#nature", "#travel",
-      "#ai", "#tech", "#coding", "#entrepreneur", "#startup",
-      "#investing", "#crypto", "#finance",
-      // Фразы мировые
-      "tiktok pov trending", "tiktok grwm viral", "tiktok storytime best",
-      "tiktok asmr satisfying", "tiktok transformation viral",
-      "tiktok meme compilation 2026", "tiktok couple goals",
-      "tiktok cooking hack", "tiktok outfit ideas", "tiktok gym motivation",
-    ];
-
-
-    const searchAndSave = async (query: string, region: string) => {
-      try {
-        const data = await callSocialKit("/tiktok/search", {
-          query,
-          count: "50",
-        });
-
-        let videos: any[] = [];
-        if (Array.isArray(data)) videos = data;
-        else if (Array.isArray(data?.data?.results)) videos = data.data.results;
-        else if (Array.isArray(data?.data)) videos = data.data;
-        else if (Array.isArray(data?.items)) videos = data.items;
-        else if (Array.isArray(data?.videos)) videos = data.videos;
-        else if (Array.isArray(data?.result)) videos = data.result;
-        else videos = [];
-
-        let saved = 0;
-        for (const v of videos) {
-          const videoId = v.id || v.video_id || v.aweme_id;
-          if (!videoId) continue;
-
-          const trends = computeTrend(v);
-
-          // Skip videos older than 7 days
-          const publishedDate = new Date(trends.published_at);
-          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
-          if (publishedDate < sevenDaysAgo) continue;
-
-          const stats = v.stats || {};
-          const videoRow = {
-            platform: "tiktok",
-            platform_video_id: String(videoId),
-            url: v.url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
-            caption: v.desc || v.caption || v.title || "",
-            cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-            author_username: v.author?.uniqueId || v.author?.unique_id || v.author_username || "",
-            author_display_name: v.author?.nickname || v.author_display_name || "",
-            author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
-            views: stats.views || v.views || v.playCount || 0,
-            likes: stats.likes || v.likes || v.diggCount || 0,
-            comments: stats.comments || v.comments || v.commentCount || 0,
-            shares: stats.shares || v.shares || v.shareCount || 0,
-            duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
-            fetched_at: new Date().toISOString(),
-            region,
-            ...trends,
-          };
-
-          const { error } = await adminClient
-            .from("videos")
-            .upsert(videoRow, { onConflict: "platform_video_id" });
-
-          if (!error) saved++;
-        }
-        return saved;
-      } catch (err) {
-        console.error(`Search failed for "${query}":`, err.message);
-        return 0;
-      }
+    const extractVideos = (data: any): any[] => {
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.data?.results)) return data.data.results;
+      if (Array.isArray(data?.data)) return data.data;
+      if (Array.isArray(data?.items)) return data.items;
+      if (Array.isArray(data?.videos)) return data.videos;
+      if (Array.isArray(data?.result)) return data.result;
+      return [];
     };
 
-    // Check mode: lite, mass, or full (cron)
+    // Check mode
     let mode = "full";
     try {
       const body = await req.json();
@@ -293,40 +136,182 @@ Deno.serve(async (req: Request) => {
       else if (body?.mass) mode = "mass";
     } catch { /* no body = cron call */ }
 
-    const kzCount = mode === "lite" ? 8 : mode === "mass" ? 40 : 120;
-    const worldCount = mode === "lite" ? 2 : mode === "mass" ? 10 : 30;
-
-    const shuffledKz = kzQueries.sort(() => Math.random() - 0.5).slice(0, kzCount);
-    const shuffledWorld = worldQueries.sort(() => Math.random() - 0.5).slice(0, worldCount);
-
-    const allTasks = [
-      ...shuffledKz.map(q => ({ q, region: "kz" })),
-      ...shuffledWorld.map(q => ({ q, region: "world" })),
-    ];
-
-    const results: Record<string, number> = {};
-    const BATCH_SIZE = mode === "mass" ? 5 : 5;
+    // How many queries per niche based on mode
+    const queriesPerNiche = mode === "lite" ? 1 : mode === "mass" ? 3 : 2;
+    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 6 : 4;
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-    for (let i = 0; i < allTasks.length; i += BATCH_SIZE) {
-      const batch = allTasks.slice(i, i + BATCH_SIZE);
-      const batchResults = await Promise.allSettled(
-        batch.map(({ q, region }) => searchAndSave(q, region))
-      );
-      batch.forEach(({ q, region }, idx) => {
-        const r = batchResults[idx];
-        results[`${region}:${q}`] = r.status === "fulfilled" ? r.value : 0;
-      });
-      // Пауза между батчами чтобы не перегружать API
-      if (i + BATCH_SIZE < allTasks.length) {
-        await delay(1500);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
+    const now = new Date().toISOString();
+    const nicheStats: Record<string, number> = {};
+    let totalSaved = 0;
+
+    // Process each niche
+    const nicheKeys = Object.keys(NICHE_QUERIES);
+    
+    for (let ni = 0; ni < nicheKeys.length; ni += 3) {
+      // Process 3 niches in parallel
+      const nichesBatch = nicheKeys.slice(ni, ni + 3);
+      
+      await Promise.all(nichesBatch.map(async (nicheKey) => {
+        const queries = NICHE_QUERIES[nicheKey];
+        const selectedQueries = queries.sort(() => Math.random() - 0.5).slice(0, queriesPerNiche);
+        let nicheSaved = 0;
+
+        for (const query of selectedQueries) {
+          try {
+            const data = await callSocialKit("/tiktok/search", { query, count: "30" });
+            const videos = extractVideos(data);
+
+            const videoRows = videos.map(v => {
+              const videoId = v.id || v.video_id || v.aweme_id;
+              if (!videoId) return null;
+              const trends = computeTrend(v);
+              const publishedDate = new Date(trends.published_at);
+              if (publishedDate < sevenDaysAgo) return null;
+              const stats = v.stats || {};
+              return {
+                platform: "tiktok",
+                platform_video_id: String(videoId),
+                url: v.url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
+                caption: v.desc || v.caption || v.title || "",
+                cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
+                author_username: v.author?.uniqueId || v.author?.unique_id || v.author_username || "",
+                author_display_name: v.author?.nickname || v.author_display_name || "",
+                author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
+                views: stats.views || v.views || v.playCount || 0,
+                likes: stats.likes || v.likes || v.diggCount || 0,
+                comments: stats.comments || v.comments || v.commentCount || 0,
+                shares: stats.shares || v.shares || v.shareCount || 0,
+                duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
+                fetched_at: now,
+                region: "kz",
+                niche: nicheKey, // Set niche directly!
+                ...trends,
+              };
+            }).filter(Boolean);
+
+            if (videoRows.length > 0) {
+              const { data: upserted } = await adminClient
+                .from("videos")
+                .upsert(videoRows, { onConflict: "platform_video_id" })
+                .select("id");
+              nicheSaved += upserted?.length || 0;
+            }
+          } catch (err) {
+            console.error(`Niche ${nicheKey} query "${query}" failed:`, err.message);
+          }
+        }
+        nicheStats[nicheKey] = nicheSaved;
+        totalSaved += nicheSaved;
+        console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos`);
+      }));
+
+      // Pause between batches
+      if (ni + 3 < nicheKeys.length) await delay(1000);
+    }
+
+    // Also run general KZ queries (tagged region=kz, niche assigned by AI later)
+    const shuffledGeneral = GENERAL_KZ_QUERIES.sort(() => Math.random() - 0.5).slice(0, generalKzCount);
+    let generalSaved = 0;
+
+    for (let i = 0; i < shuffledGeneral.length; i += 3) {
+      const batch = shuffledGeneral.slice(i, i + 3);
+      await Promise.all(batch.map(async (query) => {
+        try {
+          const data = await callSocialKit("/tiktok/search", { query, count: "30" });
+          const videos = extractVideos(data);
+          const videoRows = videos.map(v => {
+            const videoId = v.id || v.video_id || v.aweme_id;
+            if (!videoId) return null;
+            const trends = computeTrend(v);
+            const publishedDate = new Date(trends.published_at);
+            if (publishedDate < sevenDaysAgo) return null;
+            const stats = v.stats || {};
+            return {
+              platform: "tiktok",
+              platform_video_id: String(videoId),
+              url: v.url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
+              caption: v.desc || v.caption || v.title || "",
+              cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
+              author_username: v.author?.uniqueId || v.author?.unique_id || v.author_username || "",
+              author_display_name: v.author?.nickname || v.author_display_name || "",
+              author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
+              views: stats.views || v.views || v.playCount || 0,
+              likes: stats.likes || v.likes || v.diggCount || 0,
+              comments: stats.comments || v.comments || v.commentCount || 0,
+              shares: stats.shares || v.shares || v.shareCount || 0,
+              duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
+              fetched_at: now,
+              region: "kz",
+              ...trends,
+            };
+          }).filter(Boolean);
+
+          if (videoRows.length > 0) {
+            const { data: upserted } = await adminClient
+              .from("videos")
+              .upsert(videoRows, { onConflict: "platform_video_id" })
+              .select("id");
+            generalSaved += upserted?.length || 0;
+          }
+        } catch (err) {
+          console.error(`General query "${query}" failed:`, err.message);
+        }
+      }));
+      if (i + 3 < shuffledGeneral.length) await delay(1000);
+    }
+
+    // AI-categorize any uncategorized videos from general queries
+    if (generalSaved > 0 && LOVABLE_API_KEY) {
+      try {
+        const NICHE_KEYS = Object.keys(NICHE_QUERIES).concat(["other"]);
+        const { data: uncategorized } = await adminClient
+          .from("videos")
+          .select("id, caption")
+          .is("niche", null)
+          .limit(100);
+
+        if (uncategorized && uncategorized.length > 0) {
+          for (let i = 0; i < uncategorized.length; i += 30) {
+            const batch = uncategorized.slice(i, i + 30);
+            const captions = batch.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+            const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash-lite",
+                messages: [
+                  { role: "system", content: `Classify each video into ONE niche: ${NICHE_KEYS.join(", ")}. Return ONLY JSON: {"0":"food","1":"humor",...}` },
+                  { role: "user", content: captions }
+                ],
+              }),
+            });
+            const aiData = await res.json();
+            const content = aiData?.choices?.[0]?.message?.content || "";
+            const match = content.match(/\{[\s\S]*?\}/);
+            if (match) {
+              const mapping = JSON.parse(match[0]);
+              await Promise.all(Object.entries(mapping).map(([idx, nk]) => {
+                const video = batch[Number(idx)];
+                if (video && NICHE_KEYS.includes(nk as string)) {
+                  return adminClient.from("videos").update({ niche: nk as string }).eq("id", video.id);
+                }
+              }));
+            }
+          }
+          console.log(`AI-categorized ${uncategorized.length} general videos`);
+        }
+      } catch (e) {
+        console.error("AI categorization failed:", e);
       }
     }
 
-    console.log("Refresh trends completed, mode:", mode, "total queries:", allTasks.length);
+    console.log(`Refresh trends done. Mode: ${mode}, total niche: ${totalSaved}, general: ${generalSaved}`);
+    console.log("Per-niche stats:", JSON.stringify(nicheStats));
 
-    return new Response(JSON.stringify({ success: true, results }), {
+    return new Response(JSON.stringify({ success: true, mode, totalSaved, generalSaved, nicheStats }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
