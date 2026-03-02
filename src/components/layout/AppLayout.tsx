@@ -10,19 +10,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex min-h-screen w-full">
-      {!isMobile && (
-        <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-      )}
-      <main className="flex-1 overflow-auto pb-16 md:pb-0">
-        {children}
-      </main>
+    <>
+      <div className="flex min-h-screen w-full">
+        {!isMobile && (
+          <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+        )}
+        <main className="flex-1 overflow-auto pb-20 md:pb-0">
+          {children}
+        </main>
+      </div>
       {isMobile && (
         <>
           <MobileBottomNav onMenuOpen={() => setDrawerOpen(true)} />
           <MobileSidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
         </>
       )}
-    </div>
+    </>
   );
 }
