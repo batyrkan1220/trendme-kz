@@ -360,16 +360,17 @@ export default function SearchPage() {
           )}
         </div>
 
-        <div className="w-72 shrink-0 hidden xl:block">
-          <div className="bg-card rounded-2xl p-5 border border-border/50 sticky top-6 card-shadow">
-            <div className="flex items-center gap-2 mb-4">
+        {/* Recent queries - shown as horizontal chips on mobile, sidebar on xl */}
+        <div className="w-full xl:w-72 shrink-0">
+          <div className="bg-card rounded-2xl p-4 md:p-5 border border-border/50 xl:sticky xl:top-6 card-shadow">
+            <div className="flex items-center gap-2 mb-3 md:mb-4">
               <div className="h-7 w-7 rounded-lg gradient-card flex items-center justify-center">
                 <Clock className="h-3.5 w-3.5 text-primary" />
               </div>
               <h3 className="font-semibold text-sm text-foreground">Последние запросы</h3>
             </div>
             {recentQueries && recentQueries.length > 0 ? (
-              <div className="space-y-1">
+              <div className="flex xl:flex-col flex-wrap gap-1.5">
                 {recentQueries.map((q) => (
                   <button
                     key={q.id}
@@ -377,14 +378,14 @@ export default function SearchPage() {
                       setQuery(q.query_text);
                       doSearch(q.query_text);
                     }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors truncate"
+                    className="text-left px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors truncate xl:w-full border border-border/30 xl:border-0"
                   >
                     {q.query_text}
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground text-xs text-center py-6">Нет запросов</p>
+              <p className="text-muted-foreground text-xs text-center py-4 xl:py-6">Нет запросов</p>
             )}
           </div>
         </div>

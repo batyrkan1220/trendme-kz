@@ -354,23 +354,23 @@ export default function Trends() {
                         </div>
 
                         {/* Bottom stats bar */}
-                        <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10 pointer-events-none">
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                              <Eye className="h-4 w-4 text-white mb-0.5" />
-                              <span className="text-white text-[11px] font-bold">{fmt(Number(video.views))}</span>
+                        <div className="absolute bottom-0 left-0 right-0 p-1.5 md:p-2.5 z-10 pointer-events-none">
+                          <div className="flex items-center justify-center gap-1 md:gap-2">
+                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl px-2 md:px-3 py-1 md:py-1.5">
+                              <Eye className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                              <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.views))}</span>
                             </div>
-                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                              <Heart className="h-4 w-4 text-white mb-0.5" />
-                              <span className="text-white text-[11px] font-bold">{fmt(Number(video.likes))}</span>
+                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl px-2 md:px-3 py-1 md:py-1.5">
+                              <Heart className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                              <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.likes))}</span>
                             </div>
-                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                              <MessageCircle className="h-4 w-4 text-white mb-0.5" />
-                              <span className="text-white text-[11px] font-bold">{fmt(Number(video.comments))}</span>
+                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl px-2 md:px-3 py-1 md:py-1.5">
+                              <MessageCircle className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                              <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.comments))}</span>
                             </div>
-                            <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                              <Share2 className="h-4 w-4 text-white mb-0.5" />
-                              <span className="text-white text-[11px] font-bold">{fmt(Number(video.shares || 0))}</span>
+                            <div className="hidden sm:flex flex-col items-center bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl px-2 md:px-3 py-1 md:py-1.5">
+                              <Share2 className="h-3 md:h-4 w-3 md:w-4 text-white mb-0.5" />
+                              <span className="text-white text-[9px] md:text-[11px] font-bold">{fmt(Number(video.shares || 0))}</span>
                             </div>
                           </div>
                         </div>
