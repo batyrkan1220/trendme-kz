@@ -477,7 +477,7 @@ function RefreshSection() {
 function KeywordsSection() {
   const queryClient = useQueryClient();
   const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
-  const [selectedGeneralKz, setSelectedGeneralKz] = useState(false);
+  const [newQuery, setNewQuery] = useState("");
   const [newQuery, setNewQuery] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
