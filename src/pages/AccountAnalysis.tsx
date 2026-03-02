@@ -155,7 +155,7 @@ export default function AccountAnalysis() {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-xl font-bold text-foreground">@{account.username}</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-foreground">@{account.username}</h2>
                     {account.verified && (
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
                         <Check className="h-3 w-3" /> Верифицирован
