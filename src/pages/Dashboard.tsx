@@ -74,12 +74,12 @@ export default function Dashboard() {
         {/* Quick Actions - horizontal scrollable */}
         <div className="space-y-3">
           <p className="section-label">Быстрые действия</p>
-          <div className="flex gap-3 overflow-x-auto pb-1">
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
             {quickActions.map((a) => (
               <Link
                 key={a.path}
                 to={a.path}
-                className="flex items-center gap-3 bg-card rounded-xl px-3 md:px-4 py-2.5 md:py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[160px] md:min-w-[180px] group"
+                className="flex items-center gap-2 bg-card rounded-xl px-3 py-2 md:px-4 md:py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[140px] md:min-w-[180px] group"
               >
                 <span className="text-xl">{a.emoji}</span>
                 <div>
