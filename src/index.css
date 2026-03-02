@@ -114,3 +114,30 @@
     @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 px-3 mb-1;
   }
 }
+
+/* Page transitions */
+.page-transition {
+  will-change: opacity, transform;
+}
+
+.page-enter {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 150ms ease-in, transform 150ms ease-in;
+}
