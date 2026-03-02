@@ -160,24 +160,28 @@ export default function Trends() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <h1 className="text-2xl font-bold text-foreground">Тренды 🔥</h1>
-          <div className="flex items-center gap-3">
+      <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Тренды 🔥</h1>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
+              className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-sm font-semibold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-              {refreshing ? "Обновление..." : "Обновить"}
+              <span className="hidden sm:inline">{refreshing ? "Обновление..." : "Обновить"}</span>
             </button>
-          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto">
+          </div>
+
+          {/* Period tabs - scrollable on mobile */}
+          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto w-fit">
             {([1, 3, 7, 30, 0] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
-                className={`px-3 md:px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-semibold transition-all whitespace-nowrap ${
                   period === p
                     ? "gradient-hero text-primary-foreground glow-primary"
                     : "text-muted-foreground hover:text-foreground"
@@ -186,7 +190,6 @@ export default function Trends() {
                 {p === 0 ? "Все" : p === 1 ? "24ч" : `${p}д`}
               </button>
             ))}
-          </div>
           </div>
         </div>
 
