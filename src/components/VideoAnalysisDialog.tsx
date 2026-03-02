@@ -110,8 +110,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
         ) : (
         <div className="flex flex-col md:flex-row h-full">
           {/* Left panel — video + stats */}
-          <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
-            <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
+          <div className="w-full md:w-[280px] flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 overflow-y-auto bg-card max-h-[50vh] md:max-h-none">
+            <div className="aspect-[9/14] bg-black relative rounded-xl md:rounded-2xl overflow-hidden m-1.5 md:m-2">
               {isPlaying ? (
                 <>
                   <iframe
