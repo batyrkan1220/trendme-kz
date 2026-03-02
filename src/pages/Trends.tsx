@@ -153,7 +153,7 @@ export default function Trends() {
               {refreshing ? "Обновление..." : "Обновить"}
             </button>
           <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow">
-            {([1, 3, 7] as const).map((p) => (
+            {([1, 3, 7, 30, 0] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
@@ -163,7 +163,7 @@ export default function Trends() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {p === 1 ? "24ч" : `${p}д`}
+                {p === 0 ? "Все" : p === 1 ? "24ч" : `${p}д`}
               </button>
             ))}
           </div>
