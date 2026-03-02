@@ -277,8 +277,21 @@ Deno.serve(async (req: Request) => {
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
     const now = new Date().toISOString();
-    const nicheStats: Record<string, number> = { ...existingNicheStats };
-    let totalSaved = existingTotalSaved;
+
+    // Load accumulated stats from DB log if continuing a run
+    let nicheStats: Record<string, number> = {};
+    let totalSaved = 0;
+    if (logId) {
+      const { data: existingLog } = await adminClient
+        .from("trend_refresh_logs")
+        .select("niche_stats, total_saved")
+        .eq("id", logId)
+        .single();
+      if (existingLog) {
+        nicheStats = (existingLog.niche_stats as Record<string, number>) || {};
+        totalSaved = existingLog.total_saved || 0;
+      }
+    }
 
     // Create log entry on first batch only; cancel any stale running logs first
     if (!logId) {
