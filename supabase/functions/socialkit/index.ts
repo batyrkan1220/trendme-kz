@@ -461,14 +461,11 @@ Deno.serve(async (req: Request) => {
         const totalLikes = accountData.likes || accountData.heartCount || accountData.total_likes || 0;
         const totalVideos = accountData.totalVideos || accountData.videoCount || accountData.total_videos || 0;
 
+        const following = accountData.following || accountData.followingCount || 0;
+
         // Computed metrics
         const avgLikesPerVideo = totalVideos > 0 ? Math.round(totalLikes / totalVideos) : 0;
         const engagementRate = followers > 0 ? ((totalLikes / Math.max(totalVideos, 1)) / followers * 100) : 0;
-
-        // Avg views from top videos
-        const avgViews = topVideos.length > 0
-          ? Math.round(topVideos.reduce((sum: number, v: any) => sum + (v.views || 0), 0) / topVideos.length)
-          : 0;
 
         const { data: account } = await userClient
           .from("accounts_tracked")
@@ -477,14 +474,14 @@ Deno.serve(async (req: Request) => {
               user_id: userId,
               profile_url,
               username,
-              avatar_url: accountData.avatarThumb || accountData.avatar_url || "",
+              avatar_url: accountData.avatarThumb || accountData.avatar || accountData.avatar_url || "",
               followers,
-              following: accountData.followingCount || accountData.following || 0,
+              following,
               total_likes: totalLikes,
               total_videos: totalVideos,
               verified: accountData.verified || false,
-              bio: accountData.signature || accountData.bio || "",
-              bio_link: accountData.bioLink?.link || accountData.bio_link || "",
+              bio: accountData.bio || accountData.signature || "",
+              bio_link: accountData.bioLink?.link || accountData.bioLink || accountData.bio_link || null,
               fetched_at: new Date().toISOString(),
             },
             { onConflict: "user_id,username" }
@@ -502,8 +499,8 @@ Deno.serve(async (req: Request) => {
           ...account,
           avg_likes_per_video: avgLikesPerVideo,
           engagement_rate: Math.round(engagementRate * 100) / 100,
-          avg_views: avgViews,
-          top_videos: topVideos.slice(0, 12),
+          avg_views: 0,
+          top_videos: [],
         });
       }
 
