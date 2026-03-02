@@ -493,9 +493,7 @@ function KeywordsSection() {
 
   const addQuery = () => {
     if (!newQuery.trim()) return;
-    if (selectedGeneralKz) {
-      saveGkzMutation.mutate([...generalKzQueries, newQuery.trim()]);
-    } else if (selectedNiche) {
+    if (selectedNiche) {
       const updated = { ...nicheQueries };
       updated[selectedNiche] = [...(updated[selectedNiche] || []), newQuery.trim()];
       saveMutation.mutate(updated);
