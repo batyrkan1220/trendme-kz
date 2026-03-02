@@ -193,6 +193,7 @@ Deno.serve(async (req: Request) => {
       case "video_stats": {
         const { video_url } = body;
         if (!video_url) return json({ error: "video_url is required" }, 400);
+        if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
         const data = await callSocialKit("/tiktok/stats", { url: video_url });
         const videoData = data.data || data;
