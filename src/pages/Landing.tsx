@@ -17,42 +17,42 @@ const features = [
     icon: TrendingUp,
     title: "Мониторинг трендов",
     desc: "Получайте уведомления о новых трендах раньше конкурентов. Анализ хештегов, звуков и форматов в реальном времени.",
-    color: "from-primary to-[hsl(262,83%,58%)]",
+    color: "from-primary to-accent",
     metric: "2x быстрее",
   },
   {
     icon: Search,
     title: "Умный поиск",
     desc: "Поиск по ключевым словам, нишам и авторам с фильтрацией по просмотрам, ER и velocity-метрикам.",
-    color: "from-[hsl(190,80%,45%)] to-primary",
+    color: "from-accent to-primary",
     metric: "10M+ видео",
   },
   {
     icon: Eye,
     title: "Разведка конкурентов",
     desc: "Отслеживайте стратегии конкурентов. Узнавайте какие форматы и темы дают им максимальный охват.",
-    color: "from-[hsl(262,83%,58%)] to-[hsl(290,65%,55%)]",
+    color: "from-primary to-[hsl(280,70%,55%)]",
     metric: "∞ авторов",
   },
   {
     icon: BarChart3,
     title: "Глубокая аналитика",
     desc: "Velocity просмотров, вовлечённость, прогноз виральности — полная картина по каждому видео.",
-    color: "from-[hsl(200,85%,50%)] to-primary",
+    color: "from-accent to-[hsl(190,70%,45%)]",
     metric: "15+ метрик",
   },
   {
     icon: FileText,
     title: "ИИ-сценарии",
     desc: "Анализируем вирусные видео и генерируем сценарии, адаптированные под вашу нишу и стиль.",
-    color: "from-primary to-[hsl(240,70%,60%)]",
+    color: "from-primary to-accent",
     metric: "GPT-5",
   },
   {
     icon: Zap,
     title: "Автоматические отчёты",
     desc: "Ежедневные инсайты, рекомендации по контенту и оповещения о трендах прямо в ваш аккаунт.",
-    color: "from-[hsl(262,83%,58%)] to-[hsl(221,83%,53%)]",
+    color: "from-accent to-primary",
     metric: "24/7",
   },
 ];
@@ -165,7 +165,7 @@ export default function Landing() {
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-44 md:pb-32 px-4 relative">
         <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[150px] pointer-events-none" />
-        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-accent/8 rounded-full blur-[130px] pointer-events-none" />
+        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[130px] pointer-events-none" />
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
