@@ -141,8 +141,6 @@ export default function VideoAnalysis() {
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           </div>
         ) : analysis ? (
-          /* Main content */
-        {analysis ? (
           <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}
             {/* Mobile: horizontal compact card; Desktop: vertical sidebar */}
