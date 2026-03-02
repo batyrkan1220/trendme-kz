@@ -410,8 +410,6 @@ function RefreshSection() {
           </p>
         </CardContent>
       </Card>
-        </CardContent>
-      </Card>
       {logs.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="text-lg">Последние обновления</CardTitle></CardHeader>
