@@ -667,7 +667,7 @@ function SettingsSection() {
             {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.queries_per_niche?.[mode] ?? 3} onChange={(v) => updateField(`queries_per_niche.${mode}`, v)} />))}
           </div>
           <div className="pt-2 border-t border-border">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на слабую нишу</p>
+            <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на слабую категорию</p>
             {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.weak_queries_per_niche?.[mode] ?? 6} onChange={(v) => updateField(`weak_queries_per_niche.${mode}`, v)} />))}
           </div>
           <div className="pt-2 border-t border-border">
