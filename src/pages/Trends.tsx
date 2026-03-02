@@ -70,6 +70,7 @@ export default function Trends() {
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const [niche, setNiche] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const queryClient = useQueryClient();
