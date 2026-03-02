@@ -30,7 +30,7 @@ const NICHES = [
   { key: "animals", label: "Животные", emoji: "🐾", keywords: ["животн", "кот", "собак", "питомец", "pet", "cat", "dog", "щенок", "котенок", "animal"] },
   { key: "gaming", label: "Игры и Гик-культура", emoji: "🎮", keywords: ["игр", "game", "gaming", "геймер", "ps5", "xbox", "steam", "компьютер", "аниме", "anime", "комикс"] },
   { key: "music", label: "Музыка, Кино и Арт", emoji: "🎸", keywords: ["музык", "кино", "фильм", "песн", "music", "movie", "film", "арт", "art", "творчеств", "рисов"] },
-  { key: "tattoo", label: "Тату и Пирсинг", emoji: "✒️", keywords: ["тату", "пирсинг", "tattoo", "piercing", "ink", "мастер"] },
+  
   { key: "career", label: "Карьера и Фриланс", emoji: "💻", keywords: ["карьер", "фриланс", "работ", "вакансии", "резюме", "career", "freelance", "remote", "удаленн"] },
   { key: "auto", label: "Авто и Мото", emoji: "🚗", keywords: ["авто", "машин", "мото", "car", "auto", "тачк", "водител", "дтп", "гараж"] },
   { key: "diy", label: "Рукоделие и DIY", emoji: "🧶", keywords: ["рукодел", "diy", "своими рукам", "handmade", "craft", "вяза", "шить", "поделк"] },
