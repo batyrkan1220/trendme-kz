@@ -54,7 +54,7 @@ export default function Dashboard() {
         <div className="gradient-hero rounded-xl md:rounded-2xl p-4 md:p-7 glow-primary relative overflow-hidden">
           <div className="relative flex items-center justify-between">
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-white">
+              <h1 className="text-base md:text-xl font-bold text-white">
                 Привет, {name} 👋
               </h1>
               <p className="text-white/70 text-xs md:text-sm mt-1">
