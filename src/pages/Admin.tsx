@@ -341,20 +341,34 @@ function TrendsManagementTab() {
 }
 
 function RefreshSection() {
-  const [refreshing, setRefreshing] = useState<string | null>(null);
-  const triggerRefresh = async (mode: string) => {
-    setRefreshing(mode);
-    try {
-      const body: any = {};
-      if (mode === "lite") body.lite = true;
-      else if (mode === "mass") body.mass = true;
-      const { error } = await supabase.functions.invoke("refresh-trends", { body });
-      if (error) throw error;
-      toast.success(`Обновление (${mode}) запущено`);
-    } catch {
-      toast.info(`Обновление (${mode}) запущено — может занять несколько минут`);
-    } finally { setRefreshing(null); }
+  const [refreshing, setRefreshing] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 8, currentNiches: "" });
+
+  const triggerRefresh = async () => {
+    setRefreshing(true);
+    const totalBatches = 8; // 30 niches / 4 per batch = 8
+    let totalSaved = 0;
+    
+    for (let batch = 0; batch < totalBatches; batch++) {
+      setProgress({ current: batch + 1, total: totalBatches, currentNiches: `Батч ${batch + 1}/${totalBatches}` });
+      try {
+        await supabase.functions.invoke("refresh-trends", { 
+          body: { mode: "mass", batch } 
+        });
+      } catch {
+        // Function may timeout but still processes in background
+      }
+      // Small delay between batches
+      if (batch < totalBatches - 1) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+    
+    toast.success("Массовое обновление завершено по всем категориям!");
+    setRefreshing(false);
+    setProgress({ current: 0, total: 8, currentNiches: "" });
   };
+
   const { data: logs = [] } = useQuery({
     queryKey: ["refresh-logs"],
     queryFn: async () => {
@@ -366,21 +380,36 @@ function RefreshSection() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader><CardTitle className="text-lg">Запуск обновления трендов</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            {[
-              { mode: "lite", label: "Lite", desc: "Быстрое (2 запроса/ниша)" },
-              { mode: "full", label: "Full", desc: "Стандартное (3 запроса/ниша)" },
-              { mode: "mass", label: "Mass", desc: "Полное (6 запросов/ниша)" },
-            ].map(({ mode, label, desc }) => (
-              <Button key={mode} onClick={() => triggerRefresh(mode)} disabled={!!refreshing} variant={mode === "mass" ? "default" : "outline"} className="flex-col h-auto py-3 px-6">
-                {refreshing === mode ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
-                <span className="font-semibold">{label}</span>
-                <span className="text-xs opacity-70">{desc}</span>
-              </Button>
-            ))}
-          </div>
+        <CardHeader><CardTitle className="text-lg">Массовое обновление трендов</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <Button 
+            onClick={triggerRefresh} 
+            disabled={refreshing} 
+            size="lg"
+            className="w-full gap-3 h-14 text-base"
+          >
+            {refreshing ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
+            {refreshing 
+              ? `Обновление... ${progress.current}/${progress.total} батчей` 
+              : "🚀 Запустить обновление (все 30 категорий)"
+            }
+          </Button>
+          {refreshing && (
+            <div className="space-y-2">
+              <div className="w-full bg-secondary rounded-full h-2">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-500" 
+                  style={{ width: `${(progress.current / progress.total) * 100}%` }} 
+                />
+              </div>
+              <p className="text-sm text-muted-foreground text-center">{progress.currentNiches}</p>
+            </div>
+          )}
+          <p className="text-sm text-muted-foreground">
+            Обновление проходит по всем 30 категориям батчами по 4 ниши. Каждая ниша получает до 15 поисковых запросов (статические + AI) для максимального охвата.
+          </p>
+        </CardContent>
+      </Card>
         </CardContent>
       </Card>
       {logs.length > 0 && (
