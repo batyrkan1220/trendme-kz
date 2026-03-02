@@ -489,6 +489,14 @@ function KeywordsSection() {
     },
   });
 
+  const saveMutation = useMutation({
+    mutationFn: async (updated: Record<string, string[]>) => {
+      const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "niche_queries");
+      if (error) throw error;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Запросы сохранены"); },
+    onError: () => toast.error("Ошибка сохранения"),
+  });
 
   const addQuery = () => {
     if (!newQuery.trim()) return;
