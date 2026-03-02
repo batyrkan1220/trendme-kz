@@ -207,6 +207,7 @@ export default function SearchPage() {
                 Введите запрос для поиска видео в TikTok
               </p>
             </div>
+          )}
         </div>
 
         <div className="w-72 shrink-0 hidden xl:block">
