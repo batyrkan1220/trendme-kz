@@ -105,7 +105,7 @@ export default function VideoAnalysis() {
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-4 lg:p-6 animate-fade-in h-full flex flex-col">
+      <div className="p-3 md:p-4 lg:p-6 animate-fade-in min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col">
         {/* Header */}
         <h1 className="text-lg md:text-2xl font-bold text-foreground mb-3">Анализ видео 🎬</h1>
 
@@ -131,7 +131,7 @@ export default function VideoAnalysis() {
 
         {/* Loading state - centered */}
         {isPending ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-5">
+          <div className="flex-1 flex flex-col items-center justify-center gap-5 min-h-[50dvh]">
             <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
               <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
             </div>
