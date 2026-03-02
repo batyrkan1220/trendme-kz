@@ -138,8 +138,8 @@ Deno.serve(async (req: Request) => {
       .single();
     const thresholds = (thresholdsRow?.value as any) || {};
     const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
-    const qPerNiche = thresholds.queries_per_niche || {};
-    const wqPerNiche = thresholds.weak_queries_per_niche || {};
+    const queriesPerNiche = thresholds.queries_per_niche ?? 8;
+    const weakQueriesPerNiche = thresholds.weak_queries_per_niche ?? 12;
 
     // Load per-category limits from DB
     const { data: categoryLimitsRow } = await adminClient
