@@ -21,7 +21,7 @@ const searchItems: NavItem[] = [
   { label: "Тренды", icon: TrendingUp, path: "/trends" },
 ];
 
-const toolItems: NavItem[] = [
+const aiVideoItems: NavItem[] = [
   { label: "Анализ видео", icon: Video, path: "/video-analysis" },
   { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis" },
 ];
