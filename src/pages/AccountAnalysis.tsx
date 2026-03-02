@@ -117,6 +117,77 @@ export default function AccountAnalysis() {
 
   return (
     <AppLayout>
+      {!account && !isPending ? (
+        /* Centered empty state */
+        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg flex flex-col items-center gap-6">
+            <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center">
+              <UserCircle className="h-10 w-10 text-muted-foreground/30" />
+            </div>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground text-center">Анализ аккаунта 👤</h1>
+            <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на профиль TikTok для анализа</p>
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Input
+                placeholder="Вставьте ссылку на профиль TikTok..."
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+                className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-sm"
+              />
+              <Button
+                onClick={handleAnalyze}
+                disabled={isPending}
+                className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
+              >
+                <UserCircle className="h-4 w-4 mr-2" />Анализировать
+              </Button>
+            </div>
+            {/* Tracked accounts history in empty state */}
+            {trackedAccounts.length > 0 && (
+              <div className="w-full mt-4 space-y-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" /> История отслеживания
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {trackedAccounts.slice(0, 6).map((acc) => (
+                    <button
+                      key={acc.id}
+                      onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                      className="bg-card rounded-xl border border-border/50 p-3 card-shadow hover:bg-muted/50 transition-colors flex items-center gap-3 text-left"
+                    >
+                      {acc.avatar_url ? (
+                        <img src={acc.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/10 shrink-0" />
+                      ) : (
+                        <div className="h-8 w-8 rounded-full gradient-hero flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
+                          {acc.username?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">@{acc.username}</p>
+                        <p className="text-xs text-muted-foreground">{formatNum(Number(acc.followers || 0))} подписчиков</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : isPending && !account ? (
+        /* Centered loading */
+        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg flex flex-col items-center gap-5">
+            <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
+              <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
+            </div>
+            <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
+              Анализируем аккаунт...
+            </p>
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        </div>
+      ) : (
+      <>
       <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in max-w-7xl mx-auto">
         <h1 className="text-xl md:text-2xl font-bold text-foreground">Анализ аккаунта 👤</h1>
 
@@ -141,7 +212,7 @@ export default function AccountAnalysis() {
         </div>
 
         {/* Results */}
-        {account ? (
+        {account && (
           <div className="space-y-6">
             {/* Profile Header */}
             <div className="bg-card rounded-xl md:rounded-2xl border border-border/50 p-4 md:p-6 card-shadow">
@@ -256,18 +327,9 @@ export default function AccountAnalysis() {
                         ) : (
                           <>
                             {v.cover ? (
-                              <img
-                                src={v.cover}
-                                alt=""
-                                loading="lazy"
-                                className="w-full h-full object-cover cursor-pointer"
-                                onClick={() => setPlayingId(v.id)}
-                              />
+                              <img src={v.cover} alt="" loading="lazy" className="w-full h-full object-cover cursor-pointer" onClick={() => setPlayingId(v.id)} />
                             ) : (
-                              <div
-                                className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
-                                onClick={() => setPlayingId(v.id)}
-                              >
+                              <div className="w-full h-full flex items-center justify-center cursor-pointer bg-muted" onClick={() => setPlayingId(v.id)}>
                                 <Play className="h-12 w-12 text-muted-foreground/30" />
                               </div>
                             )}
@@ -279,7 +341,7 @@ export default function AccountAnalysis() {
                               </div>
                             </div>
 
-                            {/* Fav + Open in TikTok */}
+                            {/* Fav + Open */}
                             <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
                               <button
                                 onClick={(e) => { e.stopPropagation(); toggleFav(v.id); }}
@@ -312,32 +374,31 @@ export default function AccountAnalysis() {
                               </div>
                             )}
 
-                            {/* Bottom stats bar */}
-                            <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10 pointer-events-none">
-                              <div className="flex items-center justify-center gap-2">
-                                <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                                  <Eye className="h-4 w-4 text-white mb-0.5" />
-                                  <span className="text-white text-[11px] font-bold">{formatNum(v.views)}</span>
-                                </div>
-                                <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                                  <Heart className="h-4 w-4 text-white mb-0.5" />
-                                  <span className="text-white text-[11px] font-bold">{formatNum(v.likes)}</span>
-                                </div>
-                                <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
-                                  <MessageCircle className="h-4 w-4 text-white mb-0.5" />
-                                  <span className="text-white text-[11px] font-bold">{formatNum(v.comments)}</span>
-                                </div>
-                              </div>
-                            </div>
+                            {/* Bottom gradient */}
+                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                           </>
                         )}
                       </div>
 
+                      {/* Stats bar */}
+                      <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
+                        <span className="flex flex-col items-center gap-0.5">
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-[11px] font-bold text-foreground">{formatNum(v.views)}</span>
+                        </span>
+                        <span className="flex flex-col items-center gap-0.5">
+                          <Heart className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-[11px] font-bold text-foreground">{formatNum(v.likes)}</span>
+                        </span>
+                        <span className="flex flex-col items-center gap-0.5">
+                          <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-[11px] font-bold text-foreground">{formatNum(v.comments)}</span>
+                        </span>
+                      </div>
+
                       {/* Caption */}
                       <div className="px-3 pt-1.5 pb-1">
-                        <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">
-                          {v.desc || "Без описания"}
-                        </p>
+                        <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">{v.desc || "Без описания"}</p>
                       </div>
 
                       {/* Date */}
@@ -347,20 +408,23 @@ export default function AccountAnalysis() {
                         </div>
                       )}
 
+                      {/* Analyze button */}
                       <div className="px-3 pb-3 mt-auto">
                         <button
-                          onClick={() => setAnalysisVideo({
-                            id: v.id,
-                            platform_video_id: v.id,
-                            url: v.url,
-                            caption: v.desc,
-                            cover_url: v.cover,
-                            views: v.views,
-                            likes: v.likes,
-                            comments: v.comments,
-                            shares: v.shares,
-                            author_username: account?.username,
-                          })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAnalysisVideo({
+                              id: v.id,
+                              url: v.url,
+                              cover_url: v.cover,
+                              platform_video_id: v.id,
+                              views: v.views,
+                              likes: v.likes,
+                              comments: v.comments,
+                              shares: v.shares,
+                              caption: v.desc,
+                            });
+                          }}
                           className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
                         >
                           Анализ видео
@@ -371,23 +435,6 @@ export default function AccountAnalysis() {
                 </div>
               </div>
             )}
-          </div>
-        ) : isPending ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="h-24 w-24 rounded-2xl gradient-hero flex items-center justify-center shadow-lg mb-6">
-              <Sparkles className="h-12 w-12 text-white/80" />
-            </div>
-            <p className="text-lg text-muted-foreground font-medium mb-4">
-              Анализируем аккаунт...
-            </p>
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : (
-          <div className="bg-card rounded-2xl border border-border/50 p-12 text-center card-shadow">
-            <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-              <UserCircle className="h-10 w-10 text-muted-foreground/30" />
-            </div>
-            <p className="text-muted-foreground font-medium">Вставьте ссылку на профиль TikTok для анализа</p>
           </div>
         )}
 
@@ -413,29 +460,22 @@ export default function AccountAnalysis() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">@{acc.username}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatNum(Number(acc.followers || 0))} подписчиков
-                      </p>
+                      <p className="text-xs text-muted-foreground">{formatNum(Number(acc.followers || 0))} подписчиков</p>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1.5">
                       <Button
-                        size="icon"
+                        size="sm"
                         variant="ghost"
-                        className="h-8 w-8"
-                        onClick={() => {
-                          setUrl(acc.profile_url);
-                          analyze(acc.profile_url);
-                        }}
-                        title="Обновить"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
                       >
                         <RefreshCw className="h-3.5 w-3.5" />
                       </Button>
                       <Button
-                        size="icon"
+                        size="sm"
                         variant="ghost"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => deleteMutation.mutate(acc.id)}
-                        title="Удалить"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -457,6 +497,8 @@ export default function AccountAnalysis() {
         open={!!analysisVideo}
         onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
       />
+      </>
+      )}
     </AppLayout>
   );
 }
