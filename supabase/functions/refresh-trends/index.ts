@@ -131,7 +131,12 @@ Deno.serve(async (req: Request) => {
 
     // Check mode
     let mode = "full";
-    let batchIndex = -1;
+    let batchIndex = 0;
+    let logId: string | null = null;
+    let existingNicheStats: Record<string, number> = {};
+    let existingTotalSaved = 0;
+    let existingGeneralSaved = 0;
+    let runGeneralKz = false;
     try {
       const body = await req.json();
       if (body?.lite) mode = "lite";
@@ -139,6 +144,11 @@ Deno.serve(async (req: Request) => {
       else if (body?.mode === "mass") mode = "mass";
       else if (body?.mode === "lite") mode = "lite";
       if (typeof body?.batch === "number") batchIndex = body.batch;
+      if (body?.logId) logId = body.logId;
+      if (body?.nicheStats) existingNicheStats = body.nicheStats;
+      if (typeof body?.totalSaved === "number") existingTotalSaved = body.totalSaved;
+      if (typeof body?.generalSaved === "number") existingGeneralSaved = body.generalSaved;
+      if (body?.runGeneralKz) runGeneralKz = true;
     } catch { /* no body = cron call */ }
 
     // Load thresholds from DB
@@ -169,7 +179,7 @@ Deno.serve(async (req: Request) => {
     const WEAK_NICHES = new Set(
       allNicheKeys.filter(n => (nicheCountMap[n] || 0) < weakNicheThreshold)
     );
-    console.log(`Weak niches (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
+    if (batchIndex === 0) console.log(`Weak niches (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
 
     // Use DB thresholds for query counts
     const queriesPerNiche = mode === "mass" ? (qPerNiche.mass ?? 8) : mode === "lite" ? (qPerNiche.lite ?? 3) : (qPerNiche.full ?? 5);
@@ -213,28 +223,51 @@ Deno.serve(async (req: Request) => {
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
     const now = new Date().toISOString();
-    const nicheStats: Record<string, number> = {};
-    let totalSaved = 0;
+    const nicheStats: Record<string, number> = { ...existingNicheStats };
+    let totalSaved = existingTotalSaved;
 
-    // Create "running" log entry immediately
-    const { data: logEntry } = await adminClient.from("trend_refresh_logs").insert({
-      mode,
-      status: "running",
-      total_saved: 0,
-      general_saved: 0,
-      niche_stats: {},
-      triggered_by: userId,
-    }).select("id").single();
-
-    // Batch niches
-    const BATCH_SIZE = 4;
-    let nicheKeys: string[];
-    if (batchIndex >= 0) {
-      const start = batchIndex * BATCH_SIZE;
-      nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
-    } else {
-      nicheKeys = allNicheKeys;
+    // Create log entry on first batch only
+    if (!logId) {
+      const { data: logEntry } = await adminClient.from("trend_refresh_logs").insert({
+        mode,
+        status: "running",
+        total_saved: 0,
+        general_saved: 0,
+        niche_stats: {},
+        triggered_by: userId,
+      }).select("id").single();
+      logId = logEntry?.id || null;
     }
+
+    // Self-chaining helper
+    const chainNextBatch = async (nextBatch: number, updatedNicheStats: Record<string, number>, updatedTotalSaved: number, updatedGeneralSaved: number, isGeneralKz = false) => {
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${serviceRoleKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mode,
+            batch: nextBatch,
+            logId,
+            nicheStats: updatedNicheStats,
+            totalSaved: updatedTotalSaved,
+            generalSaved: updatedGeneralSaved,
+            runGeneralKz: isGeneralKz,
+          }),
+        });
+      } catch (e) {
+        console.error("Chain call failed:", e);
+      }
+    };
+
+    const BATCH_SIZE = 4;
+    const totalBatches = Math.ceil(allNicheKeys.length / BATCH_SIZE);
+
+    // Process niche batch or general KZ
+    let generalSaved = existingGeneralSaved;
 
     // Generate AI queries
     const aiQueries = await generateAiQueries(nicheKeys);
