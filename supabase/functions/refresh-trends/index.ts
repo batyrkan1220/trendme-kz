@@ -141,8 +141,8 @@ Deno.serve(async (req: Request) => {
     } catch { /* no body = cron call */ }
 
     // How many queries per niche based on mode
-    const queriesPerNiche = mode === "lite" ? 1 : mode === "mass" ? 2 : 1;
-    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 4 : 2;
+    const queriesPerNiche = 1; // Always 1 query per niche per run to avoid timeouts
+    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 3 : 2;
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
