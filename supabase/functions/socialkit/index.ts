@@ -165,19 +165,19 @@ Deno.serve(async (req: Request) => {
 
         // 1. Generate hashtags + do keyword search in parallel
         const [keywordData, hashtags] = await Promise.all([
-          callSocialKit("/tiktok/search", { query, limit: String(limit) }),
+          callSocialKit("/tiktok/search", { query, limit: String(limit), cache: "true" }),
           generateHashtags(query),
         ]);
 
         let allVideos: any[] = extractVideos(keywordData);
         console.log(`Keyword search returned ${allVideos.length} videos`);
 
-        // 2. Search by hashtags in parallel (limit per hashtag to save credits)
+        // 2. Search by hashtags in parallel
         if (hashtags.length > 0) {
           const hashtagLimit = Math.min(30, Math.ceil(Number(limit) / hashtags.length));
           const hashtagResults = await Promise.allSettled(
             hashtags.map(tag =>
-              callSocialKit("/tiktok/hashtag-search", { hashtag: tag, limit: String(hashtagLimit) })
+              callSocialKit("/tiktok/hashtag-search", { hashtag: tag, limit: String(hashtagLimit), cache: "true" })
             )
           );
           for (const result of hashtagResults) {
@@ -189,7 +189,7 @@ Deno.serve(async (req: Request) => {
           }
         }
 
-        // 3. Deduplicate by video id
+        // 3. Deduplicate
         const seen = new Set<string>();
         const uniqueVideos: any[] = [];
         for (const v of allVideos) {
@@ -200,28 +200,14 @@ Deno.serve(async (req: Request) => {
         }
         console.log(`Total unique videos after dedup: ${uniqueVideos.length}`);
 
-        const { data: queryRow } = await userClient
-          .from("search_queries")
-          .upsert(
-            {
-              user_id: userId,
-              query_text: query,
-              last_run_at: new Date().toISOString(),
-              total_results_saved: uniqueVideos.length,
-            },
-            { onConflict: "user_id,query_text", ignoreDuplicates: false }
-          )
-          .select()
-          .single();
-
-        const upsertedVideos = [];
-        for (const v of uniqueVideos) {
+        // 4. Prepare all video rows at once (no sequential loop)
+        const now = new Date().toISOString();
+        const videoRows = uniqueVideos.map(v => {
           const videoId = v.id || v.video_id || v.aweme_id;
-          if (!videoId) continue;
-
+          if (!videoId) return null;
           const trends = computeTrend(v);
           const stats = v.stats || {};
-          const videoRow = {
+          return {
             platform: "tiktok",
             platform_video_id: String(videoId),
             url: v.url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
@@ -235,26 +221,30 @@ Deno.serve(async (req: Request) => {
             comments: stats.comments || v.comments || v.commentCount || 0,
             shares: stats.shares || v.shares || v.shareCount || 0,
             duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
-            fetched_at: new Date().toISOString(),
-            source_query_id: queryRow?.id || null,
+            fetched_at: now,
+            source_query_id: null,
             region: region || "world",
             ...trends,
           };
+        }).filter(Boolean);
 
-          const { data: upserted } = await adminClient
-            .from("videos")
-            .upsert(videoRow, { onConflict: "platform_video_id" })
-            .select()
-            .single();
+        // 5. Batch upsert + save query in parallel (1 DB call instead of N)
+        const [upsertResult, queryResult] = await Promise.all([
+          adminClient.from("videos").upsert(videoRows, { onConflict: "platform_video_id" }).select(),
+          userClient.from("search_queries").upsert(
+            { user_id: userId, query_text: query, last_run_at: now, total_results_saved: videoRows.length },
+            { onConflict: "user_id,query_text", ignoreDuplicates: false }
+          ).select().single(),
+        ]);
 
-          if (upserted) upsertedVideos.push(upserted);
-        }
+        const upsertedVideos = upsertResult.data || [];
+        const queryRow = queryResult.data;
 
-        await userClient.from("activity_log").insert({
-          user_id: userId,
-          type: "search_run",
+        // 6. Fire-and-forget activity log
+        userClient.from("activity_log").insert({
+          user_id: userId, type: "search_run",
           payload_json: { query, hashtags, results_count: upsertedVideos.length },
-        });
+        }).then(() => {}).catch(() => {});
 
         return json({ videos: upsertedVideos, query: queryRow, hashtags });
       }
