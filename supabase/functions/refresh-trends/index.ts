@@ -245,11 +245,16 @@ Deno.serve(async (req: Request) => {
       
       await Promise.all(nichesBatch.map(async (nicheKey) => {
         const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-        // Combine static + AI-generated queries, prioritizing AI ones
+        // Combine static + AI-generated queries, prioritizing KZ/RU over EN
         const aiNicheQueries = aiQueries[nicheKey] || [];
-        const staticQueries = [...NICHE_QUERIES[nicheKey]].sort(() => Math.random() - 0.5);
-        const combinedQueries = [...aiNicheQueries, ...staticQueries];
-        // Deduplicate and take qCount
+        const staticQueries = [...NICHE_QUERIES[nicheKey]];
+        // Split: KZ/RU queries first (non-latin or hashtags with cyrillic), EN last
+        const isKzRu = (q: string) => /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(q);
+        const kzRuQueries = staticQueries.filter(isKzRu).sort(() => Math.random() - 0.5);
+        const enQueries = staticQueries.filter(q => !isKzRu(q)).sort(() => Math.random() - 0.5);
+        // KZ/RU first, then AI, then only a few EN
+        const maxEnQueries = Math.max(1, Math.floor(qCount * 0.2)); // max 20% EN
+        const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
         const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
         const queries = uniqueQueries;
         let nicheSaved = 0;
