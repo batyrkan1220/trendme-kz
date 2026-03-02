@@ -171,10 +171,11 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         if (!query) return json({ error: "query is required" }, 400);
 
         // 1. Generate hashtags + do keyword search in parallel
-        const [keywordData, hashtags] = await Promise.all([
+        const [keywordData, aiResult] = await Promise.all([
           callSocialKit("/tiktok/search", { query, limit: String(limit), cache: "true" }),
-          generateHashtags(query),
+          generateHashtagsAndKeywords(query),
         ]);
+        const { hashtags, relatedKeywords } = aiResult;
 
         let allVideos: any[] = extractVideos(keywordData);
         console.log(`Keyword search returned ${allVideos.length} videos`);
