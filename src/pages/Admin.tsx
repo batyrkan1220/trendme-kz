@@ -745,11 +745,14 @@ function SettingRow({ label, value, onChange }: { label: string; value: number; 
 }
 
 function StatsSection() {
+  const queryClient = useQueryClient();
+  const [categoryLimits, setCategoryLimits] = useState<Record<string, number>>({});
+  const [hasChanges, setHasChanges] = useState(false);
+
   const { data: nicheStats = [], isLoading } = useQuery({
     queryKey: ["admin-niche-stats"],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      // Fetch ALL videos in pages of 1000 to avoid default limit
       const fetchAll = async (filter?: { gte?: string }) => {
         const counts: Record<string, number> = {};
         let from = 0;
@@ -778,16 +781,62 @@ function StatsSection() {
     },
     refetchInterval: 5000,
   });
+
+  // Load saved category limits
+  const { data: savedLimits } = useQuery({
+    queryKey: ["category-limits-setting"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
+      return (data?.value as Record<string, number>) || {};
+    },
+  });
+
+  // Initialize local state from saved
+  useState(() => {
+    if (savedLimits) setCategoryLimits(savedLimits);
+  });
+
+  const effectiveLimits = { ...savedLimits, ...categoryLimits };
+
+  const saveLimits = useMutation({
+    mutationFn: async (limits: Record<string, number>) => {
+      const { data: existing } = await supabase.from("trend_settings").select("id").eq("key", "category_limits").maybeSingle();
+      if (existing) {
+        await supabase.from("trend_settings").update({ value: limits as any, updated_at: new Date().toISOString() }).eq("key", "category_limits");
+      } else {
+        await supabase.from("trend_settings").insert({ key: "category_limits", value: limits as any });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["category-limits-setting"] });
+      setHasChanges(false);
+      toast.success("Лимиты категорий сохранены");
+    },
+    onError: () => toast.error("Ошибка сохранения"),
+  });
+
+  const updateLimit = (niche: string, val: number) => {
+    setCategoryLimits((prev) => ({ ...prev, [niche]: val }));
+    setHasChanges(true);
+  };
+
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   const totalAll = nicheStats.reduce((s, n) => s + n.total, 0);
   const recentAll = nicheStats.reduce((s, n) => s + n.recent, 0);
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">Статистика по категориям <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <CardTitle className="text-lg flex items-center gap-2">Статистика по категориям <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
+          {hasChanges && (
+            <Button size="sm" onClick={() => saveLimits.mutate(effectiveLimits)} disabled={saveLimits.isPending} className="gap-1.5">
+              {saveLimits.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Сохранить лимиты
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* General KZ summary — shows total across all categories since general KZ videos get AI-categorized */}
         <div className="flex items-center gap-3 py-2 px-3 rounded-lg bg-primary/5 border border-primary/20">
           <span className="text-sm font-semibold w-28">🇰🇿 Все видео</span>
           <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
@@ -795,6 +844,15 @@ function StatsSection() {
           </div>
           <span className="text-sm text-muted-foreground w-20 text-right">{totalAll}</span>
           <Badge variant="default" className="text-xs w-16 justify-center">{recentAll} / 7д</Badge>
+          <span className="w-20" />
+        </div>
+        {/* Header */}
+        <div className="flex items-center gap-3 px-2 text-xs text-muted-foreground">
+          <span className="w-28">Категория</span>
+          <span className="flex-1" />
+          <span className="w-20 text-right">Всего</span>
+          <span className="w-16 text-center">7 дней</span>
+          <span className="w-20 text-center">Лимит</span>
         </div>
         <div className="space-y-1 max-h-[500px] overflow-y-auto">
           {nicheStats.filter(s => s.niche !== "uncategorized").map((s) => (
@@ -805,9 +863,19 @@ function StatsSection() {
               </div>
               <span className="text-sm text-muted-foreground w-20 text-right">{s.total}</span>
               <Badge variant={s.recent < 20 ? "destructive" : "default"} className="text-xs w-16 justify-center">{s.recent} / 7д</Badge>
+              <Input
+                type="number"
+                className="w-20 h-7 text-xs text-center"
+                placeholder="∞"
+                value={effectiveLimits[s.niche] ?? ""}
+                onChange={(e) => updateLimit(s.niche, e.target.value === "" ? 0 : Number(e.target.value))}
+              />
             </div>
           ))}
         </div>
+        <p className="text-xs text-muted-foreground pt-2">
+          Лимит — максимум видео в категории. При обновлении категория с количеством ≥ лимит будет пропущена. Пустое поле = без лимита.
+        </p>
       </CardContent>
     </Card>
   );
