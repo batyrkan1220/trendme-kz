@@ -154,6 +154,13 @@ export default function Dashboard() {
                       </div>
                     )}
 
+                    {/* Play button */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
+                        <Play className="h-5 w-5 md:h-6 md:w-6 text-white fill-white ml-0.5" />
+                      </div>
+                    </div>
+
                     {/* Gradient overlay at bottom */}
                     <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
