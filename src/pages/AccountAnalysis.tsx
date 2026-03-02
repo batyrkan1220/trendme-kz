@@ -279,13 +279,21 @@ export default function AccountAnalysis() {
                               </div>
                             </div>
 
-                            {/* Open in TikTok */}
-                            <button
-                              onClick={(e) => { e.stopPropagation(); window.open(v.url, '_blank'); }}
-                              className="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                            >
-                              <ExternalLink className="h-3.5 w-3.5 text-foreground" />
-                            </button>
+                            {/* Fav + Open in TikTok */}
+                            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); toggleFav(v.id); }}
+                                className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                              >
+                                <Heart className={`h-3.5 w-3.5 transition-all ${userFavorites.includes(v.id) ? "text-primary fill-primary" : "text-foreground"}`} />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); window.open(v.url, '_blank'); }}
+                                className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+                              </button>
+                            </div>
 
                             {/* Play button center */}
                             <div
