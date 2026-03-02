@@ -2,14 +2,14 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, TrendingUp, Search, Video, BookOpen, Menu
+  LayoutDashboard, TrendingUp, Search, Sparkles, BookOpen, Menu
 } from "lucide-react";
 
 const navItems = [
   { icon: LayoutDashboard, path: "/dashboard", label: "Главная" },
   { icon: Search, path: "/search", label: "Поиск" },
   { icon: TrendingUp, path: "/trends", label: "Тренды" },
-  { icon: Video, path: "/video-analysis", label: "Анализ" },
+  { icon: Sparkles, path: "/video-analysis", label: "ИИ Видео" },
   { icon: BookOpen, path: "/library", label: "Библиотека" },
 ];
 

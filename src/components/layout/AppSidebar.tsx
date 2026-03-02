@@ -5,7 +5,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import {
   LayoutDashboard, TrendingUp, Search,
   Video, UserCircle, BookOpen, ScrollText,
-  Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight, Shield
+  Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight, Shield, Sparkles
 } from "lucide-react";
 
 interface NavItem {
@@ -21,7 +21,7 @@ const searchItems: NavItem[] = [
   { label: "Тренды", icon: TrendingUp, path: "/trends" },
 ];
 
-const toolItems: NavItem[] = [
+const aiVideoItems: NavItem[] = [
   { label: "Анализ видео", icon: Video, path: "/video-analysis" },
   { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis" },
 ];
@@ -116,7 +116,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       {/* Main Nav */}
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
         {renderGroup("Поиск контента", searchItems)}
-        {renderGroup("Инструменты", toolItems)}
+        {renderGroup("ИИ Видео", aiVideoItems)}
         {renderGroup("Идеи", ideaItems)}
         {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin" }])}
       </nav>
