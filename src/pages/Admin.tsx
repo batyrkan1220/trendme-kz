@@ -341,33 +341,7 @@ function TrendsManagementTab() {
 }
 
 function RefreshSection() {
-  const [refreshing, setRefreshing] = useState(false);
-  const [progress, setProgress] = useState({ current: 0, total: 8, currentNiches: "" });
-
-  const triggerRefresh = async () => {
-    setRefreshing(true);
-    const totalBatches = 8; // 30 niches / 4 per batch = 8
-    let totalSaved = 0;
-    
-    for (let batch = 0; batch < totalBatches; batch++) {
-      setProgress({ current: batch + 1, total: totalBatches, currentNiches: `Батч ${batch + 1}/${totalBatches}` });
-      try {
-        await supabase.functions.invoke("refresh-trends", { 
-          body: { mode: "mass", batch } 
-        });
-      } catch {
-        // Function may timeout but still processes in background
-      }
-      // Small delay between batches
-      if (batch < totalBatches - 1) {
-        await new Promise(r => setTimeout(r, 2000));
-      }
-    }
-    
-    toast.success("Массовое обновление завершено по всем категориям!");
-    setRefreshing(false);
-    setProgress({ current: 0, total: 8, currentNiches: "" });
-  };
+  const queryClient = useQueryClient();
 
   const { data: logs = [] } = useQuery({
     queryKey: ["refresh-logs"],
@@ -375,8 +349,23 @@ function RefreshSection() {
       const { data } = await supabase.from("trend_refresh_logs").select("*").order("started_at", { ascending: false }).limit(20);
       return data || [];
     },
-    refetchInterval: 10000,
+    refetchInterval: 5000,
   });
+
+  const isRunning = logs.some((l: any) => l.status === "running");
+
+  const triggerRefresh = async () => {
+    toast.info("Обновление запущено на сервере. Можете закрыть страницу — процесс продолжится.");
+    supabase.functions.invoke("refresh-trends", { 
+      body: { mode: "mass" } 
+    }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
+    }).catch(() => {
+      queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
+    });
+    setTimeout(() => queryClient.invalidateQueries({ queryKey: ["refresh-logs"] }), 2000);
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -384,29 +373,24 @@ function RefreshSection() {
         <CardContent className="space-y-4">
           <Button 
             onClick={triggerRefresh} 
-            disabled={refreshing} 
+            disabled={isRunning} 
             size="lg"
             className="w-full gap-3 h-14 text-base"
           >
-            {refreshing ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
-            {refreshing 
-              ? `Обновление... ${progress.current}/${progress.total} батчей` 
+            {isRunning ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
+            {isRunning 
+              ? "⏳ Обновление идёт на сервере..." 
               : "🚀 Запустить обновление (все 30 категорий)"
             }
           </Button>
-          {refreshing && (
-            <div className="space-y-2">
-              <div className="w-full bg-secondary rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-500" 
-                  style={{ width: `${(progress.current / progress.total) * 100}%` }} 
-                />
-              </div>
-              <p className="text-sm text-muted-foreground text-center">{progress.currentNiches}</p>
+          {isRunning && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Обновление работает на сервере. Можете закрыть страницу — процесс не остановится.</span>
             </div>
           )}
           <p className="text-sm text-muted-foreground">
-            Обновление проходит по всем 30 категориям батчами по 4 ниши. Каждая ниша получает до 15 поисковых запросов (статические + AI) для максимального охвата.
+            Обновление запускается на сервере и работает независимо от браузера. Даже если закроете страницу — процесс продолжится.
           </p>
         </CardContent>
       </Card>
