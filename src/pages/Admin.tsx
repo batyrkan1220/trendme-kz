@@ -856,21 +856,6 @@ function StatsSection() {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-3 py-2 px-3 rounded-lg bg-primary/5 border border-primary/20">
-          <span className="text-sm font-semibold w-28">🇰🇿 Все видео</span>
-          <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-            <div className="bg-primary/60 h-full rounded-full transition-all" style={{ width: "100%" }} />
-          </div>
-          <span className="text-sm text-muted-foreground w-20 text-right">{totalAll}</span>
-          <Badge variant="default" className="text-xs w-16 justify-center">{recentAll} / 7д</Badge>
-          <Input
-            type="number"
-            className="w-20 h-7 text-xs text-center"
-            placeholder="∞"
-            value={effectiveLimits["__kz_total"] ?? ""}
-            onChange={(e) => updateLimit("__kz_total", e.target.value)}
-          />
-        </div>
         <div className="flex items-center gap-3 px-2 text-xs text-muted-foreground">
           <span className="w-28">Категория</span>
           <span className="flex-1" />
