@@ -99,22 +99,22 @@ export default function SearchPage() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-6 animate-fade-in">
-        <div className="flex-1 space-y-6 min-w-0">
-          <h1 className="text-2xl font-bold text-foreground">Поиск 🔍</h1>
+      <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 animate-fade-in">
+        <div className="flex-1 space-y-4 md:space-y-6 min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">Поиск 🔍</h1>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder="Введите ключевое слово..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="flex-1 h-12 bg-card border-border rounded-xl card-shadow"
+              className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm"
             />
             <Button
               onClick={handleSearch}
               disabled={isSearching}
-              className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold"
+              className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
             >
               {isSearching ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -151,7 +151,7 @@ export default function SearchPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
               {results.map((video: any, i: number) => {
                 const timeAgo = getTimeAgo(video.published_at);
                 const score = video.trend_score || 0;

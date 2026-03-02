@@ -96,18 +96,18 @@ export default function VideoAnalysis() {
     <AppLayout>
       <div className="p-3 md:p-4 lg:p-6 space-y-4 animate-fade-in h-full">
         {/* URL Input */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="Вставьте ссылку на TikTok видео..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-            className="flex-1 h-12 bg-card border-border rounded-xl card-shadow"
+            className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm"
           />
           <Button
             onClick={handleAnalyze}
             disabled={isPending}
-            className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold"
+            className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
               <><Video className="h-4 w-4 mr-2" />Анализировать</>
@@ -117,10 +117,10 @@ export default function VideoAnalysis() {
 
         {/* Main content */}
         {analysis ? (
-          <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-10rem)]">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}
-            <div className="w-full md:w-[320px] flex-shrink-0 overflow-y-auto bg-card rounded-2xl border border-border/50 card-shadow">
-              <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
+            <div className="w-full md:w-[320px] flex-shrink-0 overflow-y-auto bg-card rounded-xl md:rounded-2xl border border-border/50 card-shadow">
+              <div className="aspect-[9/14] bg-black relative rounded-xl md:rounded-2xl overflow-hidden m-1.5 md:m-2">
                 {isPlaying && videoId ? (
                   <>
                     <iframe
@@ -193,7 +193,7 @@ export default function VideoAnalysis() {
             </div>
 
             {/* Right panel — analysis (same as VideoAnalysisDialog) */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-card rounded-2xl border border-border/50 card-shadow">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 bg-card rounded-xl md:rounded-2xl border border-border/50 card-shadow">
               {/* Topic */}
               {summary?.topic && (
                 <div>

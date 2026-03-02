@@ -227,9 +227,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
         <h2 className="text-base font-bold text-foreground">AI Сценарист</h2>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left — Chat */}
-        <div className="w-full md:w-[320px] flex-shrink-0 border-r border-border/50 flex flex-col bg-card">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        {/* Chat panel */}
+        <div className="w-full md:w-[320px] flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 flex flex-col bg-card max-h-[40vh] md:max-h-none">
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -248,7 +248,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
           </div>
 
           {/* Regenerate + input */}
-          <div className="p-3 border-t border-border/50 space-y-2">
+          <div className="p-2 md:p-3 border-t border-border/50 space-y-2">
             <button
               onClick={handleRegenerate}
               disabled={isGenerating}
@@ -307,9 +307,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
           {/* Tab content */}
           <div className="flex-1 overflow-y-auto">
             {activeTab === "new" ? (
-              <div className="p-6">
+              <div className="p-3 md:p-6">
                 {/* Copy button */}
-                <div className="flex justify-end gap-2 mb-4">
+                <div className="flex flex-wrap justify-end gap-2 mb-3 md:mb-4">
                   <button
                     onClick={saveScript}
                     disabled={!scriptContent || isGenerating || isSaving}
@@ -357,7 +357,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
                     <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
                       🧠 Анализ контента
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
                       <div className="bg-card rounded-xl border border-border/50 p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <Zap className="h-4 w-4 text-primary" />
@@ -391,7 +391,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
               </div>
             ) : (
               /* Original script/transcript tab */
-              <div className="p-6">
+              <div className="p-3 md:p-6">
                 <div className="flex justify-end mb-4">
                   <button
                     onClick={() => { navigator.clipboard.writeText(transcript || ""); toast.success("Скопировано!"); }}

@@ -49,12 +49,12 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-5 md:space-y-7 animate-fade-in max-w-5xl">
+      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-7 animate-fade-in max-w-5xl">
         {/* Hero */}
-        <div className="gradient-hero rounded-2xl p-5 md:p-7 glow-primary relative overflow-hidden">
+        <div className="gradient-hero rounded-xl md:rounded-2xl p-4 md:p-7 glow-primary relative overflow-hidden">
           <div className="relative flex items-center justify-between">
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-white">
+              <h1 className="text-base md:text-xl font-bold text-white">
                 Привет, {name} 👋
               </h1>
               <p className="text-white/70 text-xs md:text-sm mt-1">
@@ -74,17 +74,17 @@ export default function Dashboard() {
         {/* Quick Actions - horizontal scrollable */}
         <div className="space-y-3">
           <p className="section-label">Быстрые действия</p>
-          <div className="flex gap-3 overflow-x-auto pb-1">
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
             {quickActions.map((a) => (
               <Link
                 key={a.path}
                 to={a.path}
-                className="flex items-center gap-3 bg-card rounded-xl px-3 md:px-4 py-2.5 md:py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[160px] md:min-w-[180px] group"
+                className="flex items-center gap-2 bg-card rounded-xl px-3 py-2 md:px-4 md:py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[140px] md:min-w-[180px] group"
               >
-                <span className="text-xl">{a.emoji}</span>
+                <span className="text-lg">{a.emoji}</span>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{a.label}</p>
-                  <p className="text-[11px] text-muted-foreground">{a.desc}</p>
+                  <p className="text-xs md:text-sm font-semibold text-foreground">{a.label}</p>
+                  <p className="text-[10px] md:text-[11px] text-muted-foreground">{a.desc}</p>
                 </div>
               </Link>
             ))}
@@ -92,15 +92,15 @@ export default function Dashboard() {
         </div>
 
         {/* Stats row */}
-        <div className="flex gap-3 md:gap-4">
-          <div className="bg-card rounded-xl border border-border/60 px-4 md:px-5 py-2.5 md:py-3 card-shadow flex items-center gap-3 flex-1 sm:flex-initial">
+        <div className="grid grid-cols-2 gap-2 md:gap-4">
+          <div className="bg-card rounded-xl border border-border/60 px-3 md:px-5 py-2 md:py-3 card-shadow flex items-center gap-2 md:gap-3">
             <Heart className="h-4 w-4 text-primary" />
             <div>
               <p className="text-base md:text-lg font-bold text-foreground">{favCount}</p>
               <p className="text-[10px] md:text-[11px] text-muted-foreground">В избранном</p>
             </div>
           </div>
-          <div className="bg-card rounded-xl border border-border/60 px-4 md:px-5 py-2.5 md:py-3 card-shadow flex items-center gap-3 flex-1 sm:flex-initial">
+          <div className="bg-card rounded-xl border border-border/60 px-3 md:px-5 py-2 md:py-3 card-shadow flex items-center gap-2 md:gap-3">
             <TrendingUp className="h-4 w-4 text-accent" />
             <div>
               <p className="text-base md:text-lg font-bold text-foreground">{trendingVideos.length}</p>
@@ -119,7 +119,7 @@ export default function Dashboard() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 gap-2 md:gap-4">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="bg-card rounded-xl border border-border/60 overflow-hidden animate-pulse">
                   <div className="aspect-video bg-muted" />
@@ -131,7 +131,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : trendingVideos.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-3">
               {trendingVideos.map((video) => (
                 <a
                   key={video.id}
@@ -158,7 +158,7 @@ export default function Dashboard() {
                       <Video className="h-8 w-8 text-muted-foreground/20" />
                     </div>
                   )}
-                  <div className="p-3">
+                  <div className="p-2 md:p-3">
                     <p className="text-sm font-medium text-foreground line-clamp-2 leading-snug">
                       {video.caption || "Без описания"}
                     </p>

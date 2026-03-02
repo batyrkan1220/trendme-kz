@@ -117,22 +117,22 @@ export default function AccountAnalysis() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-foreground">Анализ аккаунта 👤</h1>
+      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in max-w-7xl mx-auto">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground">Анализ аккаунта 👤</h1>
 
         {/* Search */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="Вставьте ссылку на профиль TikTok..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-            className="flex-1 h-12 bg-card border-border rounded-xl card-shadow"
+            className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm"
           />
           <Button
             onClick={handleAnalyze}
             disabled={isPending}
-            className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold"
+            className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
               <><UserCircle className="h-4 w-4 mr-2" />Анализировать</>
@@ -144,18 +144,18 @@ export default function AccountAnalysis() {
         {account ? (
           <div className="space-y-6">
             {/* Profile Header */}
-            <div className="bg-card rounded-2xl border border-border/50 p-6 card-shadow">
-              <div className="flex items-start gap-5">
+            <div className="bg-card rounded-xl md:rounded-2xl border border-border/50 p-4 md:p-6 card-shadow">
+              <div className="flex items-start gap-3 md:gap-5">
                 {account.avatar_url ? (
-                  <img src={account.avatar_url} alt="" className="h-20 w-20 rounded-full object-cover ring-4 ring-primary/10 shrink-0" />
+                  <img src={account.avatar_url} alt="" className="h-14 w-14 md:h-20 md:w-20 rounded-full object-cover ring-4 ring-primary/10 shrink-0" />
                 ) : (
-                  <div className="h-20 w-20 rounded-full gradient-hero flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-lg shrink-0">
+                  <div className="h-14 w-14 md:h-20 md:w-20 rounded-full gradient-hero flex items-center justify-center text-xl md:text-2xl font-bold text-primary-foreground shadow-lg shrink-0">
                     {account.username?.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-xl font-bold text-foreground">@{account.username}</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-foreground">@{account.username}</h2>
                     {account.verified && (
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
                         <Check className="h-3 w-3" /> Верифицирован
@@ -173,23 +173,23 @@ export default function AccountAnalysis() {
             </div>
 
             {/* Key Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
               {[
                 { icon: Users, value: account.followers, label: "Подписчики", color: "text-blue-500" },
                 { icon: Heart, value: account.total_likes, label: "Лайки", color: "text-rose-500" },
                 { icon: Video, value: account.total_videos, label: "Видео", color: "text-violet-500" },
                 { icon: Users, value: account.following, label: "Подписки", color: "text-emerald-500" },
               ].map((s) => (
-                <div key={s.label} className="bg-card rounded-xl border border-border/50 p-4 text-center card-shadow hover-lift transition-transform">
-                  <s.icon className={`h-5 w-5 ${s.color} mx-auto mb-2`} />
-                  <p className="text-xl font-bold text-foreground">{formatNum(Number(s.value || 0))}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
+                <div key={s.label} className="bg-card rounded-xl border border-border/50 p-3 md:p-4 text-center card-shadow hover-lift transition-transform">
+                  <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color} mx-auto mb-1 md:mb-2`} />
+                  <p className="text-lg md:text-xl font-bold text-foreground">{formatNum(Number(s.value || 0))}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
 
             {/* Advanced Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
               <div className="bg-card rounded-xl border border-border/50 p-5 card-shadow">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -230,7 +230,7 @@ export default function AccountAnalysis() {
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" /> Топ видео по просмотрам
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
                   {topVideos.map((v, i) => (
                     <div
                       key={v.id || i}

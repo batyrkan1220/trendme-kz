@@ -59,7 +59,7 @@ export default function Library() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
+      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
         <h1 className="text-xl md:text-2xl font-bold text-foreground">Библиотека 📚</h1>
 
         {/* Tabs */}
@@ -93,24 +93,24 @@ export default function Library() {
         {/* Favorites tab */}
         {tab === "favorites" && (
           favorites.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-5">
               {favorites.map((fav: any) => {
                 const video = fav.videos;
                 if (!video) return null;
                 return (
-                  <div key={fav.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all">
+                  <div key={fav.id} className="bg-card rounded-xl md:rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all">
                     {video.cover_url && (
-                      <img src={video.cover_url} alt="" className="w-full h-48 object-cover rounded-2xl p-2" />
+                      <img src={video.cover_url} alt="" className="w-full h-32 md:h-48 object-cover rounded-xl md:rounded-2xl p-1.5 md:p-2" />
                     )}
-                    <div className="p-4 space-y-2">
-                      <p className="text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
-                      <p className="text-xs text-primary font-semibold">@{video.author_username}</p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{Number(video.views).toLocaleString("ru-RU")}</span>
-                        <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" />{Number(video.likes).toLocaleString("ru-RU")}</span>
-                        <span className="flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{Number(video.comments).toLocaleString("ru-RU")}</span>
+                    <div className="p-2 md:p-4 space-y-1.5 md:space-y-2">
+                      <p className="text-xs md:text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
+                      <p className="text-[10px] md:text-xs text-primary font-semibold">@{video.author_username}</p>
+                      <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-xs text-muted-foreground">
+                        <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" />{Number(video.views).toLocaleString("ru-RU")}</span>
+                        <span className="flex items-center gap-0.5"><Heart className="h-3 w-3" />{Number(video.likes).toLocaleString("ru-RU")}</span>
+                        <span className="hidden sm:flex items-center gap-0.5"><MessageCircle className="h-3 w-3" />{Number(video.comments).toLocaleString("ru-RU")}</span>
                       </div>
-                      <div className="flex justify-between items-center pt-2 border-t border-border/50">
+                      <div className="flex justify-between items-center pt-1.5 md:pt-2 border-t border-border/50">
                         <span className="text-xs text-muted-foreground">
                           {new Date(fav.created_at).toLocaleDateString("ru-RU")}
                         </span>

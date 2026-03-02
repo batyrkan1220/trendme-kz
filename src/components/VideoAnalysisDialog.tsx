@@ -98,7 +98,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined} style={{ zIndex: 60 }}>
+      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined} style={{ zIndex: 99998 }}>
         <SheetTitle className="sr-only">Анализ видео</SheetTitle>
         {showScript ? (
           <ScriptGenerationPanel
@@ -110,8 +110,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
         ) : (
         <div className="flex flex-col md:flex-row h-full">
           {/* Left panel — video + stats */}
-          <div className="w-full md:w-[300px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card">
-            <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
+          <div className="w-full md:w-[280px] flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 overflow-y-auto bg-card max-h-[50vh] md:max-h-none">
+            <div className="aspect-[9/14] bg-black relative rounded-xl md:rounded-2xl overflow-hidden m-1.5 md:m-2">
               {isPlaying ? (
                 <>
                   <iframe
@@ -188,7 +188,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           </div>
 
           {/* Right panel — analysis */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-background relative">
+          <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-4 md:space-y-6 bg-background relative">
             <button
               onClick={() => onOpenChange(false)}
               className="sticky top-0 float-right z-[70] w-10 h-10 rounded-full bg-background border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors ml-2 mb-2"
