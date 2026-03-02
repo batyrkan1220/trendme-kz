@@ -66,7 +66,7 @@ const PAGE_SIZE = 30;
 
 export default function Trends() {
   const [period, setPeriod] = useState<1 | 3 | 7 | 30 | 0>(7);
-  const [tab, setTab] = useState<"all" | "kz" | "world">("all");
+  // removed region tab state
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
