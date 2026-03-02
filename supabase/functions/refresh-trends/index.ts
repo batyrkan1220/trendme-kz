@@ -151,12 +151,45 @@ Deno.serve(async (req: Request) => {
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
+    // AI-powered query generation for niches
+    const generateAiQueries = async (niches: string[]): Promise<Record<string, string[]>> => {
+      try {
+        const nicheDescriptions = niches.map(n => {
+          const existing = NICHE_QUERIES[n] || [];
+          return `${n}: примеры запросов: ${existing.slice(0, 3).join(", ")}`;
+        }).join("\n");
+
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              { role: "system", content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 5 актуальных поисковых запросов для поиска вирусных видео. Запросы должны быть на казахском, русском и английском. Используй хештеги, ключевые фразы и названия трендов. Возвращай ТОЛЬКО JSON: {"niche1":["запрос1","запрос2",...],...}` },
+              { role: "user", content: `Сгенерируй свежие TikTok поисковые запросы для этих ниш (сегодня ${new Date().toLocaleDateString("ru")}):\n${nicheDescriptions}` }
+            ],
+          }),
+        });
+        const aiData = await res.json();
+        const content = aiData?.choices?.[0]?.message?.content || "";
+        const match = content.match(/\{[\s\S]*\}/);
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          console.log(`AI generated queries for: ${Object.keys(parsed).join(", ")}`);
+          return parsed;
+        }
+      } catch (e) {
+        console.error("AI query generation failed:", e);
+      }
+      return {};
+    };
+
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
     const now = new Date().toISOString();
     const nicheStats: Record<string, number> = {};
     let totalSaved = 0;
 
-    // Split niches into batches of 4 (smaller batches to handle more queries per niche)
+    // Split niches into batches of 4
     const allNicheKeys = Object.keys(NICHE_QUERIES);
     const BATCH_SIZE = 4;
     let nicheKeys: string[];
@@ -164,9 +197,11 @@ Deno.serve(async (req: Request) => {
       const start = batchIndex * BATCH_SIZE;
       nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
     } else {
-      // Process all but with fewer queries
       nicheKeys = allNicheKeys;
     }
+
+    // Generate AI queries for this batch of niches
+    const aiQueries = await generateAiQueries(nicheKeys);
     
     // Process niches in parallel batches of 5
     for (let ni = 0; ni < nicheKeys.length; ni += 5) {
@@ -174,7 +209,13 @@ Deno.serve(async (req: Request) => {
       
       await Promise.all(nichesBatch.map(async (nicheKey) => {
         const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-        const queries = [...NICHE_QUERIES[nicheKey]].sort(() => Math.random() - 0.5).slice(0, qCount);
+        // Combine static + AI-generated queries, prioritizing AI ones
+        const aiNicheQueries = aiQueries[nicheKey] || [];
+        const staticQueries = [...NICHE_QUERIES[nicheKey]].sort(() => Math.random() - 0.5);
+        const combinedQueries = [...aiNicheQueries, ...staticQueries];
+        // Deduplicate and take qCount
+        const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
+        const queries = uniqueQueries;
         let nicheSaved = 0;
 
         for (const query of queries) {
