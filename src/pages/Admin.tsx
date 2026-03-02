@@ -439,7 +439,7 @@ function RefreshSection() {
                     </div>
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{totalNiche}</p>
-                      <p className="text-xs text-muted-foreground">По нишам</p>
+                      <p className="text-xs text-muted-foreground">По категориям</p>
                     </div>
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{totalGeneral}</p>
