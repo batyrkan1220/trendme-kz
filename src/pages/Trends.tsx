@@ -78,13 +78,14 @@ export default function Trends() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      // Run 5 batches sequentially (6 niches each) to avoid timeouts
-      for (let batch = 0; batch < 5; batch++) {
-        toast.loading(`Обновление ниш ${batch * 6 + 1}-${Math.min((batch + 1) * 6, 29)}...`, { id: "refresh" });
+      // Run 7 batches sequentially (4 niches each) with more queries per niche
+      const totalBatches = 7;
+      for (let batch = 0; batch < totalBatches; batch++) {
+        toast.loading(`Обновление ниш ${batch * 4 + 1}-${Math.min((batch + 1) * 4, 28)}...`, { id: "refresh" });
         const { error } = await supabase.functions.invoke("refresh-trends", { body: { mass: true, batch } });
         if (error) console.error(`Batch ${batch} error:`, error);
       }
-      toast.success("Тренды обновлены! Все 29 ниш загружены", { id: "refresh" });
+      toast.success("Тренды обновлены! Все 28 ниш загружены", { id: "refresh" });
       queryClient.invalidateQueries({ queryKey: ["trends"] });
     } catch (e: any) {
       toast.error("Ошибка обновления: " + (e.message || "Попробуйте позже"), { id: "refresh" });
