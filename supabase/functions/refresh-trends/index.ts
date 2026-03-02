@@ -237,7 +237,8 @@ Deno.serve(async (req: Request) => {
 
         for (const query of queries) {
           try {
-            const data = await callSocialKit("/tiktok/search", { query, count: "30" });
+            const searchCount = WEAK_NICHES.has(nicheKey) ? "50" : "30";
+            const data = await callSocialKit("/tiktok/search", { query, count: searchCount });
             const videos = extractVideos(data);
 
             const videoRows = videos.map(v => {
