@@ -158,6 +158,7 @@ Deno.serve(async (req: Request) => {
     const thresholds = (thresholdsRow?.value as any) || {};
     const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
     const fullNicheThreshold = thresholds.full_niche_threshold ?? 100;
+    const fullGeneralKzThreshold = thresholds.full_general_kz_threshold ?? 200;
     const minForeignTrendScore = thresholds.min_foreign_trend_score ?? 500;
     const qPerNiche = thresholds.queries_per_niche || {};
     const wqPerNiche = thresholds.weak_queries_per_niche || {};
