@@ -117,10 +117,10 @@ export default function VideoAnalysis() {
 
         {/* Main content */}
         {analysis ? (
-          <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-10rem)]">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}
-            <div className="w-full md:w-[320px] flex-shrink-0 overflow-y-auto bg-card rounded-2xl border border-border/50 card-shadow">
-              <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
+            <div className="w-full md:w-[320px] flex-shrink-0 overflow-y-auto bg-card rounded-xl md:rounded-2xl border border-border/50 card-shadow">
+              <div className="aspect-[9/14] bg-black relative rounded-xl md:rounded-2xl overflow-hidden m-1.5 md:m-2">
                 {isPlaying && videoId ? (
                   <>
                     <iframe
