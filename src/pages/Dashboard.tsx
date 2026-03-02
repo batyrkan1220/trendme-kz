@@ -141,7 +141,7 @@ export default function Dashboard() {
                   className="group bg-card rounded-xl overflow-hidden border border-border/60 hover-lift card-shadow-hover transition-all"
                 >
                   {video.cover_url ? (
-                    <div className="aspect-[9/12] relative overflow-hidden">
+                    <div className="aspect-[4/5] relative overflow-hidden">
                       <img
                         src={video.cover_url}
                         alt=""
