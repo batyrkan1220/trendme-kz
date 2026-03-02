@@ -450,7 +450,7 @@ function RefreshSection() {
                   {nicheEntries.length > 0 && (
                     <details className="text-sm">
                       <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors text-xs font-medium">
-                        📊 По категориям ({nicheEntries.length} ниш)
+                        📊 По категориям ({nicheEntries.length})
                       </summary>
                       <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
                         {nicheEntries.map(([niche, count]) => (
