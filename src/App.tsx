@@ -20,6 +20,7 @@ import Analytics from "./pages/Analytics";
 import Tokens from "./pages/Tokens";
 import Pricing from "./pages/Pricing";
 import Landing from "./pages/Landing";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const AppRoutes = () => (
       <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
       <Route path="/tokens" element={<ProtectedRoute><Tokens /></ProtectedRoute>} />
       <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Route>
   </Routes>

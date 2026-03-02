@@ -1,10 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import {
   LayoutDashboard, TrendingUp, Search,
   Video, UserCircle, BookOpen, ScrollText,
-  Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight
+  Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight, Shield
 } from "lucide-react";
 
 interface NavItem {
@@ -39,6 +40,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
 
   const handleLogout = async () => {
     await signOut();
@@ -116,6 +118,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         {renderGroup("Поиск контента", searchItems)}
         {renderGroup("Инструменты", toolItems)}
         {renderGroup("Идеи", ideaItems)}
+        {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin" }])}
       </nav>
 
       {/* Bottom */}
