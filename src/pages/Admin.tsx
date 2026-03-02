@@ -746,8 +746,9 @@ function SettingRow({ label, value, onChange }: { label: string; value: number; 
 
 function StatsSection() {
   const queryClient = useQueryClient();
-  const [categoryLimits, setCategoryLimits] = useState<Record<string, number>>({});
+  const [categoryLimits, setCategoryLimits] = useState<Record<string, number | null>>({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const { data: nicheStats = [], isLoading } = useQuery({
     queryKey: ["admin-niche-stats"],
@@ -782,7 +783,6 @@ function StatsSection() {
     refetchInterval: 5000,
   });
 
-  // Load saved category limits
   const { data: savedLimits } = useQuery({
     queryKey: ["category-limits-setting"],
     queryFn: async () => {
@@ -791,15 +791,27 @@ function StatsSection() {
     },
   });
 
-  // Initialize local state from saved
-  useState(() => {
-    if (savedLimits) setCategoryLimits(savedLimits);
-  });
+  // Init local state from saved limits once
+  if (savedLimits && !initialized) {
+    setCategoryLimits(savedLimits);
+    setInitialized(true);
+  }
 
-  const effectiveLimits = { ...savedLimits, ...categoryLimits };
+  // Merge: local overrides saved
+  const effectiveLimits: Record<string, number | null> = { ...savedLimits, ...categoryLimits };
+
+  // Filter out null/0 values before saving
+  const cleanLimits = () => {
+    const clean: Record<string, number> = {};
+    for (const [k, v] of Object.entries(effectiveLimits)) {
+      if (v && v > 0) clean[k] = v;
+    }
+    return clean;
+  };
 
   const saveLimits = useMutation({
-    mutationFn: async (limits: Record<string, number>) => {
+    mutationFn: async () => {
+      const limits = cleanLimits();
       const { data: existing } = await supabase.from("trend_settings").select("id").eq("key", "category_limits").maybeSingle();
       if (existing) {
         await supabase.from("trend_settings").update({ value: limits as any, updated_at: new Date().toISOString() }).eq("key", "category_limits");
@@ -815,8 +827,12 @@ function StatsSection() {
     onError: () => toast.error("Ошибка сохранения"),
   });
 
-  const updateLimit = (niche: string, val: number) => {
-    setCategoryLimits((prev) => ({ ...prev, [niche]: val }));
+  const updateLimit = (niche: string, rawVal: string) => {
+    if (rawVal === "") {
+      setCategoryLimits((prev) => ({ ...prev, [niche]: null }));
+    } else {
+      setCategoryLimits((prev) => ({ ...prev, [niche]: Number(rawVal) }));
+    }
     setHasChanges(true);
   };
 
@@ -829,7 +845,7 @@ function StatsSection() {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-lg flex items-center gap-2">Статистика по категориям <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
           {hasChanges && (
-            <Button size="sm" onClick={() => saveLimits.mutate(effectiveLimits)} disabled={saveLimits.isPending} className="gap-1.5">
+            <Button size="sm" onClick={() => saveLimits.mutate()} disabled={saveLimits.isPending} className="gap-1.5">
               {saveLimits.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Сохранить лимиты
             </Button>
@@ -846,7 +862,6 @@ function StatsSection() {
           <Badge variant="default" className="text-xs w-16 justify-center">{recentAll} / 7д</Badge>
           <span className="w-20" />
         </div>
-        {/* Header */}
         <div className="flex items-center gap-3 px-2 text-xs text-muted-foreground">
           <span className="w-28">Категория</span>
           <span className="flex-1" />
@@ -868,7 +883,7 @@ function StatsSection() {
                 className="w-20 h-7 text-xs text-center"
                 placeholder="∞"
                 value={effectiveLimits[s.niche] ?? ""}
-                onChange={(e) => updateLimit(s.niche, e.target.value === "" ? 0 : Number(e.target.value))}
+                onChange={(e) => updateLimit(s.niche, e.target.value)}
               />
             </div>
           ))}
