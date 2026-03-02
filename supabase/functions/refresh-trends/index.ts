@@ -132,15 +132,17 @@ Deno.serve(async (req: Request) => {
 
     // Check mode
     let mode = "full";
+    let batchIndex = -1; // -1 = all niches, 0-4 = specific batch
     try {
       const body = await req.json();
       if (body?.lite) mode = "lite";
       else if (body?.mass) mode = "mass";
+      if (typeof body?.batch === "number") batchIndex = body.batch;
     } catch { /* no body = cron call */ }
 
     // How many queries per niche based on mode
-    const queriesPerNiche = mode === "lite" ? 1 : mode === "mass" ? 3 : 2;
-    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 6 : 4;
+    const queriesPerNiche = mode === "lite" ? 1 : mode === "mass" ? 2 : 1;
+    const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 4 : 2;
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -149,19 +151,27 @@ Deno.serve(async (req: Request) => {
     const nicheStats: Record<string, number> = {};
     let totalSaved = 0;
 
-    // Process each niche
-    const nicheKeys = Object.keys(NICHE_QUERIES);
+    // Split niches into 5 batches of ~6
+    const allNicheKeys = Object.keys(NICHE_QUERIES);
+    const BATCH_SIZE = 6;
+    let nicheKeys: string[];
+    if (batchIndex >= 0) {
+      const start = batchIndex * BATCH_SIZE;
+      nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
+    } else {
+      // Process all but with fewer queries
+      nicheKeys = allNicheKeys;
+    }
     
-    for (let ni = 0; ni < nicheKeys.length; ni += 3) {
-      // Process 3 niches in parallel
-      const nichesBatch = nicheKeys.slice(ni, ni + 3);
+    // Process niches in parallel batches of 5
+    for (let ni = 0; ni < nicheKeys.length; ni += 5) {
+      const nichesBatch = nicheKeys.slice(ni, ni + 5);
       
       await Promise.all(nichesBatch.map(async (nicheKey) => {
-        const queries = NICHE_QUERIES[nicheKey];
-        const selectedQueries = queries.sort(() => Math.random() - 0.5).slice(0, queriesPerNiche);
+        const queries = [...NICHE_QUERIES[nicheKey]].sort(() => Math.random() - 0.5).slice(0, queriesPerNiche);
         let nicheSaved = 0;
 
-        for (const query of selectedQueries) {
+        for (const query of queries) {
           try {
             const data = await callSocialKit("/tiktok/search", { query, count: "30" });
             const videos = extractVideos(data);
@@ -189,7 +199,7 @@ Deno.serve(async (req: Request) => {
                 duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
                 fetched_at: now,
                 region: "kz",
-                niche: nicheKey, // Set niche directly!
+                niche: nicheKey,
                 ...trends,
               };
             }).filter(Boolean);
@@ -209,10 +219,6 @@ Deno.serve(async (req: Request) => {
         totalSaved += nicheSaved;
         console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos`);
       }));
-
-      // Pause between batches
-      if (ni + 3 < nicheKeys.length) await delay(1000);
-    }
 
     // Also run general KZ queries (tagged region=kz, niche assigned by AI later)
     const shuffledGeneral = GENERAL_KZ_QUERIES.sort(() => Math.random() - 0.5).slice(0, generalKzCount);
