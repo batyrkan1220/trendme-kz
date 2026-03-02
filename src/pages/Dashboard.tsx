@@ -154,7 +154,7 @@ export default function Dashboard() {
                       )}
                     </div>
                   ) : (
-                    <div className="aspect-[9/12] bg-muted flex items-center justify-center">
+                    <div className="aspect-[4/5] bg-muted flex items-center justify-center">
                       <Video className="h-6 w-6 text-muted-foreground/20" />
                     </div>
                   )}
