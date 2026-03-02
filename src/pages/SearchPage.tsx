@@ -1,16 +1,38 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search as SearchIcon, Clock, Star, Eye, Heart, MessageCircle, Loader2, Sparkles } from "lucide-react";
-import { useState } from "react";
+import {
+  Search as SearchIcon, Clock, Eye, Heart, MessageCircle, Loader2, Sparkles,
+  Play, X, ExternalLink, Music, Share2, TrendingUp, Flame, Rocket
+} from "lucide-react";
+import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
+
+const fmt = (n: number) => {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  return String(n);
+};
+
+const getTimeAgo = (published_at: string | null) => {
+  if (!published_at) return "";
+  const h = Math.floor((Date.now() - new Date(published_at).getTime()) / 3600000);
+  if (h < 1) return "только что";
+  if (h < 24) return `${h}ч назад`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}д назад`;
+  return `${Math.floor(d / 30)} мес. назад`;
+};
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState<"kz" | "world">("kz");
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -56,7 +78,7 @@ export default function SearchPage() {
     enabled: !!user,
   });
 
-  const toggleFav = async (videoId: string) => {
+  const toggleFav = useCallback(async (videoId: string) => {
     if (!user) return;
     const isFav = userFavorites.includes(videoId);
     if (isFav) {
@@ -66,7 +88,7 @@ export default function SearchPage() {
     }
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
-  };
+  }, [user, userFavorites, queryClient]);
 
   const handleSearch = () => {
     if (!query.trim()) return;
@@ -122,71 +144,194 @@ export default function SearchPage() {
                 {r.label}
               </button>
             ))}
-            <div className="h-6 border-l border-border mx-1" />
-            {["7 дней", "30 дней", "Все время"].map((f) => (
-              <button
-                key={f}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors border border-border card-shadow"
-              >
-                {f}
-              </button>
-            ))}
-            <select className="px-4 py-2 rounded-xl text-xs font-semibold bg-card text-muted-foreground border border-border card-shadow">
-              <option>По трендовости</option>
-              <option>По просмотрам</option>
-              <option>По дате</option>
-            </select>
           </div>
 
           {results.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {results.map((video: any, i: number) => (
-                <div
-                  key={video.id}
-                  className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all"
-                  style={{ animationDelay: `${i * 0.03}s` }}
-                >
-                  <div className="flex gap-4 p-4 cursor-pointer" onClick={() => window.open(video.url, '_blank')}>
-                    {video.cover_url && (
-                      <img
-                        src={video.cover_url}
-                        alt=""
-                        className="h-28 w-20 object-cover rounded-2xl shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <p className="text-sm font-medium text-foreground line-clamp-2">{video.caption || "Без описания"}</p>
-                      <p className="text-xs text-primary font-semibold">@{video.author_username}</p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3.5 w-3.5" />
-                          {Number(video.views).toLocaleString("ru-RU")}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Heart className="h-3.5 w-3.5" />
-                          {Number(video.likes).toLocaleString("ru-RU")}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MessageCircle className="h-3.5 w-3.5" />
-                          {Number(video.comments).toLocaleString("ru-RU")}
-                        </span>
-                      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {results.map((video: any, i: number) => {
+                const timeAgo = getTimeAgo(video.published_at);
+                const score = video.trend_score || 0;
+                const velViews = video.velocity_views || 0;
+                const isRocket = score > 500;
+                const isFire = score > 100;
+
+                return (
+                  <div
+                    key={video.id || i}
+                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col"
+                    style={{ animationDelay: `${i * 0.03}s` }}
+                  >
+                    {/* Video area */}
+                    <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
+                      {playingId === (video.id || video.platform_video_id) ? (
+                        <>
+                          <iframe
+                            src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                            className="w-full h-full border-0"
+                            allow="autoplay; encrypted-media; fullscreen"
+                            allowFullScreen
+                          />
+                          <button
+                            onClick={() => setPlayingId(null)}
+                            className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {video.cover_url ? (
+                            <img
+                              src={video.cover_url}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              className="w-full h-full object-cover cursor-pointer"
+                              onClick={() => setPlayingId(video.id || video.platform_video_id)}
+                            />
+                          ) : (
+                            <div
+                              className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
+                              onClick={() => setPlayingId(video.id || video.platform_video_id)}
+                            >
+                              <Play className="h-12 w-12 text-muted-foreground/30" />
+                            </div>
+                          )}
+
+                          {/* TikTok header bar */}
+                          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2.5 z-10 pointer-events-none">
+                            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm">
+                              <Music className="h-3 w-3 text-foreground" />
+                              <span className="text-[11px] font-bold text-foreground">Tik-Tok</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); toggleFav(video.id); }}
+                                className="pointer-events-auto w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                              >
+                                <Heart
+                                  className={`h-4 w-4 transition-all ${
+                                    userFavorites.includes(video.id)
+                                      ? "text-primary fill-primary"
+                                      : "text-primary"
+                                  }`}
+                                />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Trend indicators */}
+                          {isFire && (
+                            <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
+                              {isRocket ? (
+                                <div className="flex items-center gap-1 bg-orange-500/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg animate-[pulse_1.5s_ease-in-out_infinite]">
+                                  <Rocket className="h-3.5 w-3.5 text-white" />
+                                  <span className="text-[10px] font-bold text-white">Взлетает!</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 bg-red-500/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
+                                  <Flame className="h-3.5 w-3.5 text-white" />
+                                  <span className="text-[10px] font-bold text-white">В тренде</span>
+                                </div>
+                              )}
+                              {velViews > 10 && (
+                                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
+                                  <TrendingUp className="h-3 w-3 text-white" />
+                                  <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Open in TikTok */}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
+                            className="absolute top-12 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+                          </button>
+
+                          {/* Play button center */}
+                          <div
+                            className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                            onClick={() => setPlayingId(video.id || video.platform_video_id)}
+                          >
+                            <div className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
+                              <Play className="h-7 w-7 text-white fill-white ml-0.5" />
+                            </div>
+                          </div>
+
+                          {/* Bottom stats bar */}
+                          <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10 pointer-events-none">
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
+                                <Eye className="h-4 w-4 text-white mb-0.5" />
+                                <span className="text-white text-[11px] font-bold">{fmt(Number(video.views))}</span>
+                              </div>
+                              <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
+                                <Heart className="h-4 w-4 text-white mb-0.5" />
+                                <span className="text-white text-[11px] font-bold">{fmt(Number(video.likes))}</span>
+                              </div>
+                              <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
+                                <MessageCircle className="h-4 w-4 text-white mb-0.5" />
+                                <span className="text-white text-[11px] font-bold">{fmt(Number(video.comments))}</span>
+                              </div>
+                              <div className="flex flex-col items-center bg-white/20 backdrop-blur-md rounded-xl px-3 py-1.5">
+                                <Share2 className="h-4 w-4 text-white mb-0.5" />
+                                <span className="text-white text-[11px] font-bold">{fmt(Number(video.shares || 0))}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <button
-                      onClick={() => toggleFav(video.id)}
-                      className="shrink-0 self-start p-1"
-                    >
-                      <Star
-                        className={`h-5 w-5 transition-all ${
-                          userFavorites.includes(video.id)
-                            ? "text-yellow-400 fill-yellow-400 scale-110"
-                            : "text-muted-foreground/40 hover:text-yellow-400"
-                        }`}
-                      />
-                    </button>
+
+                    {/* Author row */}
+                    <div className="px-3 pt-3 flex items-center gap-2">
+                      {video.author_avatar_url ? (
+                        <img
+                          src={video.author_avatar_url}
+                          alt=""
+                          loading="lazy"
+                          className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
+                      )}
+                      <span className="text-sm font-semibold text-foreground truncate">
+                        @{video.author_username}
+                      </span>
+                    </div>
+
+                    {/* Caption */}
+                    <div className="px-3 pt-1.5 pb-1">
+                      <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">
+                        {video.caption || "Без описания"}
+                      </p>
+                    </div>
+
+                    {/* Time ago */}
+                    {timeAgo && (
+                      <div className="px-3 pb-2">
+                        <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
+                      </div>
+                    )}
+
+                    {/* Analyze button */}
+                    <div className="px-3 pb-3 mt-auto">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAnalysisVideo(video);
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                      >
+                        Анализ видео
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : isSearching ? (
             <div className="flex flex-col items-center justify-center py-32 gap-4">
@@ -239,6 +384,11 @@ export default function SearchPage() {
           </div>
         </div>
       </div>
+      <VideoAnalysisDialog
+        video={analysisVideo}
+        open={!!analysisVideo}
+        onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
+      />
     </AppLayout>
   );
 }
