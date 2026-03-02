@@ -172,7 +172,7 @@ export default function Trends() {
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
               {refreshing ? "Обновление..." : "Обновить"}
             </button>
-          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow">
+          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto">
             {([1, 3, 7, 30, 0] as const).map((p) => (
               <button
                 key={p}
