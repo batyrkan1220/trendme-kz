@@ -226,7 +226,7 @@ export default function Trends() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse">
                 <div className="aspect-[9/14] bg-muted m-2 rounded-2xl" />
