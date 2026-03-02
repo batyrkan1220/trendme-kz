@@ -142,7 +142,7 @@ Deno.serve(async (req: Request) => {
 
     // How many queries per niche based on mode
     const queriesPerNiche = 1; // Default: 1 query per niche per run
-    const WEAK_NICHES = new Set(["career", "tattoo", "psychology", "mama", "business", "therapy", "ai_art", "ai_avatar", "ai_news"]);
+    const WEAK_NICHES = new Set(["career", "psychology", "mama", "business", "therapy", "ai_art", "ai_avatar", "ai_news"]);
     const weakQueriesPerNiche = 3; // Weak niches get 3 queries per run
     const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 3 : 2;
 
