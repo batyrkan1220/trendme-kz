@@ -157,7 +157,10 @@ Deno.serve(async (req: Request) => {
       .single();
     const thresholds = (thresholdsRow?.value as any) || {};
     const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
-    const fullGeneralKzThreshold = thresholds.full_general_kz_threshold ?? 200;
+    // KZ total limit: prefer category_limits.__kz_total, fallback to thresholds
+    const fullGeneralKzThreshold = categoryLimits["__kz_total"] && categoryLimits["__kz_total"] > 0
+      ? categoryLimits["__kz_total"]
+      : (thresholds.full_general_kz_threshold ?? 200);
     const minForeignTrendScore = thresholds.min_foreign_trend_score ?? 500;
     const qPerNiche = thresholds.queries_per_niche || {};
     const wqPerNiche = thresholds.weak_queries_per_niche || {};
