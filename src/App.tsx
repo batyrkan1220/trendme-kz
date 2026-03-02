@@ -11,7 +11,7 @@ import SearchPage from "./pages/SearchPage";
 import Trends from "./pages/Trends";
 import VideoAnalysis from "./pages/VideoAnalysis";
 import AccountAnalysis from "./pages/AccountAnalysis";
-import Favorites from "./pages/Favorites";
+
 import Journal from "./pages/Journal";
 import Auth from "./pages/Auth";
 import Razvedka from "./pages/Razvedka";
