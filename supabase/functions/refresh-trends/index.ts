@@ -180,7 +180,13 @@ Deno.serve(async (req: Request) => {
     const WEAK_NICHES = new Set(
       allNicheKeys.filter(n => (nicheCountMap[n] || 0) < weakNicheThreshold)
     );
-    if (batchIndex === 0) console.log(`Weak niches (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
+    const FULL_NICHES = new Set(
+      allNicheKeys.filter(n => (nicheCountMap[n] || 0) >= fullNicheThreshold)
+    );
+    if (batchIndex === 0) {
+      console.log(`Weak categories (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
+      console.log(`Full categories (>= ${fullNicheThreshold}, skipping): ${[...FULL_NICHES].join(", ") || "none"}`);
+    }
 
     // Use DB thresholds for query counts
     const queriesPerNiche = mode === "mass" ? (qPerNiche.mass ?? 8) : mode === "lite" ? (qPerNiche.lite ?? 3) : (qPerNiche.full ?? 5);
