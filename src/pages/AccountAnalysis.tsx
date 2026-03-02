@@ -340,7 +340,13 @@ export default function AccountAnalysis() {
                         </p>
                       </div>
 
-                      {/* Analyze button */}
+                      {/* Date */}
+                      {v.createTime > 0 && (
+                        <div className="px-3 pb-1">
+                          <span className="text-[11px] text-muted-foreground">{getTimeAgo(v.createTime)}</span>
+                        </div>
+                      )}
+
                       <div className="px-3 pb-3 mt-auto">
                         <button
                           onClick={() => setAnalysisVideo({
