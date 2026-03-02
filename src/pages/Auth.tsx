@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Mail, Lock, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { Flame, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,9 +49,8 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-30" style={{ background: "hsl(340 82% 80%)" }} />
-      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-30" style={{ background: "hsl(174 100% 80%)" }} />
+      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: "hsl(14 90% 75%)" }} />
+      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: "hsl(165 65% 75%)" }} />
 
       <div className="w-full max-w-sm space-y-8 animate-fade-in relative">
         {/* Logo */}
@@ -60,9 +59,8 @@ export default function Auth() {
             <Flame className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold gradient-text">Trend TikTok</h1>
-            <p className="text-sm text-muted-foreground mt-2 flex items-center justify-center gap-1">
-              <Sparkles className="h-3.5 w-3.5" />
+            <h1 className="text-3xl font-bold gradient-text">TrendTok</h1>
+            <p className="text-sm text-muted-foreground mt-2">
               {isLogin ? "Войдите в свой аккаунт" : "Создайте аккаунт"}
             </p>
           </div>

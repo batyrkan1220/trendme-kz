@@ -4,28 +4,30 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, TrendingUp, Search,
   Video, UserCircle, BookOpen, ScrollText,
-  Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Zap
+  Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight
 } from "lucide-react";
 
 interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   path: string;
+  badge?: string;
 }
 
-const mainItems: NavItem[] = [
-  { label: "Дашборд", icon: LayoutDashboard, path: "/dashboard" },
+const searchItems: NavItem[] = [
+  { label: "Главная", icon: LayoutDashboard, path: "/dashboard" },
+  { label: "Поиск по слову", icon: Search, path: "/search" },
   { label: "Тренды", icon: TrendingUp, path: "/trends" },
-  { label: "Поиск", icon: Search, path: "/search" },
-  { label: "Анализ видео", icon: Video, path: "/video-analysis" },
-  { label: "Анализ аккаунт", icon: UserCircle, path: "/account-analysis" },
-  { label: "Библиотека", icon: BookOpen, path: "/library" },
-  { label: "Журнал", icon: ScrollText, path: "/journal" },
 ];
 
-const bottomItems: NavItem[] = [
-  { label: "Токены", icon: Coins, path: "/tokens" },
-  { label: "Тарифы", icon: CreditCard, path: "/pricing" },
+const toolItems: NavItem[] = [
+  { label: "Анализ видео", icon: Video, path: "/video-analysis" },
+  { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis" },
+];
+
+const ideaItems: NavItem[] = [
+  { label: "Библиотека", icon: BookOpen, path: "/library" },
+  { label: "Журнал", icon: ScrollText, path: "/journal" },
 ];
 
 interface AppSidebarProps {
@@ -45,144 +47,170 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
   const initials = user?.email?.charAt(0).toUpperCase() || "U";
 
+  const renderGroup = (label: string, items: NavItem[]) => (
+    <div className="mb-3">
+      {!collapsed && <p className="section-label">{label}</p>}
+      <div className="space-y-0.5">
+        {items.map((item) => {
+          const active = location.pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              title={collapsed ? item.label : undefined}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-150 group relative",
+                active
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                  : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
+                collapsed && "justify-center px-0"
+              )}
+            >
+              <item.icon className={cn(
+                "h-[18px] w-[18px] shrink-0 transition-colors",
+                active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+              )} />
+              {!collapsed && (
+                <>
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge && (
+                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">
+                      {item.badge}
+                    </span>
+                  )}
+                </>
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <aside
       className={cn(
         "h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 shrink-0 z-30",
-        collapsed ? "w-[68px]" : "w-[240px]"
+        collapsed ? "w-[64px]" : "w-[232px]"
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border shrink-0">
-        <div className="h-9 w-9 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 neon-border">
-          <Zap className="h-5 w-5 text-primary" />
+      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
+        <div className="h-8 w-8 rounded-lg gradient-hero flex items-center justify-center shrink-0">
+          <Flame className="h-4 w-4 text-primary-foreground" />
         </div>
         {!collapsed && (
-          <span className="font-bold text-lg whitespace-nowrap gradient-text tracking-tight">
-            TrendTok
-          </span>
-        )}
-      </div>
-
-      {/* Section Label */}
-      {!collapsed && (
-        <div className="px-4 pt-5 pb-1">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/60">
-            Меню
-          </span>
-        </div>
-      )}
-
-      {/* Main Nav */}
-      <nav className="flex-1 py-1 px-2 space-y-0.5 overflow-y-auto">
-        {mainItems.map((item) => {
-          const active = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group relative",
-                active
-                  ? "bg-primary/15 text-primary font-semibold"
-                  : "text-sidebar-foreground hover:bg-muted hover:text-foreground",
-                collapsed && "justify-center px-0"
-              )}
-            >
-              {active && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
-              )}
-              <item.icon className={cn(
-                "h-[18px] w-[18px] shrink-0 transition-colors",
-                active ? "text-primary" : "group-hover:text-foreground"
-              )} />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Bottom */}
-      <div className="border-t border-sidebar-border py-3 px-2 space-y-0.5 shrink-0">
-        {!collapsed && (
-          <div className="px-2 pb-2">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/60">
-              Настройки
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-base text-foreground tracking-tight">
+              TrendTok
+            </span>
+            <span className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md uppercase">
+              Beta
             </span>
           </div>
         )}
+      </div>
 
-        {bottomItems.map((item) => {
-          const active = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group relative",
-                active
-                  ? "bg-primary/15 text-primary font-semibold"
-                  : "text-sidebar-foreground hover:bg-muted hover:text-foreground",
-                collapsed && "justify-center px-0"
-              )}
-            >
-              {active && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
-              )}
-              <item.icon className={cn(
-                "h-[18px] w-[18px] shrink-0",
-                active ? "text-primary" : "group-hover:text-foreground"
-              )} />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
+      {/* Main Nav */}
+      <nav className="flex-1 py-4 px-2 overflow-y-auto">
+        {renderGroup("Поиск контента", searchItems)}
+        {renderGroup("Инструменты", toolItems)}
+        {renderGroup("Идеи", ideaItems)}
+      </nav>
+
+      {/* Bottom */}
+      <div className="border-t border-sidebar-border py-3 px-2 space-y-1 shrink-0">
+        {/* Token counter */}
+        {!collapsed && (
+          <Link
+            to="/tokens"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm hover:bg-muted/60 transition-colors group"
+          >
+            <Flame className="h-4 w-4 text-primary shrink-0" />
+            <span className="flex-1 text-sm text-muted-foreground font-medium">Токены</span>
+            <span className="text-xs font-bold text-foreground">1000</span>
+          </Link>
+        )}
+        {collapsed && (
+          <Link
+            to="/tokens"
+            title="Токены"
+            className="flex justify-center py-2 rounded-xl text-muted-foreground hover:bg-muted/60 transition-colors"
+          >
+            <Coins className="h-[18px] w-[18px]" />
+          </Link>
+        )}
+
+        {/* Pricing */}
+        {!collapsed && (
+          <Link
+            to="/pricing"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-muted/60 transition-colors"
+          >
+            <CreditCard className="h-4 w-4 shrink-0" />
+            <span>Тарифы</span>
+            <ArrowRight className="h-3 w-3 ml-auto" />
+          </Link>
+        )}
+        {collapsed && (
+          <Link
+            to="/pricing"
+            title="Тарифы"
+            className="flex justify-center py-2 rounded-xl text-muted-foreground hover:bg-muted/60 transition-colors"
+          >
+            <CreditCard className="h-[18px] w-[18px]" />
+          </Link>
+        )}
 
         {/* User Profile */}
         <div className={cn(
-          "flex items-center gap-3 px-3 py-2.5 mt-3 rounded-xl glass",
-          collapsed && "justify-center px-0"
+          "flex items-center gap-2.5 px-3 py-2 mt-1 rounded-xl border border-sidebar-border",
+          collapsed && "justify-center px-0 border-0"
         )}>
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent shrink-0 flex items-center justify-center text-xs font-bold text-white">
+          <div className="h-7 w-7 rounded-full gradient-hero shrink-0 flex items-center justify-center text-[10px] font-bold text-primary-foreground">
             {initials}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">
+              <p className="text-xs font-semibold text-foreground truncate">
                 {user?.email?.split("@")[0] || "Пользователь"}
               </p>
-              <p className="text-[11px] text-muted-foreground truncate">{user?.email || ""}</p>
             </div>
+          )}
+          {!collapsed && (
+            <button
+              onClick={handleLogout}
+              title="Выйти"
+              className="text-muted-foreground/50 hover:text-destructive transition-colors shrink-0"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
           )}
         </div>
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-colors",
-            collapsed && "justify-center px-0"
-          )}
-        >
-          <LogOut className="h-[18px] w-[18px]" />
-          {!collapsed && <span>Выйти</span>}
-        </button>
+        {collapsed && (
+          <button
+            onClick={handleLogout}
+            title="Выйти"
+            className="flex justify-center py-2 rounded-xl text-muted-foreground hover:text-destructive w-full transition-colors"
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+          </button>
+        )}
 
         {/* Collapse Toggle */}
         <button
           onClick={onToggle}
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-muted hover:text-foreground w-full transition-colors",
+            "flex items-center gap-3 px-3 py-1.5 rounded-xl text-xs text-muted-foreground/50 hover:text-foreground w-full transition-colors",
             collapsed && "justify-center px-0"
           )}
         >
           {collapsed ? (
-            <ChevronRight className="h-[18px] w-[18px]" />
+            <ChevronRight className="h-4 w-4" />
           ) : (
             <>
-              <ChevronLeft className="h-[18px] w-[18px]" />
+              <ChevronLeft className="h-4 w-4" />
               <span>Свернуть</span>
             </>
           )}
