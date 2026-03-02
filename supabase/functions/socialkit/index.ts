@@ -446,12 +446,55 @@ Deno.serve(async (req: Request) => {
         if (!profile_url) return json({ error: "profile_url is required" }, 400);
         if (!validateTikTokUrl(profile_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
-        const data = await callSocialKit("/tiktok/channel-stats", { url: profile_url });
-        const accountData = data.data || data;
+        // Fetch channel stats and top videos in parallel
+        const [channelRes, videosRes] = await Promise.allSettled([
+          callSocialKit("/tiktok/channel-stats", { url: profile_url }),
+          callSocialKit("/tiktok/channel-videos", { url: profile_url, count: "30" }),
+        ]);
+
+        const accountData = channelRes.status === "fulfilled"
+          ? (channelRes.value?.data || channelRes.value)
+          : {};
+
+        let topVideos: any[] = [];
+        if (videosRes.status === "fulfilled") {
+          const vData = videosRes.value;
+          const rawVideos = Array.isArray(vData) ? vData
+            : Array.isArray(vData?.data) ? vData.data
+            : Array.isArray(vData?.items) ? vData.items
+            : Array.isArray(vData?.videos) ? vData.videos
+            : [];
+          topVideos = rawVideos.map((v: any) => ({
+            id: v.id || v.video_id || v.aweme_id,
+            desc: v.desc || v.caption || v.title || "",
+            cover: v.video?.cover || v.cover_url || v.cover || "",
+            url: v.url || `https://www.tiktok.com/@${accountData.uniqueId || "user"}/video/${v.id || v.video_id}`,
+            views: v.stats?.views || v.playCount || v.views || 0,
+            likes: v.stats?.likes || v.diggCount || v.likes || 0,
+            comments: v.stats?.comments || v.commentCount || v.comments || 0,
+            shares: v.stats?.shares || v.shareCount || v.shares || 0,
+            duration: v.video?.duration || v.duration || 0,
+            createTime: v.createTime || v.create_time || 0,
+          }));
+          topVideos.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
+        }
 
         const username =
           accountData.uniqueId || accountData.unique_id || accountData.username ||
           profile_url.split("@").pop()?.split("?")[0] || "";
+
+        const followers = accountData.followerCount || accountData.followers || 0;
+        const totalLikes = accountData.heartCount || accountData.total_likes || 0;
+        const totalVideos = accountData.videoCount || accountData.total_videos || 0;
+
+        // Computed metrics
+        const avgLikesPerVideo = totalVideos > 0 ? Math.round(totalLikes / totalVideos) : 0;
+        const engagementRate = followers > 0 ? ((totalLikes / Math.max(totalVideos, 1)) / followers * 100) : 0;
+
+        // Avg views from top videos
+        const avgViews = topVideos.length > 0
+          ? Math.round(topVideos.reduce((sum: number, v: any) => sum + (v.views || 0), 0) / topVideos.length)
+          : 0;
 
         const { data: account } = await userClient
           .from("accounts_tracked")
@@ -461,10 +504,10 @@ Deno.serve(async (req: Request) => {
               profile_url,
               username,
               avatar_url: accountData.avatarThumb || accountData.avatar_url || "",
-              followers: accountData.followerCount || accountData.followers || 0,
+              followers,
               following: accountData.followingCount || accountData.following || 0,
-              total_likes: accountData.heartCount || accountData.total_likes || 0,
-              total_videos: accountData.videoCount || accountData.total_videos || 0,
+              total_likes: totalLikes,
+              total_videos: totalVideos,
               verified: accountData.verified || false,
               bio: accountData.signature || accountData.bio || "",
               bio_link: accountData.bioLink?.link || accountData.bio_link || "",
@@ -481,7 +524,13 @@ Deno.serve(async (req: Request) => {
           payload_json: { profile_url, username },
         });
 
-        return json(account);
+        return json({
+          ...account,
+          avg_likes_per_video: avgLikesPerVideo,
+          engagement_rate: Math.round(engagementRate * 100) / 100,
+          avg_views: avgViews,
+          top_videos: topVideos.slice(0, 12),
+        });
       }
 
       default:
