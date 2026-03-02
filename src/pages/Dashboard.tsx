@@ -49,7 +49,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-7 animate-fade-in max-w-5xl">
+      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-7 animate-fade-in max-w-5xl w-full overflow-hidden">
         {/* Hero */}
         <div className="gradient-hero rounded-xl md:rounded-2xl p-4 md:p-7 glow-primary relative overflow-hidden">
           <div className="relative flex items-center justify-between">
@@ -141,39 +141,36 @@ export default function Dashboard() {
                   className="group bg-card rounded-xl overflow-hidden border border-border/60 hover-lift card-shadow-hover transition-all"
                 >
                   {video.cover_url ? (
-                    <div className="aspect-video relative overflow-hidden">
+                    <div className="aspect-square md:aspect-[4/5] relative overflow-hidden">
                       <img
                         src={video.cover_url}
                         alt=""
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       {video.trend_score != null && video.trend_score > 0 && (
-                        <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <div className="absolute top-1.5 right-1.5 bg-primary text-primary-foreground text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                           🔥 {Math.round(video.trend_score)}
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="aspect-video bg-muted flex items-center justify-center">
-                      <Video className="h-8 w-8 text-muted-foreground/20" />
+                    <div className="aspect-square md:aspect-[4/5] bg-muted flex items-center justify-center">
+                      <Video className="h-6 w-6 text-muted-foreground/20" />
                     </div>
                   )}
-                  <div className="p-2 md:p-3">
-                    <p className="text-sm font-medium text-foreground line-clamp-2 leading-snug">
+                  <div className="p-1.5 md:p-3">
+                    <p className="text-xs md:text-sm font-medium text-foreground line-clamp-2 leading-snug">
                       {video.caption || "Без описания"}
                     </p>
                     {video.author_username && (
-                      <p className="text-[11px] text-primary font-medium mt-1">@{video.author_username}</p>
+                      <p className="text-[10px] md:text-[11px] text-primary font-medium mt-0.5 md:mt-1 truncate">@{video.author_username}</p>
                     )}
-                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-2">
-                      <span className="flex items-center gap-1">
+                    <div className="flex items-center gap-2 md:gap-3 text-[10px] md:text-[11px] text-muted-foreground mt-1 md:mt-2">
+                      <span className="flex items-center gap-0.5">
                         <Eye className="h-3 w-3" /> {formatNum(Number(video.views) || 0)}
                       </span>
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-0.5">
                         <Heart className="h-3 w-3" /> {formatNum(Number(video.likes) || 0)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle className="h-3 w-3" /> {formatNum(Number(video.comments) || 0)}
                       </span>
                     </div>
                   </div>
