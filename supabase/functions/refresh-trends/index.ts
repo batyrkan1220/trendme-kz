@@ -333,6 +333,7 @@ Deno.serve(async (req: Request) => {
                   fetched_at: now,
                   region: "kz",
                   niche: nicheKey,
+                  categories: [nicheKey],
                   ...trends,
                 };
               }).filter(Boolean);
