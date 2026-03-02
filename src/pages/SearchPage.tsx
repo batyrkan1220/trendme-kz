@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search as SearchIcon, Clock, Star, Eye, Heart, MessageCircle, Loader2 } from "lucide-react";
+import { Search as SearchIcon, Clock, Star, Eye, Heart, MessageCircle, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -188,7 +188,17 @@ export default function SearchPage() {
                 </div>
               ))}
             </div>
-          ) : !isSearching ? (
+          ) : isSearching ? (
+            <div className="flex flex-col items-center justify-center py-32 gap-4">
+              <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
+                <Sparkles className="h-8 w-8 text-primary-foreground animate-pulse" />
+              </div>
+              <p className="text-muted-foreground font-medium text-center">
+                Ищем видео по вашему запросу...
+              </p>
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            </div>
+          ) : (
             <div className="text-center py-20">
               <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
                 <SearchIcon className="h-10 w-10 text-muted-foreground/30" />
@@ -197,7 +207,7 @@ export default function SearchPage() {
                 Введите запрос для поиска видео в TikTok
               </p>
             </div>
-          ) : null}
+          )}
         </div>
 
         <div className="w-72 shrink-0 hidden xl:block">
