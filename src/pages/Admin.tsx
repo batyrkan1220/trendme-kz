@@ -576,3 +576,173 @@ function StatsSection() {
     </Card>
   );
 }
+
+/* ==================== TARIFFS TAB ==================== */
+function TariffsTab() {
+  const queryClient = useQueryClient();
+  const [editPlan, setEditPlan] = useState<any | null>(null);
+  const [assignDialog, setAssignDialog] = useState<{ open: boolean }>({ open: false });
+
+  const { data: plans = [], isLoading: plansLoading } = useQuery({
+    queryKey: ["admin-plans"],
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-plans`, {
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      });
+      if (!res.ok) throw new Error("Failed");
+      return (await res.json()).plans || [];
+    },
+  });
+
+  const { data: subscriptions = [], isLoading: subsLoading } = useQuery({
+    queryKey: ["admin-subscriptions"],
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-subscriptions`, {
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      });
+      if (!res.ok) throw new Error("Failed");
+      return (await res.json()).subscriptions || [];
+    },
+  });
+
+  const adminFetch = async (action: string, body: any) => {
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=${action}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error("Failed");
+  };
+
+  const upsertPlan = useMutation({ mutationFn: (plan: any) => adminFetch("upsert-plan", plan), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-plans"] }); toast.success("Тариф сохранён"); setEditPlan(null); }, onError: () => toast.error("Ошибка") });
+  const deletePlan = useMutation({ mutationFn: (plan_id: string) => adminFetch("delete-plan", { plan_id }), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-plans"] }); toast.success("Тариф удалён"); }, onError: () => toast.error("Ошибка") });
+  const assignSub = useMutation({ mutationFn: (body: any) => adminFetch("assign-subscription", body), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-subscriptions", "admin-users-list"] }); toast.success("Подписка назначена"); setAssignDialog({ open: false }); }, onError: () => toast.error("Ошибка") });
+  const revokeSub = useMutation({ mutationFn: (id: string) => adminFetch("revoke-subscription", { subscription_id: id }), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] }); toast.success("Подписка отозвана"); }, onError: () => toast.error("Ошибка") });
+
+  if (plansLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2"><Crown className="h-5 w-5 text-primary" /> Тарифные планы</CardTitle>
+          <Button size="sm" onClick={() => setEditPlan({ name: "", price_rub: 0, duration_days: 30, max_requests: 100, max_tracked_accounts: 5, features: [], is_active: true, sort_order: plans.length + 1 })}><Plus className="h-4 w-4 mr-1" /> Новый тариф</Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {plans.map((plan: any) => (
+              <div key={plan.id} className={`rounded-xl border p-4 space-y-2 ${plan.is_active ? "border-border" : "border-border/30 opacity-60"}`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-foreground">{plan.name}</h3>
+                  <div className="flex gap-1">
+                    <button onClick={() => setEditPlan(plan)} className="p-1 hover:text-primary"><Edit2 className="h-4 w-4" /></button>
+                    <button onClick={() => deletePlan.mutate(plan.id)} className="p-1 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                </div>
+                <p className="text-xl font-bold text-foreground">{plan.price_rub === 0 ? "Бесплатно" : `${plan.price_rub.toLocaleString()} ₽/мес`}</p>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>Запросов: {plan.max_requests === -1 ? "∞" : plan.max_requests}</p>
+                  <p>Авторов: {plan.max_tracked_accounts === -1 ? "∞" : plan.max_tracked_accounts}</p>
+                  <p>Срок: {plan.duration_days} дн.</p>
+                </div>
+                {!plan.is_active && <Badge variant="destructive" className="text-xs">Неактивен</Badge>}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">Подписки пользователей</CardTitle>
+          <Button size="sm" onClick={() => setAssignDialog({ open: true })}><Plus className="h-4 w-4 mr-1" /> Назначить</Button>
+        </CardHeader>
+        <CardContent>
+          {subsLoading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto" /> : subscriptions.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Нет подписок</p>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {subscriptions.map((sub: any) => (
+                <div key={sub.id} className="flex items-center gap-3 text-sm p-2 rounded-lg bg-muted/30">
+                  <span className="font-medium truncate max-w-40">{sub.user_email}</span>
+                  <Badge variant={sub.is_active ? "default" : "secondary"}>{sub.plans?.name || "—"}</Badge>
+                  <span className="text-muted-foreground text-xs">до {new Date(sub.expires_at).toLocaleDateString("ru-RU")}</span>
+                  {sub.is_active && <Badge variant={new Date(sub.expires_at) > new Date() ? "default" : "destructive"} className="text-xs">{new Date(sub.expires_at) > new Date() ? "Активна" : "Истекла"}</Badge>}
+                  {sub.is_active && <Button size="sm" variant="ghost" className="ml-auto h-7 text-xs text-destructive hover:text-destructive" onClick={() => revokeSub.mutate(sub.id)}>Отозвать</Button>}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {editPlan && <PlanEditDialog plan={editPlan} onClose={() => setEditPlan(null)} onSave={(p) => upsertPlan.mutate(p)} saving={upsertPlan.isPending} />}
+      {assignDialog.open && <AssignSubDialog plans={plans} onClose={() => setAssignDialog({ open: false })} onAssign={(data) => assignSub.mutate(data)} saving={assignSub.isPending} />}
+    </div>
+  );
+}
+
+function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose: () => void; onSave: (p: any) => void; saving: boolean }) {
+  const [form, setForm] = useState({ ...plan, features: Array.isArray(plan.features) ? plan.features.join("\n") : "" });
+  const handleSave = () => {
+    onSave({
+      ...(plan.id ? { id: plan.id } : {}), name: form.name, price_rub: Number(form.price_rub), duration_days: Number(form.duration_days),
+      max_requests: Number(form.max_requests), max_tracked_accounts: Number(form.max_tracked_accounts),
+      features: form.features.split("\n").map((f: string) => f.trim()).filter(Boolean), is_active: form.is_active, sort_order: Number(form.sort_order),
+    });
+  };
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>{plan.id ? "Редактировать тариф" : "Новый тариф"}</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div><label className="text-sm text-muted-foreground">Название</label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-sm text-muted-foreground">Цена (₽/мес)</label><Input type="number" value={form.price_rub} onChange={(e) => setForm({ ...form, price_rub: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Срок (дней)</label><Input type="number" value={form.duration_days} onChange={(e) => setForm({ ...form, duration_days: e.target.value })} /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-sm text-muted-foreground">Макс запросов (-1 = ∞)</label><Input type="number" value={form.max_requests} onChange={(e) => setForm({ ...form, max_requests: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Макс авторов (-1 = ∞)</label><Input type="number" value={form.max_tracked_accounts} onChange={(e) => setForm({ ...form, max_tracked_accounts: e.target.value })} /></div>
+          </div>
+          <div><label className="text-sm text-muted-foreground">Фичи (по одной на строку)</label><textarea className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-20" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} /></div>
+          <div className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded" /><span className="text-sm">Активен</span></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Отмена</Button>
+          <Button onClick={handleSave} disabled={saving || !form.name}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Сохранить"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AssignSubDialog({ plans, onClose, onAssign, saving }: { plans: any[]; onClose: () => void; onAssign: (data: any) => void; saving: boolean }) {
+  const [userId, setUserId] = useState("");
+  const [planId, setPlanId] = useState("");
+  const [days, setDays] = useState("30");
+  const [note, setNote] = useState("");
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Назначить подписку</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div><label className="text-sm text-muted-foreground">User ID</label><Input placeholder="UUID пользователя" value={userId} onChange={(e) => setUserId(e.target.value)} /></div>
+          <div>
+            <label className="text-sm text-muted-foreground">Тариф</label>
+            <Select value={planId} onValueChange={setPlanId}>
+              <SelectTrigger><SelectValue placeholder="Выберите тариф" /></SelectTrigger>
+              <SelectContent>{plans.filter((p) => p.is_active).map((p) => (<SelectItem key={p.id} value={p.id}>{p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}</SelectItem>))}</SelectContent>
+            </Select>
+          </div>
+          <div><label className="text-sm text-muted-foreground">Срок (дней)</label><Input type="number" value={days} onChange={(e) => setDays(e.target.value)} /></div>
+          <div><label className="text-sm text-muted-foreground">Примечание</label><Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Необязательно" /></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Отмена</Button>
+          <Button onClick={() => onAssign({ user_id: userId, plan_id: planId, duration_days: Number(days), note })} disabled={saving || !userId || !planId}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Назначить"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
