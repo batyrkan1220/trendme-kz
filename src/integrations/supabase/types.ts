@@ -378,6 +378,7 @@ export type Database = {
           author_display_name: string | null
           author_username: string | null
           caption: string | null
+          categories: string[] | null
           comments: number | null
           cover_url: string | null
           created_at: string
@@ -404,6 +405,7 @@ export type Database = {
           author_display_name?: string | null
           author_username?: string | null
           caption?: string | null
+          categories?: string[] | null
           comments?: number | null
           cover_url?: string | null
           created_at?: string
@@ -430,6 +432,7 @@ export type Database = {
           author_display_name?: string | null
           author_username?: string | null
           caption?: string | null
+          categories?: string[] | null
           comments?: number | null
           cover_url?: string | null
           created_at?: string
