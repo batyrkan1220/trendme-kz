@@ -73,12 +73,6 @@ function PlatformTab() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["admin-platform-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: null,
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-      // Edge function uses GET with query params, need to use fetch directly
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=platform-stats`,
         {
