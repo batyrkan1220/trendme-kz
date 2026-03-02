@@ -127,7 +127,7 @@ ${videoContext}
     });
   } catch (e) {
     console.error("generate-script error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Не удалось обработать запрос. Попробуйте позже." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
