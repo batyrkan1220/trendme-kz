@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search as SearchIcon, Clock, Star, Eye, Heart, MessageCircle, Loader2 } from "lucide-react";
+import { Search as SearchIcon, Clock, Star, Eye, Heart, MessageCircle, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
