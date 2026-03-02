@@ -79,7 +79,7 @@ export default function Dashboard() {
               <Link
                 key={a.path}
                 to={a.path}
-                className="flex items-center gap-3 bg-card rounded-xl px-4 py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[180px] group"
+                className="flex items-center gap-3 bg-card rounded-xl px-3 md:px-4 py-2.5 md:py-3 border border-border/60 hover-lift card-shadow-hover transition-all min-w-[160px] md:min-w-[180px] group"
               >
                 <span className="text-xl">{a.emoji}</span>
                 <div>
