@@ -343,62 +343,88 @@ Deno.serve(async (req: Request) => {
         const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
         const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
         let nicheSaved = 0;
+        let allRawVideos: any[] = []; // collect raw videos for AI analysis
 
         for (const query of uniqueQueries) {
           try {
             const data = await callSocialKit("/tiktok/search", { query, count: "100" });
             const videos = extractVideos(data);
-            const videoRows = videos.map(v => {
-              const videoId = v.id || v.video_id || v.aweme_id;
-              if (!videoId) return null;
-              const trends = computeTrend(v);
-              const publishedDate = new Date(trends.published_at);
-              if (publishedDate < sevenDaysAgo) return null;
-              const stats = v.stats || {};
-              const caption = v.desc || v.caption || v.title || "";
-              const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
-              return {
-                platform: "tiktok",
-                platform_video_id: String(videoId),
-                url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
-                caption,
-                cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-                author_username: username,
-                author_display_name: v.author?.nickname || v.author_display_name || "",
-                author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
-                views: stats.views || v.views || v.playCount || 0,
-                likes: stats.likes || v.likes || v.diggCount || 0,
-                comments: stats.comments || v.comments || v.commentCount || 0,
-                shares: stats.shares || v.shares || v.shareCount || 0,
-                duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
-                fetched_at: now,
-                region: "kz",
-                niche: nicheKey,
-                categories: [nicheKey],
-                ...trends,
-              };
-            }).filter(Boolean);
-
-            // Filter: keep only videos with Cyrillic (Russian/Kazakh) captions
-            const cyrillicRows = videoRows.filter((row: any) => {
-              const cap = row.caption || "";
-              return /[а-яА-ЯёЁәғқңөұүіӘҒҚҢӨҰҮІ]/.test(cap);
-            });
-
-            if (cyrillicRows.length > 0) {
-              const { data: upserted } = await adminClient
-                .from("videos")
-                .upsert(cyrillicRows, { onConflict: "platform_video_id" })
-                .select("id");
-              nicheSaved += upserted?.length || 0;
-            }
+            allRawVideos.push(...videos);
           } catch (err) {
             console.error(`Niche ${nicheKey} query "${query}" failed:`, err.message);
           }
         }
+
+        // Deduplicate raw videos by ID
+        const seenIds = new Set<string>();
+        const uniqueRawVideos = allRawVideos.filter(v => {
+          const id = String(v.id || v.video_id || v.aweme_id || "");
+          if (!id || seenIds.has(id)) return false;
+          seenIds.add(id);
+          return true;
+        });
+
+        // Run AI viral detection on all collected videos
+        const viralScores = await detectViralWithAI(uniqueRawVideos, nicheKey);
+        console.log(`Niche ${nicheKey}: ${uniqueRawVideos.length} unique videos, AI scored ${viralScores.size}`);
+
+        // Build rows with AI-boosted trend scores
+        const videoRows = uniqueRawVideos.map(v => {
+          const videoId = v.id || v.video_id || v.aweme_id;
+          if (!videoId) return null;
+          const trends = computeTrend(v);
+          const publishedDate = new Date(trends.published_at);
+          if (publishedDate < sevenDaysAgo) return null;
+          const stats = v.stats || {};
+          const caption = v.desc || v.caption || v.title || "";
+          const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
+
+          // Boost trend_score with AI viral score
+          const aiScore = viralScores.get(String(videoId)) || 0;
+          const boostedTrendScore = trends.trend_score + (aiScore * 10); // AI score 0-100 → boost 0-1000
+
+          return {
+            platform: "tiktok",
+            platform_video_id: String(videoId),
+            url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
+            caption,
+            cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
+            author_username: username,
+            author_display_name: v.author?.nickname || v.author_display_name || "",
+            author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
+            views: stats.views || v.views || v.playCount || 0,
+            likes: stats.likes || v.likes || v.diggCount || 0,
+            comments: stats.comments || v.comments || v.commentCount || 0,
+            shares: stats.shares || v.shares || v.shareCount || 0,
+            duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
+            fetched_at: now,
+            region: "kz",
+            niche: nicheKey,
+            categories: [nicheKey],
+            ...trends,
+            trend_score: boostedTrendScore,
+          };
+        }).filter(Boolean);
+
+        // Filter: keep only videos with Cyrillic captions OR high AI viral score (>=70)
+        const filteredRows = videoRows.filter((row: any) => {
+          const cap = row.caption || "";
+          const hasCyrillic = /[а-яА-ЯёЁәғқңөұүіӘҒҚҢӨҰҮІ]/.test(cap);
+          const aiScore = viralScores.get(row.platform_video_id) || 0;
+          return hasCyrillic || aiScore >= 70;
+        });
+
+        if (filteredRows.length > 0) {
+          const { data: upserted } = await adminClient
+            .from("videos")
+            .upsert(filteredRows, { onConflict: "platform_video_id" })
+            .select("id");
+          nicheSaved += upserted?.length || 0;
+        }
+
         nicheStats[nicheKey] = nicheSaved;
         totalSaved += nicheSaved;
-        console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos`);
+        console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos (AI boosted)`);
       }));
     }
 
