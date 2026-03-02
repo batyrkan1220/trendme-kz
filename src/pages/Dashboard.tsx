@@ -100,7 +100,7 @@ export default function Dashboard() {
               <p className="text-[10px] md:text-[11px] text-muted-foreground">В избранном</p>
             </div>
           </div>
-          <div className="bg-card rounded-xl border border-border/60 px-4 md:px-5 py-2.5 md:py-3 card-shadow flex items-center gap-3 flex-1 sm:flex-initial">
+          <div className="bg-card rounded-xl border border-border/60 px-3 md:px-5 py-2 md:py-3 card-shadow flex items-center gap-2 md:gap-3">
             <TrendingUp className="h-4 w-4 text-accent" />
             <div>
               <p className="text-base md:text-lg font-bold text-foreground">{trendingVideos.length}</p>
