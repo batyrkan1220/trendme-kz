@@ -92,19 +92,19 @@ export default function Dashboard() {
         </div>
 
         {/* Stats row */}
-        <div className="flex gap-4">
-          <div className="bg-card rounded-xl border border-border/60 px-5 py-3 card-shadow flex items-center gap-3">
+        <div className="flex gap-3 md:gap-4">
+          <div className="bg-card rounded-xl border border-border/60 px-4 md:px-5 py-2.5 md:py-3 card-shadow flex items-center gap-3 flex-1 sm:flex-initial">
             <Heart className="h-4 w-4 text-primary" />
             <div>
-              <p className="text-lg font-bold text-foreground">{favCount}</p>
-              <p className="text-[11px] text-muted-foreground">В избранном</p>
+              <p className="text-base md:text-lg font-bold text-foreground">{favCount}</p>
+              <p className="text-[10px] md:text-[11px] text-muted-foreground">В избранном</p>
             </div>
           </div>
-          <div className="bg-card rounded-xl border border-border/60 px-5 py-3 card-shadow flex items-center gap-3">
+          <div className="bg-card rounded-xl border border-border/60 px-4 md:px-5 py-2.5 md:py-3 card-shadow flex items-center gap-3 flex-1 sm:flex-initial">
             <TrendingUp className="h-4 w-4 text-accent" />
             <div>
-              <p className="text-lg font-bold text-foreground">{trendingVideos.length}</p>
-              <p className="text-[11px] text-muted-foreground">Видео в трендах</p>
+              <p className="text-base md:text-lg font-bold text-foreground">{trendingVideos.length}</p>
+              <p className="text-[10px] md:text-[11px] text-muted-foreground">Видео в трендах</p>
             </div>
           </div>
         </div>
