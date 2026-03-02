@@ -222,6 +222,7 @@ Deno.serve(async (req: Request) => {
       case "analyze_video": {
         const { video_url } = body;
         if (!video_url) return json({ error: "video_url is required" }, 400);
+        if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
         // 1. Fetch transcript, summarize, stats, comments from SocialKit in parallel
         const [transcriptRes, summarizeRes, statsRes, commentsRes] = await Promise.allSettled([
