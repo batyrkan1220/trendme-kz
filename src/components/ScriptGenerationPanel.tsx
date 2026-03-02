@@ -357,7 +357,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
                     <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
                       🧠 Анализ контента
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
                       <div className="bg-card rounded-xl border border-border/50 p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <Zap className="h-4 w-4 text-primary" />
