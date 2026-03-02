@@ -344,7 +344,7 @@ export default function SearchPage() {
                 <Sparkles className="h-8 w-8 text-primary-foreground animate-pulse" />
               </div>
               <p className="text-muted-foreground font-medium text-center">
-                Ищем видео по вашему запросу...
+                Ищем видео по вашему запросу... Это займёт 1–2 минуты
               </p>
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
