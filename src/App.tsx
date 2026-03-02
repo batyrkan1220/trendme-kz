@@ -19,6 +19,7 @@ import Library from "./pages/Library";
 import Analytics from "./pages/Analytics";
 import Tokens from "./pages/Tokens";
 import Pricing from "./pages/Pricing";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
