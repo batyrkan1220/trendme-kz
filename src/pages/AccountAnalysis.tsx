@@ -127,7 +127,7 @@ export default function AccountAnalysis() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-            className="flex-1 h-12 bg-card border-border rounded-xl card-shadow"
+            className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm"
           />
           <Button
             onClick={handleAnalyze}
