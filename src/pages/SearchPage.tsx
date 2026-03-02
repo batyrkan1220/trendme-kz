@@ -94,7 +94,8 @@ export default function SearchPage() {
     doSearch(query.trim());
   };
 
-  const results = searchResults || [];
+  const results = searchResults?.videos || [];
+  const relatedKeywords: string[] = searchResults?.relatedKeywords || [];
 
   return (
     <AppLayout>
