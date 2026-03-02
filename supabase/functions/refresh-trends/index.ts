@@ -164,6 +164,14 @@ Deno.serve(async (req: Request) => {
     const wqPerNiche = thresholds.weak_queries_per_niche || {};
     const gkzCount = thresholds.general_kz_count || {};
 
+    // Load per-category limits from DB
+    const { data: categoryLimitsRow } = await adminClient
+      .from("trend_settings")
+      .select("value")
+      .eq("key", "category_limits")
+      .maybeSingle();
+    const categoryLimits: Record<string, number> = (categoryLimitsRow?.value as any) || {};
+
     // Detect weak niches
     const sevenDaysAgoCheck = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
     const { data: nicheCounts } = await adminClient
@@ -180,11 +188,18 @@ Deno.serve(async (req: Request) => {
       allNicheKeys.filter(n => (nicheCountMap[n] || 0) < weakNicheThreshold)
     );
     const FULL_NICHES = new Set(
-      allNicheKeys.filter(n => (nicheCountMap[n] || 0) >= fullNicheThreshold)
+      allNicheKeys.filter(n => {
+        const count = nicheCountMap[n] || 0;
+        const limit = categoryLimits[n] && categoryLimits[n] > 0 ? categoryLimits[n] : fullNicheThreshold;
+        return count >= limit;
+      })
     );
     if (batchIndex === 0) {
       console.log(`Weak categories (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
-      console.log(`Full categories (>= ${fullNicheThreshold}, skipping): ${[...FULL_NICHES].join(", ") || "none"}`);
+      console.log(`Full categories (at limit, skipping): ${[...FULL_NICHES].join(", ") || "none"}`);
+      if (Object.keys(categoryLimits).length > 0) {
+        console.log(`Per-category limits: ${JSON.stringify(categoryLimits)}`);
+      }
     }
 
     // Use DB thresholds for query counts
