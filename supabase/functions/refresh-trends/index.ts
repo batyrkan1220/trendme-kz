@@ -116,8 +116,6 @@ Deno.serve(async (req: Request) => {
     let mode = "full";
     let batchIndex = 0;
     let logId: string | null = null;
-    let existingNicheStats: Record<string, number> = {};
-    let existingTotalSaved = 0;
     try {
       const body = await req.json();
       if (body?.lite) mode = "lite";
@@ -126,8 +124,6 @@ Deno.serve(async (req: Request) => {
       else if (body?.mode === "lite") mode = "lite";
       if (typeof body?.batch === "number") batchIndex = body.batch;
       if (body?.logId) logId = body.logId;
-      if (body?.nicheStats) existingNicheStats = body.nicheStats;
-      if (typeof body?.totalSaved === "number") existingTotalSaved = body.totalSaved;
     } catch { /* no body = cron call */ }
 
     // Load thresholds from DB
