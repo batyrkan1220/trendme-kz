@@ -781,9 +781,25 @@ function StatsSection() {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">Статистика по категориям <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        {/* General KZ summary */}
+        {(() => {
+          const uncatStats = nicheStats.find(s => s.niche === "uncategorized");
+          const gkzTotal = uncatStats?.total || 0;
+          const gkzRecent = uncatStats?.recent || 0;
+          return (
+            <div className="flex items-center gap-3 py-2 px-3 rounded-lg bg-primary/5 border border-primary/20">
+              <span className="text-sm font-semibold w-28">🇰🇿 Общие KZ</span>
+              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                <div className="bg-primary/60 h-full rounded-full transition-all" style={{ width: `${Math.min(100, (gkzTotal / (nicheStats[0]?.total || 1)) * 100)}%` }} />
+              </div>
+              <span className="text-sm text-muted-foreground w-20 text-right">{gkzTotal}</span>
+              <Badge variant={gkzRecent < 20 ? "destructive" : "default"} className="text-xs w-16 justify-center">{gkzRecent} / 7д</Badge>
+            </div>
+          );
+        })()}
         <div className="space-y-1 max-h-[500px] overflow-y-auto">
-          {nicheStats.map((s) => (
+          {nicheStats.filter(s => s.niche !== "uncategorized").map((s) => (
             <div key={s.niche} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/30">
               <span className="text-sm font-medium w-28 truncate">{s.niche}</span>
               <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
