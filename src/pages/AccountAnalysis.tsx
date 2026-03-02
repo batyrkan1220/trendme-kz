@@ -80,6 +80,7 @@ export default function AccountAnalysis() {
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);
 
+  const { data: account, isPending, mutate: analyze } = useMutation({
     mutationFn: async (profileUrl: string) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
         body: { action: "account_stats", profile_url: profileUrl },
