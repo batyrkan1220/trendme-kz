@@ -140,13 +140,30 @@ Deno.serve(async (req: Request) => {
       if (typeof body?.batch === "number") batchIndex = body.batch;
     } catch { /* no body = cron call */ }
 
+    // Dynamically detect weak niches from DB (< 20 videos in last 7 days)
+    const sevenDaysAgoCheck = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
+    const { data: nicheCounts } = await adminClient
+      .from("videos")
+      .select("niche")
+      .gte("published_at", sevenDaysAgoCheck);
+    
+    const nicheCountMap: Record<string, number> = {};
+    for (const row of nicheCounts || []) {
+      if (row.niche) nicheCountMap[row.niche] = (nicheCountMap[row.niche] || 0) + 1;
+    }
+    // Any niche with < 20 videos is weak
+    const WEAK_THRESHOLD = 20;
+    const WEAK_NICHES = new Set(
+      Object.keys(NICHE_QUERIES).filter(n => (nicheCountMap[n] || 0) < WEAK_THRESHOLD)
+    );
+    console.log(`Weak niches (< ${WEAK_THRESHOLD} videos):`, [...WEAK_NICHES].join(", "));
+
     // How many queries per niche based on mode
-    // mass mode (manual refresh): 5 queries per niche, weak get 8
-    // cron/full mode: 3 queries per niche, weak get 5  
-    // lite mode: 2 queries per niche
-    const WEAK_NICHES = new Set(["career", "psychology", "mama", "business", "therapy", "ai_art", "ai_avatar", "ai_news"]);
-    const queriesPerNiche = mode === "mass" ? 5 : mode === "lite" ? 2 : 3;
-    const weakQueriesPerNiche = mode === "mass" ? 8 : mode === "lite" ? 3 : 5;
+    // mass mode (manual refresh): 6 queries per niche, weak get 12
+    // cron/full mode: 3 queries per niche, weak get 8  
+    // lite mode: 2 queries per niche, weak get 4
+    const queriesPerNiche = mode === "mass" ? 6 : mode === "lite" ? 2 : 3;
+    const weakQueriesPerNiche = mode === "mass" ? 12 : mode === "lite" ? 4 : 8;
     const generalKzCount = mode === "lite" ? 2 : mode === "mass" ? 5 : 3;
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -220,7 +237,8 @@ Deno.serve(async (req: Request) => {
 
         for (const query of queries) {
           try {
-            const data = await callSocialKit("/tiktok/search", { query, count: "30" });
+            const searchCount = WEAK_NICHES.has(nicheKey) ? "50" : "30";
+            const data = await callSocialKit("/tiktok/search", { query, count: searchCount });
             const videos = extractVideos(data);
 
             const videoRows = videos.map(v => {
