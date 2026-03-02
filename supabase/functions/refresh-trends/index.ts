@@ -254,7 +254,7 @@ Deno.serve(async (req: Request) => {
       }
     };
 
-    const BATCH_SIZE = 2;
+    const BATCH_SIZE = 1;
     const totalBatches = Math.ceil(allNicheKeys.length / BATCH_SIZE);
 
     // === Process niche batch ===
