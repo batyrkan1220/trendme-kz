@@ -8,21 +8,10 @@ const corsHeaders = {
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 
-// Extra general KZ/CIS queries to fill gaps
-const GENERAL_KZ_QUERIES = [
+// General KZ queries loaded from DB (fallback defaults)
+const DEFAULT_GENERAL_KZ_QUERIES = [
   "#қазақстан", "#kz", "#казахстан", "#алматы", "#астана",
   "#казахстантренд", "#kztiktok", "#снг", "#рекомендации",
-  "қазақ тикток тренд", "казахстан тренд тикток 2026",
-  "#қазақша", "#қазақтикток", "#kzviral", "#қазақвирал",
-  "қазақстан вирал 2026", "#шымкент", "#караганда", "#актау",
-  "#қарағанды", "#атырау", "#павлодар", "#тараз", "#өскемен",
-  "#қостанай", "#семей", "#маңғыстау", "#түркістан",
-  "қазақ блогер тикток", "казахстан влог", "#kztrend",
-  "қазақша тикток 2026", "#қазақвайн", "#казахстанвирал",
-  "алматы влог 2026", "астана тренд", "#almaty", "#astana",
-  "казахстанский тикток", "#қазақстантікток", "#kzfyp",
-  "#казнет", "#qazaqstan", "кз тренды", "#kzreels",
-  "қазақстандық тікток", "#казахскийтикток", "казакша видео",
 ];
 
 Deno.serve(async (req: Request) => {
@@ -82,6 +71,15 @@ Deno.serve(async (req: Request) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Load general KZ queries from DB
+    const { data: gkzRow } = await adminClient
+      .from("trend_settings")
+      .select("value")
+      .eq("key", "general_kz_queries")
+      .single();
+    const GENERAL_KZ_QUERIES: string[] = (gkzRow?.value as any) || DEFAULT_GENERAL_KZ_QUERIES;
+    console.log(`Loaded ${GENERAL_KZ_QUERIES.length} general KZ queries from DB`);
 
     const callSocialKit = async (path: string, params: Record<string, string>) => {
       const url = new URL(`${SOCIALKIT_BASE}${path}`);
