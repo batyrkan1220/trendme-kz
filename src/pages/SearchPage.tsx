@@ -53,15 +53,19 @@ export default function SearchPage() {
       const { data, error } = await supabase.functions.invoke("socialkit", {
         body: { action: "search", query: q, limit: 100 },
       });
-      if (error) throw error;
+      if (error) {
+        // Check if data contains a more specific error from the function
+        if (data?.error) throw new Error(data.error);
+        throw error;
+      }
       return { videos: data.videos || [], relatedKeywords: data.relatedKeywords || [] };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
     },
-    onError: (err: Error) => {
-      toast.error("Не удалось выполнить поиск: " + err.message);
+    onError: () => {
+      toast.error("Не удалось выполнить поиск. Попробуйте позже.");
     },
   });
 
