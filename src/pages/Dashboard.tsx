@@ -1,7 +1,9 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Search, Video, UserCircle, BookOpen, ArrowRight, Flame } from "lucide-react";
+import { TrendingUp, Search, Video, UserCircle, BookOpen, ArrowRight, Flame, Eye, Heart, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const quickActions = [
   {
