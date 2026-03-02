@@ -8,6 +8,25 @@ const corsHeaders = {
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 
+function validateTikTokUrl(url: string): boolean {
+  try {
+    if (url.length > 500) return false;
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+    const allowedHosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com"];
+    return allowedHosts.some(h => parsed.hostname === h || parsed.hostname.endsWith("." + h));
+  } catch {
+    return false;
+  }
+}
+
+function validateTikTokUsername(username: string): boolean {
+  if (!username || username.length > 100) return false;
+  const cleaned = username.startsWith("@") ? username.slice(1) : username;
+  return /^[a-zA-Z0-9_.]+$/.test(cleaned);
+}
+
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -174,6 +193,7 @@ Deno.serve(async (req: Request) => {
       case "video_stats": {
         const { video_url } = body;
         if (!video_url) return json({ error: "video_url is required" }, 400);
+        if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
         const data = await callSocialKit("/tiktok/stats", { url: video_url });
         const videoData = data.data || data;
@@ -202,6 +222,7 @@ Deno.serve(async (req: Request) => {
       case "analyze_video": {
         const { video_url } = body;
         if (!video_url) return json({ error: "video_url is required" }, 400);
+        if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
         // 1. Fetch transcript, summarize, stats, comments from SocialKit in parallel
         const [transcriptRes, summarizeRes, statsRes, commentsRes] = await Promise.allSettled([
@@ -423,6 +444,7 @@ Deno.serve(async (req: Request) => {
       case "account_stats": {
         const { profile_url } = body;
         if (!profile_url) return json({ error: "profile_url is required" }, 400);
+        if (!validateTikTokUrl(profile_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
         const data = await callSocialKit("/tiktok/channel-stats", { url: profile_url });
         const accountData = data.data || data;
