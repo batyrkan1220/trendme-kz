@@ -103,7 +103,7 @@ export default function SearchPage() {
         <div className="flex-1 space-y-6 min-w-0">
           <h1 className="text-2xl font-bold text-foreground">Поиск 🔍</h1>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Input
               placeholder="Введите ключевое слово..."
               value={query}

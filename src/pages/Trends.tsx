@@ -177,7 +177,7 @@ export default function Trends() {
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`px-3 md:px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
                   period === p
                     ? "gradient-hero text-primary-foreground glow-primary"
                     : "text-muted-foreground hover:text-foreground"
