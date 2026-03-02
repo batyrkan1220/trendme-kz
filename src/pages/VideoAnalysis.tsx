@@ -27,7 +27,7 @@ export default function VideoAnalysis() {
 
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async (videoUrl: string) => {
-      const [statsRes, analysisRes] = await Promise.all([
+      const [statsRes, analysisRes] = await Promise.allSettled([
         supabase.functions.invoke("socialkit", {
           body: { action: "video_stats", video_url: videoUrl },
         }),
@@ -35,11 +35,22 @@ export default function VideoAnalysis() {
           body: { action: "analyze_video", video_url: videoUrl, caption: "" },
         }),
       ]);
-      if (analysisRes.error) throw analysisRes.error;
-      return { stats: statsRes.data, ...analysisRes.data };
+
+      const stats = statsRes.status === "fulfilled" && !statsRes.value.error ? statsRes.value.data : null;
+      const analysisData = analysisRes.status === "fulfilled" && !analysisRes.value.error ? analysisRes.value.data : null;
+
+      if (!stats && !analysisData) {
+        throw new Error("Не удалось получить данные о видео. Проверьте ссылку.");
+      }
+
+      if (!analysisData && stats) {
+        toast.warning("Статистика получена, но анализ недоступен для этого видео");
+      }
+
+      return { stats, ...(analysisData || {}) };
     },
     onError: (err: Error) => {
-      toast.error("Не удалось проанализировать видео: " + err.message);
+      toast.error(err.message || "Не удалось проанализировать видео");
     },
   });
 
