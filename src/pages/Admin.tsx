@@ -63,6 +63,7 @@ export default function Admin() {
 
           <TabsContent value="platform"><PlatformTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
+          <TabsContent value="tariffs"><TariffsTab /></TabsContent>
           <TabsContent value="keywords"><NicheKeywordsTab /></TabsContent>
           <TabsContent value="refresh"><RefreshTab /></TabsContent>
           <TabsContent value="settings"><SettingsTab /></TabsContent>
