@@ -325,7 +325,7 @@ function TrendsManagementTab() {
           { key: "refresh" as const, label: "Обновление", icon: Play },
           { key: "keywords" as const, label: "Запросы", icon: Hash },
           { key: "settings" as const, label: "Настройки", icon: Settings },
-          { key: "stats" as const, label: "По нишам", icon: BarChart3 },
+          { key: "stats" as const, label: "По категориям", icon: BarChart3 },
         ].map(({ key, label, icon: Icon }) => (
           <Button key={key} variant={section === key ? "default" : "outline"} size="sm" onClick={() => setSection(key)} className="gap-1.5">
             <Icon className="h-4 w-4" />{label}
@@ -439,7 +439,7 @@ function RefreshSection() {
                     </div>
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{totalNiche}</p>
-                      <p className="text-xs text-muted-foreground">По нишам</p>
+                      <p className="text-xs text-muted-foreground">По категориям</p>
                     </div>
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{totalGeneral}</p>
@@ -450,7 +450,7 @@ function RefreshSection() {
                   {nicheEntries.length > 0 && (
                     <details className="text-sm">
                       <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors text-xs font-medium">
-                        📊 По категориям ({nicheEntries.length} ниш)
+                        📊 По категориям ({nicheEntries.length})
                       </summary>
                       <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
                         {nicheEntries.map(([niche, count]) => (
@@ -581,7 +581,7 @@ function KeywordsSection() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Запросы для ниши: <span className="text-primary">{selectedNiche}</span></CardTitle>
+              <CardTitle className="text-lg">Запросы для категории: <span className="text-primary">{selectedNiche}</span></CardTitle>
               <Button onClick={generateWithAI} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
                 {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 AI запросы
@@ -660,14 +660,14 @@ function SettingsSection() {
       <Card>
         <CardHeader><CardTitle className="text-lg">Пороги и лимиты</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <SettingRow label="Порог слабой ниши (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
+          <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
           <SettingRow label="Мин. trend_score для зарубежных видео" value={current.min_foreign_trend_score ?? 500} onChange={(v) => updateField("min_foreign_trend_score", v)} />
           <div className="pt-2 border-t border-border">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на нишу</p>
+            <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на категорию</p>
             {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.queries_per_niche?.[mode] ?? 3} onChange={(v) => updateField(`queries_per_niche.${mode}`, v)} />))}
           </div>
           <div className="pt-2 border-t border-border">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на слабую нишу</p>
+            <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на слабую категорию</p>
             {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.weak_queries_per_niche?.[mode] ?? 6} onChange={(v) => updateField(`weak_queries_per_niche.${mode}`, v)} />))}
           </div>
           <div className="pt-2 border-t border-border">
@@ -730,7 +730,7 @@ function StatsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">Статистика по нишам <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">Статистика по категориям <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-1 max-h-[500px] overflow-y-auto">

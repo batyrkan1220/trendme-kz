@@ -267,7 +267,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 {/* Niches */}
                 {summary?.niches?.length > 0 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2">К каким нишам подойдет</p>
+                    <p className="text-sm text-muted-foreground mb-2">К каким категориям подойдет</p>
                     <div className="flex flex-wrap gap-2">
                       {summary.niches.map((niche: string, i: number) => (
                         <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-card border border-border/50 text-foreground">
