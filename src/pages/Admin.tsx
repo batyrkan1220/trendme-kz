@@ -665,7 +665,6 @@ function SettingsSection() {
         <CardHeader><CardTitle className="text-lg">Пороги и лимиты</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
-          <SettingRow label="Лимит всех видео KZ (пропуск общих KZ запросов)" value={current.full_general_kz_threshold ?? 200} onChange={(v) => updateField("full_general_kz_threshold", v)} />
           <SettingRow label="Мин. trend_score для зарубежных видео" value={current.min_foreign_trend_score ?? 500} onChange={(v) => updateField("min_foreign_trend_score", v)} />
           <div className="pt-2 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на категорию</p>
@@ -674,10 +673,6 @@ function SettingsSection() {
           <div className="pt-2 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-2">Запросов на слабую категорию</p>
             {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.weak_queries_per_niche?.[mode] ?? 6} onChange={(v) => updateField(`weak_queries_per_niche.${mode}`, v)} />))}
-          </div>
-          <div className="pt-2 border-t border-border">
-            <p className="text-sm font-medium text-muted-foreground mb-2">Общих KZ запросов</p>
-            {["lite", "full", "mass"].map((mode) => (<SettingRow key={mode} label={`${mode} режим`} value={current.general_kz_count?.[mode] ?? 5} onChange={(v) => updateField(`general_kz_count.${mode}`, v)} />))}
           </div>
           {localThresholds && (
             <Button onClick={() => saveMutation.mutate(localThresholds)} disabled={saveMutation.isPending} className="w-full">
