@@ -15,7 +15,6 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceKey);
 
-    // Verify caller is admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Unauthorized");
 
@@ -34,13 +33,25 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!roleData) throw new Error("Forbidden");
 
-    const { niche, existing_queries } = await req.json();
+    const { niche, existing_queries, seed_word } = await req.json();
     if (!niche) throw new Error("niche is required");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const existingList = (existing_queries || []).join(", ");
+
+    // If seed_word provided, generate based on that word
+    const userPrompt = seed_word
+      ? `Ниша: "${niche}"
+Ключевое слово: "${seed_word}"
+Существующие запросы: [${existingList}]
+
+На основе ключевого слова "${seed_word}" сгенерируй 15-25 связанных поисковых запросов и хэштегов для TikTok. Включи вариации этого слова, связанные темы, популярные хэштеги с этим словом, фразы на казахском и русском.`
+      : `Ниша: "${niche}"
+Существующие запросы: [${existingList}]
+
+Сгенерируй 10-15 новых уникальных поисковых запросов и хэштегов для этой ниши.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -62,15 +73,9 @@ Deno.serve(async (req) => {
 - Включай города Казахстана, местные тренды
 - НЕ повторяй существующие запросы
 - Верни ТОЛЬКО JSON массив строк, без пояснений
-- Генерируй 10-15 новых запросов`,
+- ${seed_word ? "Генерируй 15-25 запросов, все связанных с указанным ключевым словом" : "Генерируй 10-15 новых запросов"}`,
           },
-          {
-            role: "user",
-            content: `Ниша: "${niche}"
-Существующие запросы: [${existingList}]
-
-Сгенерируй 10-15 новых уникальных поисковых запросов и хэштегов для этой ниши.`,
-          },
+          { role: "user", content: userPrompt },
         ],
         tools: [
           {
@@ -100,14 +105,12 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Слишком много запросов, попробуйте позже" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
         return new Response(JSON.stringify({ error: "Недостаточно кредитов AI" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const text = await response.text();
@@ -128,7 +131,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Filter out duplicates with existing
     const existingSet = new Set((existing_queries || []).map((q: string) => q.toLowerCase().trim()));
     keywords = keywords.filter((k) => !existingSet.has(k.toLowerCase().trim()));
 
@@ -138,8 +140,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error("generate-keywords error:", e);
     return new Response(JSON.stringify({ error: e.message }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

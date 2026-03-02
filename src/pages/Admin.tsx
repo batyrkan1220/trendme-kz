@@ -516,7 +516,7 @@ function KeywordsSection() {
     }
   };
 
-  const generateWithAI = async () => {
+  const generateWithAI = async (seedWord?: string) => {
     if (!selectedNiche) return;
     setAiLoading(true);
     setAiSuggestions([]);
@@ -532,6 +532,7 @@ function KeywordsSection() {
         body: JSON.stringify({
           niche: selectedNiche,
           existing_queries: nicheQueries[selectedNiche] || [],
+          ...(seedWord ? { seed_word: seedWord } : {}),
         }),
       });
       if (!res.ok) {
@@ -547,6 +548,16 @@ function KeywordsSection() {
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const generateFromSeed = () => {
+    const word = newQuery.trim();
+    if (!word || !selectedNiche) {
+      toast.error("Введите ключевое слово");
+      return;
+    }
+    generateWithAI(word);
+    setNewQuery("");
   };
 
   const acceptSuggestion = (keyword: string) => {
@@ -592,7 +603,7 @@ function KeywordsSection() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Запросы: <span className="text-primary">{activeLabel}</span></CardTitle>
               {selectedNiche && (
-                <Button onClick={generateWithAI} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
+                <Button onClick={() => generateWithAI()} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
                   {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   AI запросы
                 </Button>
@@ -601,8 +612,12 @@ function KeywordsSection() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex gap-2">
-              <Input placeholder="Новый запрос или хэштег..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addQuery()} />
-              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending}><Plus className="h-4 w-4" /></Button>
+              <Input placeholder="Введите слово → AI найдёт запросы..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addQuery()} />
+              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending} title="Добавить как есть"><Plus className="h-4 w-4" /></Button>
+              <Button onClick={generateFromSeed} size="sm" variant="secondary" disabled={aiLoading || !newQuery.trim()} title="AI: найти запросы по слову" className="gap-1.5">
+                {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                AI
+              </Button>
             </div>
 
             {aiSuggestions.length > 0 && (
