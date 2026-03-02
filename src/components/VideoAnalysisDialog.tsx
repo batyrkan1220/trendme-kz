@@ -98,7 +98,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined} style={{ zIndex: 60 }}>
+      <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined} style={{ zIndex: 99998 }}>
         <SheetTitle className="sr-only">Анализ видео</SheetTitle>
         {showScript ? (
           <ScriptGenerationPanel
