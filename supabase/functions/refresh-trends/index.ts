@@ -378,7 +378,25 @@ Deno.serve(async (req: Request) => {
 
     } else {
       // === General KZ queries ===
-      console.log("Processing general KZ queries...");
+      // Check total videos across all categories in last 7 days
+      const totalVideos7d = Object.values(nicheCountMap).reduce((s, c) => s + c, 0);
+      if (totalVideos7d >= fullGeneralKzThreshold) {
+        console.log(`Skipping general KZ: total ${totalVideos7d} videos >= ${fullGeneralKzThreshold} threshold`);
+        // Final: mark log as done
+        if (logId) {
+          await adminClient.from("trend_refresh_logs").update({
+            status: "done",
+            total_saved: totalSaved,
+            general_saved: 0,
+            niche_stats: nicheStats,
+            finished_at: new Date().toISOString(),
+          }).eq("id", logId);
+        }
+        return new Response(JSON.stringify({ success: true, mode, totalSaved, generalSaved: 0, nicheStats, skippedGeneralKz: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      console.log(`Processing general KZ queries (total ${totalVideos7d}/${fullGeneralKzThreshold})...`);
       const shuffledGeneral = GENERAL_KZ_QUERIES.sort(() => Math.random() - 0.5).slice(0, generalKzCount);
 
       for (let i = 0; i < shuffledGeneral.length; i += 3) {
