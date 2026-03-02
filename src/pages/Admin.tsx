@@ -55,19 +55,13 @@ export default function Admin() {
             <TabsTrigger value="platform"><Activity className="h-4 w-4 mr-1" />Платформа</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Пользователи</TabsTrigger>
             <TabsTrigger value="tariffs"><CreditCard className="h-4 w-4 mr-1" />Тарифы</TabsTrigger>
-            <TabsTrigger value="keywords"><Hash className="h-4 w-4 mr-1" />Запросы</TabsTrigger>
-            <TabsTrigger value="refresh"><Play className="h-4 w-4 mr-1" />Обновление</TabsTrigger>
-            <TabsTrigger value="settings"><Settings className="h-4 w-4 mr-1" />Настройки</TabsTrigger>
-            <TabsTrigger value="stats"><BarChart3 className="h-4 w-4 mr-1" />По нишам</TabsTrigger>
+            <TabsTrigger value="trends"><RefreshCw className="h-4 w-4 mr-1" />Тренды</TabsTrigger>
           </TabsList>
 
           <TabsContent value="platform"><PlatformTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="tariffs"><TariffsTab /></TabsContent>
-          <TabsContent value="keywords"><NicheKeywordsTab /></TabsContent>
-          <TabsContent value="refresh"><RefreshTab /></TabsContent>
-          <TabsContent value="settings"><SettingsTab /></TabsContent>
-          <TabsContent value="stats"><StatsTab /></TabsContent>
+          <TabsContent value="trends"><TrendsManagementTab /></TabsContent>
         </Tabs>
       </div>
     </AppLayout>
