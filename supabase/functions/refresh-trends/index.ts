@@ -72,6 +72,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // Load general KZ queries from DB
+    const { data: gkzRow } = await adminClient
+      .from("trend_settings")
+      .select("value")
+      .eq("key", "general_kz_queries")
+      .single();
+    const GENERAL_KZ_QUERIES: string[] = (gkzRow?.value as any) || DEFAULT_GENERAL_KZ_QUERIES;
+    console.log(`Loaded ${GENERAL_KZ_QUERIES.length} general KZ queries from DB`);
+
     const callSocialKit = async (path: string, params: Record<string, string>) => {
       const url = new URL(`${SOCIALKIT_BASE}${path}`);
       Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
