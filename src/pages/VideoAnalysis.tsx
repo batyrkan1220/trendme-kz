@@ -495,17 +495,9 @@ export default function VideoAnalysis() {
               )}
             </div>
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="bg-card rounded-2xl border border-border/50 p-8 md:p-16 text-center card-shadow">
-              <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                <Video className="h-10 w-10 text-muted-foreground/30" />
-              </div>
-              <p className="text-muted-foreground font-medium">Вставьте ссылку на видео, чтобы начать анализ</p>
-            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
