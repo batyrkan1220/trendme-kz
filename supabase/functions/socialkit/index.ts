@@ -248,7 +248,51 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         const upsertedVideos = upsertResult.data || [];
         const queryRow = queryResult.data;
 
-        // 6. Fire-and-forget activity log
+        // 6. Fire-and-forget: AI categorize uncategorized videos
+        const uncategorized = upsertedVideos.filter((v: any) => !v.niche);
+        if (uncategorized.length > 0) {
+          const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+          if (LOVABLE_API_KEY) {
+            (async () => {
+              try {
+                // Batch categorize in chunks of 30
+                const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other"];
+                for (let i = 0; i < uncategorized.length; i += 30) {
+                  const batch = uncategorized.slice(i, i + 30);
+                  const videoCaptions = batch.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+                  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      model: "google/gemini-2.5-flash-lite",
+                      messages: [
+                        { role: "system", content: `Classify each video into ONE niche from this list: ${NICHE_KEYS.join(", ")}. Return ONLY a JSON object mapping index to niche key. Example: {"0":"food","1":"beauty","2":"fitness"}` },
+                        { role: "user", content: videoCaptions }
+                      ],
+                    }),
+                  });
+                  const aiData = await res.json();
+                  const content = aiData?.choices?.[0]?.message?.content || "";
+                  const match = content.match(/\{[\s\S]*?\}/);
+                  if (match) {
+                    const mapping = JSON.parse(match[0]);
+                    for (const [idx, nicheKey] of Object.entries(mapping)) {
+                      const video = batch[Number(idx)];
+                      if (video && NICHE_KEYS.includes(nicheKey as string)) {
+                        adminClient.from("videos").update({ niche: nicheKey as string }).eq("id", video.id).then(() => {}).catch(() => {});
+                      }
+                    }
+                  }
+                }
+                console.log(`Categorized ${uncategorized.length} videos`);
+              } catch (e) {
+                console.error("AI categorization failed:", e);
+              }
+            })();
+          }
+        }
+
+        // 7. Fire-and-forget activity log
         userClient.from("activity_log").insert({
           user_id: userId, type: "search_run",
           payload_json: { query, hashtags, relatedKeywords, results_count: upsertedVideos.length },
