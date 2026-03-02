@@ -160,7 +160,7 @@ export default function Trends() {
 
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <h1 className="text-2xl font-bold text-foreground">Тренды 🔥</h1>
           <div className="flex items-center gap-3">
@@ -172,12 +172,12 @@ export default function Trends() {
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
               {refreshing ? "Обновление..." : "Обновить"}
             </button>
-          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow">
+          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto">
             {([1, 3, 7, 30, 0] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`px-3 md:px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
                   period === p
                     ? "gradient-hero text-primary-foreground glow-primary"
                     : "text-muted-foreground hover:text-foreground"

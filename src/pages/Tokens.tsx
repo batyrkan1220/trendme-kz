@@ -4,7 +4,7 @@ import { Coins, Sparkles, Zap } from "lucide-react";
 export default function Tokens() {
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground">Токены ⚡</h1>
         <div className="bg-card rounded-2xl p-8 card-shadow border border-border/50 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-48 h-48 rounded-full blur-2xl opacity-30" style={{ background: "hsl(340 82% 85%)" }} />

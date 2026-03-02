@@ -11,7 +11,7 @@ const plans = [
 export default function Pricing() {
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground">Тарифы 💎</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {plans.map((plan) => (

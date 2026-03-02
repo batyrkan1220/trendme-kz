@@ -49,7 +49,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8 space-y-7 animate-fade-in max-w-5xl">
+      <div className="p-4 md:p-6 lg:p-8 space-y-5 md:space-y-7 animate-fade-in max-w-5xl">
         {/* Hero */}
         <div className="gradient-hero rounded-2xl p-7 glow-primary relative overflow-hidden">
           <div className="relative flex items-center justify-between">
