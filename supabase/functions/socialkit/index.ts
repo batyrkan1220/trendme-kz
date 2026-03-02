@@ -458,7 +458,7 @@ Deno.serve(async (req: Request) => {
 
         // Map fields according to SocialKit response format
         const followers = accountData.followers || accountData.followerCount || 0;
-        const totalLikes = accountData.likes || accountData.heartCount || accountData.total_likes || 0;
+        const totalLikes = accountData.totalLikes || accountData.likes || accountData.heartCount || accountData.total_likes || 0;
         const totalVideos = accountData.totalVideos || accountData.videoCount || accountData.total_videos || 0;
 
         const following = accountData.following || accountData.followingCount || 0;
