@@ -18,7 +18,7 @@ const mainItems: NavItem[] = [
   { label: "Дашборд", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Тренды", icon: TrendingUp, path: "/trends" },
   { label: "Поиск", icon: Search, path: "/search" },
-  { label: "Аналитика", icon: BarChart3, path: "/analytics" },
+  
   { label: "Анализ видео", icon: Video, path: "/video-analysis" },
   { label: "Анализ аккаунт", icon: UserCircle, path: "/account-analysis" },
   { label: "Библиотека", icon: BookOpen, path: "/library" },
