@@ -415,11 +415,17 @@ Deno.serve(async (req: Request) => {
         });
 
         if (filteredRows.length > 0) {
-          const { data: upserted } = await adminClient
+          console.log(`Niche ${nicheKey}: upserting ${filteredRows.length} filtered rows...`);
+          const { data: upserted, error: upsertErr } = await adminClient
             .from("videos")
             .upsert(filteredRows, { onConflict: "platform_video_id" })
             .select("id");
+          if (upsertErr) {
+            console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
+          }
           nicheSaved += upserted?.length || 0;
+        } else {
+          console.log(`Niche ${nicheKey}: 0 rows passed filter (${videoRows.length} before filter)`);
         }
 
         nicheStats[nicheKey] = nicheSaved;
