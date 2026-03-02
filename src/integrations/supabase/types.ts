@@ -218,6 +218,7 @@ export type Database = {
           fetched_at: string
           id: string
           likes: number | null
+          niche: string | null
           platform: string
           platform_video_id: string
           published_at: string | null
@@ -243,6 +244,7 @@ export type Database = {
           fetched_at?: string
           id?: string
           likes?: number | null
+          niche?: string | null
           platform?: string
           platform_video_id: string
           published_at?: string | null
@@ -268,6 +270,7 @@ export type Database = {
           fetched_at?: string
           id?: string
           likes?: number | null
+          niche?: string | null
           platform?: string
           platform_video_id?: string
           published_at?: string | null
