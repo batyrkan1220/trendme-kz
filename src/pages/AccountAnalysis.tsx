@@ -58,7 +58,28 @@ export default function AccountAnalysis() {
     enabled: !!user,
   });
 
-  const { data: account, isPending, mutate: analyze } = useMutation({
+  // Favorites
+  const { data: userFavorites = [] } = useQuery({
+    queryKey: ["user-favorites", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("favorites").select("video_id").eq("user_id", user!.id);
+      return data?.map((f) => f.video_id) || [];
+    },
+    enabled: !!user,
+    staleTime: 30_000,
+  });
+
+  const toggleFav = useCallback(async (videoId: string) => {
+    if (!user) return;
+    const isFav = userFavorites.includes(videoId);
+    if (isFav) {
+      await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+    } else {
+      await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+    }
+    queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
+  }, [user, userFavorites, queryClient]);
+
     mutationFn: async (profileUrl: string) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
         body: { action: "account_stats", profile_url: profileUrl },
