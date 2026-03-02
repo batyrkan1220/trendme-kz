@@ -730,7 +730,7 @@ function StatsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">Статистика по нишам <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">Статистика по категориям <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-1 max-h-[500px] overflow-y-auto">
