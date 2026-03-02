@@ -98,7 +98,7 @@ export default function Library() {
                 const video = fav.videos;
                 if (!video) return null;
                 return (
-                  <div key={fav.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all">
+                  <div key={fav.id} className="bg-card rounded-xl md:rounded-2xl border border-border/50 overflow-hidden card-shadow hover-lift card-shadow-hover transition-all">
                     {video.cover_url && (
                       <img src={video.cover_url} alt="" className="w-full h-48 object-cover rounded-2xl p-2" />
                     )}
