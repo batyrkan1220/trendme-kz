@@ -749,7 +749,7 @@ function StatsSection() {
   const [hasChanges, setHasChanges] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  const { data: nicheStats = [], isLoading } = useQuery({
+  const { data: nicheData, isLoading } = useQuery({
     queryKey: ["admin-niche-stats"],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
