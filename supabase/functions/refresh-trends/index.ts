@@ -3,45 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 
-// Niche-specific search queries (KZ/RU + EN)
-const NICHE_QUERIES: Record<string, string[]> = {
-  finance: ["финансы тикток", "инвестиции 2026", "крипто трейдинг", "заработок онлайн", "пассивный доход", "#финансы", "#инвестиции", "#crypto", "#trading", "finance tips tiktok", "investing viral", "қаржы тикток", "инвестиция қазақша", "#қаржы", "ақша табу", "крипто қазақша", "қор биржасы"],
-  marketing: ["маркетинг тикток", "smm продвижение", "таргетированная реклама", "контент маркетинг", "#маркетинг", "#smm", "#digitalmarketing", "marketing strategy tiktok", "social media tips", "маркетинг қазақша", "#smm_kz", "жарнама тикток", "контент жасау", "таргет қазақша"],
-  business: ["бизнес тикток", "как заработать 2026", "деньги тикток", "стартап тикток", "продажи тикток", "бизнес идеи", "#бизнес", "#деньги", "#заработок", "#business", "#money", "#hustle", "how to make money tiktok", "side hustle tiktok", "бизнес кеңес", "кәсіпкерлік тикток", "#кәсіпкерлік", "ақша табу тикток", "шағын бизнес", "онлайн бизнес қазақша", "бизнес с нуля тикток", "предприниматель влог", "#entrepreneur", "money tips viral"],
-  psychology: ["психология тикток", "саморазвитие", "токсичные люди", "нарцисс признаки", "тревожность как справиться", "#психология", "#саморазвитие", "#mentalhealth", "#psychology", "psychology tiktok", "mental health tips", "самооценка тикток", "как полюбить себя", "психолог объясняет", "манипуляции тикток", "психология қазақша", "өзін-өзі дамыту", "#психолог", "жүйке жүйесі", "emotional intelligence tiktok", "therapy session tiktok", "қарым-қатынас кеңес", "red flags тикток", "attachment style"],
-  therapy: ["саморазвитие тикток", "мотивация успех", "медитация утро", "осознанность", "#саморазвитие", "#мотивация", "#mindset", "#meditation", "self improvement tiktok", "motivation viral", "мотивация қазақша", "өзін-өзі дамыту", "#мотивация_kz", "табыс құпиясы"],
-  education: ["английский язык тикток", "учеба лайфхаки", "образование онлайн", "уроки тикток", "#английский", "#учеба", "#education", "#learnenglish", "study tips tiktok", "language learning viral", "ағылшын тілі тикток", "қазақ тілі сабақ", "#білім", "оқу лайфхак", "ҰБТ дайындық", "#ҰБТ"],
-  mama: ["мама тикток", "мамочка влог", "ребенок первый год", "беременность тикток", "роды история", "#мама", "#материнство", "#momlife", "#momtok", "#baby", "#newborn", "mom hacks tiktok", "baby tips viral", "мама жизнь тикток", "дети приколы тикток", "ана тикток", "бала тікток", "#momhacks", "toddler mom tiktok", "pregnancy tiktok", "нәресте күтімі", "бала тамақтану", "#ана", "мама и малыш", "грудное вскармливание тикток"],
-  beauty: ["бьюти тикток", "макияж тренд 2026", "уход за кожей", "косметика обзор", "#бьюти", "#макияж", "#skincare", "#makeup", "#beauty", "beauty hack tiktok viral", "skincare routine", "сұлулық тикток", "макияж қазақша", "#сұлулық", "тері күтімі", "косметика қазақша"],
-  fitness: ["фитнес тренировка", "спорт тикток", "похудение упражнения", "зал мотивация", "#фитнес", "#тренировка", "#fitness", "#workout", "#gym", "workout tiktok viral", "gym transformation", "спорт қазақша", "жаттығу тикток", "#спорт_kz", "арықтау жаттығу", "дене шынықтыру"],
-  fashion: ["мода тренды 2026", "стиль одежда", "аутфит дня", "шопинг тикток", "#мода", "#стиль", "#outfit", "#fashion", "#ootd", "fashion trend tiktok", "outfit ideas viral", "сән тикток", "киім стиль қазақша", "#сән_kz", "аутфит қазақша", "сән тренд 2026"],
-  law: ["юрист советы", "налоги 2026", "закон новый", "юридические лайфхаки", "#юрист", "#налоги", "#закон", "#legal", "legal advice tiktok", "tax tips", "заңгер кеңес қазақша", "салық 2026 қазақша", "#заңгер_kz", "құқық қазақша"],
-  realestate: ["недвижимость 2026", "квартира ипотека", "ремонт квартиры", "купить дом", "#недвижимость", "#ипотека", "#квартира", "#realestate", "real estate tiktok", "apartment tour viral", "жылжымайтын мүлік", "пәтер ипотека қазақша", "#пәтер_kz", "үй жөндеу", "баспана қазақша"],
-  esoteric: ["таро расклад", "гороскоп 2026", "астрология знаки", "эзотерика энергия", "#таро", "#гороскоп", "#астрология", "#tarot", "#astrology", "tarot reading tiktok", "horoscope viral", "таро қазақша", "жұлдыз жорамал", "#таро_kz", "гороскоп қазақша"],
-  food: ["рецепт быстрый", "еда тикток", "готовим вкусно", "выпечка рецепт", "завтрак идеи", "#рецепт", "#еда", "#готовка", "#recipe", "#cooking", "#foodtiktok", "cooking hack tiktok viral", "food recipe easy", "рецепт қазақша", "тағам дайындау", "#рецепт_kz", "қазақ тағамы", "бешбармақ рецепт", "ұлттық тағам", "пісіру тикток"],
-  home: ["уют дом тикток", "ремонт своими руками", "интерьер идеи", "организация дома", "уборка лайфхак", "#уют", "#интерьер", "#ремонт", "#home", "#homedecor", "#organization", "home decor tiktok viral", "үй жайлылық", "интерьер қазақша", "#үй_kz", "жөндеу қазақша"],
-  travel: ["путешествия тикток", "туризм 2026", "отдых бюджетный", "красивые места", "#путешествия", "#travel", "#туризм", "#wanderlust", "travel tiktok viral", "beautiful places", "саяхат тикток", "қазақстан көрікті жерлер", "#саяхат_kz", "Алматы саяхат", "Маңғыстау", "Бурабай", "Түркістан саяхат"],
-  lifestyle: ["лайфстайл влог", "день из жизни", "рутина утро", "мотивация жизнь", "#лайфстайл", "#влог", "#vlog", "#lifestyle", "#routine", "day in my life tiktok", "morning routine viral", "өмір салты тикток", "күнделікті влог қазақша", "#влог_kz", "таңғы рутина қазақша"],
-  animals: ["животные тикток", "кот смешной", "собака тренировка", "питомец уход", "#кот", "#собака", "#питомец", "#cat", "#dog", "#pets", "funny cat tiktok", "cute dog viral", "жануарлар тикток", "мысық күлкілі", "#жануар_kz", "ит тәрбиесі", "үй жануары қазақша"],
-  gaming: ["игры тикток", "геймер стрим", "новая игра 2026", "ps5 обзор", "#игры", "#геймер", "#gaming", "#gamer", "#ps5", "gaming tiktok viral", "game review", "ойын тикток қазақша", "#ойын_kz", "геймер қазақ"],
-  music: ["музыка тикток хит", "новая песня 2026", "кино обзор", "арт творчество", "#музыка", "#кино", "#арт", "#music", "#movie", "#art", "music viral tiktok", "new song trending", "қазақ әні тикток", "жаңа ән 2026", "#қазақәні", "қазақ музыка хит", "димаш", "#dimash"],
-  
-  career: ["карьера тикток", "фриланс тикток", "удаленка тикток", "работа тикток", "подработка тикток", "#карьера", "#работа", "#фриланс", "#удаленка", "#career", "#freelance", "#remotework", "#worktiktok", "freelance tips tiktok", "work from home tiktok", "resume tips viral", "жұмыс тикток", "мансап тикток", "#жұмыс", "фриланс қазақша", "қашықтан жұмыс", "собеседование тикток", "interview tips tiktok", "подработка для студентов", "IT карьера тикток"],
-  auto: ["авто обзор тикток", "машина тюнинг", "мото тикток", "автоновинки 2026", "#авто", "#машина", "#мото", "#car", "#auto", "car tiktok viral", "auto review", "авто қазақша", "көлік шолу тикток", "#авто_kz", "машина тюнинг қазақша", "жаңа көлік 2026"],
-  diy: ["своими руками тикток", "рукоделие идеи", "diy проект", "handmade тренд", "#diy", "#рукоделие", "#handmade", "#craft", "diy tiktok viral", "craft ideas", "қолөнер тикток", "өз қолымен жасау", "#қолөнер_kz", "қолөнер идеялар"],
-  kids: ["дети тикток", "воспитание советы", "развитие ребенка", "школа лайфхаки", "#дети", "#воспитание", "#kids", "#children", "#parenting", "kids tiktok funny", "parenting tips viral", "балалар тикток", "бала тәрбиесі қазақша", "#балалар_kz", "мектеп лайфхак", "бала дамыту"],
-  ai_news: ["нейросети новости 2026", "chatgpt новое", "искусственный интеллект", "#нейросети", "#ии", "#ai", "#chatgpt", "#artificialintelligence", "ai news tiktok", "chatgpt viral", "нейрожелі қазақша", "жасанды интеллект", "#ai_kz"],
-  ai_art: ["ai арт генерация", "midjourney новое", "нейросеть рисует", "#aiart", "#midjourney", "#генерация", "ai art tiktok viral", "ai generated", "нейрожелі сурет қазақша", "#aiart_kz"],
-  ai_avatar: ["ai аватар тикток", "цифровой аватар", "deepfake тренд", "#aiavatar", "#deepfake", "#digitalavatar", "ai avatar tiktok viral", "ai аватар қазақша"],
-  humor: ["юмор тикток", "смешные видео 2026", "приколы тикток", "скетч комедия", "мемы тикток", "#юмор", "#приколы", "#смешно", "#funny", "#comedy", "#memes", "funny tiktok compilation", "comedy sketch viral", "қазақ юмор тикток", "күлкілі видео қазақша", "#қазақприкол", "#қазақвайн", "қазақ мем", "қазақ скетч"],
-};
-
-// Extra general KZ/CIS queries to fill gaps — expanded for better KZ coverage
+// Extra general KZ/CIS queries to fill gaps
 const GENERAL_KZ_QUERIES = [
   "#қазақстан", "#kz", "#казахстан", "#алматы", "#астана",
   "#казахстантренд", "#kztiktok", "#снг", "#рекомендации",
@@ -79,14 +46,11 @@ Deno.serve(async (req: Request) => {
 
     const token = authHeader.replace("Bearer ", "");
     const isCronCall = token === serviceRoleKey;
-
     let userId: string | null = null;
 
     if (isCronCall) {
-      // Cron/service-role call — no user context needed
       console.log("Cron call detected (service_role key)");
     } else {
-      // User call — validate JWT
       const supabaseClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
         global: { headers: { Authorization: authHeader } },
       });
@@ -101,6 +65,23 @@ Deno.serve(async (req: Request) => {
     }
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+    // ===== Load niche queries from DB =====
+    const { data: nicheSettingsRow } = await adminClient
+      .from("trend_settings")
+      .select("value")
+      .eq("key", "niche_queries")
+      .single();
+
+    const NICHE_QUERIES: Record<string, string[]> = nicheSettingsRow?.value as any || {};
+    const allNicheKeys = Object.keys(NICHE_QUERIES);
+    console.log(`Loaded ${allNicheKeys.length} niches from DB: ${allNicheKeys.join(", ")}`);
+
+    if (allNicheKeys.length === 0) {
+      return new Response(JSON.stringify({ error: "No niches configured in trend_settings" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const callSocialKit = async (path: string, params: Record<string, string>) => {
       const url = new URL(`${SOCIALKIT_BASE}${path}`);
@@ -150,15 +131,17 @@ Deno.serve(async (req: Request) => {
 
     // Check mode
     let mode = "full";
-    let batchIndex = -1; // -1 = all niches, 0-4 = specific batch
+    let batchIndex = -1;
     try {
       const body = await req.json();
       if (body?.lite) mode = "lite";
       else if (body?.mass) mode = "mass";
+      else if (body?.mode === "mass") mode = "mass";
+      else if (body?.mode === "lite") mode = "lite";
       if (typeof body?.batch === "number") batchIndex = body.batch;
     } catch { /* no body = cron call */ }
 
-    // Dynamically detect weak niches from DB (< 20 videos in last 7 days)
+    // Detect weak niches
     const sevenDaysAgoCheck = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
     const { data: nicheCounts } = await adminClient
       .from("videos")
@@ -169,30 +152,26 @@ Deno.serve(async (req: Request) => {
     for (const row of nicheCounts || []) {
       if (row.niche) nicheCountMap[row.niche] = (nicheCountMap[row.niche] || 0) + 1;
     }
-    // Any niche with < 20 videos is weak
-    const WEAK_THRESHOLD = 20;
-    const WEAK_NICHES = new Set(
-      Object.keys(NICHE_QUERIES).filter(n => (nicheCountMap[n] || 0) < WEAK_THRESHOLD)
-    );
-    console.log(`Weak niches (< ${WEAK_THRESHOLD} videos):`, [...WEAK_NICHES].join(", "));
 
-    // How many queries per niche based on mode
-    // mass mode (manual refresh): 6 queries per niche, weak get 12
-    // cron/full mode: 3 queries per niche, weak get 8  
-    // lite mode: 2 queries per niche, weak get 4
-    const queriesPerNiche = mode === "mass" ? 6 : mode === "lite" ? 2 : 3;
-    const weakQueriesPerNiche = mode === "mass" ? 12 : mode === "lite" ? 4 : 8;
-    // Increased general KZ count significantly to prioritize KZ content
-    const generalKzCount = mode === "lite" ? 5 : mode === "mass" ? 15 : 8;
+    // All niches are weak since DB is empty — no threshold filtering
+    const WEAK_NICHES = new Set(
+      allNicheKeys.filter(n => (nicheCountMap[n] || 0) < 10)
+    );
+    console.log(`Weak niches: ${[...WEAK_NICHES].join(", ")}`);
+
+    // Maximize queries — no limits
+    const queriesPerNiche = mode === "mass" ? 8 : mode === "lite" ? 3 : 5;
+    const weakQueriesPerNiche = mode === "mass" ? 15 : mode === "lite" ? 5 : 8;
+    const generalKzCount = mode === "lite" ? 8 : mode === "mass" ? 30 : 15;
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-    // AI-powered query generation for niches
+    // AI-powered query generation
     const generateAiQueries = async (niches: string[]): Promise<Record<string, string[]>> => {
       try {
         const nicheDescriptions = niches.map(n => {
           const existing = NICHE_QUERIES[n] || [];
-          return `${n}: примеры запросов: ${existing.slice(0, 3).join(", ")}`;
+          return `${n}: примеры: ${existing.slice(0, 3).join(", ")}`;
         }).join("\n");
 
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -201,7 +180,7 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-lite",
             messages: [
-              { role: "system", content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 5 актуальных поисковых запросов для поиска вирусных видео. Запросы должны быть на казахском, русском и английском. Используй хештеги, ключевые фразы и названия трендов. Возвращай ТОЛЬКО JSON: {"niche1":["запрос1","запрос2",...],...}` },
+              { role: "system", content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 8 актуальных поисковых запросов для поиска вирусных видео. Запросы должны быть на казахском, русском и английском. Используй хештеги, ключевые фразы и названия трендов. Возвращай ТОЛЬКО JSON: {"niche1":["запрос1","запрос2",...],...}` },
               { role: "user", content: `Сгенерируй свежие TikTok поисковые запросы для этих ниш (сегодня ${new Date().toLocaleDateString("ru")}):\n${nicheDescriptions}` }
             ],
           }),
@@ -225,8 +204,7 @@ Deno.serve(async (req: Request) => {
     const nicheStats: Record<string, number> = {};
     let totalSaved = 0;
 
-    // Split niches into batches of 4
-    const allNicheKeys = Object.keys(NICHE_QUERIES);
+    // Batch niches
     const BATCH_SIZE = 4;
     let nicheKeys: string[];
     if (batchIndex >= 0) {
@@ -236,7 +214,7 @@ Deno.serve(async (req: Request) => {
       nicheKeys = allNicheKeys;
     }
 
-    // Generate AI queries for this batch of niches
+    // Generate AI queries
     const aiQueries = await generateAiQueries(nicheKeys);
     
     // Process niches in parallel batches of 5
@@ -245,23 +223,19 @@ Deno.serve(async (req: Request) => {
       
       await Promise.all(nichesBatch.map(async (nicheKey) => {
         const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-        // Combine static + AI-generated queries, prioritizing KZ/RU over EN
         const aiNicheQueries = aiQueries[nicheKey] || [];
-        const staticQueries = [...NICHE_QUERIES[nicheKey]];
-        // Split: KZ/RU queries first (non-latin or hashtags with cyrillic), EN last
+        const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
         const isKzRu = (q: string) => /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(q);
         const kzRuQueries = staticQueries.filter(isKzRu).sort(() => Math.random() - 0.5);
         const enQueries = staticQueries.filter(q => !isKzRu(q)).sort(() => Math.random() - 0.5);
-        // KZ/RU first, then AI, then only a few EN
-        const maxEnQueries = Math.max(1, Math.floor(qCount * 0.2)); // max 20% EN
+        const maxEnQueries = Math.max(1, Math.floor(qCount * 0.3));
         const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
         const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
-        const queries = uniqueQueries;
         let nicheSaved = 0;
 
-        for (const query of queries) {
+        for (const query of uniqueQueries) {
           try {
-            const searchCount = WEAK_NICHES.has(nicheKey) ? "50" : "30";
+            const searchCount = "50"; // Maximum results
             const data = await callSocialKit("/tiktok/search", { query, count: searchCount });
             const videos = extractVideos(data);
 
@@ -274,15 +248,6 @@ Deno.serve(async (req: Request) => {
               const stats = v.stats || {};
               const caption = v.desc || v.caption || v.title || "";
               const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
-              
-              // Detect if video is likely KZ/RU content (cyrillic in caption/username or KZ hashtags)
-              const isKzRuContent = /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(caption) || 
-                /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(username) ||
-                /#(kz|қаз|каз|almaty|astana)/i.test(caption);
-              
-              // Foreign videos: only keep if trend_score is high (top trending)
-              const MIN_FOREIGN_TREND_SCORE = 500;
-              if (!isKzRuContent && trends.trend_score < MIN_FOREIGN_TREND_SCORE) return null;
 
               return {
                 platform: "tiktok",
@@ -322,7 +287,7 @@ Deno.serve(async (req: Request) => {
       }));
     }
 
-    // Also run general KZ queries (tagged region=kz, niche assigned by AI later)
+    // General KZ queries
     const shuffledGeneral = GENERAL_KZ_QUERIES.sort(() => Math.random() - 0.5).slice(0, generalKzCount);
     let generalSaved = 0;
 
@@ -330,7 +295,7 @@ Deno.serve(async (req: Request) => {
       const batch = shuffledGeneral.slice(i, i + 3);
       await Promise.all(batch.map(async (query) => {
         try {
-          const data = await callSocialKit("/tiktok/search", { query, count: "30" });
+          const data = await callSocialKit("/tiktok/search", { query, count: "50" });
           const videos = extractVideos(data);
           const videoRows = videos.map(v => {
             const videoId = v.id || v.video_id || v.aweme_id;
@@ -370,18 +335,18 @@ Deno.serve(async (req: Request) => {
           console.error(`General query "${query}" failed:`, err.message);
         }
       }));
-      if (i + 3 < shuffledGeneral.length) await delay(1000);
+      if (i + 3 < shuffledGeneral.length) await delay(500);
     }
 
-    // AI-categorize any uncategorized videos from general queries
+    // AI-categorize uncategorized videos
     if (generalSaved > 0 && LOVABLE_API_KEY) {
       try {
-        const NICHE_KEYS = Object.keys(NICHE_QUERIES).concat(["other"]);
+        const NICHE_KEYS = allNicheKeys.concat(["other"]);
         const { data: uncategorized } = await adminClient
           .from("videos")
           .select("id, caption")
           .is("niche", null)
-          .limit(100);
+          .limit(200);
 
         if (uncategorized && uncategorized.length > 0) {
           for (let i = 0; i < uncategorized.length; i += 30) {
@@ -418,7 +383,18 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    console.log(`Refresh trends done. Mode: ${mode}, total niche: ${totalSaved}, general: ${generalSaved}`);
+    // Log to trend_refresh_logs
+    await adminClient.from("trend_refresh_logs").insert({
+      mode,
+      status: "done",
+      total_saved: totalSaved,
+      general_saved: generalSaved,
+      niche_stats: nicheStats,
+      triggered_by: userId,
+      finished_at: new Date().toISOString(),
+    });
+
+    console.log(`Refresh done. Mode: ${mode}, total niche: ${totalSaved}, general: ${generalSaved}`);
     console.log("Per-niche stats:", JSON.stringify(nicheStats));
 
     return new Response(JSON.stringify({ success: true, mode, totalSaved, generalSaved, nicheStats }), {
@@ -428,10 +404,7 @@ Deno.serve(async (req: Request) => {
     console.error("Refresh trends error:", err);
     return new Response(
       JSON.stringify({ error: "Unable to process request. Please try again later." }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
