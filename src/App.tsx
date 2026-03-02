@@ -11,7 +11,7 @@ import SearchPage from "./pages/SearchPage";
 import Trends from "./pages/Trends";
 import VideoAnalysis from "./pages/VideoAnalysis";
 import AccountAnalysis from "./pages/AccountAnalysis";
-import Favorites from "./pages/Favorites";
+
 import Journal from "./pages/Journal";
 import Auth from "./pages/Auth";
 import Razvedka from "./pages/Razvedka";
@@ -46,7 +46,7 @@ const AppRoutes = () => (
     <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
     <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
     <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
-    <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+    <Route path="/favorites" element={<Navigate to="/library" replace />} />
     <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
     <Route path="/razvedka" element={<ProtectedRoute><Razvedka /></ProtectedRoute>} />
     <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
