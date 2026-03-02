@@ -144,8 +144,8 @@ export default function AccountAnalysis() {
         {account ? (
           <div className="space-y-6">
             {/* Profile Header */}
-            <div className="bg-card rounded-2xl border border-border/50 p-6 card-shadow">
-              <div className="flex items-start gap-5">
+            <div className="bg-card rounded-xl md:rounded-2xl border border-border/50 p-4 md:p-6 card-shadow">
+              <div className="flex items-start gap-3 md:gap-5">
                 {account.avatar_url ? (
                   <img src={account.avatar_url} alt="" className="h-20 w-20 rounded-full object-cover ring-4 ring-primary/10 shrink-0" />
                 ) : (
