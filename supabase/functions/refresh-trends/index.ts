@@ -7,8 +7,15 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
-const MIN_VIEWS = 5000; // Lower threshold to maximize video collection
-const BATCH_SIZE = 1; // Process 1 niche per batch to guarantee completion within timeout
+const MIN_VIEWS = 5000;
+const BATCH_SIZE = 1;
+const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const ALL_CATEGORIES = [
+  "animals","art","auto","beauty","books","business","cinema","comedy",
+  "dance","diy","education","entertainment","family","fashion","fitness",
+  "food","gaming","lifestyle","marketing","medicine","music","news",
+  "podcast","psychology","realestate","religion","shopping","sports","tech","travel"
+];
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -408,6 +415,37 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
             console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld})`);
 
             if (videoRows.length > 0) {
+              // AI multi-categorization
+              try {
+                const captionList = videoRows.map((v: any, i: number) => `${i}|${v.caption?.slice(0, 150) || ""}`).join("\n");
+                const aiRes = await fetch(AI_URL, {
+                  method: "POST",
+                  headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    model: "google/gemini-2.5-flash-lite",
+                    messages: [
+                      { role: "system", content: `Categorize TikTok videos. Categories: ${ALL_CATEGORIES.join(",")}.
+Each video: index|caption. Return JSON array: [[idx,["cat1","cat2"]], ...]. Max 3 categories per video. Always include the most relevant. No explanation, just JSON.` },
+                      { role: "user", content: captionList }
+                    ],
+                  }),
+                });
+                const aiData = await aiRes.json();
+                const aiContent = aiData?.choices?.[0]?.message?.content || "";
+                const aiMatch = aiContent.match(/\[[\s\S]*\]/);
+                if (aiMatch) {
+                  const catResults: [number, string[]][] = JSON.parse(aiMatch[0]);
+                  for (const [idx, cats] of catResults) {
+                    if (!videoRows[idx]) continue;
+                    const validCats = cats.filter((c: string) => ALL_CATEGORIES.includes(c));
+                    if (!validCats.includes(nicheKey)) validCats.unshift(nicheKey);
+                    if (validCats.length > 0) (videoRows[idx] as any).categories = validCats;
+                  }
+                }
+              } catch (aiErr) {
+                console.error(`AI categorization failed, using single category:`, aiErr.message);
+              }
+
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
               const { data: existing } = await adminClient
                 .from("videos")
