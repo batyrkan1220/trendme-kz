@@ -712,6 +712,7 @@ function SettingsSection() {
            <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
            <SettingRow label="Запросов на категорию" value={current.queries_per_niche ?? 8} onChange={(v) => updateField("queries_per_niche", v)} />
            <SettingRow label="Запросов на слабую категорию" value={current.weak_queries_per_niche ?? 12} onChange={(v) => updateField("weak_queries_per_niche", v)} />
+           <SettingRow label="Видео на запрос (макс)" value={current.videos_per_query ?? 30} onChange={(v) => updateField("videos_per_query", v)} />
           {localThresholds && (
             <Button onClick={() => saveMutation.mutate(localThresholds)} disabled={saveMutation.isPending} className="w-full">
               <Save className="h-4 w-4 mr-2" />Сохранить настройки

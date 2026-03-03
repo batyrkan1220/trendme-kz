@@ -163,6 +163,7 @@ Deno.serve(async (req: Request) => {
     const queriesPerNiche = thresholds.queries_per_niche ?? 8;
     const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
     const weakQueriesPerNiche = thresholds.weak_queries_per_niche ?? 12;
+    const videosPerQuery = thresholds.videos_per_query ?? 30;
 
     // Load per-category limits from DB
     const { data: categoryLimitsRow } = await adminClient
@@ -334,7 +335,7 @@ Deno.serve(async (req: Request) => {
 
         for (const query of uniqueQueries) {
           try {
-            const data = await callSocialKit("/tiktok/search", { query, count: "30" });
+            const data = await callSocialKit("/tiktok/search", { query, count: String(videosPerQuery) });
             const videos = extractVideos(data);
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
