@@ -14,33 +14,9 @@ const MIN_VIEWS = 5000;
 // Batching across niches
 const BATCH_SIZE = 1;
 
-// AI
-const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-
-const ALL_CATEGORIES = [
-  "animals","art","auto","beauty","books","business","cinema","comedy",
-  "dance","diy","education","entertainment","family","fashion","fitness",
-  "food","gaming","lifestyle","marketing","medicine","music","news",
-  "podcast","psychology","realestate","religion","shopping","sports","tech","travel"
-];
+// AI disabled — no AI query generation or categorization
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-function safeJsonParse<T = any>(text: string): T | null {
-  try { return JSON.parse(text) as T; } catch { return null; }
-}
-
-function extractJsonObject(content: string): any | null {
-  const match = content.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  return safeJsonParse(match[0]);
-}
-
-function extractJsonArray(content: string): any[] | null {
-  const match = content.match(/\[[\s\S]*\]/);
-  if (!match) return null;
-  return safeJsonParse(match[0]);
-}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -48,7 +24,7 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY")!;
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+  
 
   // =========================
   // Auth
@@ -493,48 +469,7 @@ Deno.serve(async (req: Request) => {
             continue;
           }
 
-          // AI multi-categorization (best-effort)
-          try {
-            const captionList = videoRows
-              .map((v: any, i: number) => `${i}|${(v.caption || "").slice(0, 150)}`)
-              .join("\n");
-
-            const aiRes = await fetch(AI_URL, {
-              method: "POST",
-              headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-              body: JSON.stringify({
-                model: "google/gemini-2.5-flash-lite",
-                messages: [
-                  {
-                    role: "system",
-                    content:
-                      `Categorize TikTok videos. Categories: ${ALL_CATEGORIES.join(",")}.
-Each video: index|caption. Return JSON array: [[idx,["cat1","cat2"]], ...].
-Max 3 categories per video. No explanation. JSON only.`,
-                  },
-                  { role: "user", content: captionList },
-                ],
-              }),
-            });
-
-            const aiData = await aiRes.json();
-            const aiContent = aiData?.choices?.[0]?.message?.content || "";
-            const parsedArr = extractJsonArray(aiContent);
-
-            if (parsedArr) {
-              for (const item of parsedArr as any[]) {
-                const idx = item?.[0];
-                const cats = item?.[1];
-                if (typeof idx !== "number" || !Array.isArray(cats) || !videoRows[idx]) continue;
-
-                const validCats = cats.filter((c: string) => ALL_CATEGORIES.includes(c)).slice(0, 3);
-                if (!validCats.includes(nicheKey)) validCats.unshift(nicheKey);
-                (videoRows[idx] as any).categories = validCats.slice(0, 3);
-              }
-            }
-          } catch (aiErr) {
-            console.warn("AI categorization failed; using single category");
-          }
+          // AI categorization disabled — videos use only their niche as category
 
           // Check which are new (based on platform+id)
           const platformIds = videoRows.map((v: any) => v.platform_video_id);
