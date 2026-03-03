@@ -608,10 +608,7 @@ Max 3 categories per video. No explanation. JSON only.`,
     nichesToProcess.push(nicheKey);
   }
 
-  // AI queries only for needed niches
-  const aiQueries = nichesToProcess.length > 0 ? await generateAiQueries(nichesToProcess) : {};
-
-  // Process
+  // Process (static queries only, no AI generation)
   for (const nicheKey of nichesToProcess) {
     if (Date.now() - startTime > MAX_EXECUTION_MS) {
       console.log(`⏱ Timeout safety: stopping after ${Math.round((Date.now() - startTime) / 1000)}s`);
@@ -619,7 +616,7 @@ Max 3 categories per video. No explanation. JSON only.`,
     }
 
     try {
-      const saved = await processNiche(nicheKey, aiQueries);
+      const saved = await processNiche(nicheKey);
       nicheStats[nicheKey] = saved;
       totalSaved += saved;
       console.log(`✓ ${nicheKey}: ${saved} videos`);
