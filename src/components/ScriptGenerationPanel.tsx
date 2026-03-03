@@ -124,6 +124,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       transcript,
       summary,
       caption,
+      language,
       messages: chatMsgs,
       onDelta: (text) => {
         accumulated += text;
