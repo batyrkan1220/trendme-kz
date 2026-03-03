@@ -105,7 +105,11 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
   // Auto-generate on mount
   useEffect(() => {
-    generateScript([]);
+    (async () => {
+      const ok = await spend("script_generation", isKk ? "Сценарий генерациясы" : "Генерация сценария");
+      if (!ok) { onBack(); return; }
+      generateScript([]);
+    })();
   }, []);
 
   const generateScript = async (chatMsgs: Msg[]) => {
