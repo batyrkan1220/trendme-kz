@@ -400,6 +400,10 @@ Deno.serve(async (req: Request) => {
       
       // Process niches sequentially to avoid SocialKit rate limits
       for (const nicheKey of nicheKeys) {
+        if (Date.now() - startTime > MAX_EXECUTION_MS) {
+          console.log(`⏱ Timeout safety: stopping after ${Math.round((Date.now() - startTime) / 1000)}s`);
+          break;
+        }
         try {
           const saved = await processNiche(nicheKey, aiQueries);
           nicheStats[nicheKey] = saved;
@@ -409,7 +413,7 @@ Deno.serve(async (req: Request) => {
           console.error(`✗ ${nicheKey} failed:`, e.message);
           nicheStats[nicheKey] = 0;
         }
-        await sleep(2000); // 2s pause between niches
+        await sleep(1000); // 1s pause between niches
       }
 
       // Update log after batch
