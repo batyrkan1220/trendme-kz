@@ -117,13 +117,12 @@ export default function Trends() {
       if (period > 0) {
         const since = new Date();
         since.setDate(since.getDate() - period);
-        q = q.gte("fetched_at", since.toISOString());
+        q = q.gte("published_at", since.toISOString());
       }
-      // No minimum views filter — show all videos
       if (niche !== "all") {
         q = q.contains("categories", [niche]);
       }
-      const { data } = await q.order("trend_score", { ascending: false }).limit(1000);
+      const { data } = await q.order("trend_score", { ascending: false });
       return data || [];
     },
     staleTime: 60_000,
