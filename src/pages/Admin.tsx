@@ -490,7 +490,7 @@ function RefreshSection() {
                         }`}
                       >
                         <span className="font-medium truncate">{niche}</span>
-                        <span className={`ml-1 text-[10px] ${isFull ? "text-green-500" : ""}`}>
+                        <span className={`ml-1 text-[10px] ${isFull ? "text-accent" : ""}`}>
                           {count}/{limit}
                         </span>
                       </button>

@@ -208,8 +208,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
               {[
                 { icon: Eye, label: "Просмотры", value: fmt(views) },
                 { icon: Heart, label: "Лайки", value: fmt(likes), color: "text-primary" },
-                { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-green-500" },
-                { icon: Share2, label: "Репосты", value: fmt(shares), color: "text-blue-500" },
+                { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-accent" },
+                { icon: Share2, label: "Репосты", value: fmt(shares), color: "text-primary/70" },
                 { icon: Target, label: "ER", value: er },
               ].map((s) => (
                 <div key={s.label} className="flex items-center justify-between py-2.5 border-b border-border/30 last:border-0">

@@ -246,10 +246,10 @@ export default function AccountAnalysis() {
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
               {[
-                { icon: Users, value: account.followers, label: "Подписчики", color: "text-blue-500" },
-                { icon: Heart, value: account.total_likes, label: "Лайки", color: "text-rose-500" },
-                { icon: Video, value: account.total_videos, label: "Видео", color: "text-violet-500" },
-                { icon: Users, value: account.following, label: "Подписки", color: "text-emerald-500" },
+                { icon: Users, value: account.followers, label: "Подписчики", color: "text-primary" },
+                { icon: Heart, value: account.total_likes, label: "Лайки", color: "text-primary/80" },
+                { icon: Video, value: account.total_videos, label: "Видео", color: "text-accent" },
+                { icon: Users, value: account.following, label: "Подписки", color: "text-accent/80" },
               ].map((s) => (
                 <div key={s.label} className="bg-card rounded-xl border border-border/50 p-3 md:p-4 text-center card-shadow hover-lift transition-transform">
                   <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color} mx-auto mb-1 md:mb-2`} />
