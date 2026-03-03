@@ -341,8 +341,8 @@ Deno.serve(async (req: Request) => {
       let nicheSaved = 0;
 
       const PARALLEL_QUERIES = 5;
-      const sortTypes = ["0", "1", "3"]; // 0=relevance, 1=likes, 3=date
-      const publishTimes = ["0", "1", "7", "30"]; // 0=all, 1=day, 7=week, 30=month
+      const sortTypes = ["3", "1", "0"]; // 3=date first (freshest), 1=likes, 0=relevance
+      const publishTimes = ["1", "7", "7", "30"]; // prioritize day and week, avoid "0" (all time)
       
       for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
         // Re-check limit BEFORE each query batch
