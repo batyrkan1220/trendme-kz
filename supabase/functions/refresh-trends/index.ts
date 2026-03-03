@@ -329,17 +329,14 @@ Deno.serve(async (req: Request) => {
       const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
       const aiNicheQueries = aiQueries[nicheKey] || [];
       const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
-      const isKzRu = (q: string) => /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(q);
-      const kzRuQueries = staticQueries.filter(isKzRu).sort(() => Math.random() - 0.5);
-      const enQueries = staticQueries.filter(q => !isKzRu(q)).sort(() => Math.random() - 0.5);
-      const maxEnQueries = Math.max(1, Math.floor(qCount * 0.3));
-      const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
+      // Global focus: mix all queries, prioritize English/AI-generated
+      const combinedQueries = [...aiNicheQueries, ...staticQueries.sort(() => Math.random() - 0.5)];
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      const PAGES_PER_QUERY = 5; // Paginate: offsets 0,10,20,30,40
-      const sortTypes = ["3", "1", "0"]; // 3=date first, 1=likes, 0=relevance
-      const publishTimes = ["1", "7", "7", "30"]; // prioritize recent
+      const PAGES_PER_QUERY = 5;
+      const sortTypes = ["0", "1", "3"]; // relevance first, then likes, then date
+      const publishTimes = ["0", "1", "7", "30"]; // 0=all time for max results
       
       for (let qi = 0; qi < uniqueQueries.length; qi++) {
         const query = uniqueQueries[qi];
