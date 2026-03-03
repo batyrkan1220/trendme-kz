@@ -92,7 +92,7 @@ function PlatformTab() {
 
   const statCards = [
     { label: "Пользователи", value: stats?.totalUsers || 0, icon: Users, color: "text-blue-500" },
-    { label: "Активные (7д)", value: stats?.activeUsers || 0, icon: Activity, color: "text-green-500" },
+    { label: "Активные (7д)", value: stats?.activeUsers || 0, icon: Activity, color: "text-accent" },
     { label: "Видео в базе", value: stats?.totalVideos || 0, icon: Video, color: "text-primary" },
     { label: "Избранные", value: stats?.totalFavorites || 0, icon: Heart, color: "text-red-500" },
     { label: "Скрипты", value: stats?.totalScripts || 0, icon: ScrollText, color: "text-amber-500" },
