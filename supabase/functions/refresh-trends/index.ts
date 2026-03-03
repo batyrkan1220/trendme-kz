@@ -493,48 +493,7 @@ Deno.serve(async (req: Request) => {
             continue;
           }
 
-          // AI multi-categorization (best-effort)
-          try {
-            const captionList = videoRows
-              .map((v: any, i: number) => `${i}|${(v.caption || "").slice(0, 150)}`)
-              .join("\n");
-
-            const aiRes = await fetch(AI_URL, {
-              method: "POST",
-              headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-              body: JSON.stringify({
-                model: "google/gemini-2.5-flash-lite",
-                messages: [
-                  {
-                    role: "system",
-                    content:
-                      `Categorize TikTok videos. Categories: ${ALL_CATEGORIES.join(",")}.
-Each video: index|caption. Return JSON array: [[idx,["cat1","cat2"]], ...].
-Max 3 categories per video. No explanation. JSON only.`,
-                  },
-                  { role: "user", content: captionList },
-                ],
-              }),
-            });
-
-            const aiData = await aiRes.json();
-            const aiContent = aiData?.choices?.[0]?.message?.content || "";
-            const parsedArr = extractJsonArray(aiContent);
-
-            if (parsedArr) {
-              for (const item of parsedArr as any[]) {
-                const idx = item?.[0];
-                const cats = item?.[1];
-                if (typeof idx !== "number" || !Array.isArray(cats) || !videoRows[idx]) continue;
-
-                const validCats = cats.filter((c: string) => ALL_CATEGORIES.includes(c)).slice(0, 3);
-                if (!validCats.includes(nicheKey)) validCats.unshift(nicheKey);
-                (videoRows[idx] as any).categories = validCats.slice(0, 3);
-              }
-            }
-          } catch (aiErr) {
-            console.warn("AI categorization failed; using single category");
-          }
+          // AI categorization disabled — videos use only their niche as category
 
           // Check which are new (based on platform+id)
           const platformIds = videoRows.map((v: any) => v.platform_video_id);
