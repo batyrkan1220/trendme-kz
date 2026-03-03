@@ -61,7 +61,7 @@ export default function Dashboard() {
               <h1 className="text-base md:text-xl font-bold text-primary-foreground">
                 Привет, {name} 👋
               </h1>
-              <p className="text-white/70 text-xs md:text-sm mt-1">
+              <p className="text-primary-foreground/70 text-xs md:text-sm mt-1">
                 Что будем исследовать сегодня?
               </p>
             </div>
