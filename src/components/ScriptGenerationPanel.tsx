@@ -265,7 +265,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
               className="flex items-center gap-2 px-3 py-2 w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-              Перегенерировать
+              {isKk ? "Қайта генерациялау" : "Перегенерировать"}
             </button>
             <div className="flex gap-2">
               <input
