@@ -80,13 +80,13 @@ export default function VideoAnalysis() {
     } catch { /* keep as is */ }
   }
 
-  const videoId = extractVideoId(url);
+  const videoId = extractVideoId(url) || String(stats?.id || stats?.video_id || stats?.aweme_id || "");
   const views = Number(stats?.playCount || stats?.views || 0);
   const likes = Number(stats?.diggCount || stats?.likes || 0);
   const commentsCount = Number(stats?.commentCount || stats?.comments || 0);
   const shares = Number(stats?.shareCount || stats?.shares || 0);
   const er = views > 0 ? ((likes + commentsCount + shares) / views * 100).toFixed(2) : "0";
-  const coverUrl = stats?.cover || stats?.cover_url || stats?.originCover || "";
+  const coverUrl = stats?.cover || stats?.cover_url || stats?.originCover || stats?.video?.cover || "";
   const authorUsername = stats?.author?.uniqueId || stats?.author_username || "";
   const authorAvatar = stats?.author?.avatarThumb || stats?.author_avatar_url || "";
 
