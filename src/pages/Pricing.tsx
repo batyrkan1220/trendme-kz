@@ -24,7 +24,7 @@ export default function Pricing() {
               }`}
             >
               {plan.popular && (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-accent mb-3 bg-accent/10 px-2.5 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mb-3 bg-primary/10 px-2.5 py-1 rounded-full">
                   <Sparkles className="h-3 w-3" /> Популярный
                 </span>
               )}
@@ -34,7 +34,7 @@ export default function Pricing() {
               <ul className="mt-5 space-y-2.5">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check className="h-4 w-4 text-accent shrink-0" />
+                    <Check className="h-4 w-4 text-primary shrink-0" />
                     {f}
                   </li>
                 ))}

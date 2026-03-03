@@ -254,7 +254,7 @@ export default function VideoAnalysis() {
                     {[
                       { icon: Eye, value: fmt(views), label: "Просм." },
                       { icon: Heart, value: fmt(likes), label: "Лайки", color: "text-primary" },
-                      { icon: MessageCircle, value: fmt(commentsCount), label: "Комм.", color: "text-accent" },
+                      { icon: MessageCircle, value: fmt(commentsCount), label: "Комм.", color: "text-primary/70" },
                       { icon: Share2, value: fmt(shares), label: "Реп.", color: "text-primary/70" },
                     ].map((s) => (
                       <div key={s.label} className="flex items-center gap-1.5">
@@ -330,7 +330,7 @@ export default function VideoAnalysis() {
                   {[
                     { icon: Eye, label: "Просмотры", value: fmt(views) },
                     { icon: Heart, label: "Лайки", value: fmt(likes), color: "text-primary" },
-                    { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-accent" },
+                    { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-primary/70" },
                     { icon: Share2, label: "Репосты", value: fmt(shares), color: "text-primary/70" },
                     { icon: Target, label: "ER", value: er + "%" },
                   ].map((s) => (

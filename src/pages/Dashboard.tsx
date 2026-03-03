@@ -98,14 +98,14 @@ export default function Dashboard() {
         {/* Stats row */}
         <div className="grid grid-cols-2 gap-2 md:gap-4">
           <div className="bg-card rounded-xl border border-border/60 px-3 md:px-5 py-2 md:py-3 card-shadow flex items-center gap-2 md:gap-3">
-            <Heart className="h-4 w-4 text-accent" />
+            <Heart className="h-4 w-4 text-primary" />
             <div>
               <p className="text-base md:text-lg font-bold text-foreground">{favCount}</p>
               <p className="text-[10px] md:text-[11px] text-muted-foreground">В избранном</p>
             </div>
           </div>
           <div className="bg-card rounded-xl border border-border/60 px-3 md:px-5 py-2 md:py-3 card-shadow flex items-center gap-2 md:gap-3">
-            <TrendingUp className="h-4 w-4 text-accent" />
+            <TrendingUp className="h-4 w-4 text-primary" />
             <div>
               <p className="text-base md:text-lg font-bold text-foreground">{trendingVideos.length}</p>
               <p className="text-[10px] md:text-[11px] text-muted-foreground">Видео в трендах</p>

@@ -272,7 +272,7 @@ export default function Trends() {
               <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-semibold">
                 <Zap className="h-3 w-3" /> {tierCounts.mid}
               </span>
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-accent/10 text-accent font-semibold">
+              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary/70 font-semibold">
                 <Target className="h-3 w-3" /> {tierCounts.micro}
               </span>
               <span className="text-xs text-muted-foreground ml-1">

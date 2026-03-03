@@ -24,7 +24,7 @@ const features = [
     icon: Search,
     title: "Умный поиск",
     desc: "Поиск по ключевым словам, нишам и авторам с фильтрацией по просмотрам, ER и velocity-метрикам.",
-    color: "bg-accent",
+    color: "bg-primary",
     metric: "10M+ видео",
   },
   {
@@ -38,7 +38,7 @@ const features = [
     icon: BarChart3,
     title: "Глубокая аналитика",
     desc: "Velocity просмотров, вовлечённость, прогноз виральности — полная картина по каждому видео.",
-    color: "bg-accent",
+    color: "bg-primary",
     metric: "15+ метрик",
   },
   {
@@ -52,7 +52,7 @@ const features = [
     icon: Zap,
     title: "Автоматические отчёты",
     desc: "Ежедневные инсайты, рекомендации по контенту и оповещения о трендах прямо в ваш аккаунт.",
-    color: "bg-accent",
+    color: "bg-primary",
     metric: "24/7",
   },
 ];
@@ -165,10 +165,10 @@ export default function Landing() {
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-44 md:pb-32 px-4 relative">
         <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[150px] pointer-events-none" />
-        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-accent/6 rounded-full blur-[130px] pointer-events-none" />
+        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[130px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 text-accent text-sm font-semibold px-4 py-1.5 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 text-primary text-sm font-semibold px-4 py-1.5 rounded-full mb-8">
             <TikTokIcon className="h-4 w-4" />
             TikTok Official Partner
           </div>
@@ -206,7 +206,7 @@ export default function Landing() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-3xl mx-auto">
             {stats.map((s) => (
               <div key={s.label} className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-4 card-shadow hover-lift transition-all">
-                <s.icon className="h-5 w-5 text-accent mx-auto mb-2" />
+                <s.icon className="h-5 w-5 text-primary mx-auto mb-2" />
                 <div className="text-2xl md:text-3xl font-extrabold text-foreground">{s.value}</div>
                 <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
               </div>
@@ -236,9 +236,9 @@ export default function Landing() {
       <section id="features" className="py-16 md:py-28 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Возможности</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Возможности</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Всё для <span className="text-accent font-extrabold">роста</span> в TikTok
+              Всё для <span className="text-primary font-extrabold">роста</span> в TikTok
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
               Один инструмент заменяет десятки сервисов. Работайте умнее, а не больше.
@@ -255,7 +255,7 @@ export default function Landing() {
                   <div className={`w-11 h-11 rounded-xl ${f.color} flex items-center justify-center`}>
                     <f.icon className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <span className="text-[11px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-md">
+                  <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
                     {f.metric}
                   </span>
                 </div>
@@ -271,9 +271,9 @@ export default function Landing() {
       <section id="how" className="py-16 md:py-28 px-4 bg-muted/30">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Как это работает</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Как это работает</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Три шага к <span className="text-accent font-extrabold">вирусному контенту</span>
+              Три шага к <span className="text-primary font-extrabold">вирусному контенту</span>
             </h2>
           </div>
 
@@ -310,9 +310,9 @@ export default function Landing() {
       <section id="reviews" className="py-16 md:py-28 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Отзывы</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Реальные <span className="text-accent font-extrabold">результаты</span>
+              Реальные <span className="text-primary font-extrabold">результаты</span>
             </h2>
             <p className="text-muted-foreground text-lg">Наши пользователи растут быстрее</p>
           </div>
@@ -329,7 +329,7 @@ export default function Landing() {
                       <Star key={i} className="h-4 w-4 fill-[hsl(45,90%,55%)] text-[hsl(45,90%,55%)]" />
                     ))}
                   </div>
-                  <span className="text-xs font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-full">
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                     {t.result}
                   </span>
                 </div>
@@ -353,9 +353,9 @@ export default function Landing() {
       <section id="pricing" className="py-16 md:py-28 px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Тарифы</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Тарифы</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Выберите свой <span className="text-accent font-extrabold">план</span>
+              Выберите свой <span className="text-primary font-extrabold">план</span>
             </h2>
             <p className="text-muted-foreground text-lg">Начните бесплатно. Масштабируйтесь, когда будете готовы.</p>
           </div>
@@ -384,7 +384,7 @@ export default function Landing() {
                 <ul className="space-y-3 mb-7">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                      <Check className="h-4 w-4 text-accent shrink-0" />
+                      <Check className="h-4 w-4 text-primary shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -410,7 +410,7 @@ export default function Landing() {
       <section className="py-16 md:py-20 px-4">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">
-            Частые <span className="text-accent font-extrabold">вопросы</span>
+            Частые <span className="text-primary font-extrabold">вопросы</span>
           </h2>
           <div className="space-y-4">
             {[

@@ -228,7 +228,7 @@ export default function AccountAnalysis() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-lg md:text-xl font-bold text-foreground">@{account.username}</h2>
                     {account.verified && (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                         <Check className="h-3 w-3" /> Верифицирован
                       </span>
                     )}
@@ -248,8 +248,8 @@ export default function AccountAnalysis() {
               {[
                 { icon: Users, value: account.followers, label: "Подписчики", color: "text-primary" },
                 { icon: Heart, value: account.total_likes, label: "Лайки", color: "text-primary/80" },
-                { icon: Video, value: account.total_videos, label: "Видео", color: "text-accent" },
-                { icon: Users, value: account.following, label: "Подписки", color: "text-accent/80" },
+                { icon: Video, value: account.total_videos, label: "Видео", color: "text-primary/70" },
+                { icon: Users, value: account.following, label: "Подписки", color: "text-primary/60" },
               ].map((s) => (
                 <div key={s.label} className="bg-card rounded-xl border border-border/50 p-3 md:p-4 text-center card-shadow hover-lift transition-transform">
                   <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color} mx-auto mb-1 md:mb-2`} />
@@ -484,7 +484,7 @@ export default function AccountAnalysis() {
                   <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Heart className="h-3 w-3" /> {formatNum(Number(acc.total_likes || 0))}</span>
                     <span className="flex items-center gap-1"><Video className="h-3 w-3" /> {formatNum(Number(acc.total_videos || 0))}</span>
-                    {acc.verified && <span className="flex items-center gap-1 text-accent"><Check className="h-3 w-3" /> Верифицирован</span>}
+                    {acc.verified && <span className="flex items-center gap-1 text-primary"><Check className="h-3 w-3" /> Верифицирован</span>}
                   </div>
                 </div>
               ))}

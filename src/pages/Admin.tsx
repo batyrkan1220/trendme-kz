@@ -92,12 +92,12 @@ function PlatformTab() {
 
   const statCards = [
     { label: "Пользователи", value: stats?.totalUsers || 0, icon: Users, color: "text-primary" },
-    { label: "Активные (7д)", value: stats?.activeUsers || 0, icon: Activity, color: "text-accent" },
+    { label: "Активные (7д)", value: stats?.activeUsers || 0, icon: Activity, color: "text-primary/80" },
     { label: "Видео в базе", value: stats?.totalVideos || 0, icon: Video, color: "text-primary" },
     { label: "Избранные", value: stats?.totalFavorites || 0, icon: Heart, color: "text-primary/80" },
-    { label: "Скрипты", value: stats?.totalScripts || 0, icon: ScrollText, color: "text-accent" },
+    { label: "Скрипты", value: stats?.totalScripts || 0, icon: ScrollText, color: "text-primary/70" },
     { label: "Анализы видео", value: stats?.totalAnalyses || 0, icon: Video, color: "text-primary/70" },
-    { label: "Поисковые запросы", value: stats?.totalSearches || 0, icon: Search, color: "text-accent/80" },
+    { label: "Поисковые запросы", value: stats?.totalSearches || 0, icon: Search, color: "text-primary/60" },
     { label: "Отслеживаемые аккаунты", value: stats?.totalAccounts || 0, icon: UserCircle, color: "text-primary" },
   ];
 
@@ -490,7 +490,7 @@ function RefreshSection() {
                         }`}
                       >
                         <span className="font-medium truncate">{niche}</span>
-                        <span className={`ml-1 text-[10px] ${isFull ? "text-accent" : ""}`}>
+                        <span className={`ml-1 text-[10px] ${isFull ? "text-primary" : ""}`}>
                           {count}/{limit}
                         </span>
                       </button>
