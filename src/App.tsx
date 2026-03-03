@@ -79,7 +79,7 @@ const AppRoutes = () => (
   <Routes>
     <Route element={<PageTransition />}>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/landing" element={<Landing />} />
+      <Route path="/landing" element={<Navigate to="/" replace />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<Index />} />
