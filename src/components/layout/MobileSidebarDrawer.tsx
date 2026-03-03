@@ -101,7 +101,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
           <Link to="/tokens" onClick={onClose} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/60 transition-colors">
             <Flame className="h-4 w-4 text-primary shrink-0" />
             <span className="flex-1 text-muted-foreground font-medium">Токены</span>
-            <span className="text-xs font-bold text-foreground">1000</span>
+            <span className="text-xs font-bold text-foreground">{balance}</span>
           </Link>
           <Link to="/pricing" onClick={onClose} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-muted/60 transition-colors">
             <CreditCard className="h-4 w-4 shrink-0" />
