@@ -48,7 +48,7 @@ async function streamScript({
       "Content-Type": "application/json",
       Authorization: `Bearer ${session.access_token}`,
     },
-    body: JSON.stringify({ transcript, summary, caption, messages }),
+    body: JSON.stringify({ transcript, summary, caption, language, messages }),
   });
 
   if (!resp.ok) {
