@@ -4,11 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useTokens } from "@/hooks/useTokens";
 import {
-  Home, Search, Target, Eye, Flame, ArrowRight, Shield,
-  Link2, UserSearch, FileText, CalendarDays,
-  LogOut, ChevronLeft, ChevronRight, X
+  LayoutDashboard, TrendingUp, Search,
+  Video, UserCircle, BookOpen, ScrollText,
+  Flame, ArrowRight, Shield,
+  LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
-import { useState } from "react";
 
 interface NavItem {
   label: string;
@@ -19,21 +19,19 @@ interface NavItem {
 }
 
 const searchItems: NavItem[] = [
-  { label: "Главная", icon: Home, path: "/dashboard", iconColor: "text-amber-500" },
+  { label: "Главная", icon: LayoutDashboard, path: "/dashboard", iconColor: "text-amber-500" },
   { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
-  { label: "Контент-радар", icon: Target, path: "/trends", iconColor: "text-rose-500" },
-  { label: "Шпионаж", icon: Eye, path: "/razvedka", iconColor: "text-violet-500" },
+  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
 ];
 
-const toolItems: NavItem[] = [
-  { label: "Анализ видео", icon: Link2, path: "/video-analysis", iconColor: "text-orange-500" },
-  { label: "Анализ профиля", icon: UserSearch, path: "/account-analysis", iconColor: "text-orange-500" },
-  { label: "Черновик", icon: FileText, path: "#", iconColor: "text-muted-foreground", badge: "Скоро" },
-  { label: "Контент план", icon: CalendarDays, path: "#", iconColor: "text-muted-foreground", badge: "Скоро" },
+const aiVideoItems: NavItem[] = [
+  { label: "Анализ видео", icon: Video, path: "/video-analysis", iconColor: "text-orange-500" },
+  { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Библиотека", icon: Flame, path: "/library", iconColor: "text-red-500" },
+  { label: "Библиотека", icon: BookOpen, path: "/library", iconColor: "text-emerald-500" },
+  { label: "Журнал", icon: ScrollText, path: "/journal", iconColor: "text-sky-500" },
 ];
 
 interface AppSidebarProps {
@@ -44,18 +42,15 @@ interface AppSidebarProps {
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const { isAdmin } = useAdmin();
   const { balance, totalEarned } = useTokens();
   const tokenPercent = totalEarned > 0 ? Math.min(100, (balance / totalEarned) * 100) : 0;
-  const [showBanner, setShowBanner] = useState(true);
 
   const handleLogout = async () => {
     await signOut();
     navigate("/auth");
   };
-
-  const initials = user?.email?.charAt(0).toUpperCase() || "U";
 
   const renderGroup = (label: string, items: NavItem[]) => (
     <div className="mb-2">
@@ -79,10 +74,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
                 collapsed && "justify-center px-0"
               )}
             >
-              <item.icon className={cn(
-                "h-5 w-5 shrink-0",
-                active ? item.iconColor : item.iconColor
-              )} />
+              <item.icon className={cn("h-5 w-5 shrink-0", item.iconColor)} />
               {!collapsed && (
                 <>
                   <span className="flex-1">{item.label}</span>
@@ -104,7 +96,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     <aside
       className={cn(
         "h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 shrink-0 z-30",
-        collapsed ? "w-[64px]" : "w-[260px]"
+        collapsed ? "w-[64px]" : "w-[240px]"
       )}
     >
       {/* Logo */}
@@ -123,29 +115,13 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       {/* Main Nav */}
       <nav className="flex-1 py-3 px-2 overflow-y-auto">
         {renderGroup("Поиск контента", searchItems)}
-        {renderGroup("Инструменты", toolItems)}
+        {renderGroup("Инструменты", aiVideoItems)}
         {renderGroup("Идеи", ideaItems)}
         {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
       </nav>
 
       {/* Bottom */}
       <div className="border-t border-sidebar-border py-3 px-2 space-y-2 shrink-0">
-        {/* Promo banner */}
-        {!collapsed && showBanner && (
-          <div className="relative rounded-2xl overflow-hidden p-3" style={{
-            background: "linear-gradient(135deg, hsl(35 95% 55%), hsl(330 80% 55%), hsl(280 70% 55%))"
-          }}>
-            <button
-              onClick={() => setShowBanner(false)}
-              className="absolute top-2 right-2 text-white/70 hover:text-white transition-colors"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-            <p className="text-white font-bold text-sm">Платим за кейсы</p>
-            <p className="text-white/80 text-xs">Подробнее</p>
-          </div>
-        )}
-
         {/* Token widget */}
         {!collapsed && (
           <div className="rounded-xl p-3 space-y-2 bg-muted/40">
@@ -156,9 +132,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
               </div>
               <span className="text-sm font-bold text-foreground">{balance}</span>
             </div>
-            <div className="h-2 w-full rounded-full overflow-hidden" style={{
-              background: "hsl(var(--muted))"
-            }}>
+            <div className="h-2 w-full rounded-full overflow-hidden bg-muted">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -185,41 +159,18 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           </Link>
         )}
 
-        {/* User Profile */}
-        <div className={cn(
-          "flex items-center gap-2.5 px-3 py-2 rounded-xl",
-          collapsed && "justify-center px-0"
-        )}>
-          <div className="h-7 w-7 rounded-full gradient-hero shrink-0 flex items-center justify-center text-[10px] font-bold text-primary-foreground">
-            {initials}
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-foreground truncate">
-                {user?.email?.split("@")[0] || "Пользователь"}
-              </p>
-            </div>
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          title="Выйти"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 w-full transition-colors",
+            collapsed && "justify-center px-0"
           )}
-          {!collapsed && (
-            <button
-              onClick={handleLogout}
-              title="Выйти"
-              className="text-muted-foreground/50 hover:text-destructive transition-colors shrink-0"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-
-        {collapsed && (
-          <button
-            onClick={handleLogout}
-            title="Выйти"
-            className="flex justify-center py-2 rounded-xl text-muted-foreground hover:text-destructive w-full transition-colors"
-          >
-            <LogOut className="h-[18px] w-[18px]" />
-          </button>
-        )}
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && <span>Выйти</span>}
+        </button>
 
         {/* Collapse Toggle */}
         <button
@@ -229,9 +180,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             collapsed && "justify-center px-0"
           )}
         >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : (
             <>
               <ChevronLeft className="h-4 w-4" />
               <span>Свернуть</span>
