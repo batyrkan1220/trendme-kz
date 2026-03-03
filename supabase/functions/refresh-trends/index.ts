@@ -253,7 +253,7 @@ Deno.serve(async (req: Request) => {
       try {
         const nicheDescriptions = niches.map(n => {
           const existing = NICHE_QUERIES[n] || [];
-          return `${n}: примеры: ${existing.slice(0, 3).join(", ")}`;
+          return `${n}: examples: ${existing.slice(0, 3).join(", ")}`;
         }).join("\n");
 
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -262,8 +262,8 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-lite",
             messages: [
-              { role: "system", content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 8-12 актуальных поисковых запросов для поиска вирусных видео. Запросы должны быть на казахском, русском и английском. Включи: общий запрос, нишевой, коммерческий, разговорный формат. Используй хештеги, ключевые фразы и названия трендов. Возвращай ТОЛЬКО JSON: {"niche1":["запрос1","запрос2",...],...}` },
-              { role: "user", content: `Сгенерируй свежие TikTok поисковые запросы для этих ниш (сегодня ${new Date().toLocaleDateString("ru")}):\n${nicheDescriptions}` }
+              { role: "system", content: `You are an expert on global TikTok trends. For each niche, generate 8-12 search queries that will find the most VIRAL and TRENDING videos worldwide. Use primarily ENGLISH queries but also include some Spanish, Portuguese, and other popular languages. Focus on: current viral trends, popular hashtags, challenge names, viral sounds, trending topics. Include queries like "#viral", "trending [niche]", popular creator styles. Return ONLY JSON: {"niche1":["query1","query2",...],...}` },
+              { role: "user", content: `Generate trending TikTok search queries for these niches (today is ${new Date().toLocaleDateString("en")}):\n${nicheDescriptions}` }
             ],
           }),
         });
