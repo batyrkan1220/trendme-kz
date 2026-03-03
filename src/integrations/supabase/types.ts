@@ -250,6 +250,57 @@ export type Database = {
         }
         Relationships: []
       }
+      token_pricing: {
+        Row: {
+          action_key: string
+          action_label: string
+          cost: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          action_key: string
+          action_label: string
+          cost?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          action_key?: string
+          action_label?: string
+          cost?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      token_transactions: {
+        Row: {
+          action_type: string
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trend_refresh_logs: {
         Row: {
           error_message: string | null
@@ -374,6 +425,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_tokens: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          total_earned: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       video_analysis: {
         Row: {
@@ -505,6 +586,10 @@ export type Database = {
         Returns: boolean
       }
       is_owner: { Args: { _user_id: string }; Returns: boolean }
+      spend_tokens: {
+        Args: { _action_key: string; _description?: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
