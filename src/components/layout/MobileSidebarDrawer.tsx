@@ -16,22 +16,23 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   path: string;
+  iconColor?: string;
 }
 
 const searchItems: NavItem[] = [
-  { label: "Главная", icon: LayoutDashboard, path: "/dashboard" },
-  { label: "Поиск по слову", icon: Search, path: "/search" },
-  { label: "Тренды", icon: TrendingUp, path: "/trends" },
+  { label: "Главная", icon: LayoutDashboard, path: "/dashboard", iconColor: "text-amber-500" },
+  { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
+  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
 ];
 
 const toolItems: NavItem[] = [
-  { label: "Анализ видео", icon: Video, path: "/video-analysis" },
-  { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis" },
+  { label: "Анализ видео", icon: Video, path: "/video-analysis", iconColor: "text-orange-500" },
+  { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Избранные", icon: Star, path: "/library" },
-  { label: "Журнал", icon: ScrollText, path: "/journal" },
+  { label: "Избранные", icon: Star, path: "/library", iconColor: "text-amber-500" },
+  { label: "Журнал", icon: ScrollText, path: "/journal", iconColor: "text-sky-500" },
 ];
 
 interface Props {
