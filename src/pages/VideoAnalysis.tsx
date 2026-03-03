@@ -330,7 +330,7 @@ export default function VideoAnalysis() {
                   {[
                     { icon: Eye, label: "Просмотры", value: fmt(views) },
                     { icon: Heart, label: "Лайки", value: fmt(likes), color: "text-primary" },
-                    { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-accent" },
+                    { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-primary/70" },
                     { icon: Share2, label: "Репосты", value: fmt(shares), color: "text-primary/70" },
                     { icon: Target, label: "ER", value: er + "%" },
                   ].map((s) => (
