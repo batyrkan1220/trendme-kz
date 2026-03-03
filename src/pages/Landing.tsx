@@ -24,7 +24,7 @@ const features = [
     icon: Search,
     title: "Умный поиск",
     desc: "Поиск по ключевым словам, нишам и авторам с фильтрацией по просмотрам, ER и velocity-метрикам.",
-    color: "bg-accent",
+    color: "bg-primary",
     metric: "10M+ видео",
   },
   {
