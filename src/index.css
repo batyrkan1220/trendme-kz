@@ -105,9 +105,9 @@
   }
 
   .glass {
-    background: hsl(0 0% 100% / 0.8);
+    background: hsl(0 0% 100% / 0.85);
     backdrop-filter: blur(12px);
-    border: 1px solid hsl(258 12% 91% / 0.8);
+    border: 1px solid hsl(214 14% 91% / 0.8);
   }
 
   .section-label {
