@@ -55,11 +55,12 @@ export default function VideoAnalysis() {
     },
   });
 
-  const handleAnalyze = () => {
+  const handleAnalyze = (lang: "ru" | "kk") => {
     if (!url.trim()) return;
+    setLanguage(lang);
     setIsPlaying(false);
     setShowScript(false);
-    analyze(url.trim());
+    analyze({ videoUrl: url.trim(), lang });
   };
 
   const stats = analysis?.stats;
