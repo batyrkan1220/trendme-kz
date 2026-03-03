@@ -317,20 +317,7 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
 
     // Process a single niche: run all queries in PARALLEL
     const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
-      // CHECK LIMIT BEFORE ANYTHING — skip entirely if at/over limit
-      const limit = categoryLimits[nicheKey];
-      if (limit && limit > 0) {
-        const { count: currentCount } = await adminClient
-          .from("videos")
-          .select("id", { count: "exact", head: true })
-          .eq("niche", nicheKey);
-        
-        if ((currentCount || 0) >= limit) {
-          console.log(`⏭ ${nicheKey}: already at limit (${currentCount}/${limit}), skipping`);
-          return -1; // signal: skipped due to limit
-        }
-        console.log(`📦 ${nicheKey}: ${currentCount}/${limit}, searching for more...`);
-      }
+      const limit = categoryLimits[nicheKey] || 0;
 
       const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
       const aiNicheQueries = aiQueries[nicheKey] || [];
@@ -380,19 +367,7 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
               offset,
             });
             const videos = extractVideos(data);
-            // DEBUG: log first video raw dates for first query of first niche
-            if (page === 0 && qi === 0 && videos.length > 0) {
-              const sample = videos.slice(0, 3).map(v => ({
-                id: v.id || v.video_id || v.aweme_id,
-                createTime: v.createTime,
-                created_at: v.created_at,
-                create_time: v.create_time,
-                parsed: getPublishedAt(v),
-                views: v.stats?.views || v.views || v.playCount,
-              }));
-              console.log(`🔍 RAW sample for "${query}":`, JSON.stringify(sample));
-            }
-            let noId = 0, lowViews = 0;
+            let noId = 0, lowViews = 0, tooOld = 0;
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
               if (!videoId) { noId++; return null; }
@@ -403,7 +378,7 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
               if (views < MIN_VIEWS) { lowViews++; return null; }
               
               const publishedAt = new Date(getPublishedAt({ ...v, stats: v.stats }));
-              if (publishedAt < sevenDaysAgo) { return null; }
+              if (publishedAt < sevenDaysAgo) { tooOld++; return null; }
               
               const caption = v.desc || v.caption || v.title || "";
               const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
@@ -430,7 +405,7 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
               };
             }).filter(Boolean);
 
-            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews})`);
+            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld})`);
 
             if (videoRows.length > 0) {
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
