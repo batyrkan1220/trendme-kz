@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import logoIcon from "@/assets/logo-icon-cropped.png";
+import trendImg1 from "@/assets/landing-trend-1.jpg";
+import trendImg2 from "@/assets/landing-trend-2.jpg";
+import trendImg3 from "@/assets/landing-trend-3.jpg";
 
 /* ─── Scroll reveal hook ─── */
 function useReveal() {
@@ -59,9 +62,9 @@ const stats = [
 ];
 
 const trendingVideos = [
-  { title: "Утренние рутины", author: "@lifestyle_kz", views: "2.4M", likes: "342K", comments: "12K", growth: "+580%", tag: "🔥 В тренде" },
-  { title: "Рецепт за 60 сек", author: "@chef_pro", views: "1.8M", likes: "256K", comments: "8.5K", growth: "+420%", tag: "📈 Растёт" },
-  { title: "Лайфхак для дома", author: "@diy_master", views: "3.1M", likes: "489K", comments: "15K", growth: "+720%", tag: "💥 Вирусное" },
+  { title: "Утренние рутины", author: "@lifestyle_kz", views: "2.4M", likes: "342K", comments: "12K", growth: "+580%", tag: "🔥 В тренде", img: trendImg1 },
+  { title: "Рецепт за 60 сек", author: "@chef_pro", views: "1.8M", likes: "256K", comments: "8.5K", growth: "+420%", tag: "📈 Растёт", img: trendImg2 },
+  { title: "Лайфхак для дома", author: "@diy_master", views: "3.1M", likes: "489K", comments: "15K", growth: "+720%", tag: "💥 Вирусное", img: trendImg3 },
 ];
 
 const testimonials = [
@@ -145,10 +148,17 @@ function TrendingShowcase() {
             </span>
 
             {/* Video preview placeholder */}
-            <div className={`w-full aspect-video rounded-xl mb-4 flex items-center justify-center transition-colors duration-500 ${
-              i === active ? "bg-gradient-to-br from-primary/10 to-primary/5" : "bg-muted/50"
+            <div className={`w-full aspect-video rounded-xl mb-4 overflow-hidden relative transition-all duration-500 ${
+              i === active ? "shadow-lg" : ""
             }`}>
-              <Play className={`h-8 w-8 transition-colors ${i === active ? "text-primary" : "text-muted-foreground/40"}`} />
+              <img src={v.img} alt={v.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm transition-colors ${
+                  i === active ? "bg-primary/80" : "bg-black/30"
+                }`}>
+                  <Play className="h-5 w-5 text-white fill-white" />
+                </div>
+              </div>
             </div>
 
             <h4 className="font-bold text-foreground text-base mb-1">{v.title}</h4>
