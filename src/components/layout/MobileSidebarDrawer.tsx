@@ -43,6 +43,8 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
+  const { balance } = useTokens();
 
   const handleLogout = async () => {
     await signOut();
