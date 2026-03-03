@@ -227,7 +227,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-4 md:space-y-6 bg-background relative">
             <button
               onClick={() => onOpenChange(false)}
-              className="sticky top-0 float-right z-[70] w-10 h-10 rounded-full bg-background border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors ml-2 mb-2"
+              className="absolute top-3 right-3 md:top-6 md:right-6 z-[70] w-10 h-10 rounded-full bg-background border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors"
             >
               <X className="h-5 w-5 text-foreground" />
             </button>
