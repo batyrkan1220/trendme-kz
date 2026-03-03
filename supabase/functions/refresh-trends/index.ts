@@ -334,7 +334,7 @@ Deno.serve(async (req: Request) => {
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      const PAGES_PER_QUERY = 5;
+      const PAGES_PER_QUERY = 2; // 2 pages max — fit more queries in 50s window
       const sortTypes = ["0", "1", "3"]; // relevance first, then likes, then date
       const publishTimes = ["0", "1", "7", "30"]; // 0=all time for max results
       
@@ -353,17 +353,17 @@ Deno.serve(async (req: Request) => {
           }
         }
 
-        if (qi > 0) await sleep(2000); // 2s between queries
+        if (qi > 0) await sleep(800); // 0.8s between queries (was 2s)
         
         const sortType = sortTypes[qi % sortTypes.length];
         const publishTime = publishTimes[qi % publishTimes.length];
         
-        // Paginate through multiple pages per query
+        // Paginate through pages per query
         for (let page = 0; page < PAGES_PER_QUERY; page++) {
           if (Date.now() - startTime > MAX_EXECUTION_MS) break;
           
           const offset = String(page * 10);
-          if (page > 0) await sleep(1500); // 1.5s between pages
+          if (page > 0) await sleep(500); // 0.5s between pages (was 1.5s)
           
           try {
             const data = await callSocialKit("/tiktok/search", { 
