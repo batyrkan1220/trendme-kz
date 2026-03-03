@@ -26,18 +26,6 @@ function useReveal() {
   return { ref, visible };
 }
 
-const Reveal = ({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
-  const { ref, visible } = useReveal();
-  return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  );
-};
 
 /* ─── Brand ─── */
 const BrandName = ({ className = "" }: { className?: string }) => (
@@ -238,67 +226,57 @@ export default function Landing() {
         <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <Reveal>
-            <div className="inline-flex items-center gap-2 text-sm md:text-base font-medium text-foreground mb-8 md:mb-10">
-              <TikTokIcon className="h-5 w-5 md:h-6 md:w-6" />
-              TikTok Official Partner
-            </div>
-          </Reveal>
+          <div className="inline-flex items-center gap-2 text-sm md:text-base font-medium text-foreground mb-8 md:mb-10">
+            <TikTokIcon className="h-5 w-5 md:h-6 md:w-6" />
+            TikTok Official Partner
+          </div>
 
-          <Reveal delay={100}>
-            <h1 className="text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[4rem] font-extrabold leading-[1.12] tracking-tight mb-6 md:mb-8">
-              Находите{" "}
-              <span className="relative inline">
-                <span className="relative z-10">вирусные видео</span>
-                <span className="absolute left-[-4px] right-[-4px] top-[2px] bottom-[2px] bg-gradient-to-r from-primary/20 via-primary/25 to-primary/15 rounded-md -skew-y-[0.5deg]" />
-              </span>{" "}
-              из TikTok и снимайте лучше
-            </h1>
-          </Reveal>
+          <h1 className="text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[4rem] font-extrabold leading-[1.12] tracking-tight mb-6 md:mb-8">
+            Находите{" "}
+            <span className="relative inline">
+              <span className="relative z-10">вирусные видео</span>
+              <span className="absolute left-[-4px] right-[-4px] top-[2px] bottom-[2px] bg-gradient-to-r from-primary/20 via-primary/25 to-primary/15 rounded-md -skew-y-[0.5deg]" />
+            </span>{" "}
+            из TikTok и снимайте лучше
+          </h1>
 
-          <Reveal delay={200}>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed">
-              Узнайте, какие видео взрывают вашу нишу прямо сейчас. AI подскажет формат и напишет сценарий — вам останется только снять.
-            </p>
-          </Reveal>
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed">
+            Узнайте, какие видео взрывают вашу нишу прямо сейчас. AI подскажет формат и напишет сценарий — вам останется только снять.
+          </p>
 
-          <Reveal delay={300}>
-            <div className="mb-6 md:mb-8">
-              <Link to="/auth">
-                <Button className="bg-primary text-primary-foreground rounded-2xl text-base md:text-lg font-bold px-8 md:px-12 h-14 md:h-16 shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.4)] hover:shadow-[0_12px_40px_-6px_hsl(var(--primary)/0.5)] hover:bg-primary/90 transition-all">
-                  <Rocket className="mr-2 h-5 w-5 md:h-6 md:w-6" />
-                  Попробовать бесплатно
-                </Button>
-              </Link>
-            </div>
-          </Reveal>
+          <div className="mb-6 md:mb-8">
+            <Link to="/auth">
+              <Button className="bg-primary text-primary-foreground rounded-2xl text-base md:text-lg font-bold px-8 md:px-12 h-14 md:h-16 shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.4)] hover:shadow-[0_12px_40px_-6px_hsl(var(--primary)/0.5)] hover:bg-primary/90 transition-all">
+                <Rocket className="mr-2 h-5 w-5 md:h-6 md:w-6" />
+                Попробовать бесплатно
+              </Button>
+            </Link>
+          </div>
 
-          <Reveal delay={400}>
-            <div className="flex items-center justify-center gap-4 md:gap-8 text-sm md:text-base text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <CircleDot className="h-4 w-4" />
-                Без карты
-              </span>
-              <span className="text-border">•</span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4" />
-                Доступ сразу
-              </span>
-              <span className="text-border">•</span>
-              <span className="flex items-center gap-1.5">
-                <Zap className="h-4 w-4" />
-                50 запросов/день
-              </span>
-            </div>
-          </Reveal>
+          <div className="flex items-center justify-center gap-4 md:gap-8 text-sm md:text-base text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <CircleDot className="h-4 w-4" />
+              Без карты
+            </span>
+            <span className="text-border">•</span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              Доступ сразу
+            </span>
+            <span className="text-border">•</span>
+            <span className="flex items-center gap-1.5">
+              <Zap className="h-4 w-4" />
+              50 запросов/день
+            </span>
+          </div>
         </div>
       </section>
 
-      {/* ═══ Stats ═══ */}
+      {/* ═══ Stats (animated counters kept) ═══ */}
       <section className="py-12 md:py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            {stats.map((s, i) => (
+            {stats.map((s) => (
               <AnimatedStat key={s.label} value={s.value} label={s.label} />
             ))}
           </div>
@@ -308,102 +286,88 @@ export default function Landing() {
       {/* ═══ Trending Showcase ═══ */}
       <section className="py-12 md:py-24 px-4 bg-muted/20 border-y border-border/30">
         <div className="max-w-6xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-10 md:mb-14">
-              <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary uppercase tracking-wider mb-3">
-                <Flame className="h-4 w-4" />
-                Прямо сейчас в тренде
-              </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3">
-                Видео, которые <span className="text-primary">взрывают</span> ленту
-              </h2>
-              <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-                Мы находим вирусные видео до того, как они станут мейнстримом
-              </p>
+          <div className="text-center mb-10 md:mb-14">
+            <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary uppercase tracking-wider mb-3">
+              <Flame className="h-4 w-4" />
+              Прямо сейчас в тренде
             </div>
-          </Reveal>
-          <Reveal delay={200}>
-            <TrendingShowcase />
-          </Reveal>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3">
+              Видео, которые <span className="text-primary">взрывают</span> ленту
+            </h2>
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+              Мы находим вирусные видео до того, как они станут мейнстримом
+            </p>
+          </div>
+          <TrendingShowcase />
         </div>
       </section>
 
       {/* ═══ How it works ═══ */}
       <section id="how" className="py-16 md:py-28 px-4">
         <div className="max-w-5xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-12 md:mb-16">
-              <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Как это работает</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
-                Три шага к <span className="text-primary">вирусному контенту</span>
-              </h2>
-            </div>
-          </Reveal>
+          <div className="text-center mb-12 md:mb-16">
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Как это работает</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
+              Три шага к <span className="text-primary">вирусному контенту</span>
+            </h2>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
             {steps.map((step, i) => (
-              <Reveal key={step.num} delay={i * 150}>
-                <div className="relative text-center">
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.3)]">
-                    <step.icon className="h-7 w-7 md:h-8 md:w-8 text-primary-foreground" />
-                  </div>
-                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Шаг {step.num}</div>
-                  <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">{step.title}</h3>
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{step.desc}</p>
-                  {i < steps.length - 1 && (
-                    <div className="hidden md:block absolute top-10 -right-5 w-10">
-                      <ChevronRight className="h-6 w-6 text-border" />
-                    </div>
-                  )}
+              <div key={step.num} className="relative text-center">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.3)]">
+                  <step.icon className="h-7 w-7 md:h-8 md:w-8 text-primary-foreground" />
                 </div>
-              </Reveal>
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Шаг {step.num}</div>
+                <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">{step.title}</h3>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{step.desc}</p>
+                {i < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-10 -right-5 w-10">
+                    <ChevronRight className="h-6 w-6 text-border" />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 
-          <Reveal delay={500}>
-            <div className="text-center mt-12 md:mt-16">
-              <Link to="/auth">
-                <Button className="bg-primary text-primary-foreground rounded-xl text-base md:text-lg font-bold px-8 md:px-10 h-13 min-h-[52px] md:min-h-[56px] hover:bg-primary/90">
-                  Начать сейчас — бесплатно
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-          </Reveal>
+          <div className="text-center mt-12 md:mt-16">
+            <Link to="/auth">
+              <Button className="bg-primary text-primary-foreground rounded-xl text-base md:text-lg font-bold px-8 md:px-10 h-13 min-h-[52px] md:min-h-[56px] hover:bg-primary/90">
+                Начать сейчас — бесплатно
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* ═══ Features ═══ */}
       <section id="features" className="py-16 md:py-28 px-4 bg-muted/20 border-y border-border/30">
         <div className="max-w-6xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-12 md:mb-16">
-              <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Инструменты</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
-                Всё для <span className="text-primary">роста</span> в TikTok
-              </h2>
-              <p className="text-muted-foreground text-base md:text-lg lg:text-xl max-w-2xl mx-auto">
-                Один инструмент заменяет десятки сервисов. Работайте умнее.
-              </p>
-            </div>
-          </Reveal>
+          <div className="text-center mb-12 md:mb-16">
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Инструменты</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
+              Всё для <span className="text-primary">роста</span> в TikTok
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg lg:text-xl max-w-2xl mx-auto">
+              Один инструмент заменяет десятки сервисов. Работайте умнее.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {features.map((f, i) => (
-              <Reveal key={f.title} delay={i * 100}>
-                <div className="group relative rounded-2xl p-6 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all duration-300 hover:border-primary/20 h-full">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_-2px_hsl(var(--primary)/0.25)]">
-                      <f.icon className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
-                    </div>
-                    <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md">
-                      {f.metric}
-                    </span>
+            {features.map((f) => (
+              <div key={f.title} className="group relative rounded-2xl p-6 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all duration-300 hover:border-primary/20 h-full">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_-2px_hsl(var(--primary)/0.25)]">
+                    <f.icon className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{f.title}</h3>
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{f.desc}</p>
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md">
+                    {f.metric}
+                  </span>
                 </div>
-              </Reveal>
+                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{f.title}</h3>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{f.desc}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -412,42 +376,38 @@ export default function Landing() {
       {/* ═══ Testimonials ═══ */}
       <section id="reviews" className="py-16 md:py-28 px-4">
         <div className="max-w-6xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-12 md:mb-16">
-              <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
-                Реальные <span className="text-primary">результаты</span>
-              </h2>
-              <p className="text-muted-foreground text-base md:text-lg">Наши пользователи растут быстрее</p>
-            </div>
-          </Reveal>
+          <div className="text-center mb-12 md:mb-16">
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
+              Реальные <span className="text-primary">результаты</span>
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg">Наши пользователи растут быстрее</p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-            {testimonials.map((t, i) => (
-              <Reveal key={t.name} delay={i * 120}>
-                <div className="rounded-2xl p-6 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all h-full">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex gap-1">
-                      {Array.from({ length: t.rating }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 md:h-5 md:w-5 fill-[hsl(45,90%,55%)] text-[hsl(45,90%,55%)]" />
-                      ))}
-                    </div>
-                    <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                      {t.result}
-                    </span>
+            {testimonials.map((t) => (
+              <div key={t.name} className="rounded-2xl p-6 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex gap-1">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 md:h-5 md:w-5 fill-[hsl(45,90%,55%)] text-[hsl(45,90%,55%)]" />
+                    ))}
                   </div>
-                  <p className="text-sm md:text-base text-foreground leading-relaxed mb-5">«{t.text}»</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-xl">
-                      {t.avatar}
-                    </div>
-                    <div>
-                      <div className="text-sm md:text-base font-semibold text-foreground">{t.name}</div>
-                      <div className="text-xs md:text-sm text-muted-foreground">{t.role}</div>
-                    </div>
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                    {t.result}
+                  </span>
+                </div>
+                <p className="text-sm md:text-base text-foreground leading-relaxed mb-5">«{t.text}»</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-xl">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <div className="text-sm md:text-base font-semibold text-foreground">{t.name}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">{t.role}</div>
                   </div>
                 </div>
-              </Reveal>
+              </div>
             ))}
           </div>
         </div>
@@ -456,54 +416,50 @@ export default function Landing() {
       {/* ═══ Pricing ═══ */}
       <section id="pricing" className="py-16 md:py-28 px-4 bg-muted/20 border-y border-border/30">
         <div className="max-w-5xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-12 md:mb-16">
-              <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Тарифы</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
-                Выберите свой <span className="text-primary">план</span>
-              </h2>
-              <p className="text-muted-foreground text-base md:text-lg">Начните бесплатно. Масштабируйтесь, когда готовы.</p>
-            </div>
-          </Reveal>
+          <div className="text-center mb-12 md:mb-16">
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Тарифы</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
+              Выберите свой <span className="text-primary">план</span>
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg">Начните бесплатно. Масштабируйтесь, когда готовы.</p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-            {plans.map((plan, i) => (
-              <Reveal key={plan.name} delay={i * 120}>
-                <div className={`rounded-2xl p-6 md:p-8 border transition-all hover-lift relative h-full ${
-                  plan.popular
-                    ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.15)] scale-[1.02] md:scale-105"
-                    : "bg-card border-border/50 card-shadow"
-                }`}>
-                  {plan.popular && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground bg-primary px-4 py-1 rounded-full shadow-lg">
-                      <Sparkles className="h-3 w-3" /> Популярный
-                    </span>
-                  )}
-                  <div className="text-3xl md:text-4xl mb-2">{plan.emoji}</div>
-                  <h3 className="text-xl md:text-2xl font-bold text-foreground">{plan.name}</h3>
-                  <div className="mt-3 mb-6">
-                    <span className="text-3xl md:text-4xl font-extrabold text-foreground">{plan.price}</span>
-                    <span className="text-sm md:text-base text-muted-foreground">{plan.period}</span>
-                  </div>
-                  <ul className="space-y-3 mb-7">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2.5 text-sm md:text-base text-muted-foreground">
-                        <Check className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/auth">
-                    <Button className={`w-full rounded-xl h-11 md:h-12 font-semibold text-sm md:text-base ${
-                      plan.popular
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : "bg-secondary text-secondary-foreground border border-border hover:bg-muted"
-                    }`}>
-                      {plan.price === "Бесплатно" ? "Начать бесплатно" : "Выбрать план"}
-                    </Button>
-                  </Link>
+            {plans.map((plan) => (
+              <div key={plan.name} className={`rounded-2xl p-6 md:p-8 border transition-all hover-lift relative h-full ${
+                plan.popular
+                  ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.15)] scale-[1.02] md:scale-105"
+                  : "bg-card border-border/50 card-shadow"
+              }`}>
+                {plan.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground bg-primary px-4 py-1 rounded-full shadow-lg">
+                    <Sparkles className="h-3 w-3" /> Популярный
+                  </span>
+                )}
+                <div className="text-3xl md:text-4xl mb-2">{plan.emoji}</div>
+                <h3 className="text-xl md:text-2xl font-bold text-foreground">{plan.name}</h3>
+                <div className="mt-3 mb-6">
+                  <span className="text-3xl md:text-4xl font-extrabold text-foreground">{plan.price}</span>
+                  <span className="text-sm md:text-base text-muted-foreground">{plan.period}</span>
                 </div>
-              </Reveal>
+                <ul className="space-y-3 mb-7">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2.5 text-sm md:text-base text-muted-foreground">
+                      <Check className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/auth">
+                  <Button className={`w-full rounded-xl h-11 md:h-12 font-semibold text-sm md:text-base ${
+                    plan.popular
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "bg-secondary text-secondary-foreground border border-border hover:bg-muted"
+                  }`}>
+                    {plan.price === "Бесплатно" ? "Начать бесплатно" : "Выбрать план"}
+                  </Button>
+                </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -512,29 +468,25 @@ export default function Landing() {
       {/* ═══ FAQ ═══ */}
       <section id="faq" className="py-16 md:py-24 px-4">
         <div className="max-w-3xl mx-auto">
-          <Reveal>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mb-10 md:mb-12">
-              Частые <span className="text-primary">вопросы</span>
-            </h2>
-          </Reveal>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mb-10 md:mb-12">
+            Частые <span className="text-primary">вопросы</span>
+          </h2>
           <div className="space-y-4">
             {[
               { q: "Как быстро я увижу результат?", a: "Первые инсайты вы получите сразу после регистрации. Большинство пользователей замечают рост охватов уже в первую неделю." },
               { q: "Нужно ли привязывать аккаунт TikTok?", a: "Нет, мы работаем через открытые данные. Вам не нужно давать доступ к своему аккаунту." },
               { q: "Могу ли я отменить подписку?", a: "Да, отменить можно в любое время. Доступ сохранится до конца оплаченного периода." },
               { q: "Подходит ли для Reels и Shorts?", a: "Сейчас фокус на TikTok, но скоро добавим Instagram Reels и YouTube Shorts." },
-            ].map((faq, i) => (
-              <Reveal key={faq.q} delay={i * 80}>
-                <details className="group rounded-2xl bg-card border border-border/50 card-shadow">
-                  <summary className="flex items-center justify-between cursor-pointer p-5 md:p-6 text-sm md:text-base font-semibold text-foreground list-none">
-                    {faq.q}
-                    <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground transition-transform group-open:rotate-90 shrink-0" />
-                  </summary>
-                  <div className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-muted-foreground leading-relaxed -mt-1">
-                    {faq.a}
-                  </div>
-                </details>
-              </Reveal>
+            ].map((faq) => (
+              <details key={faq.q} className="group rounded-2xl bg-card border border-border/50 card-shadow">
+                <summary className="flex items-center justify-between cursor-pointer p-5 md:p-6 text-sm md:text-base font-semibold text-foreground list-none">
+                  {faq.q}
+                  <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground transition-transform group-open:rotate-90 shrink-0" />
+                </summary>
+                <div className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-muted-foreground leading-relaxed -mt-1">
+                  {faq.a}
+                </div>
+              </details>
             ))}
           </div>
         </div>
@@ -542,34 +494,32 @@ export default function Landing() {
 
       {/* ═══ CTA ═══ */}
       <section className="py-12 md:py-24 px-3 md:px-4">
-        <Reveal>
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="rounded-2xl md:rounded-3xl bg-primary p-8 md:p-16 relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.12),transparent_60%)]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.06),transparent_50%)]" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-sm md:text-base font-semibold px-4 py-1.5 rounded-full mb-5 md:mb-6">
-                  <Flame className="h-4 w-4 md:h-5 md:w-5" />
-                  Присоединяйтесь к 2 500+ авторам
-                </div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-primary-foreground mb-3 md:mb-5">
-                  Начните расти
-                  <br />
-                  в TikTok сегодня
-                </h2>
-                <p className="text-primary-foreground/80 text-base md:text-xl mb-6 md:mb-8 max-w-lg mx-auto">
-                  Бесплатный старт. Без привязки карты. Первые инсайты через 30 секунд.
-                </p>
-                <Link to="/auth">
-                  <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-base md:text-lg font-bold px-8 md:px-12 h-13 md:h-14 shadow-xl">
-                    Создать аккаунт бесплатно
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="rounded-2xl md:rounded-3xl bg-primary p-8 md:p-16 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.12),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.06),transparent_50%)]" />
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-sm md:text-base font-semibold px-4 py-1.5 rounded-full mb-5 md:mb-6">
+                <Flame className="h-4 w-4 md:h-5 md:w-5" />
+                Присоединяйтесь к 2 500+ авторам
               </div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-primary-foreground mb-3 md:mb-5">
+                Начните расти
+                <br />
+                в TikTok сегодня
+              </h2>
+              <p className="text-primary-foreground/80 text-base md:text-xl mb-6 md:mb-8 max-w-lg mx-auto">
+                Бесплатный старт. Без привязки карты. Первые инсайты через 30 секунд.
+              </p>
+              <Link to="/auth">
+                <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-base md:text-lg font-bold px-8 md:px-12 h-13 md:h-14 shadow-xl">
+                  Создать аккаунт бесплатно
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
             </div>
           </div>
-        </Reveal>
+        </div>
       </section>
 
       {/* ═══ Footer ═══ */}
