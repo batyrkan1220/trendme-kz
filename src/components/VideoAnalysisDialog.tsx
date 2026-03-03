@@ -115,6 +115,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             transcript={transcript}
             summary={summary}
             caption={video.caption || ""}
+            language={language}
             onBack={() => setShowScript(false)}
           />
         ) : (
