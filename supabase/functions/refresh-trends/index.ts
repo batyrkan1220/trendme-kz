@@ -339,8 +339,8 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      const PAGES_PER_QUERY = 2; // 2 pages max — fit more queries in 50s window
-      const sortTypes = ["0", "1", "3"]; // relevance first, then likes, then date
+      const PAGES_PER_QUERY = 3; // 3 pages for maximum coverage
+      const sortTypes = ["0", "1", "3"]; // relevance, likes, date
       const publishTimes = ["0", "1", "7", "30"]; // all time for max results, 7-day filter applied in code
       
       for (let qi = 0; qi < uniqueQueries.length; qi++) {
