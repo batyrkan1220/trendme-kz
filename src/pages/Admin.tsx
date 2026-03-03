@@ -422,6 +422,56 @@ function UsersTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Subscription assign dialog */}
+      <Dialog open={!!subDialog} onOpenChange={(o) => { if (!o) setSubDialog(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Назначить тариф
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{subDialog?.email}</p>
+            <div>
+              <label className="text-sm font-medium text-foreground">Тариф</label>
+              <Select value={subPlanId} onValueChange={setSubPlanId}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Выберите тариф" /></SelectTrigger>
+                <SelectContent>
+                  {plans.filter((p: any) => p.is_active).map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}
+                      {p.tokens_included > 0 ? ` (+${p.tokens_included} ⚡)` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Срок (дней)</label>
+              <Input type="number" value={subDays} onChange={(e) => setSubDays(e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Примечание</label>
+              <Input value={subNote} onChange={(e) => setSubNote(e.target.value)} placeholder="Необязательно" className="mt-1" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSubDialog(null)}>Отмена</Button>
+            <Button
+              onClick={() => {
+                if (!subPlanId || !subDialog) return toast.error("Выберите тариф");
+                subMutation.mutate({ user_id: subDialog.userId, plan_id: subPlanId, duration_days: Number(subDays), note: subNote });
+              }}
+              disabled={subMutation.isPending || !subPlanId}
+            >
+              {subMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              Назначить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
