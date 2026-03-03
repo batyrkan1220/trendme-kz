@@ -176,7 +176,7 @@ export default function Landing() {
           <h1 className="text-4xl sm:text-5xl md:text-[4.5rem] font-extrabold leading-[1.05] tracking-tight mb-6">
             Ваши видео будут
             <br />
-            <span className="gradient-text">залетать в ТОП</span>
+            <span className="text-foreground">залетать в ТОП</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
