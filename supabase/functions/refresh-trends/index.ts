@@ -178,11 +178,11 @@ Deno.serve(async (req: Request) => {
     const categoryLimits: Record<string, number> = (categoryLimitsRow?.value as any) || {};
 
     // Detect weak niches
-    const sevenDaysAgoCheck = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
+    const thirtyDaysAgoCheck = new Date(Date.now() - 30 * 24 * 3600000).toISOString();
     const { data: nicheCounts } = await adminClient
       .from("videos")
       .select("niche")
-      .gte("published_at", sevenDaysAgoCheck);
+      .gte("published_at", thirtyDaysAgoCheck);
     
     const nicheCountMap: Record<string, number> = {};
     for (const row of nicheCounts || []) {
@@ -199,7 +199,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const freshWindow = new Date(Date.now() - 7 * 24 * 3600000); // Last 7 days
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
