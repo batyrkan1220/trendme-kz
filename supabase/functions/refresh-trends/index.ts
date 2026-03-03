@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
-const MIN_VIEWS = 10000; // Higher threshold for global trending videos
+const MIN_VIEWS = 5000; // Lower threshold to maximize video collection
 const BATCH_SIZE = 1; // Process 1 niche per batch to guarantee completion within timeout
 
 Deno.serve(async (req: Request) => {
