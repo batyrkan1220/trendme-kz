@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
-const MIN_VIEWS = 3000; // Minimum views threshold
+const MIN_VIEWS = 1000; // Lowered from 3000 to capture more videos
 const BATCH_SIZE = 1; // Process 1 niche per batch to guarantee completion within timeout
 
 Deno.serve(async (req: Request) => {
@@ -187,7 +187,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const freshWindow = new Date(Date.now() - 7 * 24 * 3600000); // Only last 7 days
+    const freshWindow = new Date(Date.now() - 14 * 24 * 3600000); // Last 14 days instead of 7
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
@@ -313,13 +313,25 @@ Deno.serve(async (req: Request) => {
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      const PARALLEL_QUERIES = 3;
+      const PARALLEL_QUERIES = 5;
+      const sortTypes = ["0", "1", "3"]; // 0=relevance, 1=likes, 3=date
+      const publishTimes = ["0", "1", "7", "30"]; // 0=all, 1=day, 7=week, 30=month
+      
       for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
-        if (i > 0) await sleep(1500); // 1.5s delay between batches
+        if (i > 0) await sleep(1200);
         const queryBatch = uniqueQueries.slice(i, i + PARALLEL_QUERIES);
-        const results = await Promise.allSettled(queryBatch.map(async (query) => {
+        const results = await Promise.allSettled(queryBatch.map(async (query, qi) => {
           try {
-            const data = await callSocialKit("/tiktok/search", { query, count: String(videosPerQuery) });
+            const sortType = sortTypes[(i + qi) % sortTypes.length];
+            const publishTime = publishTimes[(i + qi) % publishTimes.length];
+            const offset = String(Math.floor(Math.random() * 3) * 10); // 0, 10, or 20
+            const data = await callSocialKit("/tiktok/search", { 
+              query, 
+              count: String(videosPerQuery),
+              sort_type: sortType,
+              publish_time: publishTime,
+              offset,
+            });
             const videos = extractVideos(data);
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
