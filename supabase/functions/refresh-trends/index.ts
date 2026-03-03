@@ -340,12 +340,14 @@ Deno.serve(async (req: Request) => {
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      const PARALLEL_QUERIES = 5;
-      const sortTypes = ["3", "1", "0"]; // 3=date first (freshest), 1=likes, 0=relevance
-      const publishTimes = ["1", "7", "7", "30"]; // prioritize day and week, avoid "0" (all time)
+      const PAGES_PER_QUERY = 5; // Paginate: offsets 0,10,20,30,40
+      const sortTypes = ["3", "1", "0"]; // 3=date first, 1=likes, 0=relevance
+      const publishTimes = ["1", "7", "7", "30"]; // prioritize recent
       
-      for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
-        // Re-check limit BEFORE each query batch
+      for (let qi = 0; qi < uniqueQueries.length; qi++) {
+        const query = uniqueQueries[qi];
+        
+        // Re-check limit BEFORE each query
         if (limit && limit > 0) {
           const { count: midCount } = await adminClient
             .from("videos")
@@ -353,21 +355,27 @@ Deno.serve(async (req: Request) => {
             .eq("niche", nicheKey)
             .gte("published_at", freshWindow.toISOString());
           if ((midCount || 0) >= limit) {
-            console.log(`⏭ ${nicheKey}: reached limit mid-search (${midCount}/${limit}), stopping`);
+            console.log(`⏭ ${nicheKey}: reached limit (${midCount}/${limit}), stopping`);
             break;
           }
         }
 
-        if (i > 0) await sleep(1200);
-        const queryBatch = uniqueQueries.slice(i, i + PARALLEL_QUERIES);
-        const results = await Promise.allSettled(queryBatch.map(async (query, qi) => {
+        if (qi > 0) await sleep(2000); // 2s between queries
+        
+        const sortType = sortTypes[qi % sortTypes.length];
+        const publishTime = publishTimes[qi % publishTimes.length];
+        
+        // Paginate through multiple pages per query
+        for (let page = 0; page < PAGES_PER_QUERY; page++) {
+          if (Date.now() - startTime > MAX_EXECUTION_MS) break;
+          
+          const offset = String(page * 10);
+          if (page > 0) await sleep(1500); // 1.5s between pages
+          
           try {
-            const sortType = sortTypes[(i + qi) % sortTypes.length];
-            const publishTime = publishTimes[(i + qi) % publishTimes.length];
-            const offset = String(Math.floor(Math.random() * 5) * 10);
             const data = await callSocialKit("/tiktok/search", { 
               query, 
-              count: String(Math.min(videosPerQuery, 50)),
+              count: "20",
               sort_type: sortType,
               publish_time: publishTime,
               offset,
@@ -410,7 +418,7 @@ Deno.serve(async (req: Request) => {
               };
             }).filter(Boolean);
 
-            console.log(`  📊 "${query}": ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, old=${tooOld}, lowViews=${lowViews})`);
+            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, old=${tooOld}, lowViews=${lowViews})`);
 
             if (videoRows.length > 0) {
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
@@ -420,25 +428,25 @@ Deno.serve(async (req: Request) => {
                 .in("platform_video_id", platformIds);
               const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
               const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
-              console.log(`  💾 "${query}": ${newCount} new / ${existingIds.size} dupes`);
+              console.log(`  💾 "${query}" p${page}: ${newCount} new / ${existingIds.size} dupes`);
 
               const { error: upsertErr } = await adminClient
                 .from("videos")
                 .upsert(videoRows, { onConflict: "platform_video_id" });
               if (upsertErr) console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
-              return newCount;
+              nicheSaved += newCount;
             }
-            return 0;
+            
+            // If this page returned 0 valid videos, skip remaining pages
+            if (videoRows.length === 0 && videos.length < 5) {
+              console.log(`  ⏭ "${query}": no more results, skipping remaining pages`);
+              break;
+            }
           } catch (err) {
-            console.error(`Niche ${nicheKey} query "${query}" failed:`, err.message);
-            return 0;
+            console.error(`Niche ${nicheKey} query "${query}" p${page} failed:`, err.message);
           }
-        }));
-        
-        for (const r of results) {
-          if (r.status === "fulfilled") nicheSaved += r.value;
-        }
-      }
+        } // end pages loop
+      } // end queries loop
 
       // Enforce category limit after inserting (trim weakest if over)
       const limitVal = categoryLimits[nicheKey];
