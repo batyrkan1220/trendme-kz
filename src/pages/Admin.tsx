@@ -1424,7 +1424,7 @@ function TariffsTab() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2"><Crown className="h-5 w-5 text-primary" /> Тарифные планы</CardTitle>
-          <Button size="sm" onClick={() => setEditPlan({ name: "", price_rub: 0, duration_days: 30, max_requests: 100, max_tracked_accounts: 5, features: [], is_active: true, sort_order: plans.length + 1 })}><Plus className="h-4 w-4 mr-1" /> Новый тариф</Button>
+          <Button size="sm" onClick={() => setEditPlan({ name: "", price_rub: 0, duration_days: 30, max_requests: 100, max_tracked_accounts: 5, tokens_included: 0, features: [], is_active: true, sort_order: plans.length + 1 })}><Plus className="h-4 w-4 mr-1" /> Новый тариф</Button>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
