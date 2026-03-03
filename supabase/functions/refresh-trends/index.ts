@@ -14,9 +14,68 @@ const MIN_VIEWS = 5000;
 // Batching across niches
 const BATCH_SIZE = 1;
 
-// AI disabled — no AI query generation or categorization
-
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// =========================
+// Deterministic PRNG (mulberry32)
+// =========================
+function mulberry32(seed: number): () => number {
+  let s = seed | 0;
+  return () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Convert a string (UUID, nicheKey) to a numeric seed
+function hashString(str: string): number {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return h;
+}
+
+// Stable shuffle: same seed + same array → same order every time
+function stableShuffle<T>(array: T[], seed: number): T[] {
+  const arr = [...array];
+  const rng = mulberry32(seed);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Pick rotated keywords with wrap-around
+function pickRotatedKeywords(
+  nicheKey: string,
+  allKeywords: string[],
+  qCount: number,
+  seed: string,
+  rotationIndex: number,
+): string[] {
+  // Clean: dedupe, trim, remove empties
+  const cleaned = [...new Set(allKeywords.map((k) => k.trim()).filter(Boolean))];
+  if (cleaned.length === 0) return [];
+  if (cleaned.length <= qCount) return cleaned;
+
+  // Combine seed + nicheKey for per-niche variation
+  const combinedSeed = hashString(seed + ":" + nicheKey);
+  const shuffled = stableShuffle(cleaned, combinedSeed);
+
+  const total = shuffled.length;
+  const offset = (rotationIndex * qCount) % total;
+
+  // Wrap-around slice
+  const result: string[] = [];
+  for (let i = 0; i < qCount; i++) {
+    result.push(shuffled[(offset + i) % total]);
+  }
+  return result;
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -24,7 +83,6 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY")!;
-  
 
   // =========================
   // Auth
@@ -70,7 +128,6 @@ Deno.serve(async (req: Request) => {
 
   const nowIso = new Date().toISOString();
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600000);
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
 
   // =========================
   // Helpers
@@ -211,7 +268,6 @@ Deno.serve(async (req: Request) => {
   const queriesPerNiche = thresholds.queries_per_niche ?? 8;
   const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
   const weakQueriesPerNiche = thresholds.weak_queries_per_niche ?? 12;
-  const videosPerQuery = thresholds.videos_per_query ?? 30;
 
   // =========================
   // Load per-category limits
@@ -254,6 +310,7 @@ Deno.serve(async (req: Request) => {
   // =========================
   let nicheStats: Record<string, number> = {};
   let totalSaved = 0;
+  let keywordsUsedPerNiche: Record<string, string[]> = {};
 
   if (logId) {
     const { data: existingLog } = await adminClient
@@ -268,7 +325,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Create log entry on first batch only
+  // Create log entry on first batch only (BEFORE keyword selection so logId is available as seed)
   if (!logId) {
     await adminClient
       .from("trend_refresh_logs")
@@ -295,6 +352,14 @@ Deno.serve(async (req: Request) => {
     logId = logEntry?.id || null;
   }
 
+  // Rotation seed = logId (stable across all batches of this run)
+  const rotationSeed = logId || crypto.randomUUID();
+  const rotationIndex = batchIndex;
+
+  if (batchIndex === 0) {
+    console.log(`🔀 Rotation seed=${rotationSeed}, index=${rotationIndex}`);
+  }
+
   const chainNextBatch = async (nextBatch: number) => {
     try {
       await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
@@ -309,8 +374,6 @@ Deno.serve(async (req: Request) => {
       console.error("Chain call failed:", e);
     }
   };
-
-  // AI query generation disabled — using only static queries from DB
 
   // =========================
   // Enforce category limit (trim weakest if over)
@@ -344,15 +407,22 @@ Deno.serve(async (req: Request) => {
   };
 
   // =========================
-  // Process one niche
+  // Process one niche (with seeded keyword rotation)
   // =========================
   const processNiche = async (nicheKey: string) => {
     const limit = categoryLimits[nicheKey] || 0;
 
     const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-    const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
+    const allKeywords = NICHE_QUERIES[nicheKey] || [];
 
-    const uniqueQueries = [...new Set(staticQueries.sort(() => Math.random() - 0.5))].slice(0, qCount);
+    // Seeded rotation: different logId → different shuffle; same logId + batchIndex → same pick
+    const selectedKeywords = pickRotatedKeywords(nicheKey, allKeywords, qCount, rotationSeed, rotationIndex);
+
+    // Store for debug logging
+    keywordsUsedPerNiche[nicheKey] = selectedKeywords;
+
+    console.log(`  🔑 ${nicheKey}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (rotation=${rotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
+
     let nicheSaved = 0;
 
     const PAGES_PER_QUERY = 3;
@@ -361,7 +431,7 @@ Deno.serve(async (req: Request) => {
 
     const COUNT = 20;
 
-    for (let qi = 0; qi < uniqueQueries.length; qi++) {
+    for (let qi = 0; qi < selectedKeywords.length; qi++) {
       if (Date.now() - startTime > MAX_EXECUTION_MS) break;
 
       // Re-check limit before each query
@@ -377,7 +447,7 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      const query = uniqueQueries[qi];
+      const query = selectedKeywords[qi];
       const sortType = sortTypes[qi % sortTypes.length];
       const publishTime = publishTimes[qi % publishTimes.length];
 
@@ -386,7 +456,6 @@ Deno.serve(async (req: Request) => {
       for (let page = 0; page < PAGES_PER_QUERY; page++) {
         if (Date.now() - startTime > MAX_EXECUTION_MS) break;
 
-        // ✅ FIX: offset must be page*COUNT (was page*10 -> overlap)
         const offset = String(page * COUNT);
         if (page > 0) await sleep(500);
 
@@ -449,7 +518,7 @@ Deno.serve(async (req: Request) => {
             };
           }).filter(Boolean) as any[];
 
-          // ✅ Local dedupe (protect against overlap & repeated IDs in same payload)
+          // Local dedupe
           const map = new Map<string, any>();
           for (const r of rowsRaw) {
             if (map.has(r.platform_video_id)) inBatchDup++;
@@ -469,9 +538,7 @@ Deno.serve(async (req: Request) => {
             continue;
           }
 
-          // AI categorization disabled — videos use only their niche as category
-
-          // Check which are new (based on platform+id)
+          // Check which are new
           const platformIds = videoRows.map((v: any) => v.platform_video_id);
 
           const { data: existing } = await adminClient
@@ -485,7 +552,6 @@ Deno.serve(async (req: Request) => {
 
           console.log(`  💾 "${query}" p${page}: ${newCount} new / ${existingIds.size} dupes`);
 
-          // ✅ FIX: conflict on (platform, platform_video_id)
           const { error: upsertErr } = await adminClient
             .from("videos")
             .upsert(videoRows, { onConflict: "platform,platform_video_id" });
@@ -524,7 +590,7 @@ Deno.serve(async (req: Request) => {
 
   console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.join(", ")}`);
 
-  // Check limits before doing AI
+  // Check limits before processing
   const nichesToProcess: string[] = [];
   for (const nicheKey of nicheKeys) {
     const limit = categoryLimits[nicheKey];
@@ -543,7 +609,7 @@ Deno.serve(async (req: Request) => {
     nichesToProcess.push(nicheKey);
   }
 
-  // Process (static queries only, no AI generation)
+  // Process niches
   for (const nicheKey of nichesToProcess) {
     if (Date.now() - startTime > MAX_EXECUTION_MS) {
       console.log(`⏱ Timeout safety: stopping after ${Math.round((Date.now() - startTime) / 1000)}s`);
@@ -563,11 +629,21 @@ Deno.serve(async (req: Request) => {
     await sleep(1000);
   }
 
-  // Update log
+  // Update log with rotation debug info
   if (logId) {
     await adminClient
       .from("trend_refresh_logs")
-      .update({ total_saved: totalSaved, niche_stats: nicheStats })
+      .update({
+        total_saved: totalSaved,
+        niche_stats: {
+          ...nicheStats,
+          _rotation: {
+            seed: rotationSeed,
+            index: rotationIndex,
+            keywords_used: keywordsUsedPerNiche,
+          },
+        },
+      })
       .eq("id", logId);
   }
 
@@ -595,7 +671,14 @@ Deno.serve(async (req: Request) => {
           status: "done",
           total_saved: totalSaved,
           general_saved: 0,
-          niche_stats: nicheStats,
+          niche_stats: {
+            ...nicheStats,
+            _rotation: {
+              seed: rotationSeed,
+              index: rotationIndex,
+              keywords_used: keywordsUsedPerNiche,
+            },
+          },
           finished_at: new Date().toISOString(),
         })
         .eq("id", logId);
