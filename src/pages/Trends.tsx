@@ -224,7 +224,7 @@ export default function Trends() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {p === 0 ? "Все" : p === 30 ? "Active 30д" : `${p}д`}
+                {p === 0 ? "Все" : `${p}д`}
               </button>
             ))}
           </div>
