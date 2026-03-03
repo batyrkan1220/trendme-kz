@@ -129,7 +129,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             to="/tokens"
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm hover:bg-muted/60 transition-colors group"
           >
-            <Flame className="h-4 w-4 text-primary shrink-0" />
+            <Flame className="h-4 w-4 text-accent shrink-0" />
             <span className="flex-1 text-sm text-muted-foreground font-medium">Токены</span>
             <span className="text-xs font-bold text-foreground">1000</span>
           </Link>
