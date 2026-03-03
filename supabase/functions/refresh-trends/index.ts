@@ -187,7 +187,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const freshWindow = new Date(Date.now() - 14 * 24 * 3600000); // Last 14 days instead of 7
+    const freshWindow = new Date(Date.now() - 7 * 24 * 3600000); // Last 7 days
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
@@ -302,6 +302,21 @@ Deno.serve(async (req: Request) => {
 
     // Process a single niche: run all queries in PARALLEL
     const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
+      // CHECK LIMIT BEFORE SEARCHING — skip entirely if at/over limit
+      const limit = categoryLimits[nicheKey];
+      if (limit && limit > 0) {
+        const { count: currentCount } = await adminClient
+          .from("videos")
+          .select("id", { count: "exact", head: true })
+          .eq("niche", nicheKey)
+          .gte("published_at", freshWindow.toISOString());
+        
+        if ((currentCount || 0) >= limit) {
+          console.log(`⏭ ${nicheKey}: already at limit (${currentCount}/${limit}), skipping`);
+          return 0;
+        }
+      }
+
       const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
       const aiNicheQueries = aiQueries[nicheKey] || [];
       const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
@@ -397,10 +412,10 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      // Enforce category limit
-      const limit = categoryLimits[nicheKey];
-      if (limit && limit > 0) {
-        await enforceLimit(nicheKey, limit);
+      // Enforce category limit after inserting (trim weakest if over)
+      const limitVal = categoryLimits[nicheKey];
+      if (limitVal && limitVal > 0) {
+        await enforceLimit(nicheKey, limitVal);
       }
 
       return nicheSaved;
