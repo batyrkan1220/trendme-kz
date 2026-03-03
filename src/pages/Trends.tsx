@@ -91,7 +91,10 @@ export default function Trends() {
   const [niche, setNiche] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
+  const { balance } = useTokens();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const FREE_LIMIT = 5;
 
   const handleRefresh = async () => {
     setRefreshing(true);
