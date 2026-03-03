@@ -129,7 +129,8 @@ function TrendingShowcase() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+      <div className="flex gap-4 md:gap-5 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible scrollbar-none">
+        <style>{`.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}`}</style>
         {trendingVideos.map((v, i) => (
           <div
             key={v.title}
