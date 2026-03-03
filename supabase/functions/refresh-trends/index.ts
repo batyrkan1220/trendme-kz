@@ -341,8 +341,8 @@ Deno.serve(async (req: Request) => {
               if (!videoId) return null;
               const trends = computeTrend(v);
               const publishedDate = new Date(trends.published_at);
-              // Active window: up to 30 days
-              if (publishedDate < thirtyDaysAgo) return null;
+              // Fresh window: only last 7 days
+              if (publishedDate < freshWindow) return null;
               
               const stats = v.stats || {};
               const views = stats.views || v.views || v.playCount || 0;
