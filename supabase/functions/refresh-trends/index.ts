@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
-const MIN_VIEWS = 3000; // Minimum views threshold
+const MIN_VIEWS = 10000; // Higher threshold for global trending videos
 const BATCH_SIZE = 1; // Process 1 niche per batch to guarantee completion within timeout
 
 Deno.serve(async (req: Request) => {
@@ -178,11 +178,11 @@ Deno.serve(async (req: Request) => {
     const categoryLimits: Record<string, number> = (categoryLimitsRow?.value as any) || {};
 
     // Detect weak niches
-    const sevenDaysAgoCheck = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
+    const thirtyDaysAgoCheck = new Date(Date.now() - 30 * 24 * 3600000).toISOString();
     const { data: nicheCounts } = await adminClient
       .from("videos")
       .select("niche")
-      .gte("published_at", sevenDaysAgoCheck);
+      .gte("published_at", thirtyDaysAgoCheck);
     
     const nicheCountMap: Record<string, number> = {};
     for (const row of nicheCounts || []) {
@@ -199,7 +199,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const freshWindow = new Date(Date.now() - 7 * 24 * 3600000); // Last 7 days
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
@@ -254,7 +253,7 @@ Deno.serve(async (req: Request) => {
       try {
         const nicheDescriptions = niches.map(n => {
           const existing = NICHE_QUERIES[n] || [];
-          return `${n}: примеры: ${existing.slice(0, 3).join(", ")}`;
+          return `${n}: examples: ${existing.slice(0, 3).join(", ")}`;
         }).join("\n");
 
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -263,8 +262,8 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-lite",
             messages: [
-              { role: "system", content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 8-12 актуальных поисковых запросов для поиска вирусных видео. Запросы должны быть на казахском, русском и английском. Включи: общий запрос, нишевой, коммерческий, разговорный формат. Используй хештеги, ключевые фразы и названия трендов. Возвращай ТОЛЬКО JSON: {"niche1":["запрос1","запрос2",...],...}` },
-              { role: "user", content: `Сгенерируй свежие TikTok поисковые запросы для этих ниш (сегодня ${new Date().toLocaleDateString("ru")}):\n${nicheDescriptions}` }
+              { role: "system", content: `You are an expert on global TikTok trends. For each niche, generate 8-12 search queries that will find the most VIRAL and TRENDING videos worldwide. Use primarily ENGLISH queries but also include some Spanish, Portuguese, and other popular languages. Focus on: current viral trends, popular hashtags, challenge names, viral sounds, trending topics. Include queries like "#viral", "trending [niche]", popular creator styles. Return ONLY JSON: {"niche1":["query1","query2",...],...}` },
+              { role: "user", content: `Generate trending TikTok search queries for these niches (today is ${new Date().toLocaleDateString("en")}):\n${nicheDescriptions}` }
             ],
           }),
         });
@@ -288,8 +287,7 @@ Deno.serve(async (req: Request) => {
       const { count } = await adminClient
         .from("videos")
         .select("id", { count: "exact", head: true })
-        .eq("niche", nicheKey)
-        .gte("published_at", freshWindow.toISOString());
+        .eq("niche", nicheKey);
       
       const currentCount = count || 0;
       if (currentCount <= limit) return;
@@ -320,8 +318,7 @@ Deno.serve(async (req: Request) => {
         const { count: currentCount } = await adminClient
           .from("videos")
           .select("id", { count: "exact", head: true })
-          .eq("niche", nicheKey)
-          .gte("published_at", freshWindow.toISOString());
+          .eq("niche", nicheKey);
         
         if ((currentCount || 0) >= limit) {
           console.log(`⏭ ${nicheKey}: already at limit (${currentCount}/${limit}), skipping`);
@@ -332,17 +329,14 @@ Deno.serve(async (req: Request) => {
       const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
       const aiNicheQueries = aiQueries[nicheKey] || [];
       const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
-      const isKzRu = (q: string) => /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(q);
-      const kzRuQueries = staticQueries.filter(isKzRu).sort(() => Math.random() - 0.5);
-      const enQueries = staticQueries.filter(q => !isKzRu(q)).sort(() => Math.random() - 0.5);
-      const maxEnQueries = Math.max(1, Math.floor(qCount * 0.3));
-      const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
+      // Global focus: mix all queries, prioritize English/AI-generated
+      const combinedQueries = [...aiNicheQueries, ...staticQueries.sort(() => Math.random() - 0.5)];
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      const PAGES_PER_QUERY = 5; // Paginate: offsets 0,10,20,30,40
-      const sortTypes = ["3", "1", "0"]; // 3=date first, 1=likes, 0=relevance
-      const publishTimes = ["1", "7", "7", "30"]; // prioritize recent
+      const PAGES_PER_QUERY = 5;
+      const sortTypes = ["0", "1", "3"]; // relevance first, then likes, then date
+      const publishTimes = ["0", "1", "7", "30"]; // 0=all time for max results
       
       for (let qi = 0; qi < uniqueQueries.length; qi++) {
         const query = uniqueQueries[qi];
@@ -352,8 +346,7 @@ Deno.serve(async (req: Request) => {
           const { count: midCount } = await adminClient
             .from("videos")
             .select("id", { count: "exact", head: true })
-            .eq("niche", nicheKey)
-            .gte("published_at", freshWindow.toISOString());
+            .eq("niche", nicheKey);
           if ((midCount || 0) >= limit) {
             console.log(`⏭ ${nicheKey}: reached limit (${midCount}/${limit}), stopping`);
             break;
@@ -392,15 +385,12 @@ Deno.serve(async (req: Request) => {
                 views: v.stats?.views || v.views || v.playCount,
               }));
               console.log(`🔍 RAW sample for "${query}":`, JSON.stringify(sample));
-              console.log(`🔍 freshWindow: ${freshWindow.toISOString()}, now: ${new Date().toISOString()}`);
             }
-            let noId = 0, tooOld = 0, lowViews = 0;
+            let noId = 0, lowViews = 0;
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
               if (!videoId) { noId++; return null; }
               const trends = computeTrend(v);
-              const publishedDate = new Date(trends.published_at);
-              if (publishedDate < freshWindow) { tooOld++; return null; }
               
               const stats = v.stats || {};
               const views = stats.views || v.views || v.playCount || 0;
@@ -424,14 +414,14 @@ Deno.serve(async (req: Request) => {
                 shares: stats.shares || v.shares || v.shareCount || 0,
                 duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
                 fetched_at: now,
-                region: "kz",
+                region: "world",
                 niche: nicheKey,
                 categories: [nicheKey],
                 ...trends,
               };
             }).filter(Boolean);
 
-            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, old=${tooOld}, lowViews=${lowViews})`);
+            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews})`);
 
             if (videoRows.length > 0) {
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
