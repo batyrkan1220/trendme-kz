@@ -58,7 +58,7 @@ export default function Dashboard() {
         <div className="bg-primary rounded-xl md:rounded-2xl p-4 md:p-7 relative overflow-hidden">
           <div className="relative flex items-center justify-between">
             <div>
-              <h1 className="text-base md:text-xl font-bold text-white">
+              <h1 className="text-base md:text-xl font-bold text-primary-foreground">
                 Привет, {name} 👋
               </h1>
               <p className="text-white/70 text-xs md:text-sm mt-1">
