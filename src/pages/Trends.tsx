@@ -81,7 +81,7 @@ const tierConfig: Record<TrendTier, { label: string; icon: any; className: strin
 const PAGE_SIZE = 30;
 
 export default function Trends() {
-  const [period, setPeriod] = useState<1 | 3 | 7 | 30 | 0>(7);
+  const [period, setPeriod] = useState<3 | 7 | 30 | 0>(7);
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
@@ -214,7 +214,7 @@ export default function Trends() {
 
           {/* Period tabs */}
           <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto w-fit">
-            {([1, 3, 7, 30, 0] as const).map((p) => (
+            {([3, 7, 30, 0] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
@@ -224,7 +224,7 @@ export default function Trends() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {p === 0 ? "Все" : p === 1 ? "24ч" : p === 30 ? "Active 30д" : `${p}д`}
+                {p === 0 ? "Все" : p === 30 ? "Active 30д" : `${p}д`}
               </button>
             ))}
           </div>
