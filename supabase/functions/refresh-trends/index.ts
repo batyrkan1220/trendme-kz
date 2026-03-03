@@ -263,7 +263,11 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-lite",
             messages: [
-              { role: "system", content: `You are an expert on global TikTok trends. For each niche, generate 8-12 search queries that will find the most VIRAL and TRENDING videos worldwide. Use primarily ENGLISH queries but also include some Spanish, Portuguese, and other popular languages. Focus on: current viral trends, popular hashtags, challenge names, viral sounds, trending topics. Include queries like "#viral", "trending [niche]", popular creator styles. Return ONLY JSON: {"niche1":["query1","query2",...],...}` },
+              { role: "system", content: `You are an expert on global TikTok trends. For each niche, generate 12-16 search queries that will find the most VIRAL and TRENDING videos worldwide. Generate queries in THREE languages:
+- 50% ENGLISH (global viral hashtags, trending topics)
+- 30% RUSSIAN (популярные хештеги, трендовые запросы на русском)
+- 20% KAZAKH (қазақша трендтер, вирал хештегтер)
+Focus on: current viral trends, popular hashtags, challenge names, viral sounds, trending topics. Include queries like "#viral", "#fyp", "trending [niche]", "#тренд", "#вирал", "#тренді". Return ONLY JSON: {"niche1":["query1","query2",...],...}` },
               { role: "user", content: `Generate trending TikTok search queries for these niches (today is ${new Date().toLocaleDateString("en")}):\n${nicheDescriptions}` }
             ],
           }),
