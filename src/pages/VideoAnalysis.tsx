@@ -254,7 +254,7 @@ export default function VideoAnalysis() {
                     {[
                       { icon: Eye, value: fmt(views), label: "Просм." },
                       { icon: Heart, value: fmt(likes), label: "Лайки", color: "text-primary" },
-                      { icon: MessageCircle, value: fmt(commentsCount), label: "Комм.", color: "text-accent" },
+                      { icon: MessageCircle, value: fmt(commentsCount), label: "Комм.", color: "text-primary/70" },
                       { icon: Share2, value: fmt(shares), label: "Реп.", color: "text-primary/70" },
                     ].map((s) => (
                       <div key={s.label} className="flex items-center gap-1.5">
