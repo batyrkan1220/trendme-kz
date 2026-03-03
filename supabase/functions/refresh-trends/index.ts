@@ -18,22 +18,6 @@ const BATCH_SIZE = 1;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function safeJsonParse<T = any>(text: string): T | null {
-  try { return JSON.parse(text) as T; } catch { return null; }
-}
-
-function extractJsonObject(content: string): any | null {
-  const match = content.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  return safeJsonParse(match[0]);
-}
-
-function extractJsonArray(content: string): any[] | null {
-  const match = content.match(/\[[\s\S]*\]/);
-  if (!match) return null;
-  return safeJsonParse(match[0]);
-}
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
