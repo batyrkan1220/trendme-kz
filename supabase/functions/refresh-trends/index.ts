@@ -59,8 +59,10 @@ Deno.serve(async (req: Request) => {
       .single();
 
     const NICHE_QUERIES: Record<string, string[]> = nicheSettingsRow?.value as any || {};
-    const allNicheKeys = Object.keys(NICHE_QUERIES);
-    console.log(`Loaded ${allNicheKeys.length} niches from DB: ${allNicheKeys.join(", ")}`);
+    const allAvailableNiches = Object.keys(NICHE_QUERIES);
+    // Will be filtered after parsing body (targetNiches)
+    let allNicheKeys = allAvailableNiches;
+    console.log(`Loaded ${allAvailableNiches.length} niches from DB: ${allAvailableNiches.join(", ")}`);
 
     if (allNicheKeys.length === 0) {
       return new Response(JSON.stringify({ error: "No niches configured in trend_settings" }), {
@@ -135,6 +137,7 @@ Deno.serve(async (req: Request) => {
     let mode = "full";
     let batchIndex = 0;
     let logId: string | null = null;
+    let targetNiches: string[] | null = null;
     try {
       const body = await req.json();
       if (body?.lite) mode = "lite";
@@ -143,7 +146,16 @@ Deno.serve(async (req: Request) => {
       else if (body?.mode === "lite") mode = "lite";
       if (typeof body?.batch === "number") batchIndex = body.batch;
       if (body?.logId) logId = body.logId;
+      if (Array.isArray(body?.target_niches) && body.target_niches.length > 0) {
+        targetNiches = body.target_niches;
+      }
     } catch { /* no body = cron call */ }
+
+    // Filter niches if target_niches specified
+    if (targetNiches) {
+      allNicheKeys = allNicheKeys.filter(n => targetNiches!.includes(n));
+      console.log(`Filtering to ${allNicheKeys.length} target niches: ${allNicheKeys.join(", ")}`);
+    }
 
     // Load thresholds from DB
     const { data: thresholdsRow } = await adminClient
@@ -230,7 +242,7 @@ Deno.serve(async (req: Request) => {
             Authorization: `Bearer ${serviceRoleKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ mode, batch: nextBatch, logId }),
+          body: JSON.stringify({ mode, batch: nextBatch, logId, target_niches: targetNiches }),
         });
       } catch (e) {
         console.error("Chain call failed:", e);
