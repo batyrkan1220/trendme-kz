@@ -236,7 +236,7 @@ export default function Landing() {
       <section id="features" className="py-16 md:py-28 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Возможности</p>
+            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Возможности</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
               Всё для <span className="text-accent font-extrabold">роста</span> в TikTok
             </h2>
