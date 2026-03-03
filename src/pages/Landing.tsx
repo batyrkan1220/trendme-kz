@@ -202,33 +202,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-[72px] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img src={logoIcon} alt="TrendMe" className="w-9 h-9 md:w-10 md:h-10 rounded-xl shadow-lg" />
-            <BrandName className="text-xl md:text-2xl" />
-          </div>
-          <div className="hidden md:flex items-center gap-10">
-            <a href="#how" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Как это работает</a>
-            <a href="#features" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
-            <a href="#reviews" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
-            <a href="#pricing" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
-            <a href="#faq" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <Link to="/auth">
-              <Button variant="ghost" className="text-[15px] font-medium text-muted-foreground hover:text-foreground px-4 md:px-5 h-10 md:h-11">
-                Войти
-              </Button>
-            </Link>
-            <Link to="/auth">
-              <Button className="bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold px-5 md:px-6 h-10 md:h-11 hover:bg-primary/90">
-                Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <LandingNav />
 
       {/* ═══ Hero ═══ */}
       <section className="pt-28 pb-12 md:pt-44 md:pb-20 px-4 relative">
