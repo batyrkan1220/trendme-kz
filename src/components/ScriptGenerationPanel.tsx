@@ -416,7 +416,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                   {transcript ? (
                     <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
                   ) : (
-                    <p className="text-sm text-muted-foreground">[Речь отсутствует, только звуки и фоновый шум]</p>
+                    <p className="text-sm text-muted-foreground">{isKk ? "[Сөз жоқ, тек дыбыстар мен фондық шу]" : "[Речь отсутствует, только звуки и фоновый шум]"}</p>
                   )}
                 </div>
               </div>
