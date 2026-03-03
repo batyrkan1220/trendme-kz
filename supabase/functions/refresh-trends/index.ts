@@ -311,9 +311,10 @@ Deno.serve(async (req: Request) => {
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      // Run queries in parallel (batches of 3 to avoid rate limits)
-      const PARALLEL_QUERIES = 3;
+      // Run queries sequentially in small batches to avoid rate limits
+      const PARALLEL_QUERIES = 2;
       for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
+        if (i > 0) await sleep(3000); // 3s delay between batches
         const queryBatch = uniqueQueries.slice(i, i + PARALLEL_QUERIES);
         const results = await Promise.allSettled(queryBatch.map(async (query) => {
           try {
