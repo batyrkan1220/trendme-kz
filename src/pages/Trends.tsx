@@ -233,7 +233,7 @@ export default function Trends() {
         {/* Header */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Тренды 🔥</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тренды 🔥</h1>
             <button
               onClick={handleRefresh}
               disabled={refreshing}

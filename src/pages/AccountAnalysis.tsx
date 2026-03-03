@@ -193,7 +193,7 @@ export default function AccountAnalysis() {
       ) : (
       <>
       <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in max-w-7xl mx-auto">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground">Анализ аккаунта 👤</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Анализ аккаунта 👤</h1>
 
         {/* Search */}
         <div className="flex flex-col sm:flex-row gap-2">

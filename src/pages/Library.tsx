@@ -60,7 +60,7 @@ export default function Library() {
   return (
     <AppLayout>
       <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground">Избранные ⭐</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Избранные ⭐</h1>
 
         {/* Tabs */}
         <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-full sm:w-fit">
