@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
-const MIN_VIEWS = 10000; // Higher threshold for global trending videos
+const MIN_VIEWS = 5000; // Lower threshold to maximize video collection
 const BATCH_SIZE = 1; // Process 1 niche per batch to guarantee completion within timeout
 
 Deno.serve(async (req: Request) => {
@@ -199,7 +199,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
+    const sevenDaysAgo = new Date(Date.now() - 30 * 24 * 3600000); // 30 days for max fill
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
@@ -263,7 +263,11 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-lite",
             messages: [
-              { role: "system", content: `You are an expert on global TikTok trends. For each niche, generate 8-12 search queries that will find the most VIRAL and TRENDING videos worldwide. Use primarily ENGLISH queries but also include some Spanish, Portuguese, and other popular languages. Focus on: current viral trends, popular hashtags, challenge names, viral sounds, trending topics. Include queries like "#viral", "trending [niche]", popular creator styles. Return ONLY JSON: {"niche1":["query1","query2",...],...}` },
+              { role: "system", content: `You are an expert on global TikTok trends. For each niche, generate 12-16 search queries that will find the most VIRAL and TRENDING videos worldwide. Generate queries in THREE languages:
+- 50% ENGLISH (global viral hashtags, trending topics)
+- 30% RUSSIAN (популярные хештеги, трендовые запросы на русском)
+- 20% KAZAKH (қазақша трендтер, вирал хештегтер)
+Focus on: current viral trends, popular hashtags, challenge names, viral sounds, trending topics. Include queries like "#viral", "#fyp", "trending [niche]", "#тренд", "#вирал", "#тренді". Return ONLY JSON: {"niche1":["query1","query2",...],...}` },
               { role: "user", content: `Generate trending TikTok search queries for these niches (today is ${new Date().toLocaleDateString("en")}):\n${nicheDescriptions}` }
             ],
           }),
@@ -335,8 +339,8 @@ Deno.serve(async (req: Request) => {
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      const PAGES_PER_QUERY = 2; // 2 pages max — fit more queries in 50s window
-      const sortTypes = ["0", "1", "3"]; // relevance first, then likes, then date
+      const PAGES_PER_QUERY = 3; // 3 pages for maximum coverage
+      const sortTypes = ["0", "1", "3"]; // relevance, likes, date
       const publishTimes = ["0", "1", "7", "30"]; // all time for max results, 7-day filter applied in code
       
       for (let qi = 0; qi < uniqueQueries.length; qi++) {
