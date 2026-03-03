@@ -5,6 +5,21 @@ import {
   ArrowRight, Check, Sparkles, Star, Play, Users, FileText, ChevronRight,
   Target, Clock, Globe, Shield, Flame, BarChart, Video, Lightbulb
 } from "lucide-react";
+import logoIcon from "@/assets/logo-icon-cropped.png";
+
+const BrandName = ({ className = "" }: { className?: string }) => (
+  <span className={`font-bold tracking-tight ${className}`}>
+    <span className="text-foreground">Trend</span>
+    <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Me</span>
+  </span>
+);
+
+const BrandNameLight = ({ className = "" }: { className?: string }) => (
+  <span className={`font-bold tracking-tight ${className}`}>
+    <span className="text-primary-foreground">Trend</span>
+    <span className="text-primary-foreground/70">Me</span>
+  </span>
+);
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -136,10 +151,8 @@ export default function Landing() {
       <nav className="fixed top-0 left-0 right-0 z-50 glass">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl gradient-hero flex items-center justify-center shadow-lg">
-              <TrendingUp className="h-4.5 w-4.5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold text-foreground tracking-tight">Trend TikTok</span>
+            <img src={logoIcon} alt="TrendMe" className="w-9 h-9 rounded-xl shadow-lg" />
+            <BrandName className="text-lg" />
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Возможности</a>
@@ -215,7 +228,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Pain Points — Social proof of problems */}
+      {/* Pain Points */}
       <section className="py-12 md:py-16 px-4 border-y border-border/30">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -406,7 +419,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FAQ quick */}
+      {/* FAQ */}
       <section className="py-16 md:py-20 px-4">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">
@@ -468,10 +481,8 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="text-sm font-bold text-foreground">Trend TikTok</span>
+              <img src={logoIcon} alt="TrendMe" className="w-8 h-8 rounded-lg" />
+              <BrandName className="text-sm" />
             </div>
             <div className="flex items-center gap-6">
               <a href="#features" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Возможности</a>
@@ -482,7 +493,7 @@ export default function Landing() {
           </div>
           <div className="mt-6 pt-6 border-t border-border/30 text-center">
             <p className="text-xs text-muted-foreground">
-              © 2026 Trend TikTok. Все права защищены.
+              © 2026 TrendMe. Все права защищены.
             </p>
           </div>
         </div>
