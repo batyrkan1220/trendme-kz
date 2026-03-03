@@ -337,7 +337,7 @@ Deno.serve(async (req: Request) => {
 
       const PAGES_PER_QUERY = 2; // 2 pages max — fit more queries in 50s window
       const sortTypes = ["0", "1", "3"]; // relevance first, then likes, then date
-      const publishTimes = ["1", "7", "1", "7"]; // prioritize last day and last week only
+      const publishTimes = ["0", "1", "7", "30"]; // all time for max results, 7-day filter applied in code
       
       for (let qi = 0; qi < uniqueQueries.length; qi++) {
         const query = uniqueQueries[qi];
