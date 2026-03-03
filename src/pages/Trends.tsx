@@ -96,6 +96,24 @@ export default function Trends() {
   const navigate = useNavigate();
   const FREE_LIMIT = 5;
 
+  const { data: userSub } = useQuery({
+    queryKey: ["user-subscription", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_subscriptions")
+        .select("*, plans(price_rub)")
+        .eq("user_id", user!.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
+
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
