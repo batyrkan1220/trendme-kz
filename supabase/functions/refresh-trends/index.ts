@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
+const MIN_VIEWS = 3000; // Minimum views threshold
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -86,18 +87,25 @@ Deno.serve(async (req: Request) => {
       return new Date().toISOString();
     };
 
+    // New trend scoring: 0.4*views + 0.3*likes + 0.2*comments + 0.1*engagement_rate
     const computeTrend = (video: any) => {
       const stats = video.stats || {};
       const publishedAt = new Date(getPublishedAt(video));
       const hoursSince = Math.max(1, (Date.now() - publishedAt.getTime()) / 3600000);
-      const vViews = (stats.views || video.views || video.playCount || 0) / hoursSince;
-      const vLikes = (stats.likes || video.likes || video.diggCount || 0) / hoursSince;
-      const vComments = (stats.comments || video.comments || video.commentCount || 0) / hoursSince;
+      const views = stats.views || video.views || video.playCount || 0;
+      const likes = stats.likes || video.likes || video.diggCount || 0;
+      const comments = stats.comments || video.comments || video.commentCount || 0;
+      
+      const vViews = views / hoursSince;
+      const vLikes = likes / hoursSince;
+      const vComments = comments / hoursSince;
+      const engagementRate = views > 0 ? (likes + comments) / views : 0;
+      
       return {
         velocity_views: vViews,
         velocity_likes: vLikes,
         velocity_comments: vComments,
-        trend_score: 0.6 * vViews + 0.3 * vLikes + 0.1 * vComments,
+        trend_score: 0.4 * vViews + 0.3 * vLikes + 0.2 * vComments + 0.1 * engagementRate * 10000,
         published_at: publishedAt.toISOString(),
       };
     };
@@ -110,6 +118,25 @@ Deno.serve(async (req: Request) => {
       if (Array.isArray(data?.videos)) return data.videos;
       if (Array.isArray(data?.result)) return data.result;
       return [];
+    };
+
+    // Language/geo filter: cyrillic OR KZ/RU author OR no-text KZ author
+    const hasCyrillic = (text: string) => /[а-яА-ЯёЁәғқңөұүіӘҒҚҢӨҰҮІ]/.test(text);
+    const isKzRuAuthor = (video: any): boolean => {
+      const region = (video.region || video.author?.region || "").toLowerCase();
+      const lang = (video.language || video.author?.language || "").toLowerCase();
+      return ["kz", "ru", "kg", "uz"].includes(region) || ["kk", "ru", "kz"].includes(lang);
+    };
+    
+    const shouldSaveVideo = (video: any, caption: string): boolean => {
+      // 1. Caption has cyrillic
+      if (hasCyrillic(caption)) return true;
+      // 2. Author is from KZ/RU region
+      if (isKzRuAuthor(video)) return true;
+      // 3. No text but author from KZ
+      const region = (video.region || video.author?.region || "").toLowerCase();
+      if ((!caption || caption.trim().length < 3) && region === "kz") return true;
+      return false;
     };
 
     // Check mode
@@ -133,8 +160,8 @@ Deno.serve(async (req: Request) => {
       .eq("key", "thresholds")
       .single();
     const thresholds = (thresholdsRow?.value as any) || {};
-    const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
     const queriesPerNiche = thresholds.queries_per_niche ?? 8;
+    const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
     const weakQueriesPerNiche = thresholds.weak_queries_per_niche ?? 12;
 
     // Load per-category limits from DB
@@ -145,7 +172,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
     const categoryLimits: Record<string, number> = (categoryLimitsRow?.value as any) || {};
 
-    // Detect weak/full niches
+    // Detect weak niches (for query count)
     const sevenDaysAgoCheck = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
     const { data: nicheCounts } = await adminClient
       .from("videos")
@@ -160,22 +187,62 @@ Deno.serve(async (req: Request) => {
     const WEAK_NICHES = new Set(
       allNicheKeys.filter(n => (nicheCountMap[n] || 0) < weakNicheThreshold)
     );
-    const FULL_NICHES = new Set(
-      allNicheKeys.filter(n => {
-        const limit = categoryLimits[n];
-        if (!limit || limit <= 0) return false;
-        return (nicheCountMap[n] || 0) >= limit;
-      })
-    );
+
     if (batchIndex === 0) {
       console.log(`Weak categories (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
-      console.log(`Full categories (at per-category limit, skipping): ${[...FULL_NICHES].join(", ") || "none"}`);
       console.log(`Per-category limits: ${JSON.stringify(categoryLimits)}`);
     }
 
-    // queriesPerNiche and weakQueriesPerNiche already set above from thresholds
+    const now = new Date().toISOString();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600000);
 
-    const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+    // Load accumulated stats from DB log if continuing a run
+    let nicheStats: Record<string, number> = {};
+    let totalSaved = 0;
+    if (logId) {
+      const { data: existingLog } = await adminClient
+        .from("trend_refresh_logs")
+        .select("niche_stats, total_saved")
+        .eq("id", logId)
+        .single();
+      if (existingLog) {
+        nicheStats = (existingLog.niche_stats as Record<string, number>) || {};
+        totalSaved = existingLog.total_saved || 0;
+      }
+    }
+
+    // Create log entry on first batch only
+    if (!logId) {
+      await adminClient.from("trend_refresh_logs")
+        .update({ status: "error", error_message: "Superseded by new run", finished_at: new Date().toISOString() })
+        .eq("status", "running");
+
+      const { data: logEntry } = await adminClient.from("trend_refresh_logs").insert({
+        mode,
+        status: "running",
+        total_saved: 0,
+        general_saved: 0,
+        niche_stats: {},
+        triggered_by: userId,
+      }).select("id").single();
+      logId = logEntry?.id || null;
+    }
+
+    // Self-chaining helper
+    const chainNextBatch = async (nextBatch: number) => {
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${serviceRoleKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ mode, batch: nextBatch, logId }),
+        });
+      } catch (e) {
+        console.error("Chain call failed:", e);
+      }
+    };
 
     // AI-powered query generation
     const generateAiQueries = async (niches: string[]): Promise<Record<string, string[]>> => {
@@ -191,7 +258,7 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-lite",
             messages: [
-              { role: "system", content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 8 актуальных поисковых запросов для поиска вирусных видео. Запросы должны быть на казахском, русском и английском. Используй хештеги, ключевые фразы и названия трендов. Возвращай ТОЛЬКО JSON: {"niche1":["запрос1","запрос2",...],...}` },
+              { role: "system", content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 8-12 актуальных поисковых запросов для поиска вирусных видео. Запросы должны быть на казахском, русском и английском. Включи: общий запрос, нишевой, коммерческий, разговорный формат. Используй хештеги, ключевые фразы и названия трендов. Возвращай ТОЛЬКО JSON: {"niche1":["запрос1","запрос2",...],...}` },
               { role: "user", content: `Сгенерируй свежие TikTok поисковые запросы для этих ниш (сегодня ${new Date().toLocaleDateString("ru")}):\n${nicheDescriptions}` }
             ],
           }),
@@ -210,119 +277,35 @@ Deno.serve(async (req: Request) => {
       return {};
     };
 
-    // AI viral detection - analyze videos for viral potential
-    const detectViralWithAI = async (videos: any[], nicheKey: string): Promise<Map<string, number>> => {
-      const viralScores = new Map<string, number>();
-      if (videos.length === 0) return viralScores;
+    // Replace weakest videos when category limit reached
+    const enforceLimit = async (nicheKey: string, limit: number) => {
+      if (limit <= 0) return;
+      const { count } = await adminClient
+        .from("videos")
+        .select("id", { count: "exact", head: true })
+        .eq("niche", nicheKey)
+        .gte("published_at", thirtyDaysAgo.toISOString());
+      
+      const currentCount = count || 0;
+      if (currentCount <= limit) return;
 
-      // Take top 30 candidates by basic metrics for AI analysis
-      const candidates = videos.slice(0, 30).map((v, i) => {
-        const stats = v.stats || {};
-        const views = stats.views || v.views || v.playCount || 0;
-        const likes = stats.likes || v.likes || v.diggCount || 0;
-        const comments = stats.comments || v.comments || v.commentCount || 0;
-        const caption = (v.desc || v.caption || v.title || "").slice(0, 150);
-        const duration = v.video?.duration || v.duration_sec || v.duration || 0;
-        const id = v.id || v.video_id || v.aweme_id;
-        return { idx: i, id: String(id), views, likes, comments, caption, duration };
-      });
-
-      try {
-        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
-            messages: [
-              {
-                role: "system",
-                content: `Ты эксперт по вирусному контенту в TikTok Казахстана. Проанализируй видео и оцени вирусный потенциал каждого от 0 до 100. Учитывай:
-- Engagement rate (лайки/просмотры, комменты/просмотры)
-- Скорость набора (много лайков при мало просмотров = потенциально вирусное)
-- Тематика caption (хайповые темы, эмоции, провокация)
-- Длительность (короткие видео чаще вирусятся)
-- Даже видео с 0-500 просмотрами может быть вирусным если caption цепляющий и engagement высокий
-Возвращай ТОЛЬКО JSON массив: [{"id":"video_id","score":85,"reason":"короткое объяснение"},...]`
-              },
-              {
-                role: "user",
-                content: `Ниша: ${nicheKey}\nВидео:\n${JSON.stringify(candidates)}`
-              }
-            ],
-          }),
-        });
-        const aiData = await res.json();
-        const content = aiData?.choices?.[0]?.message?.content || "";
-        const match = content.match(/\[[\s\S]*\]/);
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          for (const item of parsed) {
-            if (item.id && typeof item.score === "number") {
-              viralScores.set(String(item.id), item.score);
-              if (item.score >= 70) {
-                console.log(`🔥 AI viral: ${nicheKey} | id=${item.id} score=${item.score} | ${item.reason}`);
-              }
-            }
-          }
+      const excess = currentCount - limit;
+      // Get weakest videos by trend_score
+      const { data: weakest } = await adminClient
+        .from("videos")
+        .select("id")
+        .eq("niche", nicheKey)
+        .order("trend_score", { ascending: true })
+        .limit(excess);
+      
+      if (weakest && weakest.length > 0) {
+        const ids = weakest.map(v => v.id);
+        // Delete in batches of 50
+        for (let i = 0; i < ids.length; i += 50) {
+          const batch = ids.slice(i, i + 50);
+          await adminClient.from("videos").delete().in("id", batch);
         }
-      } catch (e) {
-        console.error(`AI viral detection failed for ${nicheKey}:`, e);
-      }
-      return viralScores;
-    };
-
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
-    const now = new Date().toISOString();
-
-    // Load accumulated stats from DB log if continuing a run
-    let nicheStats: Record<string, number> = {};
-    let totalSaved = 0;
-    if (logId) {
-      const { data: existingLog } = await adminClient
-        .from("trend_refresh_logs")
-        .select("niche_stats, total_saved")
-        .eq("id", logId)
-        .single();
-      if (existingLog) {
-        nicheStats = (existingLog.niche_stats as Record<string, number>) || {};
-        totalSaved = existingLog.total_saved || 0;
-      }
-    }
-
-    // Create log entry on first batch only; cancel any stale running logs first
-    if (!logId) {
-      await adminClient.from("trend_refresh_logs")
-        .update({ status: "error", error_message: "Superseded by new run", finished_at: new Date().toISOString() })
-        .eq("status", "running");
-
-      const { data: logEntry } = await adminClient.from("trend_refresh_logs").insert({
-        mode,
-        status: "running",
-        total_saved: 0,
-        general_saved: 0,
-        niche_stats: {},
-        triggered_by: userId,
-      }).select("id").single();
-      logId = logEntry?.id || null;
-    }
-
-    // Self-chaining helper - reads accumulated stats from DB log
-    const chainNextBatch = async (nextBatch: number) => {
-      try {
-        await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${serviceRoleKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            mode,
-            batch: nextBatch,
-            logId,
-          }),
-        });
-      } catch (e) {
-        console.error("Chain call failed:", e);
+        console.log(`🗑 ${nicheKey}: removed ${weakest.length} weakest videos (limit: ${limit})`);
       }
     };
 
@@ -334,16 +317,10 @@ Deno.serve(async (req: Request) => {
     const nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
     
     if (nicheKeys.length > 0) {
-      const activeNicheKeys = nicheKeys.filter(k => !FULL_NICHES.has(k));
-      const skippedKeys = nicheKeys.filter(k => FULL_NICHES.has(k));
-      if (skippedKeys.length > 0) {
-        console.log(`Batch ${batchIndex}: skipping full categories: ${skippedKeys.join(", ")}`);
-        for (const sk of skippedKeys) nicheStats[sk] = nicheCountMap[sk] || 0;
-      }
-      console.log(`Batch ${batchIndex}: processing categories ${activeNicheKeys.join(", ") || "(none)"}`);
-      const aiQueries = activeNicheKeys.length > 0 ? await generateAiQueries(activeNicheKeys) : {};
+      console.log(`Batch ${batchIndex}: processing categories ${nicheKeys.join(", ")}`);
+      const aiQueries = await generateAiQueries(nicheKeys);
       
-      await Promise.all(activeNicheKeys.map(async (nicheKey) => {
+      await Promise.all(nicheKeys.map(async (nicheKey) => {
         const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
         const aiNicheQueries = aiQueries[nicheKey] || [];
         const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
@@ -354,7 +331,6 @@ Deno.serve(async (req: Request) => {
         const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
         const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
         let nicheSaved = 0;
-        let allRawVideos: any[] = []; // collect raw videos for AI analysis
 
         for (const query of uniqueQueries) {
           try {
@@ -365,10 +341,20 @@ Deno.serve(async (req: Request) => {
               if (!videoId) return null;
               const trends = computeTrend(v);
               const publishedDate = new Date(trends.published_at);
-              if (publishedDate < sevenDaysAgo) return null;
+              // Active window: up to 30 days
+              if (publishedDate < thirtyDaysAgo) return null;
+              
               const stats = v.stats || {};
+              const views = stats.views || v.views || v.playCount || 0;
+              // Min 3k views threshold
+              if (views < MIN_VIEWS) return null;
+              
               const caption = v.desc || v.caption || v.title || "";
               const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
+              
+              // Language/geo filter
+              if (!shouldSaveVideo(v, caption)) return null;
+
               return {
                 platform: "tiktok",
                 platform_video_id: String(videoId),
@@ -378,7 +364,7 @@ Deno.serve(async (req: Request) => {
                 author_username: username,
                 author_display_name: v.author?.nickname || v.author_display_name || "",
                 author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
-                views: stats.views || v.views || v.playCount || 0,
+                views,
                 likes: stats.likes || v.likes || v.diggCount || 0,
                 comments: stats.comments || v.comments || v.commentCount || 0,
                 shares: stats.shares || v.shares || v.shareCount || 0,
@@ -391,15 +377,10 @@ Deno.serve(async (req: Request) => {
               };
             }).filter(Boolean);
 
-            const cyrillicRows = videoRows.filter((row: any) => {
-              const cap = row.caption || "";
-              return /[а-яА-ЯёЁәғқңөұүіӘҒҚҢӨҰҮІ]/.test(cap);
-            });
-
-            if (cyrillicRows.length > 0) {
+            if (videoRows.length > 0) {
               const { data: upserted, error: upsertErr } = await adminClient
                 .from("videos")
-                .upsert(cyrillicRows, { onConflict: "platform_video_id" })
+                .upsert(videoRows, { onConflict: "platform_video_id" })
                 .select("id");
               if (upsertErr) console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
               nicheSaved += upserted?.length || 0;
@@ -409,10 +390,16 @@ Deno.serve(async (req: Request) => {
           }
         }
 
+        // Enforce category limit: delete weakest instead of skipping
+        const limit = categoryLimits[nicheKey];
+        if (limit && limit > 0) {
+          await enforceLimit(nicheKey, limit);
+        }
+
         nicheStats[nicheKey] = nicheSaved;
         totalSaved += nicheSaved;
 
-        // Update log IMMEDIATELY after each niche
+        // Update log after each niche
         if (logId) {
           await adminClient.from("trend_refresh_logs").update({
             total_saved: totalSaved,
@@ -430,7 +417,7 @@ Deno.serve(async (req: Request) => {
       console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
       await chainNextBatch(nextBatch);
     } else {
-      // All batches done — count real videos from DB for accurate stats
+      // All batches done — count real videos from DB
       console.log(`Refresh COMPLETE (accumulated: ${totalSaved}). Counting real totals from DB...`);
       if (logId) {
         const { data: logRow } = await adminClient.from("trend_refresh_logs")
