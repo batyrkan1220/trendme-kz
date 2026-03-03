@@ -98,6 +98,7 @@ export default function VideoAnalysis() {
             transcript={transcript}
             summary={summary}
             caption=""
+            language={language || "ru"}
             onBack={() => setShowScript(false)}
           />
         </div>
