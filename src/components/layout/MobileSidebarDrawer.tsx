@@ -8,6 +8,7 @@ import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
   BookOpen, ScrollText, Coins, CreditCard, LogOut, Flame, ArrowRight
 } from "lucide-react";
+import logoImg from "@/assets/logo-trendme.png";
 
 interface NavItem {
   label: string;
