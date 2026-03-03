@@ -253,7 +253,7 @@ export default function Landing() {
                 className="group relative rounded-2xl p-6 bg-card border border-border/50 card-shadow hover-lift transition-all duration-300 hover:border-primary/20"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shadow-lg`}>
+                  <div className={`w-11 h-11 rounded-xl ${f.color} flex items-center justify-center`}>
                     <f.icon className="h-5 w-5 text-primary-foreground" />
                   </div>
                   <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
