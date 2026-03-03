@@ -31,14 +31,14 @@ const features = [
     icon: Eye,
     title: "Разведка конкурентов",
     desc: "Отслеживайте стратегии конкурентов. Узнавайте какие форматы и темы дают им максимальный охват.",
-    color: "from-primary to-[hsl(280,70%,55%)]",
+    color: "from-primary to-[hsl(210,70%,55%)]",
     metric: "∞ авторов",
   },
   {
     icon: BarChart3,
     title: "Глубокая аналитика",
     desc: "Velocity просмотров, вовлечённость, прогноз виральности — полная картина по каждому видео.",
-    color: "from-accent to-[hsl(190,70%,45%)]",
+    color: "from-accent to-[hsl(205,70%,45%)]",
     metric: "15+ метрик",
   },
   {
