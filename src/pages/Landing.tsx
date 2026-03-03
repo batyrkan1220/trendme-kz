@@ -177,7 +177,9 @@ export default function Landing() {
               <span className="relative z-10">вирусные видео</span>
               <span className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/30 to-blue-400/20 rounded-lg -skew-y-1 scale-y-110 scale-x-105" />
             </span>{" "}
-            из TikTok и снимайте лучше
+            из
+            <br />
+            TikTok и снимайте лучше
           </h1>
 
           {/* Subtitle */}
