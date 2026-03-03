@@ -102,12 +102,10 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
-        <div className="h-8 w-8 rounded-lg gradient-hero flex items-center justify-center shrink-0">
-          <Flame className="h-4 w-4 text-primary-foreground" />
-        </div>
+        <img src={logoImg} alt="TrendMe" className="h-8 w-8 rounded-lg shrink-0 object-cover" />
         {!collapsed && (
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-base text-foreground tracking-tight">TrendTok</span>
+            <span className="font-bold text-base text-foreground tracking-tight">TrendMe</span>
             <span className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md uppercase">Beta</span>
           </div>
         )}

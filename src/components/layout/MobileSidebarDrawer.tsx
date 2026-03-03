@@ -81,10 +81,8 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="left" className="w-[280px] p-0 bg-card">
         <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg gradient-hero flex items-center justify-center shrink-0">
-            <Flame className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <SheetTitle className="font-bold text-base text-foreground tracking-tight">TrendTok</SheetTitle>
+          <img src={logoImg} alt="TrendMe" className="h-8 w-8 rounded-lg shrink-0 object-cover" />
+          <SheetTitle className="font-bold text-base text-foreground tracking-tight">TrendMe</SheetTitle>
           <span className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md uppercase">Beta</span>
         </SheetHeader>
 
