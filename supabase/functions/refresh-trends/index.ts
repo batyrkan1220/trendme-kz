@@ -194,7 +194,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600000);
+    const freshWindow = new Date(Date.now() - 7 * 24 * 3600000); // Only last 7 days
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
@@ -284,7 +284,7 @@ Deno.serve(async (req: Request) => {
         .from("videos")
         .select("id", { count: "exact", head: true })
         .eq("niche", nicheKey)
-        .gte("published_at", thirtyDaysAgo.toISOString());
+        .gte("published_at", freshWindow.toISOString());
       
       const currentCount = count || 0;
       if (currentCount <= limit) return;
@@ -341,8 +341,8 @@ Deno.serve(async (req: Request) => {
               if (!videoId) return null;
               const trends = computeTrend(v);
               const publishedDate = new Date(trends.published_at);
-              // Active window: up to 30 days
-              if (publishedDate < thirtyDaysAgo) return null;
+              // Fresh window: only last 7 days
+              if (publishedDate < freshWindow) return null;
               
               const stats = v.stats || {};
               const views = stats.views || v.views || v.playCount || 0;
