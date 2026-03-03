@@ -273,7 +273,7 @@ export default function Landing() {
           <div className="text-center mb-12 md:mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Как это работает</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Три шага к <span className="gradient-text">вирусному контенту</span>
+              Три шага к <span className="text-accent font-extrabold">вирусному контенту</span>
             </h2>
           </div>
 
