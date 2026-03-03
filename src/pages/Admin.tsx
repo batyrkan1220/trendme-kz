@@ -903,8 +903,10 @@ function RefreshSection() {
                   ? `${Math.round(durationMs / 1000)}с`
                   : `${Math.floor(durationMs / 60000)}м ${Math.round((durationMs % 60000) / 1000)}с`
                 : "—";
-              const nicheStats: Record<string, number> = (log.niche_stats as any) || {};
-              const nicheEntries = Object.entries(nicheStats).sort(([, a], [, b]) => (b as number) - (a as number));
+              const nicheStatsRaw: Record<string, any> = (log.niche_stats as any) || {};
+              const nicheEntries = Object.entries(nicheStatsRaw)
+                .filter(([key, val]) => key !== "_rotation" && typeof val === "number")
+                .sort(([, a], [, b]) => (b as number) - (a as number));
               const totalNiche = log.total_saved || 0;
               const totalGeneral = log.general_saved || 0;
               const grandTotal = totalNiche + totalGeneral;
