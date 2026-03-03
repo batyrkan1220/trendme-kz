@@ -329,7 +329,7 @@ export default function Landing() {
                       <Star key={i} className="h-4 w-4 fill-[hsl(45,90%,55%)] text-[hsl(45,90%,55%)]" />
                     ))}
                   </div>
-                  <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                  <span className="text-xs font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-full">
                     {t.result}
                   </span>
                 </div>
