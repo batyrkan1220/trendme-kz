@@ -79,20 +79,20 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="left" className="w-[280px] p-0 bg-card">
-        <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5">
+      <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col" style={{ maxHeight: '100dvh' }}>
+        <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5 shrink-0">
           <img src={logoIcon} alt="TrendMe" className="h-8 w-8 rounded-lg shrink-0 object-cover" />
           <SheetTitle className="font-bold text-base tracking-tight"><span className="text-foreground">Trend</span><span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Me</span></SheetTitle>
           <span className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md uppercase">Beta</span>
         </SheetHeader>
 
-        <nav className="py-4 px-3 flex-1 overflow-y-auto">
+        <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
           {renderGroup("Поиск контента", searchItems)}
           {renderGroup("Инструменты", toolItems)}
           {renderGroup("Идеи", ideaItems)}
         </nav>
 
-        <div className="border-t border-border/50 p-3 space-y-1">
+        <div className="border-t border-border/50 p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px)+70px)]">
           <Link to="/tokens" onClick={onClose} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/60 transition-colors">
             <Flame className="h-4 w-4 text-primary shrink-0" />
             <span className="flex-1 text-muted-foreground font-medium">Токены</span>
