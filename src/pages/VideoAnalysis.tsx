@@ -24,6 +24,7 @@ export default function VideoAnalysis() {
   const [url, setUrl] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
+  const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
 
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async (videoUrl: string) => {
