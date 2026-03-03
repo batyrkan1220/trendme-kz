@@ -280,7 +280,7 @@ export default function Landing() {
         <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 text-sm md:text-base font-medium text-foreground mb-8 md:mb-10">
+          <div className="inline-flex items-center gap-2 text-sm md:text-base font-medium text-foreground mb-5 md:mb-10">
             <TikTokIcon className="h-5 w-5 md:h-6 md:w-6" />
             TikTok Official Partner
           </div>
