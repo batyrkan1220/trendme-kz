@@ -9,6 +9,7 @@ interface ScriptPanelProps {
   transcript: string;
   summary: any;
   caption: string;
+  language?: "ru" | "kk";
   onBack: () => void;
 }
 
