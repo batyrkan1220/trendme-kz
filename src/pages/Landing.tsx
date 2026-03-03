@@ -84,7 +84,7 @@ function LandingNav() {
           ))}
           <div className="mt-2 pt-2 border-t border-border/40 flex flex-col gap-2">
             <Link to="/auth" onClick={() => setMenuOpen(false)}>
-              <Button variant="ghost" className="w-full justify-center text-[15px] font-medium h-10">Войти</Button>
+              <Button variant="outline" className="w-full justify-center text-[15px] font-semibold h-10 border-primary/30 text-primary hover:bg-primary/5">Войти</Button>
             </Link>
             <Link to="/auth" onClick={() => setMenuOpen(false)}>
               <Button className="w-full justify-center bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold h-10">
