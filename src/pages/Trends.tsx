@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket, ChevronDown } from "lucide-react";
+import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket, ChevronDown, Zap, Trophy, Target } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   DropdownMenu,
@@ -63,11 +63,25 @@ const getTimeAgo = (published_at: string | null) => {
   return `${Math.floor(d / 30)} мес. назад`;
 };
 
+type TrendTier = "strong" | "mid" | "micro";
+
+const getTier = (views: number): TrendTier | null => {
+  if (views >= 80_000) return "strong";
+  if (views >= 15_000) return "mid";
+  if (views >= 3_000) return "micro";
+  return null;
+};
+
+const tierConfig: Record<TrendTier, { label: string; icon: any; className: string; order: number }> = {
+  strong: { label: "Strong Trend", icon: Trophy, className: "bg-amber-500/90 text-white", order: 0 },
+  mid: { label: "Mid Trend", icon: Zap, className: "bg-blue-500/80 text-white", order: 1 },
+  micro: { label: "Micro Trend", icon: Target, className: "bg-emerald-500/80 text-white", order: 2 },
+};
+
 const PAGE_SIZE = 30;
 
 export default function Trends() {
   const [period, setPeriod] = useState<1 | 3 | 7 | 30 | 0>(7);
-  // removed region tab state
   const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
@@ -79,7 +93,6 @@ export default function Trends() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      // Run 7 batches sequentially (4 niches each) with more queries per niche
       const totalBatches = 7;
       for (let batch = 0; batch < totalBatches; batch++) {
         toast.loading(`Обновление ниш ${batch * 4 + 1}-${Math.min((batch + 1) * 4, 28)}...`, { id: "refresh" });
@@ -106,6 +119,8 @@ export default function Trends() {
         since.setDate(since.getDate() - period);
         q = q.gte("published_at", since.toISOString());
       }
+      // Min 3k views filter
+      q = q.gte("views", 3000);
       if (niche !== "all") {
         q = q.contains("categories", [niche]);
       }
@@ -115,11 +130,23 @@ export default function Trends() {
     staleTime: 60_000,
   });
 
-  const videos = useMemo(() => {
-    return allVideos.slice(0, visibleCount);
-  }, [allVideos, visibleCount]);
+  // Sort: Strong > Mid > Micro, then by trend_score within tier
+  const sortedVideos = useMemo(() => {
+    return [...allVideos].sort((a: any, b: any) => {
+      const tierA = getTier(Number(a.views));
+      const tierB = getTier(Number(b.views));
+      const orderA = tierA ? tierConfig[tierA].order : 3;
+      const orderB = tierB ? tierConfig[tierB].order : 3;
+      if (orderA !== orderB) return orderA - orderB;
+      return (b.trend_score || 0) - (a.trend_score || 0);
+    });
+  }, [allVideos]);
 
-  const hasMore = visibleCount < allVideos.length;
+  const videos = useMemo(() => {
+    return sortedVideos.slice(0, visibleCount);
+  }, [sortedVideos, visibleCount]);
+
+  const hasMore = visibleCount < sortedVideos.length;
   const loaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -158,6 +185,15 @@ export default function Trends() {
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);
 
+  // Tier stats
+  const tierCounts = useMemo(() => {
+    const counts = { strong: 0, mid: 0, micro: 0 };
+    for (const v of allVideos) {
+      const t = getTier(Number((v as any).views));
+      if (t) counts[t]++;
+    }
+    return counts;
+  }, [allVideos]);
 
   return (
     <AppLayout>
@@ -176,7 +212,7 @@ export default function Trends() {
             </button>
           </div>
 
-          {/* Period tabs - scrollable on mobile */}
+          {/* Period tabs */}
           <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto w-fit">
             {([1, 3, 7, 30, 0] as const).map((p) => (
               <button
@@ -188,7 +224,7 @@ export default function Trends() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {p === 0 ? "Все" : p === 1 ? "24ч" : `${p}д`}
+                {p === 0 ? "Все" : p === 1 ? "24ч" : p === 30 ? "Active 30д" : `${p}д`}
               </button>
             ))}
           </div>
@@ -219,10 +255,22 @@ export default function Trends() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Tier stats badges */}
           {allVideos.length > 0 && (
-            <span className="self-center text-xs text-muted-foreground ml-2">
-              {allVideos.length} видео
-            </span>
+            <div className="flex items-center gap-1.5 ml-2">
+              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-600 font-semibold">
+                <Trophy className="h-3 w-3" /> {tierCounts.strong}
+              </span>
+              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-600 font-semibold">
+                <Zap className="h-3 w-3" /> {tierCounts.mid}
+              </span>
+              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-semibold">
+                <Target className="h-3 w-3" /> {tierCounts.micro}
+              </span>
+              <span className="text-xs text-muted-foreground ml-1">
+                = {allVideos.length}
+              </span>
+            </div>
           )}
         </div>
 
@@ -243,10 +291,9 @@ export default function Trends() {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
             {videos.map((video: any, i: number) => {
               const timeAgo = getTimeAgo(video.published_at);
-              const score = video.trend_score || 0;
+              const views = Number(video.views) || 0;
+              const tier = getTier(views);
               const velViews = video.velocity_views || 0;
-              const isRocket = score > 500;
-              const isFire = score > 100;
 
               return (
                 <div
@@ -313,20 +360,16 @@ export default function Trends() {
                           </div>
                         </div>
 
-                        {/* Trend indicators */}
-                        {isFire && (
+                        {/* Tier badge */}
+                        {tier && (
                           <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
-                            {isRocket ? (
-                              <div className="flex items-center gap-1 bg-orange-500/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg animate-[pulse_1.5s_ease-in-out_infinite]">
-                                <Rocket className="h-3.5 w-3.5 text-white" />
-                                <span className="text-[10px] font-bold text-white">Взлетает!</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1 bg-red-500/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
-                                <Flame className="h-3.5 w-3.5 text-white" />
-                                <span className="text-[10px] font-bold text-white">В тренде</span>
-                              </div>
-                            )}
+                            <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg ${tierConfig[tier].className}`}>
+                              {(() => {
+                                const Icon = tierConfig[tier].icon;
+                                return <Icon className="h-3.5 w-3.5" />;
+                              })()}
+                              <span className="text-[10px] font-bold">{tierConfig[tier].label}</span>
+                            </div>
                             {velViews > 10 && (
                               <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
                                 <TrendingUp className="h-3 w-3 text-white" />
@@ -344,7 +387,7 @@ export default function Trends() {
                           <ExternalLink className="h-3.5 w-3.5 text-foreground" />
                         </button>
 
-                        {/* Play button center - always visible on mobile */}
+                        {/* Play button center */}
                         <div
                           className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"
                           onClick={() => setPlayingId(video.id)}
@@ -354,13 +397,13 @@ export default function Trends() {
                           </div>
                         </div>
 
-                        {/* Bottom gradient for readability */}
+                        {/* Bottom gradient */}
                         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                       </>
                     )}
                   </div>
 
-                  {/* Stats bar - outside video area */}
+                  {/* Stats bar */}
                   <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
                     <span className="flex flex-col items-center gap-0.5">
                       <Eye className="h-4 w-4 text-muted-foreground" />
