@@ -32,7 +32,7 @@ export default function Dashboard() {
         .from("videos")
         .select("id, platform_video_id, caption, cover_url, author_username, author_avatar_url, views, likes, comments, shares, trend_score, velocity_views, url, published_at")
         .order("trend_score", { ascending: false })
-        .limit(6);
+        .limit(10);
       return data || [];
     },
     staleTime: 24 * 60 * 60 * 1000,
