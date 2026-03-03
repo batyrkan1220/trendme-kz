@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket, ChevronDown, Zap, Trophy, Target } from "lucide-react";
+import { TrendingUp, Eye, Heart, MessageCircle, Star, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket, ChevronDown, Zap, Trophy, Target } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   DropdownMenu,
@@ -85,7 +85,6 @@ const PAGE_SIZE = 30;
 
 export default function Trends() {
   const [period, setPeriod] = useState<3 | 7 | 30 | 0>(7);
-  const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [niche, setNiche] = useState("all");
@@ -113,24 +112,6 @@ export default function Trends() {
   });
 
   const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      const totalBatches = 7;
-      for (let batch = 0; batch < totalBatches; batch++) {
-        toast.loading(`Обновление ниш ${batch * 4 + 1}-${Math.min((batch + 1) * 4, 28)}...`, { id: "refresh" });
-        const { error } = await supabase.functions.invoke("refresh-trends", { body: { mass: true, batch } });
-        if (error) console.error(`Batch ${batch} error:`, error);
-      }
-      toast.success("Тренды обновлены! Все 30 категорий загружены", { id: "refresh" });
-      queryClient.invalidateQueries({ queryKey: ["trends"] });
-    } catch (e: any) {
-      toast.error("Ошибка обновления: " + (e.message || "Попробуйте позже"), { id: "refresh" });
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   const { data: allVideos = [], isLoading } = useQuery({
     queryKey: ["trends", period, niche],
@@ -232,16 +213,8 @@ export default function Trends() {
       <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
         {/* Header */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тренды 🔥</h1>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-sm font-semibold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">{refreshing ? "Обновление..." : "Обновление 7 дней"}</span>
-            </button>
           </div>
 
           {/* Period tabs */}
