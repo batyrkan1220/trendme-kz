@@ -393,7 +393,7 @@ export default function Landing() {
                   <Button
                     className={`w-full rounded-xl h-11 font-semibold ${
                       plan.popular
-                        ? "gradient-hero text-primary-foreground border-0 glow-primary"
+                        ? "bg-primary text-primary-foreground border-0"
                         : "bg-secondary text-secondary-foreground border border-border hover:bg-muted"
                     }`}
                   >
