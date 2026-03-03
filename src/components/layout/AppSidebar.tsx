@@ -43,6 +43,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const { balance, totalEarned } = useTokens();
+  const tokenPercent = totalEarned > 0 ? Math.min(100, (balance / totalEarned) * 100) : 0;
 
   const handleLogout = async () => {
     await signOut();
