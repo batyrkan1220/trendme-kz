@@ -435,7 +435,7 @@ Deno.serve(async (req: Request) => {
 
     const PAGES_PER_QUERY = 3;
     const sortTypes = ["0", "1", "3"]; // relevance, likes, date
-    const publishTimes = ["0", "1", "7", "30"];
+    const publishTimes = ["7", "30"];
 
     const COUNT = 20;
 
