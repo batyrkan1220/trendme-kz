@@ -122,7 +122,7 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
             location.pathname === "/library" ? "text-primary" : "text-muted-foreground"
           )}
         >
-          <BookOpen className={cn("h-5 w-5", location.pathname === "/library" && "text-primary")} />
+          <Star className={cn("h-5 w-5", location.pathname === "/library" && "text-primary")} />
           <span className="text-[10px] font-medium leading-tight">Избранные</span>
         </Link>
 
