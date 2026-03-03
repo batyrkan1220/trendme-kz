@@ -91,6 +91,7 @@ async function streamScript({
 
 export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", onBack }: ScriptPanelProps) {
   const { user } = useAuth();
+  const isKk = language === "kk";
   const [activeTab, setActiveTab] = useState<"new" | "original">("new");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [scriptContent, setScriptContent] = useState("");
@@ -114,7 +115,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     if (chatMsgs.length === 0) {
       setMessages([{
         role: "assistant",
-        content: "Привет! 👋 Я твой AI сценарист!\n\nПомогу тебе доработать сценарий сохранив вирусность.\n\nС чего начнем?"
+        content: isKk
+          ? "Сәлем! 👋 Мен сенің AI сценаристің!\n\nСценарийді вирустық сақтай отырып жетілдіруге көмектесемін.\n\nНеден бастайық?"
+          : "Привет! 👋 Я твой AI сценарист!\n\nПомогу тебе доработать сценарий сохранив вирусность.\n\nС чего начнем?"
       }]);
     }
 
@@ -174,7 +177,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       },
       onDone: () => {
         setIsGenerating(false);
-        setMessages(prev => [...prev, { role: "assistant", content: "Сценарий обновлен! ✨ Что-то ещё поменять?" }]);
+        setMessages(prev => [...prev, { role: "assistant", content: isKk ? "Сценарий жаңартылды! ✨ Тағы бірдеңе өзгерту керек пе?" : "Сценарий обновлен! ✨ Что-то ещё поменять?" }]);
       },
       onError: (err) => {
         toast.error(err);
@@ -187,19 +190,21 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     generateScript([]);
     setMessages([{
       role: "assistant",
-      content: "Привет! 👋 Я твой AI сценарист!\n\nПомогу тебе доработать сценарий сохранив вирусность.\n\nС чего начнем?"
+      content: isKk
+        ? "Сәлем! 👋 Мен сенің AI сценаристің!\n\nСценарийді вирустық сақтай отырып жетілдіруге көмектесемін.\n\nНеден бастайық?"
+        : "Привет! 👋 Я твой AI сценарист!\n\nПомогу тебе доработать сценарий сохранив вирусность.\n\nС чего начнем?"
     }]);
   };
 
   const copyScript = () => {
     navigator.clipboard.writeText(scriptRef.current || scriptContent);
-    toast.success("Сценарий скопирован!");
+    toast.success(isKk ? "Сценарий көшірілді!" : "Сценарий скопирован!");
   };
 
   const saveScript = async () => {
     if (!user || !scriptContent || isSaving) return;
     setIsSaving(true);
-    const title = caption?.slice(0, 80) || "Сценарий";
+    const title = caption?.slice(0, 80) || (isKk ? "Сценарий" : "Сценарий");
     const { error } = await supabase.from("saved_scripts" as any).insert({
       user_id: user.id,
       title,
@@ -207,9 +212,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       source_video_url: null,
     });
     if (error) {
-      toast.error("Ошибка сохранения");
+      toast.error(isKk ? "Сақтау қатесі" : "Ошибка сохранения");
     } else {
-      toast.success("Сценарий сохранён в Библиотеку! 📚");
+      toast.success(isKk ? "Сценарий Кітапханаға сақталды! 📚" : "Сценарий сохранён в Библиотеку! 📚");
     }
     setIsSaving(false);
   };
@@ -229,7 +234,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           <ArrowLeft className="h-4 w-4 text-foreground" />
         </button>
         <Sparkles className="h-5 w-5 text-primary" />
-        <h2 className="text-base font-bold text-foreground">AI Сценарист</h2>
+        <h2 className="text-base font-bold text-foreground">{isKk ? "AI Сценарист" : "AI Сценарист"}</h2>
       </div>
 
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
@@ -260,14 +265,14 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
               className="flex items-center gap-2 px-3 py-2 w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-              Перегенерировать
+              {isKk ? "Қайта генерациялау" : "Перегенерировать"}
             </button>
             <div className="flex gap-2">
               <input
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                placeholder="Напишите свой запрос"
+                placeholder={isKk ? "Сұрауыңызды жазыңыз" : "Напишите свой запрос"}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 disabled={isGenerating}
               />
@@ -295,7 +300,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
               }`}
             >
               <Sparkles className="h-4 w-4" />
-              Новый сценарий
+              {isKk ? "Жаңа сценарий" : "Новый сценарий"}
             </button>
             <button
               onClick={() => setActiveTab("original")}
@@ -305,7 +310,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                   : "text-muted-foreground border-transparent hover:text-foreground"
               }`}
             >
-              📄 Исходный сценарий
+              📄 {isKk ? "Бастапқы сценарий" : "Исходный сценарий"}
             </button>
           </div>
 
@@ -321,7 +326,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-primary-foreground bg-primary hover:opacity-90 transition-opacity disabled:opacity-50"
                   >
                     <BookOpen className="h-4 w-4" />
-                    {isSaving ? "Сохраняю..." : "В библиотеку"}
+                    {isSaving ? (isKk ? "Сақтаудамын..." : "Сохраняю...") : (isKk ? "Кітапханаға" : "В библиотеку")}
                   </button>
                   <button
                     onClick={copyScript}
@@ -329,7 +334,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
                   >
                     <Copy className="h-4 w-4" />
-                    Скопировать
+                    {isKk ? "Көшіру" : "Скопировать"}
                   </button>
                 </div>
 
@@ -339,7 +344,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                       <Sparkles className="h-7 w-7 text-primary animate-pulse" />
                     </div>
-                    <p className="text-muted-foreground font-medium">Генерируем сценарий...</p>
+                    <p className="text-muted-foreground font-medium">{isKk ? "Сценарий генерациялануда..." : "Генерируем сценарий..."}</p>
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   </div>
                 ) : scriptContent ? (
@@ -350,7 +355,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     {isGenerating && (
                       <div className="mt-4 flex items-center gap-2 text-primary">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">Генерация...</span>
+                        <span className="text-sm">{isKk ? "Генерация..." : "Генерация..."}</span>
                       </div>
                     )}
                   </div>
@@ -360,7 +365,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 {summary && !isGenerating && scriptContent && (
                   <div className="mt-6">
                     <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
-                      🧠 Анализ контента
+                      🧠 {isKk ? "Контент талдауы" : "Анализ контента"}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
                       <div className="bg-card rounded-xl border border-border/50 p-4">
@@ -399,19 +404,19 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
               <div className="p-3 md:p-6">
                 <div className="flex justify-end mb-4">
                   <button
-                    onClick={() => { navigator.clipboard.writeText(transcript || ""); toast.success("Скопировано!"); }}
+                    onClick={() => { navigator.clipboard.writeText(transcript || ""); toast.success(isKk ? "Көшірілді!" : "Скопировано!"); }}
                     disabled={!transcript}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
                   >
                     <Copy className="h-4 w-4" />
-                    Скопировать
+                    {isKk ? "Көшіру" : "Скопировать"}
                   </button>
                 </div>
                 <div className="bg-card rounded-xl border border-border/50 p-6">
                   {transcript ? (
                     <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
                   ) : (
-                    <p className="text-sm text-muted-foreground">[Речь отсутствует, только звуки и фоновый шум]</p>
+                    <p className="text-sm text-muted-foreground">{isKk ? "[Сөз жоқ, тек дыбыстар мен фондық шу]" : "[Речь отсутствует, только звуки и фоновый шум]"}</p>
                   )}
                 </div>
               </div>
