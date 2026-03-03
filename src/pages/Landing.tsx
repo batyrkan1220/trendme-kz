@@ -203,7 +203,7 @@ function TrendingShowcase() {
         {trendingVideos.map((v, i) => (
           <div
             key={v.title}
-            className={`relative rounded-2xl p-5 md:p-6 border transition-all duration-500 cursor-pointer min-w-[280px] md:min-w-0 snap-center shrink-0 md:shrink ${
+            className={`relative rounded-2xl p-4 md:p-6 border transition-all duration-500 cursor-pointer min-w-[260px] w-[75vw] md:w-auto md:min-w-0 snap-center shrink-0 md:shrink ${
               i === active
                 ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.2)] scale-[1.02]"
                 : "bg-card/60 border-border/40 opacity-70 hover:opacity-90"
@@ -294,7 +294,7 @@ export default function Landing() {
             из TikTok и снимайте лучше
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed">
+          <p className="text-[15px] sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed">
             Узнайте, какие видео взрывают вашу нишу прямо сейчас. AI подскажет формат и напишет сценарий — вам останется только снять.
           </p>
 
@@ -307,19 +307,19 @@ export default function Landing() {
             </Link>
           </div>
 
-          <div className="flex items-center justify-center gap-4 md:gap-8 text-sm md:text-base text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <CircleDot className="h-4 w-4" />
+          <div className="flex items-center justify-center gap-3 md:gap-8 text-xs md:text-base text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <CircleDot className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
               Без карты
             </span>
             <span className="text-border">•</span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4" />
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
               Доступ сразу
             </span>
             <span className="text-border">•</span>
-            <span className="flex items-center gap-1.5">
-              <Zap className="h-4 w-4" />
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
               50 запросов/день
             </span>
           </div>
