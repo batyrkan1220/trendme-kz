@@ -151,6 +151,12 @@ Deno.serve(async (req: Request) => {
       }
     } catch { /* no body = cron call */ }
 
+    // Filter niches if target_niches specified
+    if (targetNiches) {
+      allNicheKeys = allNicheKeys.filter(n => targetNiches!.includes(n));
+      console.log(`Filtering to ${allNicheKeys.length} target niches: ${allNicheKeys.join(", ")}`);
+    }
+
     // Load thresholds from DB
     const { data: thresholdsRow } = await adminClient
       .from("trend_settings")
