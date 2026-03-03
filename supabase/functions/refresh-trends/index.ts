@@ -7,7 +7,8 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
-const MIN_VIEWS = 3000; // Minimum views threshold
+const MIN_VIEWS = 1000; // Lowered from 3000 for more results
+const BATCH_SIZE = 5; // Process 5 niches per batch (was 1)
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -87,7 +88,6 @@ Deno.serve(async (req: Request) => {
       return new Date().toISOString();
     };
 
-    // New trend scoring: 0.4*views + 0.3*likes + 0.2*comments + 0.1*engagement_rate
     const computeTrend = (video: any) => {
       const stats = video.stats || {};
       const publishedAt = new Date(getPublishedAt(video));
@@ -118,19 +118,6 @@ Deno.serve(async (req: Request) => {
       if (Array.isArray(data?.videos)) return data.videos;
       if (Array.isArray(data?.result)) return data.result;
       return [];
-    };
-
-    // Language/geo filter: cyrillic OR KZ/RU author OR no-text KZ author
-    const hasCyrillic = (text: string) => /[а-яА-ЯёЁәғқңөұүіӘҒҚҢӨҰҮІ]/.test(text);
-    const isKzRuAuthor = (video: any): boolean => {
-      const region = (video.region || video.author?.region || "").toLowerCase();
-      const lang = (video.language || video.author?.language || "").toLowerCase();
-      return ["kz", "ru", "kg", "uz"].includes(region) || ["kk", "ru", "kz"].includes(lang);
-    };
-    
-    const shouldSaveVideo = (_video: any, _caption: string): boolean => {
-      // Filter disabled — save all videos from search results
-      return true;
     };
 
     // Check mode
@@ -167,7 +154,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
     const categoryLimits: Record<string, number> = (categoryLimitsRow?.value as any) || {};
 
-    // Detect weak niches (for query count)
+    // Detect weak niches
     const sevenDaysAgoCheck = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
     const { data: nicheCounts } = await adminClient
       .from("videos")
@@ -189,7 +176,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const freshWindow = new Date(Date.now() - 7 * 24 * 3600000); // Only last 7 days
+    const freshWindow = new Date(Date.now() - 14 * 24 * 3600000); // 14 days (was 7)
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
@@ -239,7 +226,7 @@ Deno.serve(async (req: Request) => {
       }
     };
 
-    // AI-powered query generation
+    // AI-powered query generation for multiple niches at once
     const generateAiQueries = async (niches: string[]): Promise<Record<string, string[]>> => {
       try {
         const nicheDescriptions = niches.map(n => {
@@ -285,7 +272,6 @@ Deno.serve(async (req: Request) => {
       if (currentCount <= limit) return;
 
       const excess = currentCount - limit;
-      // Get weakest videos by trend_score
       const { data: weakest } = await adminClient
         .from("videos")
         .select("id")
@@ -295,7 +281,6 @@ Deno.serve(async (req: Request) => {
       
       if (weakest && weakest.length > 0) {
         const ids = weakest.map(v => v.id);
-        // Delete in batches of 50
         for (let i = 0; i < ids.length; i += 50) {
           const batch = ids.slice(i, i + 50);
           await adminClient.from("videos").delete().in("id", batch);
@@ -304,30 +289,24 @@ Deno.serve(async (req: Request) => {
       }
     };
 
-    const BATCH_SIZE = 1;
-    const totalBatches = Math.ceil(allNicheKeys.length / BATCH_SIZE);
+    // Process a single niche: run all queries in PARALLEL
+    const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
+      const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
+      const aiNicheQueries = aiQueries[nicheKey] || [];
+      const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
+      const isKzRu = (q: string) => /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(q);
+      const kzRuQueries = staticQueries.filter(isKzRu).sort(() => Math.random() - 0.5);
+      const enQueries = staticQueries.filter(q => !isKzRu(q)).sort(() => Math.random() - 0.5);
+      const maxEnQueries = Math.max(1, Math.floor(qCount * 0.3));
+      const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
+      const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
+      let nicheSaved = 0;
 
-    // === Process niche batch ===
-    const start = batchIndex * BATCH_SIZE;
-    const nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
-    
-    if (nicheKeys.length > 0) {
-      console.log(`Batch ${batchIndex}: processing categories ${nicheKeys.join(", ")}`);
-      const aiQueries = await generateAiQueries(nicheKeys);
-      
-      await Promise.all(nicheKeys.map(async (nicheKey) => {
-        const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-        const aiNicheQueries = aiQueries[nicheKey] || [];
-        const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
-        const isKzRu = (q: string) => /[а-яА-ЯәғқңөұүіӘҒҚҢӨҰҮІ]/.test(q);
-        const kzRuQueries = staticQueries.filter(isKzRu).sort(() => Math.random() - 0.5);
-        const enQueries = staticQueries.filter(q => !isKzRu(q)).sort(() => Math.random() - 0.5);
-        const maxEnQueries = Math.max(1, Math.floor(qCount * 0.3));
-        const combinedQueries = [...kzRuQueries, ...aiNicheQueries, ...enQueries.slice(0, maxEnQueries)];
-        const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
-        let nicheSaved = 0;
-
-        for (const query of uniqueQueries) {
+      // Run queries in parallel (batches of 3 to avoid rate limits)
+      const PARALLEL_QUERIES = 3;
+      for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
+        const queryBatch = uniqueQueries.slice(i, i + PARALLEL_QUERIES);
+        const results = await Promise.allSettled(queryBatch.map(async (query) => {
           try {
             const data = await callSocialKit("/tiktok/search", { query, count: String(videosPerQuery) });
             const videos = extractVideos(data);
@@ -336,19 +315,14 @@ Deno.serve(async (req: Request) => {
               if (!videoId) return null;
               const trends = computeTrend(v);
               const publishedDate = new Date(trends.published_at);
-              // Fresh window: only last 7 days
               if (publishedDate < freshWindow) return null;
               
               const stats = v.stats || {};
               const views = stats.views || v.views || v.playCount || 0;
-              // Min 3k views threshold
               if (views < MIN_VIEWS) return null;
               
               const caption = v.desc || v.caption || v.title || "";
               const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
-              
-              // Language/geo filter
-              if (!shouldSaveVideo(v, caption)) return null;
 
               return {
                 platform: "tiktok",
@@ -378,32 +352,65 @@ Deno.serve(async (req: Request) => {
                 .upsert(videoRows, { onConflict: "platform_video_id" })
                 .select("id");
               if (upsertErr) console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
-              nicheSaved += upserted?.length || 0;
+              return upserted?.length || 0;
             }
+            return 0;
           } catch (err) {
             console.error(`Niche ${nicheKey} query "${query}" failed:`, err.message);
+            return 0;
           }
+        }));
+        
+        for (const r of results) {
+          if (r.status === "fulfilled") nicheSaved += r.value;
         }
+      }
 
-        // Enforce category limit: delete weakest instead of skipping
-        const limit = categoryLimits[nicheKey];
-        if (limit && limit > 0) {
-          await enforceLimit(nicheKey, limit);
+      // Enforce category limit
+      const limit = categoryLimits[nicheKey];
+      if (limit && limit > 0) {
+        await enforceLimit(nicheKey, limit);
+      }
+
+      return nicheSaved;
+    };
+
+    const totalBatches = Math.ceil(allNicheKeys.length / BATCH_SIZE);
+
+    // === Process niche batch ===
+    const start = batchIndex * BATCH_SIZE;
+    const nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
+    
+    if (nicheKeys.length > 0) {
+      console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.join(", ")}`);
+      
+      // Generate AI queries for all niches in this batch at once
+      const aiQueries = await generateAiQueries(nicheKeys);
+      
+      // Process all niches in the batch in parallel
+      const results = await Promise.allSettled(
+        nicheKeys.map(async (nicheKey) => {
+          const saved = await processNiche(nicheKey, aiQueries);
+          return { nicheKey, saved };
+        })
+      );
+
+      for (const r of results) {
+        if (r.status === "fulfilled") {
+          nicheStats[r.value.nicheKey] = r.value.saved;
+          totalSaved += r.value.saved;
         }
+      }
 
-        nicheStats[nicheKey] = nicheSaved;
-        totalSaved += nicheSaved;
+      // Update log after batch
+      if (logId) {
+        await adminClient.from("trend_refresh_logs").update({
+          total_saved: totalSaved,
+          niche_stats: nicheStats,
+        }).eq("id", logId);
+      }
 
-        // Update log after each niche
-        if (logId) {
-          await adminClient.from("trend_refresh_logs").update({
-            total_saved: totalSaved,
-            niche_stats: nicheStats,
-          }).eq("id", logId);
-        }
-
-        console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos, total: ${totalSaved}`);
-      }));
+      console.log(`Batch ${batchIndex} done: ${nicheKeys.map(n => `${n}=${nicheStats[n]||0}`).join(", ")}, total: ${totalSaved}`);
     }
 
     // Chain to next batch or finish
