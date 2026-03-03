@@ -30,7 +30,7 @@ export default function Journal() {
   return (
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Журнал 📋</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Журнал 📋</h1>
 
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden card-shadow">
           {/* Desktop table header */}

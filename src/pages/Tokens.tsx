@@ -9,7 +9,7 @@ export default function Tokens() {
   return (
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Токены ⚡</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Токены ⚡</h1>
 
         {/* Balance card */}
         <div className="bg-card rounded-2xl p-8 card-shadow border border-border/50 relative overflow-hidden">

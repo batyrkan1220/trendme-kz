@@ -114,7 +114,7 @@ export default function SearchPage() {
             <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center">
               <SearchIcon className="h-10 w-10 text-muted-foreground/30" />
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground text-center">Поиск 🔍</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск 🔍</h1>
             <p className="text-muted-foreground text-sm text-center">Введите запрос для поиска видео в TikTok</p>
             <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Input
@@ -151,7 +151,7 @@ export default function SearchPage() {
       <>
       <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 animate-fade-in">
         <div className="flex-1 space-y-4 md:space-y-6 min-w-0">
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">Поиск 🔍</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Поиск 🔍</h1>
 
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
