@@ -61,6 +61,9 @@ Deno.serve(async (req) => {
         .select("*, plans(*)")
         .eq("is_active", true);
 
+      // Get all token balances
+      const { data: allTokens } = await adminClient.from("user_tokens").select("*");
+
       const enriched = users
         .filter((u: any) => !search || u.email?.toLowerCase().includes(search.toLowerCase()))
         .map((u: any) => ({
@@ -70,6 +73,7 @@ Deno.serve(async (req) => {
           last_sign_in_at: u.last_sign_in_at,
           roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
           subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
+          tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
         }));
 
       return new Response(JSON.stringify({ users: enriched, total: users.length }), {
@@ -280,6 +284,46 @@ Deno.serve(async (req) => {
       }));
 
       return new Response(JSON.stringify({ subscriptions: enriched }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // UPDATE USER TOKENS
+    if (req.method === "POST" && action === "update-tokens") {
+      const { user_id, amount, description } = await req.json();
+      if (!user_id || amount === undefined) throw new Error("user_id and amount required");
+
+      // Update balance
+      const { data: current } = await adminClient
+        .from("user_tokens")
+        .select("balance")
+        .eq("user_id", user_id)
+        .maybeSingle();
+
+      if (!current) {
+        // Create token record if missing
+        await adminClient.from("user_tokens").insert({
+          user_id,
+          balance: Math.max(0, amount),
+          total_earned: amount > 0 ? amount : 0,
+        });
+      } else {
+        const newBalance = current.balance + amount;
+        const updateData: any = { balance: Math.max(0, newBalance), updated_at: new Date().toISOString() };
+        if (amount > 0) updateData.total_earned = (current as any).total_earned + amount;
+        else updateData.total_spent = (current as any).total_spent + Math.abs(amount);
+        await adminClient.from("user_tokens").update(updateData).eq("user_id", user_id);
+      }
+
+      // Log transaction
+      await adminClient.from("token_transactions").insert({
+        user_id,
+        amount,
+        action_type: amount > 0 ? "admin_credit" : "admin_debit",
+        description: description || (amount > 0 ? "Начисление администратором" : "Списание администратором"),
+      });
+
+      return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

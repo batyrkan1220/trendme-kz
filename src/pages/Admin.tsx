@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import {
   RefreshCw, Settings, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
   Users, Activity, Video, Search, BookOpen, Heart, UserCircle, ScrollText,
-  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins,
+  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -143,6 +143,9 @@ function PlatformTab() {
 function UsersTab() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [tokenDialog, setTokenDialog] = useState<{ userId: string; email: string } | null>(null);
+  const [tokenAmount, setTokenAmount] = useState("");
+  const [tokenNote, setTokenNote] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users-list", search],
@@ -187,6 +190,32 @@ function UsersTab() {
     onError: () => toast.error("Ошибка обновления роли"),
   });
 
+  const tokenMutation = useMutation({
+    mutationFn: async ({ user_id, amount, description }: { user_id: string; amount: number; description: string }) => {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=update-tokens`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_id, amount, description }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
+      setTokenDialog(null);
+      setTokenAmount("");
+      setTokenNote("");
+      toast.success("Токены обновлены");
+    },
+    onError: () => toast.error("Ошибка обновления токенов"),
+  });
+
   const users = data?.users || [];
 
   return (
@@ -209,8 +238,8 @@ function UsersTab() {
                   <tr className="border-b border-border">
                     <th className="text-left p-3 text-muted-foreground font-medium">Email</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Регистрация</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Посл. вход</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Тариф</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Токены</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Действия</th>
                   </tr>
@@ -219,16 +248,19 @@ function UsersTab() {
                   {users.map((u: any) => {
                     const sub = u.subscription;
                     const isExpired = sub && new Date(sub.expires_at) < new Date();
+                    const tokenBalance = u.tokens?.balance ?? "—";
                     return (
                     <tr key={u.id} className="border-b border-border/50 hover:bg-muted/30">
-                      <td className="p-3 font-medium">{u.email}</td>
-                      <td className="p-3 text-muted-foreground">
-                        {new Date(u.created_at).toLocaleDateString("ru-RU")}
+                      <td className="p-3">
+                        <div>
+                          <p className="font-medium">{u.email}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Вход: {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU") : "—"}
+                          </p>
+                        </div>
                       </td>
-                      <td className="p-3 text-muted-foreground">
-                        {u.last_sign_in_at
-                          ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU")
-                          : "—"}
+                      <td className="p-3 text-muted-foreground text-xs">
+                        {new Date(u.created_at).toLocaleDateString("ru-RU")}
                       </td>
                       <td className="p-3">
                         {sub ? (
@@ -244,6 +276,15 @@ function UsersTab() {
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => setTokenDialog({ userId: u.id, email: u.email })}
+                          className="flex items-center gap-1.5 hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors"
+                        >
+                          <Zap className="h-3.5 w-3.5 text-primary" />
+                          <span className="font-bold text-foreground">{tokenBalance}</span>
+                        </button>
                       </td>
                       <td className="p-3">
                         <div className="flex gap-1">
@@ -284,6 +325,54 @@ function UsersTab() {
           </CardContent>
         </Card>
       )}
+
+      {/* Token adjustment dialog */}
+      <Dialog open={!!tokenDialog} onOpenChange={(o) => { if (!o) setTokenDialog(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5 text-primary" />
+              Управление токенами
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{tokenDialog?.email}</p>
+            <div>
+              <label className="text-sm font-medium text-foreground">Количество (+ начислить, − списать)</label>
+              <Input
+                type="number"
+                value={tokenAmount}
+                onChange={(e) => setTokenAmount(e.target.value)}
+                placeholder="50"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Причина</label>
+              <Input
+                value={tokenNote}
+                onChange={(e) => setTokenNote(e.target.value)}
+                placeholder="Бонус за активность"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTokenDialog(null)}>Отмена</Button>
+            <Button
+              onClick={() => {
+                const amt = parseInt(tokenAmount);
+                if (!amt || !tokenDialog) return toast.error("Введите количество");
+                tokenMutation.mutate({ user_id: tokenDialog.userId, amount: amt, description: tokenNote });
+              }}
+              disabled={tokenMutation.isPending}
+            >
+              {tokenMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              Применить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
