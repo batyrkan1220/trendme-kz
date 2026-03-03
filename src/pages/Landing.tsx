@@ -71,23 +71,23 @@ function LandingNav() {
 
       {/* Mobile dropdown */}
       {menuOpen && (
-        <div className="md:hidden bg-background border-t border-border/40 px-4 py-4 space-y-1 animate-fade-in">
+        <div className="md:hidden bg-background border-t border-border/40 px-4 py-3 animate-fade-in">
           {navLinks.map((l) => (
             <a
               key={l.href}
               href={l.href}
               onClick={() => setMenuOpen(false)}
-              className="block px-3 py-2.5 rounded-xl text-[15px] font-medium text-foreground hover:bg-muted transition-colors"
+              className="block px-3 py-2 rounded-lg text-[15px] font-medium text-foreground hover:bg-muted transition-colors"
             >
               {l.label}
             </a>
           ))}
-          <div className="pt-3 border-t border-border/40 flex flex-col gap-2">
+          <div className="mt-2 pt-2 border-t border-border/40 flex flex-col gap-2">
             <Link to="/auth" onClick={() => setMenuOpen(false)}>
-              <Button variant="ghost" className="w-full justify-center text-[15px] font-medium">Войти</Button>
+              <Button variant="ghost" className="w-full justify-center text-[15px] font-medium h-10">Войти</Button>
             </Link>
             <Link to="/auth" onClick={() => setMenuOpen(false)}>
-              <Button className="w-full justify-center bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold h-11">
+              <Button className="w-full justify-center bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold h-10">
                 Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Link>
