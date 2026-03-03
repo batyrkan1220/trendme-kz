@@ -316,7 +316,7 @@ function RoleAssigner({
 
 /* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
 function TrendsManagementTab() {
-  const [section, setSection] = useState<"refresh" | "keywords" | "settings" | "stats">("refresh");
+  const [section, setSection] = useState<"refresh" | "keywords" | "settings" | "stats" | "recat">("refresh");
 
   return (
     <div className="space-y-4">
@@ -326,6 +326,7 @@ function TrendsManagementTab() {
           { key: "keywords" as const, label: "Запросы", icon: Hash },
           { key: "settings" as const, label: "Настройки", icon: Settings },
           { key: "stats" as const, label: "По категориям", icon: BarChart3 },
+          { key: "recat" as const, label: "Рекатегоризация", icon: Sparkles },
         ].map(({ key, label, icon: Icon }) => (
           <Button key={key} variant={section === key ? "default" : "outline"} size="sm" onClick={() => setSection(key)} className="gap-1.5">
             <Icon className="h-4 w-4" />{label}
@@ -336,6 +337,7 @@ function TrendsManagementTab() {
       {section === "keywords" && <KeywordsSection />}
       {section === "settings" && <SettingsSection />}
       {section === "stats" && <StatsSection />}
+      {section === "recat" && <RecategorizeSection />}
     </div>
   );
 }
