@@ -91,6 +91,7 @@ async function streamScript({
 
 export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", onBack }: ScriptPanelProps) {
   const { user } = useAuth();
+  const isKk = language === "kk";
   const [activeTab, setActiveTab] = useState<"new" | "original">("new");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [scriptContent, setScriptContent] = useState("");
