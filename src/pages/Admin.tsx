@@ -1442,6 +1442,7 @@ function TariffsTab() {
                   <p>Запросов: {plan.max_requests === -1 ? "∞" : plan.max_requests}</p>
                   <p>Авторов: {plan.max_tracked_accounts === -1 ? "∞" : plan.max_tracked_accounts}</p>
                   <p>Срок: {plan.duration_days} дн.</p>
+                  {plan.tokens_included > 0 && <p className="text-primary font-medium">⚡ {plan.tokens_included} токенов</p>}
                 </div>
                 {!plan.is_active && <Badge variant="destructive" className="text-xs">Неактивен</Badge>}
               </div>
