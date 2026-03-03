@@ -38,7 +38,7 @@ const features = [
     icon: BarChart3,
     title: "Глубокая аналитика",
     desc: "Velocity просмотров, вовлечённость, прогноз виральности — полная картина по каждому видео.",
-    color: "from-accent to-[hsl(190,70%,45%)]",
+    color: "from-accent to-[hsl(205,70%,45%)]",
     metric: "15+ метрик",
   },
   {
