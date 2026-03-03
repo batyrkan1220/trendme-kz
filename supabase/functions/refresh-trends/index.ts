@@ -318,8 +318,7 @@ Deno.serve(async (req: Request) => {
         const { count: currentCount } = await adminClient
           .from("videos")
           .select("id", { count: "exact", head: true })
-          .eq("niche", nicheKey)
-          .gte("published_at", freshWindow.toISOString());
+          .eq("niche", nicheKey);
         
         if ((currentCount || 0) >= limit) {
           console.log(`⏭ ${nicheKey}: already at limit (${currentCount}/${limit}), skipping`);
