@@ -34,6 +34,7 @@ export default function SearchPage() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const { user } = useAuth();
+  const { spend, getCost } = useTokens();
   const queryClient = useQueryClient();
 
   const { data: recentQueries } = useQuery({
