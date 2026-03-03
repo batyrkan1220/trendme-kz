@@ -478,25 +478,45 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
     if (nicheKeys.length > 0) {
       console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.join(", ")}`);
       
-      // Generate AI queries for all niches in this batch at once
-      const aiQueries = await generateAiQueries(nicheKeys);
-      
-      // Process niches sequentially to avoid SocialKit rate limits
+      // Check limits FIRST before generating AI queries
+      const nichesToProcess: string[] = [];
       for (const nicheKey of nicheKeys) {
+        const limit = categoryLimits[nicheKey];
+        if (limit && limit > 0) {
+          const { count: currentCount } = await adminClient
+            .from("videos")
+            .select("id", { count: "exact", head: true })
+            .eq("niche", nicheKey);
+          if ((currentCount || 0) >= limit) {
+            console.log(`⏭ ${nicheKey}: already at limit (${currentCount}/${limit}), skipping`);
+            nicheStats[nicheKey] = 0;
+            continue;
+          }
+        }
+        nichesToProcess.push(nicheKey);
+      }
+
+      // Generate AI queries ONLY for niches that need videos
+      const aiQueries = nichesToProcess.length > 0 ? await generateAiQueries(nichesToProcess) : {};
+      
+      // Process only non-full niches
+      for (const nicheKey of nichesToProcess) {
         if (Date.now() - startTime > MAX_EXECUTION_MS) {
           console.log(`⏱ Timeout safety: stopping after ${Math.round((Date.now() - startTime) / 1000)}s`);
           break;
         }
         try {
           const saved = await processNiche(nicheKey, aiQueries);
-          nicheStats[nicheKey] = saved;
-          totalSaved += saved;
-          console.log(`✓ ${nicheKey}: ${saved} videos`);
+          if (saved >= 0) {
+            nicheStats[nicheKey] = saved;
+            totalSaved += saved;
+            console.log(`✓ ${nicheKey}: ${saved} videos`);
+          }
         } catch (e) {
           console.error(`✗ ${nicheKey} failed:`, e.message);
           nicheStats[nicheKey] = 0;
         }
-        await sleep(1000); // 1s pause between niches
+        await sleep(1000);
       }
 
       // Update log after batch
