@@ -346,8 +346,7 @@ Deno.serve(async (req: Request) => {
           const { count: midCount } = await adminClient
             .from("videos")
             .select("id", { count: "exact", head: true })
-            .eq("niche", nicheKey)
-            .gte("published_at", freshWindow.toISOString());
+            .eq("niche", nicheKey);
           if ((midCount || 0) >= limit) {
             console.log(`⏭ ${nicheKey}: reached limit (${midCount}/${limit}), stopping`);
             break;
