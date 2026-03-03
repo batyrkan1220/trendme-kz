@@ -199,6 +199,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
@@ -395,6 +396,9 @@ Deno.serve(async (req: Request) => {
               const stats = v.stats || {};
               const views = stats.views || v.views || v.playCount || 0;
               if (views < MIN_VIEWS) { lowViews++; return null; }
+              
+              const publishedAt = new Date(getPublishedAt({ ...v, stats: v.stats }));
+              if (publishedAt < sevenDaysAgo) { return null; }
               
               const caption = v.desc || v.caption || v.title || "";
               const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
