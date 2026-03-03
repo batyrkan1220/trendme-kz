@@ -190,7 +190,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     generateScript([]);
     setMessages([{
       role: "assistant",
-      content: "Привет! 👋 Я твой AI сценарист!\n\nПомогу тебе доработать сценарий сохранив вирусность.\n\nС чего начнем?"
+      content: isKk
+        ? "Сәлем! 👋 Мен сенің AI сценаристің!\n\nСценарийді вирустық сақтай отырып жетілдіруге көмектесемін.\n\nНеден бастайық?"
+        : "Привет! 👋 Я твой AI сценарист!\n\nПомогу тебе доработать сценарий сохранив вирусность.\n\nС чего начнем?"
     }]);
   };
 
