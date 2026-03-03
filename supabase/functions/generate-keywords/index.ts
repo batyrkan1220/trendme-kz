@@ -34,12 +34,12 @@ Deno.serve(async (req) => {
     if (!roleData) throw new Error("Forbidden");
 
     const body = await req.json();
-    const { niche, existing_queries, seed_word, bulk } = body;
+    const { niche, existing_queries, seed_word, bulk, target_niches } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // === BULK MODE: regenerate all niches at once ===
+    // === BULK MODE: regenerate niches ===
     if (bulk) {
       const { data: nicheRow } = await adminClient
         .from("trend_settings")
@@ -47,13 +47,18 @@ Deno.serve(async (req) => {
         .eq("key", "niche_queries")
         .single();
       const currentNiches: Record<string, string[]> = (nicheRow?.value as any) || {};
-      const nicheKeys = Object.keys(currentNiches);
+      
+      // If target_niches provided, only regenerate those; otherwise all
+      const nicheKeys = target_niches && Array.isArray(target_niches) && target_niches.length > 0
+        ? target_niches.filter((n: string) => n in currentNiches || true)
+        : Object.keys(currentNiches);
+      
       const updatedNiches: Record<string, string[]> = {};
 
       // Process in batches of 5 niches per AI call
       for (let i = 0; i < nicheKeys.length; i += 5) {
         const batch = nicheKeys.slice(i, i + 5);
-        const nicheDescriptions = batch.map(n => `"${n}"`).join(", ");
+        const nicheDescriptions = batch.map((n: string) => `"${n}"`).join(", ");
 
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -63,7 +68,7 @@ Deno.serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 20-30 поисковых запросов для поиска ТОЛЬКО казахских и русских видео на TikTok.
+                content: `Ты эксперт по TikTok трендам в Казахстане и СНГ. Для каждой ниши сгенерируй 30-40 поисковых запросов для поиска ТОЛЬКО казахских и русских видео на TikTok.
 
 КРИТИЧЕСКИ ВАЖНО:
 - ВСЕ запросы ТОЛЬКО на казахском и русском языках
@@ -74,12 +79,14 @@ Deno.serve(async (req) => {
 - Включай местные казахские тренды, мемы, фразы
 - Используй қазақ тілінде сөздер мен сөз тіркестері
 - Включай слова: кз, қазақстан, казахстан, тренд, тикток
+- Генерируй РАЗНООБРАЗНЫЕ запросы: короткие (2-3 слова), длинные фразы, хэштеги, вопросы
+- Включай актуальные тренды 2025-2026 года
 
 Верни ТОЛЬКО JSON объект: {"niche1":["запрос1","запрос2",...],...}`
               },
               {
                 role: "user",
-                content: `Сгенерируй свежие TikTok поисковые запросы (сегодня ${new Date().toLocaleDateString("ru")}) для этих ниш: ${nicheDescriptions}. Только казахский и русский языки!`
+                content: `Сгенерируй свежие TikTok поисковые запросы (сегодня ${new Date().toLocaleDateString("ru")}) для этих ниш: ${nicheDescriptions}. Эти ниши показывают слабые результаты, нужны более эффективные запросы! Только казахский и русский языки! 30-40 запросов на каждую нишу.`
               }
             ],
           }),
@@ -99,10 +106,12 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Merge: replace with new AI-generated queries
-      const finalNiches: Record<string, string[]> = {};
+      // Merge: for targeted niches, replace only those; keep others unchanged
+      const finalNiches: Record<string, string[]> = { ...currentNiches };
       for (const k of nicheKeys) {
-        finalNiches[k] = updatedNiches[k] || currentNiches[k] || [];
+        if (updatedNiches[k] && updatedNiches[k].length > 0) {
+          finalNiches[k] = updatedNiches[k];
+        }
       }
 
       await adminClient
@@ -111,9 +120,9 @@ Deno.serve(async (req) => {
         .eq("key", "niche_queries");
 
       const stats: Record<string, number> = {};
-      for (const [k, v] of Object.entries(finalNiches)) stats[k] = v.length;
+      for (const k of nicheKeys) stats[k] = (finalNiches[k] || []).length;
 
-      return new Response(JSON.stringify({ success: true, stats }), {
+      return new Response(JSON.stringify({ success: true, stats, regenerated: nicheKeys }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
