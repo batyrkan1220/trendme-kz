@@ -57,8 +57,10 @@ export default function VideoAnalysis() {
     },
   });
 
-  const handleAnalyze = (lang: "ru" | "kk") => {
+  const handleAnalyze = async (lang: "ru" | "kk") => {
     if (!url.trim()) return;
+    const ok = await spend("video_analysis", `Анализ видео: ${url.trim()}`);
+    if (!ok) return;
     setLanguage(lang);
     setIsPlaying(false);
     setShowScript(false);
