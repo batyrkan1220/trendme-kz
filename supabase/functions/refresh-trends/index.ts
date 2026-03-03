@@ -558,6 +558,12 @@ Deno.serve(async (req: Request) => {
             `  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, inBatchDup=${inBatchDup})`,
           );
 
+          const tooOldRatio = videos.length ? (tooOld / videos.length) : 1;
+          if (page === 0 && tooOldRatio >= 0.7) {
+            console.log(`  ⏭ "${query}": tooOldRatio=${tooOldRatio.toFixed(2)} skip remaining pages`);
+            break;
+          }
+
           if (videoRows.length === 0) {
             if (videos.length < 5) {
               console.log(`  ⏭ "${query}": no more results, skipping remaining pages`);
