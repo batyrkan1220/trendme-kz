@@ -1,0 +1,1 @@
+ALTER TABLE public.videos DROP CONSTRAINT IF EXISTS videos_platform_video_id_key;
