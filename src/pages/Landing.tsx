@@ -297,7 +297,7 @@ export default function Landing() {
 
           <div className="text-center mt-12">
             <Link to="/auth">
-              <Button className="gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-bold px-8 h-13 min-h-[52px]">
+              <Button className="bg-primary text-primary-foreground border-0 rounded-xl text-base font-bold px-8 h-13 min-h-[52px] hover:opacity-90">
                 Начать сейчас — бесплатно
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
