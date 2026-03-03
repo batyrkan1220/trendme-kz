@@ -119,8 +119,7 @@ export default function Trends() {
         since.setDate(since.getDate() - period);
         q = q.gte("published_at", since.toISOString());
       }
-      // Min 3k views filter
-      q = q.gte("views", 3000);
+      // No minimum views filter — show all videos
       if (niche !== "all") {
         q = q.contains("categories", [niche]);
       }
