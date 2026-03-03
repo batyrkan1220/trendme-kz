@@ -480,10 +480,7 @@ export default function Landing() {
       <footer className="border-t border-border/50 py-10 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <img src={logoIcon} alt="TrendMe" className="w-8 h-8 rounded-lg" />
-              <BrandName className="text-sm" />
-            </div>
+            <BrandName className="text-sm" />
             <div className="flex items-center gap-6">
               <a href="#features" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Возможности</a>
               <a href="#pricing" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
