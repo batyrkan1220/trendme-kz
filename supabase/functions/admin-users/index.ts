@@ -17,14 +17,16 @@ Deno.serve(async (req) => {
 
     // Verify caller is admin
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Unauthorized");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Unauthorized");
     
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) throw new Error("Unauthorized");
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) throw new Error("Unauthorized");
+    const user = { id: claimsData.claims.sub as string };
 
     // Check admin role
     const { data: roleData } = await adminClient
