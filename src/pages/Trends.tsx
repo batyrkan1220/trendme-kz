@@ -74,8 +74,8 @@ const getTier = (views: number): TrendTier | null => {
 
 const tierConfig: Record<TrendTier, { label: string; icon: any; className: string; order: number }> = {
   strong: { label: "Strong Trend", icon: Trophy, className: "bg-amber-500/90 text-white", order: 0 },
-  mid: { label: "Mid Trend", icon: Zap, className: "bg-blue-500/80 text-white", order: 1 },
-  micro: { label: "Micro Trend", icon: Target, className: "bg-emerald-500/80 text-white", order: 2 },
+  mid: { label: "Mid Trend", icon: Zap, className: "bg-primary/80 text-white", order: 1 },
+  micro: { label: "Micro Trend", icon: Target, className: "bg-accent/80 text-white", order: 2 },
 };
 
 const PAGE_SIZE = 30;
@@ -269,10 +269,10 @@ export default function Trends() {
               <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-600 font-semibold">
                 <Trophy className="h-3 w-3" /> {tierCounts.strong}
               </span>
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-600 font-semibold">
+              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-semibold">
                 <Zap className="h-3 w-3" /> {tierCounts.mid}
               </span>
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-semibold">
+              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-accent/10 text-accent font-semibold">
                 <Target className="h-3 w-3" /> {tierCounts.micro}
               </span>
               <span className="text-xs text-muted-foreground ml-1">

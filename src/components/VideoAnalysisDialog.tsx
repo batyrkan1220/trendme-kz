@@ -132,8 +132,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
                 <span className="flex items-center gap-1"><Eye className="h-3 w-3 text-muted-foreground" /><b>{fmt(views)}</b></span>
                 <span className="flex items-center gap-1"><Heart className="h-3 w-3 text-primary" /><b>{fmt(likes)}</b></span>
-                <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3 text-green-500" /><b>{fmt(commentsCount)}</b></span>
-                <span className="flex items-center gap-1"><Share2 className="h-3 w-3 text-blue-500" /><b>{fmt(shares)}</b></span>
+                <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3 text-accent" /><b>{fmt(commentsCount)}</b></span>
+                <span className="flex items-center gap-1"><Share2 className="h-3 w-3 text-primary/70" /><b>{fmt(shares)}</b></span>
                 <span className="flex items-center gap-1"><Target className="h-3 w-3 text-muted-foreground" />ER <b>{er}%</b></span>
               </div>
             </div>
@@ -208,8 +208,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
               {[
                 { icon: Eye, label: "Просмотры", value: fmt(views) },
                 { icon: Heart, label: "Лайки", value: fmt(likes), color: "text-primary" },
-                { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-green-500" },
-                { icon: Share2, label: "Репосты", value: fmt(shares), color: "text-blue-500" },
+                { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-accent" },
+                { icon: Share2, label: "Репосты", value: fmt(shares), color: "text-primary/70" },
                 { icon: Target, label: "ER", value: er },
               ].map((s) => (
                 <div key={s.label} className="flex items-center justify-between py-2.5 border-b border-border/30 last:border-0">

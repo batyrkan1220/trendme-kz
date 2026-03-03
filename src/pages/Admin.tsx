@@ -91,14 +91,14 @@ function PlatformTab() {
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
 
   const statCards = [
-    { label: "Пользователи", value: stats?.totalUsers || 0, icon: Users, color: "text-blue-500" },
-    { label: "Активные (7д)", value: stats?.activeUsers || 0, icon: Activity, color: "text-green-500" },
+    { label: "Пользователи", value: stats?.totalUsers || 0, icon: Users, color: "text-primary" },
+    { label: "Активные (7д)", value: stats?.activeUsers || 0, icon: Activity, color: "text-accent" },
     { label: "Видео в базе", value: stats?.totalVideos || 0, icon: Video, color: "text-primary" },
-    { label: "Избранные", value: stats?.totalFavorites || 0, icon: Heart, color: "text-red-500" },
-    { label: "Скрипты", value: stats?.totalScripts || 0, icon: ScrollText, color: "text-amber-500" },
-    { label: "Анализы видео", value: stats?.totalAnalyses || 0, icon: Video, color: "text-violet-500" },
-    { label: "Поисковые запросы", value: stats?.totalSearches || 0, icon: Search, color: "text-cyan-500" },
-    { label: "Отслеживаемые аккаунты", value: stats?.totalAccounts || 0, icon: UserCircle, color: "text-orange-500" },
+    { label: "Избранные", value: stats?.totalFavorites || 0, icon: Heart, color: "text-primary/80" },
+    { label: "Скрипты", value: stats?.totalScripts || 0, icon: ScrollText, color: "text-accent" },
+    { label: "Анализы видео", value: stats?.totalAnalyses || 0, icon: Video, color: "text-primary/70" },
+    { label: "Поисковые запросы", value: stats?.totalSearches || 0, icon: Search, color: "text-accent/80" },
+    { label: "Отслеживаемые аккаунты", value: stats?.totalAccounts || 0, icon: UserCircle, color: "text-primary" },
   ];
 
   return (
@@ -490,7 +490,7 @@ function RefreshSection() {
                         }`}
                       >
                         <span className="font-medium truncate">{niche}</span>
-                        <span className={`ml-1 text-[10px] ${isFull ? "text-green-500" : ""}`}>
+                        <span className={`ml-1 text-[10px] ${isFull ? "text-accent" : ""}`}>
                           {count}/{limit}
                         </span>
                       </button>
