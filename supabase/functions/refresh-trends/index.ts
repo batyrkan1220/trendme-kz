@@ -358,12 +358,20 @@ Deno.serve(async (req: Request) => {
             }).filter(Boolean);
 
             if (videoRows.length > 0) {
-              const { data: upserted, error: upsertErr } = await adminClient
+              // Check which videos already exist to count only truly new ones
+              const platformIds = videoRows.map((v: any) => v.platform_video_id);
+              const { data: existing } = await adminClient
                 .from("videos")
-                .upsert(videoRows, { onConflict: "platform_video_id" })
-                .select("id");
+                .select("platform_video_id")
+                .in("platform_video_id", platformIds);
+              const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
+              const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
+
+              const { error: upsertErr } = await adminClient
+                .from("videos")
+                .upsert(videoRows, { onConflict: "platform_video_id" });
               if (upsertErr) console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
-              return upserted?.length || 0;
+              return newCount;
             }
             return 0;
           } catch (err) {
