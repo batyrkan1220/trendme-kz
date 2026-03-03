@@ -61,6 +61,9 @@ Deno.serve(async (req) => {
         .select("*, plans(*)")
         .eq("is_active", true);
 
+      // Get all token balances
+      const { data: allTokens } = await adminClient.from("user_tokens").select("*");
+
       const enriched = users
         .filter((u: any) => !search || u.email?.toLowerCase().includes(search.toLowerCase()))
         .map((u: any) => ({
@@ -70,6 +73,7 @@ Deno.serve(async (req) => {
           last_sign_in_at: u.last_sign_in_at,
           roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
           subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
+          tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
         }));
 
       return new Response(JSON.stringify({ users: enriched, total: users.length }), {
