@@ -478,6 +478,11 @@ Deno.serve(async (req: Request) => {
 
           const videos = extractVideos(data);
 
+          // DEBUG: log first raw video object from SocialKit
+          if (videos.length > 0 && qi === 0 && page === 0) {
+            console.log(`RAW_SOCIALKIT_SAMPLE: ${JSON.stringify(videos[0]).slice(0, 3000)}`);
+          }
+
           const ages: number[] = [];
           for (const v of videos) {
             const d = new Date(getPublishedAt(v));
