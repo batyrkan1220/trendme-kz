@@ -397,13 +397,19 @@ Deno.serve(async (req: Request) => {
       // Generate AI queries for all niches in this batch at once
       const aiQueries = await generateAiQueries(nicheKeys);
       
-      // Process all niches in the batch in parallel
-      const results = await Promise.allSettled(
-        nicheKeys.map(async (nicheKey) => {
+      // Process niches sequentially to avoid SocialKit rate limits
+      for (const nicheKey of nicheKeys) {
+        try {
           const saved = await processNiche(nicheKey, aiQueries);
-          return { nicheKey, saved };
-        })
-      );
+          nicheStats[nicheKey] = saved;
+          totalSaved += saved;
+          console.log(`✓ ${nicheKey}: ${saved} videos`);
+        } catch (e) {
+          console.error(`✗ ${nicheKey} failed:`, e.message);
+          nicheStats[nicheKey] = 0;
+        }
+        await sleep(2000); // 2s pause between niches
+      }
 
       for (const r of results) {
         if (r.status === "fulfilled") {
