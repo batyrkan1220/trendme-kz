@@ -95,8 +95,10 @@ export default function SearchPage() {
     queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
   }, [user, userFavorites, queryClient]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!query.trim()) return;
+    const ok = await spend("search", `Поиск: ${query.trim()}`);
+    if (!ok) return;
     doSearch(query.trim());
   };
 
