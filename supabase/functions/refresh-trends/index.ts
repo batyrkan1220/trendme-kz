@@ -397,6 +397,9 @@ Deno.serve(async (req: Request) => {
               const views = stats.views || v.views || v.playCount || 0;
               if (views < MIN_VIEWS) { lowViews++; return null; }
               
+              const publishedAt = new Date(getPublishedAt({ ...v, stats: v.stats }));
+              if (publishedAt < sevenDaysAgo) { return null; }
+              
               const caption = v.desc || v.caption || v.title || "";
               const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
 
