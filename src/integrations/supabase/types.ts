@@ -130,6 +130,7 @@ export type Database = {
           name: string
           price_rub: number
           sort_order: number
+          tokens_included: number
           updated_at: string
         }
         Insert: {
@@ -143,6 +144,7 @@ export type Database = {
           name: string
           price_rub?: number
           sort_order?: number
+          tokens_included?: number
           updated_at?: string
         }
         Update: {
@@ -156,6 +158,7 @@ export type Database = {
           name?: string
           price_rub?: number
           sort_order?: number
+          tokens_included?: number
           updated_at?: string
         }
         Relationships: []

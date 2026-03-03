@@ -240,7 +240,29 @@ Deno.serve(async (req) => {
       });
       if (error) throw error;
 
-      return new Response(JSON.stringify({ success: true }), {
+      // Auto-credit tokens based on plan's tokens_included
+      const { data: planData } = await adminClient.from("plans").select("tokens_included, name").eq("id", plan_id).single();
+      const tokensToAdd = planData?.tokens_included || 0;
+      if (tokensToAdd > 0) {
+        const { data: current } = await adminClient.from("user_tokens").select("balance, total_earned").eq("user_id", user_id).maybeSingle();
+        if (current) {
+          await adminClient.from("user_tokens").update({
+            balance: current.balance + tokensToAdd,
+            total_earned: current.total_earned + tokensToAdd,
+            updated_at: new Date().toISOString(),
+          }).eq("user_id", user_id);
+        } else {
+          await adminClient.from("user_tokens").insert({ user_id, balance: tokensToAdd, total_earned: tokensToAdd });
+        }
+        await adminClient.from("token_transactions").insert({
+          user_id,
+          amount: tokensToAdd,
+          action_type: "plan_bonus",
+          description: `Начисление за тариф «${planData?.name || ""}»`,
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, tokens_added: tokensToAdd }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
