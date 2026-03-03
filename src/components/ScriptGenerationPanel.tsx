@@ -177,7 +177,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       },
       onDone: () => {
         setIsGenerating(false);
-        setMessages(prev => [...prev, { role: "assistant", content: "Сценарий обновлен! ✨ Что-то ещё поменять?" }]);
+        setMessages(prev => [...prev, { role: "assistant", content: isKk ? "Сценарий жаңартылды! ✨ Тағы бірдеңе өзгерту керек пе?" : "Сценарий обновлен! ✨ Что-то ещё поменять?" }]);
       },
       onError: (err) => {
         toast.error(err);
