@@ -17,42 +17,42 @@ const features = [
     icon: TrendingUp,
     title: "Мониторинг трендов",
     desc: "Получайте уведомления о новых трендах раньше конкурентов. Анализ хештегов, звуков и форматов в реальном времени.",
-    color: "from-primary to-accent",
+    color: "bg-primary",
     metric: "2x быстрее",
   },
   {
     icon: Search,
     title: "Умный поиск",
     desc: "Поиск по ключевым словам, нишам и авторам с фильтрацией по просмотрам, ER и velocity-метрикам.",
-    color: "from-accent to-primary",
+    color: "bg-accent",
     metric: "10M+ видео",
   },
   {
     icon: Eye,
     title: "Разведка конкурентов",
     desc: "Отслеживайте стратегии конкурентов. Узнавайте какие форматы и темы дают им максимальный охват.",
-    color: "from-primary to-[hsl(210,70%,55%)]",
+    color: "bg-primary",
     metric: "∞ авторов",
   },
   {
     icon: BarChart3,
     title: "Глубокая аналитика",
     desc: "Velocity просмотров, вовлечённость, прогноз виральности — полная картина по каждому видео.",
-    color: "from-accent to-[hsl(205,70%,45%)]",
+    color: "bg-accent",
     metric: "15+ метрик",
   },
   {
     icon: FileText,
     title: "ИИ-сценарии",
     desc: "Анализируем вирусные видео и генерируем сценарии, адаптированные под вашу нишу и стиль.",
-    color: "from-primary to-accent",
+    color: "bg-primary",
     metric: "GPT-5",
   },
   {
     icon: Zap,
     title: "Автоматические отчёты",
     desc: "Ежедневные инсайты, рекомендации по контенту и оповещения о трендах прямо в ваш аккаунт.",
-    color: "from-accent to-primary",
+    color: "bg-accent",
     metric: "24/7",
   },
 ];
@@ -164,12 +164,11 @@ export default function Landing() {
 
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-44 md:pb-32 px-4 relative">
-        <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[150px] pointer-events-none" />
-        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[130px] pointer-events-none" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-muted/40 rounded-full blur-[130px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-foreground text-background text-sm font-semibold px-4 py-1.5 rounded-full mb-8 shadow-lg">
+          <div className="inline-flex items-center gap-2 text-accent text-sm font-semibold px-4 py-1.5 rounded-full mb-8">
             <TikTokIcon className="h-4 w-4" />
             TikTok Official Partner
           </div>
@@ -177,7 +176,7 @@ export default function Landing() {
           <h1 className="text-4xl sm:text-5xl md:text-[4.5rem] font-extrabold leading-[1.05] tracking-tight mb-6">
             Ваши видео будут
             <br />
-            <span className="gradient-text">залетать в ТОП</span>
+            <span className="text-foreground">залетать в ТОП</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -207,8 +206,8 @@ export default function Landing() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-3xl mx-auto">
             {stats.map((s) => (
               <div key={s.label} className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-4 card-shadow hover-lift transition-all">
-                <s.icon className="h-5 w-5 text-primary mx-auto mb-2" />
-                <div className="text-2xl md:text-3xl font-extrabold gradient-text">{s.value}</div>
+                <s.icon className="h-5 w-5 text-accent mx-auto mb-2" />
+                <div className="text-2xl md:text-3xl font-extrabold text-foreground">{s.value}</div>
                 <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
               </div>
             ))}
@@ -237,9 +236,9 @@ export default function Landing() {
       <section id="features" className="py-16 md:py-28 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Возможности</p>
+            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Возможности</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Всё для <span className="gradient-text">роста</span> в TikTok
+              Всё для <span className="text-accent font-extrabold">роста</span> в TikTok
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
               Один инструмент заменяет десятки сервисов. Работайте умнее, а не больше.
@@ -253,10 +252,10 @@ export default function Landing() {
                 className="group relative rounded-2xl p-6 bg-card border border-border/50 card-shadow hover-lift transition-all duration-300 hover:border-primary/20"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shadow-lg`}>
+                  <div className={`w-11 h-11 rounded-xl ${f.color} flex items-center justify-center`}>
                     <f.icon className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
+                  <span className="text-[11px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-md">
                     {f.metric}
                   </span>
                 </div>
@@ -272,19 +271,19 @@ export default function Landing() {
       <section id="how" className="py-16 md:py-28 px-4 bg-muted/30">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Как это работает</p>
+            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Как это работает</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Три шага к <span className="gradient-text">вирусному контенту</span>
+              Три шага к <span className="text-accent font-extrabold">вирусному контенту</span>
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {steps.map((step, i) => (
               <div key={step.num} className="relative text-center">
-                <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center mx-auto mb-5 glow-primary">
+                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5">
                   <step.icon className="h-7 w-7 text-primary-foreground" />
                 </div>
-                <div className="text-xs font-bold text-primary/40 uppercase tracking-widest mb-2">Шаг {step.num}</div>
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Шаг {step.num}</div>
                 <h3 className="text-xl font-bold text-foreground mb-2">{step.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
                 {i < steps.length - 1 && (
@@ -298,7 +297,7 @@ export default function Landing() {
 
           <div className="text-center mt-12">
             <Link to="/auth">
-              <Button className="gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-bold px-8 h-13 min-h-[52px]">
+              <Button className="bg-primary text-primary-foreground border-0 rounded-xl text-base font-bold px-8 h-13 min-h-[52px] hover:opacity-90">
                 Начать сейчас — бесплатно
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -311,9 +310,9 @@ export default function Landing() {
       <section id="reviews" className="py-16 md:py-28 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
+            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Отзывы</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Реальные <span className="gradient-text">результаты</span>
+              Реальные <span className="text-accent font-extrabold">результаты</span>
             </h2>
             <p className="text-muted-foreground text-lg">Наши пользователи растут быстрее</p>
           </div>
@@ -354,9 +353,9 @@ export default function Landing() {
       <section id="pricing" className="py-16 md:py-28 px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Тарифы</p>
+            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Тарифы</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Выберите свой <span className="gradient-text">план</span>
+              Выберите свой <span className="text-accent font-extrabold">план</span>
             </h2>
             <p className="text-muted-foreground text-lg">Начните бесплатно. Масштабируйтесь, когда будете готовы.</p>
           </div>
@@ -411,7 +410,7 @@ export default function Landing() {
       <section className="py-16 md:py-20 px-4">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">
-            Частые <span className="gradient-text">вопросы</span>
+            Частые <span className="text-accent font-extrabold">вопросы</span>
           </h2>
           <div className="space-y-4">
             {[

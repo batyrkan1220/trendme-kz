@@ -49,8 +49,8 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-15" style={{ background: "hsl(217 91% 60%)" }} />
-      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-15" style={{ background: "hsl(199 84% 55%)" }} />
+      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-8" style={{ background: "hsl(145 65% 50%)" }} />
+      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-8" style={{ background: "hsl(220 20% 70%)" }} />
 
       <div className="w-full max-w-sm space-y-8 animate-fade-in relative">
         {/* Logo */}
@@ -59,7 +59,7 @@ export default function Auth() {
             <Flame className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold gradient-text">TrendTok</h1>
+            <h1 className="text-3xl font-bold text-foreground">TrendTok</h1>
             <p className="text-sm text-muted-foreground mt-2">
               {isLogin ? "Войдите в свой аккаунт" : "Создайте аккаунт"}
             </p>
