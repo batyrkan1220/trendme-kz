@@ -437,7 +437,7 @@ Deno.serve(async (req: Request) => {
     let nicheSaved = 0;
 
     const PAGES_PER_QUERY = 3;
-    const sortTypes = ["0", "1", "3"]; // relevance, likes, date
+    const sortTypes = ["3", "1"]; // date, likes
     const publishTimes = ["7", "30"];
 
     const COUNT = 20;
