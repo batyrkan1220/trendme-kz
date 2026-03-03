@@ -329,7 +329,7 @@ export default function Landing() {
                       <Star key={i} className="h-4 w-4 fill-[hsl(45,90%,55%)] text-[hsl(45,90%,55%)]" />
                     ))}
                   </div>
-                  <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                  <span className="text-xs font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-full">
                     {t.result}
                   </span>
                 </div>
@@ -371,7 +371,7 @@ export default function Landing() {
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground gradient-hero px-4 py-1 rounded-full shadow-lg">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground bg-primary px-4 py-1 rounded-full shadow-lg">
                     <Sparkles className="h-3 w-3" /> Популярный
                   </span>
                 )}
@@ -384,7 +384,7 @@ export default function Landing() {
                 <ul className="space-y-3 mb-7">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                      <Check className="h-4 w-4 text-primary shrink-0" />
+                      <Check className="h-4 w-4 text-accent shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -393,7 +393,7 @@ export default function Landing() {
                   <Button
                     className={`w-full rounded-xl h-11 font-semibold ${
                       plan.popular
-                        ? "gradient-hero text-primary-foreground border-0 glow-primary"
+                        ? "bg-primary text-primary-foreground border-0"
                         : "bg-secondary text-secondary-foreground border border-border hover:bg-muted"
                     }`}
                   >
@@ -440,7 +440,7 @@ export default function Landing() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.15),transparent_60%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.08),transparent_50%)]" />
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-primary-foreground text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
                 <Flame className="h-4 w-4" />
                 Присоединяйтесь к 2 500+ авторам
               </div>
@@ -453,7 +453,7 @@ export default function Landing() {
                 Бесплатный старт. Без привязки карты. Первые инсайты через 30 секунд.
               </p>
               <Link to="/auth">
-                <Button className="bg-white text-foreground hover:bg-white/90 rounded-xl text-base font-bold px-10 h-14 min-h-[56px] shadow-xl">
+                <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-base font-bold px-10 h-14 min-h-[56px] shadow-xl">
                   Создать аккаунт бесплатно
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -468,7 +468,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <TrendingUp className="h-4 w-4 text-primary-foreground" />
               </div>
               <span className="text-sm font-bold text-foreground">Trend TikTok</span>

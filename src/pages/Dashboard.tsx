@@ -55,19 +55,19 @@ export default function Dashboard() {
     <AppLayout>
       <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-7 animate-fade-in max-w-5xl w-full overflow-hidden">
         {/* Hero */}
-        <div className="gradient-hero rounded-xl md:rounded-2xl p-4 md:p-7 glow-primary relative overflow-hidden">
+        <div className="bg-primary rounded-xl md:rounded-2xl p-4 md:p-7 relative overflow-hidden">
           <div className="relative flex items-center justify-between">
             <div>
-              <h1 className="text-base md:text-xl font-bold text-white">
+              <h1 className="text-base md:text-xl font-bold text-primary-foreground">
                 Привет, {name} 👋
               </h1>
-              <p className="text-white/70 text-xs md:text-sm mt-1">
+              <p className="text-primary-foreground/70 text-xs md:text-sm mt-1">
                 Что будем исследовать сегодня?
               </p>
             </div>
             <Link
               to="/search"
-              className="hidden sm:flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-white/30 transition-colors"
+              className="hidden sm:flex items-center gap-2 bg-primary-foreground/20 backdrop-blur-sm text-primary-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-foreground/30 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Новый поиск
@@ -98,7 +98,7 @@ export default function Dashboard() {
         {/* Stats row */}
         <div className="grid grid-cols-2 gap-2 md:gap-4">
           <div className="bg-card rounded-xl border border-border/60 px-3 md:px-5 py-2 md:py-3 card-shadow flex items-center gap-2 md:gap-3">
-            <Heart className="h-4 w-4 text-primary" />
+            <Heart className="h-4 w-4 text-accent" />
             <div>
               <p className="text-base md:text-lg font-bold text-foreground">{favCount}</p>
               <p className="text-[10px] md:text-[11px] text-muted-foreground">В избранном</p>

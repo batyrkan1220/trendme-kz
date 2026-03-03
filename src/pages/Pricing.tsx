@@ -19,12 +19,12 @@ export default function Pricing() {
               key={plan.name}
               className={`rounded-2xl p-6 border transition-all hover-lift ${
                 plan.popular
-                  ? "gradient-card glow-primary border-primary/20"
+                  ? "bg-card border-primary/20 shadow-md"
                   : "bg-card border-border/50 card-shadow card-shadow-hover"
               }`}
             >
               {plan.popular && (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mb-3 bg-primary/10 px-2.5 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-accent mb-3 bg-accent/10 px-2.5 py-1 rounded-full">
                   <Sparkles className="h-3 w-3" /> Популярный
                 </span>
               )}
@@ -42,7 +42,7 @@ export default function Pricing() {
               <Button
                 className={`w-full mt-6 rounded-xl h-11 font-semibold ${
                   plan.popular
-                    ? "gradient-hero text-primary-foreground border-0 glow-primary"
+                    ? "bg-primary text-primary-foreground border-0"
                     : "bg-secondary text-secondary-foreground border border-border hover:bg-muted"
                 }`}
               >
