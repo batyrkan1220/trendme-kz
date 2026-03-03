@@ -17,6 +17,7 @@ import AccountAnalysis from "./pages/AccountAnalysis";
 import Journal from "./pages/Journal";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import ResetPassword from "./pages/ResetPassword";
 import Razvedka from "./pages/Razvedka";
 import Library from "./pages/Library";
 import Analytics from "./pages/Analytics";
