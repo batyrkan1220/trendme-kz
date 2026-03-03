@@ -123,7 +123,7 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
           )}
         >
           <BookOpen className={cn("h-5 w-5", location.pathname === "/library" && "text-primary")} />
-          <span className="text-[10px] font-medium leading-tight">Библиотека</span>
+          <span className="text-[10px] font-medium leading-tight">Избранные</span>
         </Link>
 
         <button

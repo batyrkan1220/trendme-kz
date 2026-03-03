@@ -30,7 +30,7 @@ const aiVideoItems: NavItem[] = [
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Библиотека", icon: BookOpen, path: "/library", iconColor: "text-emerald-500" },
+  { label: "Избранные", icon: BookOpen, path: "/library", iconColor: "text-emerald-500" },
   { label: "Журнал", icon: ScrollText, path: "/journal", iconColor: "text-sky-500" },
 ];
 

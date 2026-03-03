@@ -11,7 +11,7 @@ const quickActions = [
   { label: "Поиск", desc: "По ключевым словам", icon: Search, path: "/search", emoji: "🔍" },
   { label: "Анализ видео", desc: "Разбор видео", icon: Video, path: "/video-analysis", emoji: "🎬" },
   { label: "Анализ профиля", desc: "Статистика автора", icon: UserCircle, path: "/account-analysis", emoji: "👤" },
-  { label: "Библиотека", desc: "Сохранённое", icon: BookOpen, path: "/library", emoji: "📚" },
+  { label: "Избранные", desc: "Сохранённое", icon: BookOpen, path: "/library", emoji: "⭐" },
 ];
 
 function fmt(n: number) {
