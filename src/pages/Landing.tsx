@@ -141,7 +141,6 @@ function TrendingShowcase() {
             }`}
             onClick={() => setActive(i)}
           >
-          >
             {/* Tag */}
             <span className={`inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full mb-4 ${
               i === active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
