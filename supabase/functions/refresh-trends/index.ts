@@ -334,55 +334,7 @@ Deno.serve(async (req: Request) => {
     }
   };
 
-  // =========================
-  // AI query generation for multiple niches
-  // =========================
-  const generateAiQueries = async (niches: string[]): Promise<Record<string, string[]>> => {
-    try {
-      const nicheDescriptions = niches.map((n) => {
-        const existing = NICHE_QUERIES[n] || [];
-        return `${n}: examples: ${existing.slice(0, 3).join(", ")}`;
-      }).join("\n");
-
-      const res = await fetch(AI_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [
-            {
-              role: "system",
-              content:
-                `You are an expert on global TikTok trends. For each niche, generate 12-16 search queries that will find the most VIRAL and TRENDING videos worldwide. Generate queries in THREE languages:
-- 50% ENGLISH
-- 30% RUSSIAN
-- 20% KAZAKH
-Focus on current viral trends, popular hashtags, challenge names, viral sounds, trending topics.
-Return ONLY JSON object: {"niche1":["q1","q2",...],...}`,
-            },
-            {
-              role: "user",
-              content: `Generate trending TikTok search queries (today is ${new Date().toLocaleDateString("en")}):\n${nicheDescriptions}`,
-            },
-          ],
-        }),
-      });
-
-      const aiData = await res.json();
-      const content = aiData?.choices?.[0]?.message?.content || "";
-      const parsed = extractJsonObject(content);
-      if (parsed && typeof parsed === "object") {
-        console.log(`AI generated queries for: ${Object.keys(parsed).join(", ")}`);
-        return parsed;
-      }
-    } catch (e) {
-      console.error("AI query generation failed:", e);
-    }
-    return {};
-  };
+  // AI query generation disabled — using only static queries from DB
 
   // =========================
   // Enforce category limit (trim weakest if over)
@@ -418,19 +370,13 @@ Return ONLY JSON object: {"niche1":["q1","q2",...],...}`,
   // =========================
   // Process one niche
   // =========================
-  const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
+  const processNiche = async (nicheKey: string) => {
     const limit = categoryLimits[nicheKey] || 0;
 
     const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-    const aiNicheQueries = aiQueries[nicheKey] || [];
     const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
 
-    const combined = [
-      ...aiNicheQueries,
-      ...staticQueries.sort(() => Math.random() - 0.5),
-    ];
-
-    const uniqueQueries = [...new Set(combined)].slice(0, qCount);
+    const uniqueQueries = [...new Set(staticQueries.sort(() => Math.random() - 0.5))].slice(0, qCount);
     let nicheSaved = 0;
 
     const PAGES_PER_QUERY = 3;
@@ -662,10 +608,7 @@ Max 3 categories per video. No explanation. JSON only.`,
     nichesToProcess.push(nicheKey);
   }
 
-  // AI queries only for needed niches
-  const aiQueries = nichesToProcess.length > 0 ? await generateAiQueries(nichesToProcess) : {};
-
-  // Process
+  // Process (static queries only, no AI generation)
   for (const nicheKey of nichesToProcess) {
     if (Date.now() - startTime > MAX_EXECUTION_MS) {
       console.log(`⏱ Timeout safety: stopping after ${Math.round((Date.now() - startTime) / 1000)}s`);
@@ -673,7 +616,7 @@ Max 3 categories per video. No explanation. JSON only.`,
     }
 
     try {
-      const saved = await processNiche(nicheKey, aiQueries);
+      const saved = await processNiche(nicheKey);
       nicheStats[nicheKey] = saved;
       totalSaved += saved;
       console.log(`✓ ${nicheKey}: ${saved} videos`);
