@@ -312,7 +312,7 @@ export default function Landing() {
           <div className="text-center mb-12 md:mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Реальные <span className="gradient-text">результаты</span>
+              Реальные <span className="text-accent font-extrabold">результаты</span>
             </h2>
             <p className="text-muted-foreground text-lg">Наши пользователи растут быстрее</p>
           </div>
