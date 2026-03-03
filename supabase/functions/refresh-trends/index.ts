@@ -427,10 +427,16 @@ Deno.serve(async (req: Request) => {
       console.log(`Batch ${batchIndex} done: ${nicheKeys.map(n => `${n}=${nicheStats[n]||0}`).join(", ")}, total: ${totalSaved}`);
     }
 
-    // Chain to next batch or finish
+    // Check if run was stopped before chaining
+    const { data: currentLog } = logId
+      ? await adminClient.from("trend_refresh_logs").select("status").eq("id", logId).single()
+      : { data: null };
+    const wasStopped = currentLog?.status === "error";
+
     const nextBatch = batchIndex + 1;
-    if (nextBatch < totalBatches) {
+    if (!wasStopped && nextBatch < totalBatches) {
       console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
+      await chainNextBatch(nextBatch);
       await chainNextBatch(nextBatch);
     } else {
       // All batches done — count real videos from DB
