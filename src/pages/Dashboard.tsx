@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Search, Video, UserCircle, BookOpen, ArrowRight, Eye, Heart, MessageCircle, Plus, Play, X, ExternalLink, Music, Flame, Rocket, Sparkles, Zap } from "lucide-react";
+import { TrendingUp, Search, Video, UserCircle, BookOpen, ArrowRight, Eye, Heart, MessageCircle, Share2, Plus, Play, X, ExternalLink, Music, Flame, Rocket, Sparkles, Zap, Trophy, Target } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { useState } from "react";
@@ -19,6 +19,31 @@ function fmt(n: number) {
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return String(n);
 }
+
+const getTimeAgo = (published_at: string | null) => {
+  if (!published_at) return "";
+  const h = Math.floor((Date.now() - new Date(published_at).getTime()) / 3600000);
+  if (h < 1) return "только что";
+  if (h < 24) return `${h}ч назад`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}д назад`;
+  return `${Math.floor(d / 30)} мес. назад`;
+};
+
+type TrendTier = "strong" | "mid" | "micro";
+
+const getTier = (views: number): TrendTier | null => {
+  if (views >= 80_000) return "strong";
+  if (views >= 15_000) return "mid";
+  if (views >= 3_000) return "micro";
+  return null;
+};
+
+const tierConfig: Record<TrendTier, { label: string; icon: any; className: string }> = {
+  strong: { label: "Strong Trend", icon: Trophy, className: "bg-amber-500/90 text-white" },
+  mid: { label: "Mid Trend", icon: Zap, className: "bg-primary/80 text-white" },
+  micro: { label: "Micro Trend", icon: Target, className: "bg-primary/60 text-white" },
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -151,8 +176,8 @@ export default function Dashboard() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+              {[...Array(10)].map((_, i) => (
                 <div key={i} className="bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse">
                   <div className="aspect-[9/14] bg-muted m-2 rounded-2xl" />
                   <div className="px-3 py-3 space-y-2">
@@ -163,19 +188,20 @@ export default function Dashboard() {
               ))}
             </div>
           ) : trendingVideos.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
               {trendingVideos.map((video) => {
-                const score = video.trend_score || 0;
-                const isRocket = score > 500;
-                const isFire = score > 100;
+                const views = Number(video.views) || 0;
+                const tier = getTier(views);
+                const velViews = video.velocity_views || 0;
+                const timeAgo = getTimeAgo(video.published_at);
 
                 return (
                   <div
                     key={video.id}
-                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg hover:border-primary/15 transition-all duration-200 relative flex flex-col"
+                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col"
                   >
                     {/* Video area */}
-                    <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-1.5 md:m-2">
+                    <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
                       {playingId === video.id ? (
                         <>
                           <iframe
@@ -210,26 +236,28 @@ export default function Dashboard() {
                             </div>
                           )}
 
-                          {/* TikTok header */}
-                          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2 z-10 pointer-events-none">
-                            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm">
+                          {/* TikTok header bar */}
+                          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2.5 z-10 pointer-events-none">
+                            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm">
                               <Music className="h-3 w-3 text-foreground" />
-                              <span className="text-[10px] font-bold text-foreground">TikTok</span>
+                              <span className="text-[11px] font-bold text-foreground">TikTok</span>
                             </div>
                           </div>
 
-                          {/* Trend indicators */}
-                          {isFire && (
-                            <div className="absolute top-10 left-2 z-10 flex flex-col gap-1 pointer-events-none">
-                              {isRocket ? (
-                                <div className="flex items-center gap-1 bg-primary/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-lg animate-[pulse_1.5s_ease-in-out_infinite]">
-                                  <Rocket className="h-3 w-3 text-primary-foreground" />
-                                  <span className="text-[9px] font-bold text-primary-foreground">Взлетает!</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 bg-primary/80 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-lg">
-                                  <Flame className="h-3 w-3 text-primary-foreground" />
-                                  <span className="text-[9px] font-bold text-primary-foreground">В тренде</span>
+                          {/* Tier badge */}
+                          {tier && (
+                            <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
+                              <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg ${tierConfig[tier].className}`}>
+                                {(() => {
+                                  const Icon = tierConfig[tier].icon;
+                                  return <Icon className="h-3.5 w-3.5" />;
+                                })()}
+                                <span className="text-[10px] font-bold">{tierConfig[tier].label}</span>
+                              </div>
+                              {velViews > 10 && (
+                                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
+                                  <TrendingUp className="h-3 w-3 text-white" />
+                                  <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
                                 </div>
                               )}
                             </div>
@@ -238,9 +266,9 @@ export default function Dashboard() {
                           {/* Open in TikTok */}
                           <button
                             onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
-                            className="absolute top-10 right-2 z-10 w-6 h-6 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                            className="absolute top-12 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
                           >
-                            <ExternalLink className="h-3 w-3 text-foreground" />
+                            <ExternalLink className="h-3.5 w-3.5 text-foreground" />
                           </button>
 
                           {/* Play button center */}
@@ -260,39 +288,50 @@ export default function Dashboard() {
                     </div>
 
                     {/* Stats bar */}
-                    <div className="flex items-center justify-around px-1 md:px-2 py-1.5 md:py-2 border-b border-border/30">
+                    <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
                       <span className="flex flex-col items-center gap-0.5">
-                        <Eye className="h-3 md:h-4 w-3 md:w-4 text-muted-foreground" />
-                        <span className="text-[9px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.views))}</span>
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.views))}</span>
                       </span>
                       <span className="flex flex-col items-center gap-0.5">
-                        <Heart className="h-3 md:h-4 w-3 md:w-4 text-muted-foreground" />
-                        <span className="text-[9px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.likes))}</span>
+                        <Heart className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.likes))}</span>
                       </span>
                       <span className="flex flex-col items-center gap-0.5">
-                        <MessageCircle className="h-3 md:h-4 w-3 md:w-4 text-muted-foreground" />
-                        <span className="text-[9px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span>
+                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span>
+                      </span>
+                      <span className="flex flex-col items-center gap-0.5">
+                        <Share2 className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.shares || 0))}</span>
                       </span>
                     </div>
 
                     {/* Author row */}
-                    <div className="px-2 md:px-3 pt-2 flex items-center gap-2">
+                    <div className="px-3 pt-3 flex items-center gap-2">
                       {video.author_avatar_url ? (
-                        <img src={video.author_avatar_url} alt="" className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0" />
+                        <img src={video.author_avatar_url} alt="" className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0" />
                       ) : (
-                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-muted flex-shrink-0" />
+                        <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
                       )}
-                      <span className="text-[11px] md:text-sm font-semibold text-foreground truncate">
+                      <span className="text-sm font-semibold text-foreground truncate">
                         @{video.author_username}
                       </span>
                     </div>
 
                     {/* Caption */}
-                    <div className="px-2 md:px-3 pt-1 pb-2 md:pb-3">
-                      <p className="text-[10px] md:text-xs text-foreground/80 line-clamp-2 leading-relaxed">
+                    <div className="px-3 pt-1.5 pb-1">
+                      <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">
                         {video.caption || "Без описания"}
                       </p>
                     </div>
+
+                    {/* Time ago */}
+                    {timeAgo && (
+                      <div className="px-3 pb-3">
+                        <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
