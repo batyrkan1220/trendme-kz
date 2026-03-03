@@ -1019,6 +1019,83 @@ function StatsSection() {
   );
 }
 
+function RecategorizeSection() {
+  const [isRunning, setIsRunning] = useState(false);
+  const [progress, setProgress] = useState<{ offset: number; updated: number; total: number } | null>(null);
+
+  const startRecategorize = async () => {
+    setIsRunning(true);
+    setProgress({ offset: 0, updated: 0, total: 0 });
+    toast.info("AI рекатегоризация запущена...");
+    
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-videos`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ offset: 0, limit: 200 }),
+      });
+
+      if (!res.ok) throw new Error("Ошибка запуска");
+      const data = await res.json();
+      setProgress({ offset: data.offset || 0, updated: data.updated || 0, total: data.processed || 0 });
+      
+      if (data.hasMore) {
+        toast.success(`Первый батч: ${data.updated} обновлено. Остальные — автоматты.`);
+      } else {
+        toast.success(`Готово: ${data.updated} видео обновлено`);
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Ошибка рекатегоризации");
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            AI Рекатегоризация
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            AI caption бойынша әр видеоны 1-3 категорияға бөледі. Видео дубликатталмайды — тек categories массиві кеңейеді.
+          </p>
+          
+          <Button 
+            onClick={startRecategorize} 
+            disabled={isRunning}
+            size="lg"
+            className="w-full gap-3 h-14 text-base"
+          >
+            {isRunning ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+            {isRunning ? "⏳ Рекатегоризация жүріп жатыр..." : "🔄 AI рекатегоризацияны бастау"}
+          </Button>
+
+          {progress && (
+            <div className="bg-muted/40 rounded-md p-3 text-sm space-y-1">
+              <p>✅ Обновлено: <strong>{progress.updated}</strong></p>
+              <p>📦 Өңделген: <strong>{progress.total}</strong></p>
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            ⚡ Self-chaining: сервер фонда барлық видеоларды автоматты өңдейді.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /* ==================== TARIFFS TAB ==================== */
 function TariffsTab() {
   const queryClient = useQueryClient();
