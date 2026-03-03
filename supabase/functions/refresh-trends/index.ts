@@ -334,55 +334,7 @@ Deno.serve(async (req: Request) => {
     }
   };
 
-  // =========================
-  // AI query generation for multiple niches
-  // =========================
-  const generateAiQueries = async (niches: string[]): Promise<Record<string, string[]>> => {
-    try {
-      const nicheDescriptions = niches.map((n) => {
-        const existing = NICHE_QUERIES[n] || [];
-        return `${n}: examples: ${existing.slice(0, 3).join(", ")}`;
-      }).join("\n");
-
-      const res = await fetch(AI_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [
-            {
-              role: "system",
-              content:
-                `You are an expert on global TikTok trends. For each niche, generate 12-16 search queries that will find the most VIRAL and TRENDING videos worldwide. Generate queries in THREE languages:
-- 50% ENGLISH
-- 30% RUSSIAN
-- 20% KAZAKH
-Focus on current viral trends, popular hashtags, challenge names, viral sounds, trending topics.
-Return ONLY JSON object: {"niche1":["q1","q2",...],...}`,
-            },
-            {
-              role: "user",
-              content: `Generate trending TikTok search queries (today is ${new Date().toLocaleDateString("en")}):\n${nicheDescriptions}`,
-            },
-          ],
-        }),
-      });
-
-      const aiData = await res.json();
-      const content = aiData?.choices?.[0]?.message?.content || "";
-      const parsed = extractJsonObject(content);
-      if (parsed && typeof parsed === "object") {
-        console.log(`AI generated queries for: ${Object.keys(parsed).join(", ")}`);
-        return parsed;
-      }
-    } catch (e) {
-      console.error("AI query generation failed:", e);
-    }
-    return {};
-  };
+  // AI query generation disabled — using only static queries from DB
 
   // =========================
   // Enforce category limit (trim weakest if over)
