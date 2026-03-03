@@ -96,7 +96,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
           {renderGroup("Поиск контента", searchItems)}
           {renderGroup("Инструменты", toolItems)}
           {renderGroup("Идеи", ideaItems)}
-          {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin" }])}
+          {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
         </nav>
 
         <div className="border-t border-border/50 p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px)+70px)]">
