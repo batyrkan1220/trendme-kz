@@ -231,6 +231,35 @@ function UsersTab() {
     onError: () => toast.error("Ошибка обновления токенов"),
   });
 
+  const subMutation = useMutation({
+    mutationFn: async ({ user_id, plan_id, duration_days, note }: { user_id: string; plan_id: string; duration_days: number; note: string }) => {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=assign-subscription`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_id, plan_id, duration_days, note }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
+      setSubDialog(null);
+      setSubPlanId("");
+      setSubDays("30");
+      setSubNote("");
+      const msg = data?.tokens_added > 0 ? `Тариф назначен, начислено ${data.tokens_added} ⚡` : "Тариф назначен";
+      toast.success(msg);
+    },
+    onError: () => toast.error("Ошибка назначения тарифа"),
+  });
+
   const users = data?.users || [];
 
   return (
