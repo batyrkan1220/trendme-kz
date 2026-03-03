@@ -307,6 +307,10 @@ function UsersTab() {
                         {new Date(u.created_at).toLocaleDateString("ru-RU")}
                       </td>
                       <td className="p-3">
+                        <button
+                          onClick={() => setSubDialog({ userId: u.id, email: u.email })}
+                          className="hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors"
+                        >
                         {sub ? (
                           <div className="flex flex-col gap-0.5">
                             <Badge variant={isExpired ? "destructive" : "default"} className="text-xs w-fit">
@@ -318,8 +322,9 @@ function UsersTab() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
+                          <span className="text-xs text-muted-foreground hover:text-primary">+ Назначить</span>
                         )}
+                        </button>
                       </td>
                       <td className="p-3">
                         <button
