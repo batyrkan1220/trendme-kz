@@ -370,19 +370,13 @@ Deno.serve(async (req: Request) => {
   // =========================
   // Process one niche
   // =========================
-  const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
+  const processNiche = async (nicheKey: string) => {
     const limit = categoryLimits[nicheKey] || 0;
 
     const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-    const aiNicheQueries = aiQueries[nicheKey] || [];
     const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
 
-    const combined = [
-      ...aiNicheQueries,
-      ...staticQueries.sort(() => Math.random() - 0.5),
-    ];
-
-    const uniqueQueries = [...new Set(combined)].slice(0, qCount);
+    const uniqueQueries = [...new Set(staticQueries.sort(() => Math.random() - 0.5))].slice(0, qCount);
     let nicheSaved = 0;
 
     const PAGES_PER_QUERY = 3;
