@@ -499,7 +499,8 @@ Deno.serve(async (req: Request) => {
 
             const stats = v.stats || {};
             const views = stats.views ?? v.views ?? v.playCount ?? 0;
-            if (views < MIN_VIEWS) { lowViews++; return null; }
+            const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 3000 : MIN_VIEWS;
+            if (views < minViewsForNiche) { lowViews++; return null; }
 
             const publishedAt = new Date(getPublishedAt(v));
             if (publishedAt < thirtyDaysAgo) { tooOld++; return null; }
