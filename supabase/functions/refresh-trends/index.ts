@@ -512,35 +512,17 @@ Deno.serve(async (req: Request) => {
       console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
       await chainNextBatch(nextBatch);
     } else {
-      // All batches done — count real videos from DB
-      console.log(`Refresh COMPLETE (accumulated: ${totalSaved}). Counting real totals from DB...`);
+      // All batches done — use accumulated stats
+      console.log(`Refresh COMPLETE (accumulated: ${totalSaved}). Saving final stats...`);
       if (logId) {
-        const { data: logRow } = await adminClient.from("trend_refresh_logs")
-          .select("started_at").eq("id", logId).single();
-        const startedAt = logRow?.started_at || new Date(Date.now() - 3600000).toISOString();
-
-        const { data: realCounts } = await adminClient
-          .from("videos")
-          .select("niche")
-          .gte("fetched_at", startedAt);
-
-        const realNicheStats: Record<string, number> = {};
-        let realTotal = 0;
-        for (const row of realCounts || []) {
-          if (row.niche) {
-            realNicheStats[row.niche] = (realNicheStats[row.niche] || 0) + 1;
-            realTotal++;
-          }
-        }
-
         await adminClient.from("trend_refresh_logs").update({
           status: "done",
-          total_saved: realTotal,
+          total_saved: totalSaved,
           general_saved: 0,
-          niche_stats: realNicheStats,
+          niche_stats: nicheStats,
           finished_at: new Date().toISOString(),
         }).eq("id", logId);
-        console.log(`Final real total: ${realTotal} videos across ${Object.keys(realNicheStats).length} niches`);
+        console.log(`Final total: ${totalSaved} videos, niches: ${JSON.stringify(nicheStats)}`);
       }
     }
 
