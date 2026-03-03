@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 const MIN_VIEWS = 3000; // Minimum views threshold
-const BATCH_SIZE = 5; // Process 5 niches per batch (was 1)
+const BATCH_SIZE = 3; // Process 3 niches per batch (reduced from 5 to avoid rate limits)
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -68,17 +68,26 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const callSocialKit = async (path: string, params: Record<string, string>) => {
+    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+    const callSocialKit = async (path: string, params: Record<string, string>, retries = 3): Promise<any> => {
       const url = new URL(`${SOCIALKIT_BASE}${path}`);
       Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-      const res = await fetch(url.toString(), {
-        headers: { "x-access-key": socialKitKey },
-      });
-      if (!res.ok) {
+      for (let attempt = 0; attempt < retries; attempt++) {
+        const res = await fetch(url.toString(), {
+          headers: { "x-access-key": socialKitKey },
+        });
+        if (res.ok) return res.json();
         const text = await res.text();
+        if (text.includes("Rate limit") && attempt < retries - 1) {
+          const waitSec = Math.min(30, 10 * (attempt + 1));
+          console.log(`Rate limited on ${path}, waiting ${waitSec}s (attempt ${attempt + 1}/${retries})`);
+          await sleep(waitSec * 1000);
+          continue;
+        }
         throw new Error(`SocialKit error ${res.status}: ${text}`);
       }
-      return res.json();
+      throw new Error(`SocialKit failed after ${retries} retries`);
     };
 
     const getPublishedAt = (video: any): string => {
@@ -302,9 +311,10 @@ Deno.serve(async (req: Request) => {
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      // Run queries in parallel (batches of 3 to avoid rate limits)
-      const PARALLEL_QUERIES = 3;
+      // Run queries sequentially in small batches to avoid rate limits
+      const PARALLEL_QUERIES = 2;
       for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
+        if (i > 0) await sleep(3000); // 3s delay between batches
         const queryBatch = uniqueQueries.slice(i, i + PARALLEL_QUERIES);
         const results = await Promise.allSettled(queryBatch.map(async (query) => {
           try {
@@ -387,19 +397,18 @@ Deno.serve(async (req: Request) => {
       // Generate AI queries for all niches in this batch at once
       const aiQueries = await generateAiQueries(nicheKeys);
       
-      // Process all niches in the batch in parallel
-      const results = await Promise.allSettled(
-        nicheKeys.map(async (nicheKey) => {
+      // Process niches sequentially to avoid SocialKit rate limits
+      for (const nicheKey of nicheKeys) {
+        try {
           const saved = await processNiche(nicheKey, aiQueries);
-          return { nicheKey, saved };
-        })
-      );
-
-      for (const r of results) {
-        if (r.status === "fulfilled") {
-          nicheStats[r.value.nicheKey] = r.value.saved;
-          totalSaved += r.value.saved;
+          nicheStats[nicheKey] = saved;
+          totalSaved += saved;
+          console.log(`✓ ${nicheKey}: ${saved} videos`);
+        } catch (e) {
+          console.error(`✗ ${nicheKey} failed:`, e.message);
+          nicheStats[nicheKey] = 0;
         }
+        await sleep(2000); // 2s pause between niches
       }
 
       // Update log after batch
