@@ -365,7 +365,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 {summary && !isGenerating && scriptContent && (
                   <div className="mt-6">
                     <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
-                      🧠 Анализ контента
+                      🧠 {isKk ? "Контент талдауы" : "Анализ контента"}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
                       <div className="bg-card rounded-xl border border-border/50 p-4">
