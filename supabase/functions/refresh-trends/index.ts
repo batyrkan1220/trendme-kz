@@ -478,6 +478,17 @@ Deno.serve(async (req: Request) => {
 
           const videos = extractVideos(data);
 
+          const ages: number[] = [];
+          for (const v of videos) {
+            const d = new Date(getPublishedAt(v));
+            const ageDays = (Date.now() - d.getTime()) / 86400000;
+            if (Number.isFinite(ageDays)) ages.push(ageDays);
+          }
+          if (ages.length) {
+            const min = Math.min(...ages), max = Math.max(...ages);
+            console.log(`  AGE days: min=${min.toFixed(1)} max=${max.toFixed(1)} sample=${ages.slice(0, 5).map(a => a.toFixed(1)).join(",")}`);
+          }
+
           let noId = 0, lowViews = 0, tooOld = 0, inBatchDup = 0;
 
           const rowsRaw = videos.map((v) => {
