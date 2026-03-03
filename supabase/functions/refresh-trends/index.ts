@@ -385,15 +385,12 @@ Deno.serve(async (req: Request) => {
                 views: v.stats?.views || v.views || v.playCount,
               }));
               console.log(`🔍 RAW sample for "${query}":`, JSON.stringify(sample));
-              console.log(`🔍 freshWindow: ${freshWindow.toISOString()}, now: ${new Date().toISOString()}`);
             }
-            let noId = 0, tooOld = 0, lowViews = 0;
+            let noId = 0, lowViews = 0;
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
               if (!videoId) { noId++; return null; }
               const trends = computeTrend(v);
-              const publishedDate = new Date(trends.published_at);
-              if (publishedDate < freshWindow) { tooOld++; return null; }
               
               const stats = v.stats || {};
               const views = stats.views || v.views || v.playCount || 0;
