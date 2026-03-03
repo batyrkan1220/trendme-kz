@@ -44,6 +44,7 @@ export default function AccountAnalysis() {
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { spend } = useTokens();
 
   // Fetch tracked accounts history
   const { data: trackedAccounts = [] } = useQuery({
