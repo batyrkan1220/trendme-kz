@@ -1021,17 +1021,24 @@ function StatsSection() {
 
 function RecategorizeSection() {
   const [isRunning, setIsRunning] = useState(false);
-  const [progress, setProgress] = useState<{ offset: number; updated: number; total: number } | null>(null);
+  const [result, setResult] = useState<{ updated: number; processed: number; hasMore: boolean } | null>(null);
+
+  // Get total video count
+  const { data: totalVideos } = useQuery({
+    queryKey: ["total-videos-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("videos").select("id", { count: "exact", head: true });
+      return count || 0;
+    },
+  });
 
   const startRecategorize = async () => {
     setIsRunning(true);
-    setProgress({ offset: 0, updated: 0, total: 0 });
+    setResult(null);
     
     try {
       const session = (await supabase.auth.getSession()).data.session;
-      // Fire-and-forget: серверге жіберіп, жауапты күтпейміз
-      // Self-chaining серверде фонда жалғасады
-      fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-videos`, {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-videos`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -1039,9 +1046,21 @@ function RecategorizeSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ offset: 0, limit: 200 }),
-      }).catch(() => {}); // Ignore - server continues via self-chaining
+      });
+
+      if (!res.ok) throw new Error("Ошибка запуска");
+      const data = await res.json();
+      setResult({ 
+        updated: data.updated || 0, 
+        processed: data.processed || 0, 
+        hasMore: data.hasMore || false 
+      });
       
-      toast.success("✅ AI рекатегоризация серверде іске қосылды! Бетті жабсаңыз да фонда жұмыс жасайды.");
+      if (data.hasMore) {
+        toast.success(`🚀 Бірінші батч: ${data.updated} жаңартылды, ${data.processed} өңделді. Қалғаны серверде фонда жалғасады!`);
+      } else {
+        toast.success(`✅ Аяқталды: ${data.updated} видео жаңартылды`);
+      }
     } catch (e: any) {
       toast.error(e.message || "Ошибка рекатегоризации");
     } finally {
@@ -1062,6 +1081,12 @@ function RecategorizeSection() {
           <p className="text-sm text-muted-foreground">
             AI caption бойынша әр видеоны 1-3 категорияға бөледі. Видео дубликатталмайды — тек categories массиві кеңейеді.
           </p>
+
+          {totalVideos !== undefined && (
+            <div className="bg-muted/40 rounded-md p-3 text-sm">
+              <p>📊 Жалпы видеолар: <strong>{totalVideos}</strong></p>
+            </div>
+          )}
           
           <Button 
             onClick={startRecategorize} 
@@ -1073,15 +1098,18 @@ function RecategorizeSection() {
             {isRunning ? "⏳ Рекатегоризация жүріп жатыр..." : "🔄 AI рекатегоризацияны бастау"}
           </Button>
 
-          {progress && (
+          {result && (
             <div className="bg-muted/40 rounded-md p-3 text-sm space-y-1">
-              <p>✅ Обновлено: <strong>{progress.updated}</strong></p>
-              <p>📦 Өңделген: <strong>{progress.total}</strong></p>
+              <p>✅ Жаңартылды: <strong>{result.updated}</strong></p>
+              <p>📦 Өңделді (1-ші батч): <strong>{result.processed}</strong></p>
+              {result.hasMore && (
+                <p className="text-primary font-medium">🔄 Қалғаны серверде фонда жалғасуда...</p>
+              )}
             </div>
           )}
 
           <p className="text-xs text-muted-foreground">
-            ⚡ Self-chaining: сервер фонда барлық видеоларды автоматты өңдейді.
+            ⚡ Self-chaining: бетті жапсаңыз да сервер фонда барлық видеоларды автоматты өңдейді.
           </p>
         </CardContent>
       </Card>
