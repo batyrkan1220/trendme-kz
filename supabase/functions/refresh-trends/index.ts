@@ -7,9 +7,16 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
+
+// Filters
 const MIN_VIEWS = 5000;
+
+// Batching across niches
 const BATCH_SIZE = 1;
+
+// AI
 const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+
 const ALL_CATEGORIES = [
   "animals","art","auto","beauty","books","business","cinema","comedy",
   "dance","diy","education","entertainment","family","fashion","fitness",
@@ -17,574 +24,707 @@ const ALL_CATEGORIES = [
   "podcast","psychology","realestate","religion","shopping","sports","tech","travel"
 ];
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function safeJsonParse<T = any>(text: string): T | null {
+  try { return JSON.parse(text) as T; } catch { return null; }
+}
+
+function extractJsonObject(content: string): any | null {
+  const match = content.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  return safeJsonParse(match[0]);
+}
+
+function extractJsonArray(content: string): any[] | null {
+  const match = content.match(/\[[\s\S]*\]/);
+  if (!match) return null;
+  return safeJsonParse(match[0]);
+}
+
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY")!;
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+
+  // =========================
+  // Auth
+  // =========================
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+  const token = authHeader.replace("Bearer ", "");
+  const isCronCall = token === serviceRoleKey;
+  let userId: string | null = null;
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+  if (!isCronCall) {
+    const supabaseClient = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    userId = claimsData.claims.sub as string;
+  } else {
+    console.log("Cron call detected (service_role key)");
+  }
 
-    const token = authHeader.replace("Bearer ", "");
-    const isCronCall = token === serviceRoleKey;
-    let userId: string | null = null;
+  const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    if (isCronCall) {
-      console.log("Cron call detected (service_role key)");
-    } else {
-      const supabaseClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-        global: { headers: { Authorization: authHeader } },
+  // =========================
+  // Runtime settings
+  // =========================
+  const MAX_EXECUTION_MS = 120000;
+  const startTime = Date.now();
+
+  const nowIso = new Date().toISOString();
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600000);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
+
+  // =========================
+  // Helpers
+  // =========================
+  const callSocialKit = async (
+    path: string,
+    params: Record<string, string>,
+    retries = 3,
+  ): Promise<any> => {
+    const url = new URL(`${SOCIALKIT_BASE}${path}`);
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+
+    for (let attempt = 0; attempt < retries; attempt++) {
+      const res = await fetch(url.toString(), {
+        headers: { "x-access-key": socialKitKey },
       });
-      const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
-      if (claimsError || !claimsData?.claims) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+
+      if (res.ok) return res.json();
+
+      const text = await res.text();
+
+      const retryable = res.status === 429 || (res.status >= 500 && res.status <= 599);
+      if (retryable && attempt < retries - 1) {
+        const waitSec = Math.min(30, 6 * (attempt + 1));
+        console.log(`SocialKit retryable error ${res.status} on ${path}. Wait ${waitSec}s (attempt ${attempt + 1}/${retries})`);
+        await sleep(waitSec * 1000);
+        continue;
       }
-      userId = claimsData.claims.sub as string;
+
+      throw new Error(`SocialKit error ${res.status}: ${text}`);
     }
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    throw new Error(`SocialKit failed after ${retries} retries`);
+  };
 
-    // ===== Load niche queries from DB =====
-    const { data: nicheSettingsRow } = await adminClient
-      .from("trend_settings")
-      .select("value")
-      .eq("key", "niche_queries")
+  const getPublishedAt = (video: any): string => {
+    if (video.createTime) return new Date(video.createTime * 1000).toISOString();
+    if (video.create_time) return new Date(video.create_time * 1000).toISOString();
+    if (video.created_at) return new Date(video.created_at).toISOString();
+    if (video.published_at) return new Date(video.published_at).toISOString();
+    return new Date().toISOString();
+  };
+
+  const computeTrend = (video: any) => {
+    const stats = video.stats || {};
+    const publishedAt = new Date(getPublishedAt(video));
+    const hoursSince = Math.max(1, (Date.now() - publishedAt.getTime()) / 3600000);
+
+    const views = stats.views ?? video.views ?? video.playCount ?? 0;
+    const likes = stats.likes ?? video.likes ?? video.diggCount ?? 0;
+    const comments = stats.comments ?? video.comments ?? video.commentCount ?? 0;
+
+    const vViews = views / hoursSince;
+    const vLikes = likes / hoursSince;
+    const vComments = comments / hoursSince;
+
+    const engagementRate = views > 0 ? (likes + comments) / views : 0;
+
+    return {
+      velocity_views: vViews,
+      velocity_likes: vLikes,
+      velocity_comments: vComments,
+      trend_score: 0.4 * vViews + 0.3 * vLikes + 0.2 * vComments + 0.1 * engagementRate * 10000,
+      published_at: publishedAt.toISOString(),
+    };
+  };
+
+  const extractVideos = (data: any): any[] => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data?.results)) return data.data.results;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.videos)) return data.videos;
+    if (Array.isArray(data?.result)) return data.result;
+    return [];
+  };
+
+  // =========================
+  // Parse body / mode
+  // =========================
+  let mode = "full";
+  let batchIndex = 0;
+  let logId: string | null = null;
+  let targetNiches: string[] | null = null;
+
+  try {
+    const body = await req.json();
+    if (body?.lite) mode = "lite";
+    else if (body?.mass) mode = "mass";
+    else if (body?.mode === "mass") mode = "mass";
+    else if (body?.mode === "lite") mode = "lite";
+
+    if (typeof body?.batch === "number") batchIndex = body.batch;
+    if (body?.logId) logId = body.logId;
+    if (Array.isArray(body?.target_niches) && body.target_niches.length > 0) {
+      targetNiches = body.target_niches;
+    }
+  } catch {
+    // no body = cron call
+  }
+
+  // =========================
+  // Load niche queries from DB
+  // =========================
+  const { data: nicheSettingsRow } = await adminClient
+    .from("trend_settings")
+    .select("value")
+    .eq("key", "niche_queries")
+    .single();
+
+  const NICHE_QUERIES: Record<string, string[]> = (nicheSettingsRow?.value as any) || {};
+  const allAvailableNiches = Object.keys(NICHE_QUERIES);
+  let allNicheKeys = allAvailableNiches;
+
+  if (targetNiches) {
+    allNicheKeys = allNicheKeys.filter((n) => targetNiches!.includes(n));
+  }
+
+  console.log(`Loaded niches=${allAvailableNiches.length}, processing=${allNicheKeys.length}`);
+
+  if (allNicheKeys.length === 0) {
+    return new Response(JSON.stringify({ error: "No niches configured (or none matched target_niches)" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  // =========================
+  // Load thresholds from DB
+  // =========================
+  const { data: thresholdsRow } = await adminClient
+    .from("trend_settings")
+    .select("value")
+    .eq("key", "thresholds")
+    .single();
+
+  const thresholds = (thresholdsRow?.value as any) || {};
+  const queriesPerNiche = thresholds.queries_per_niche ?? 8;
+  const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
+  const weakQueriesPerNiche = thresholds.weak_queries_per_niche ?? 12;
+  const videosPerQuery = thresholds.videos_per_query ?? 30;
+
+  // =========================
+  // Load per-category limits
+  // =========================
+  const { data: categoryLimitsRow } = await adminClient
+    .from("trend_settings")
+    .select("value")
+    .eq("key", "category_limits")
+    .maybeSingle();
+
+  const categoryLimits: Record<string, number> = (categoryLimitsRow?.value as any) || {};
+
+  // =========================
+  // Weak niches detection
+  // =========================
+  const sinceIso = thirtyDaysAgo.toISOString();
+  const { data: nicheRows, error: nicheRowsErr } = await adminClient
+    .from("videos")
+    .select("niche")
+    .gte("published_at", sinceIso);
+
+  if (nicheRowsErr) console.warn("Weak niche scan error:", nicheRowsErr.message);
+
+  const nicheCountMap: Record<string, number> = {};
+  for (const row of nicheRows || []) {
+    if (row.niche) nicheCountMap[row.niche] = (nicheCountMap[row.niche] || 0) + 1;
+  }
+
+  const WEAK_NICHES = new Set(
+    allNicheKeys.filter((n) => (nicheCountMap[n] || 0) < weakNicheThreshold),
+  );
+
+  if (batchIndex === 0) {
+    console.log(`Weak niches (<${weakNicheThreshold} in last 30d): ${[...WEAK_NICHES].join(", ")}`);
+    console.log(`Category limits: ${JSON.stringify(categoryLimits)}`);
+  }
+
+  // =========================
+  // Logs (accumulate stats across batches)
+  // =========================
+  let nicheStats: Record<string, number> = {};
+  let totalSaved = 0;
+
+  if (logId) {
+    const { data: existingLog } = await adminClient
+      .from("trend_refresh_logs")
+      .select("niche_stats, total_saved")
+      .eq("id", logId)
       .single();
 
-    const NICHE_QUERIES: Record<string, string[]> = nicheSettingsRow?.value as any || {};
-    const allAvailableNiches = Object.keys(NICHE_QUERIES);
-    // Will be filtered after parsing body (targetNiches)
-    let allNicheKeys = allAvailableNiches;
-    console.log(`Loaded ${allAvailableNiches.length} niches from DB: ${allAvailableNiches.join(", ")}`);
-
-    if (allNicheKeys.length === 0) {
-      return new Response(JSON.stringify({ error: "No niches configured in trend_settings" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (existingLog) {
+      nicheStats = (existingLog.niche_stats as Record<string, number>) || {};
+      totalSaved = existingLog.total_saved || 0;
     }
+  }
 
-    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-    const MAX_EXECUTION_MS = 120000; // 120s — edge functions support up to 150s
-    const startTime = Date.now();
+  // Create log entry on first batch only
+  if (!logId) {
+    await adminClient
+      .from("trend_refresh_logs")
+      .update({
+        status: "error",
+        error_message: "Superseded by new run",
+        finished_at: new Date().toISOString(),
+      })
+      .eq("status", "running");
 
-    const callSocialKit = async (path: string, params: Record<string, string>, retries = 3): Promise<any> => {
-      const url = new URL(`${SOCIALKIT_BASE}${path}`);
-      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-      for (let attempt = 0; attempt < retries; attempt++) {
-        const res = await fetch(url.toString(), {
-          headers: { "x-access-key": socialKitKey },
-        });
-        if (res.ok) return res.json();
-        const text = await res.text();
-        if (text.includes("Rate limit") && attempt < retries - 1) {
-          const waitSec = Math.min(30, 10 * (attempt + 1));
-          console.log(`Rate limited on ${path}, waiting ${waitSec}s (attempt ${attempt + 1}/${retries})`);
-          await sleep(waitSec * 1000);
-          continue;
-        }
-        throw new Error(`SocialKit error ${res.status}: ${text}`);
-      }
-      throw new Error(`SocialKit failed after ${retries} retries`);
-    };
-
-    const getPublishedAt = (video: any): string => {
-      if (video.createTime) return new Date(video.createTime * 1000).toISOString();
-      if (video.created_at) return new Date(video.created_at).toISOString();
-      if (video.create_time) return new Date(video.create_time * 1000).toISOString();
-      return new Date().toISOString();
-    };
-
-    const computeTrend = (video: any) => {
-      const stats = video.stats || {};
-      const publishedAt = new Date(getPublishedAt(video));
-      const hoursSince = Math.max(1, (Date.now() - publishedAt.getTime()) / 3600000);
-      const views = stats.views || video.views || video.playCount || 0;
-      const likes = stats.likes || video.likes || video.diggCount || 0;
-      const comments = stats.comments || video.comments || video.commentCount || 0;
-      
-      const vViews = views / hoursSince;
-      const vLikes = likes / hoursSince;
-      const vComments = comments / hoursSince;
-      const engagementRate = views > 0 ? (likes + comments) / views : 0;
-      
-      return {
-        velocity_views: vViews,
-        velocity_likes: vLikes,
-        velocity_comments: vComments,
-        trend_score: 0.4 * vViews + 0.3 * vLikes + 0.2 * vComments + 0.1 * engagementRate * 10000,
-        published_at: publishedAt.toISOString(),
-      };
-    };
-
-    const extractVideos = (data: any): any[] => {
-      if (Array.isArray(data)) return data;
-      if (Array.isArray(data?.data?.results)) return data.data.results;
-      if (Array.isArray(data?.data)) return data.data;
-      if (Array.isArray(data?.items)) return data.items;
-      if (Array.isArray(data?.videos)) return data.videos;
-      if (Array.isArray(data?.result)) return data.result;
-      return [];
-    };
-
-    // Check mode
-    let mode = "full";
-    let batchIndex = 0;
-    let logId: string | null = null;
-    let targetNiches: string[] | null = null;
-    try {
-      const body = await req.json();
-      if (body?.lite) mode = "lite";
-      else if (body?.mass) mode = "mass";
-      else if (body?.mode === "mass") mode = "mass";
-      else if (body?.mode === "lite") mode = "lite";
-      if (typeof body?.batch === "number") batchIndex = body.batch;
-      if (body?.logId) logId = body.logId;
-      if (Array.isArray(body?.target_niches) && body.target_niches.length > 0) {
-        targetNiches = body.target_niches;
-      }
-    } catch { /* no body = cron call */ }
-
-    // Filter niches if target_niches specified
-    if (targetNiches) {
-      allNicheKeys = allNicheKeys.filter(n => targetNiches!.includes(n));
-      console.log(`Filtering to ${allNicheKeys.length} target niches: ${allNicheKeys.join(", ")}`);
-    }
-
-    // Load thresholds from DB
-    const { data: thresholdsRow } = await adminClient
-      .from("trend_settings")
-      .select("value")
-      .eq("key", "thresholds")
-      .single();
-    const thresholds = (thresholdsRow?.value as any) || {};
-    const queriesPerNiche = thresholds.queries_per_niche ?? 8;
-    const weakNicheThreshold = thresholds.weak_niche_threshold ?? 20;
-    const weakQueriesPerNiche = thresholds.weak_queries_per_niche ?? 12;
-    const videosPerQuery = thresholds.videos_per_query ?? 30;
-
-    // Load per-category limits from DB
-    const { data: categoryLimitsRow } = await adminClient
-      .from("trend_settings")
-      .select("value")
-      .eq("key", "category_limits")
-      .maybeSingle();
-    const categoryLimits: Record<string, number> = (categoryLimitsRow?.value as any) || {};
-
-    // Detect weak niches
-    const thirtyDaysAgoCheck = new Date(Date.now() - 30 * 24 * 3600000).toISOString();
-    const { data: nicheCounts } = await adminClient
-      .from("videos")
-      .select("niche")
-      .gte("published_at", thirtyDaysAgoCheck);
-    
-    const nicheCountMap: Record<string, number> = {};
-    for (const row of nicheCounts || []) {
-      if (row.niche) nicheCountMap[row.niche] = (nicheCountMap[row.niche] || 0) + 1;
-    }
-
-    const WEAK_NICHES = new Set(
-      allNicheKeys.filter(n => (nicheCountMap[n] || 0) < weakNicheThreshold)
-    );
-
-    if (batchIndex === 0) {
-      console.log(`Weak categories (< ${weakNicheThreshold}): ${[...WEAK_NICHES].join(", ")}`);
-      console.log(`Per-category limits: ${JSON.stringify(categoryLimits)}`);
-    }
-
-    const now = new Date().toISOString();
-    const sevenDaysAgo = new Date(Date.now() - 30 * 24 * 3600000); // 30 days for max fill
-
-    // Load accumulated stats from DB log if continuing a run
-    let nicheStats: Record<string, number> = {};
-    let totalSaved = 0;
-    if (logId) {
-      const { data: existingLog } = await adminClient
-        .from("trend_refresh_logs")
-        .select("niche_stats, total_saved")
-        .eq("id", logId)
-        .single();
-      if (existingLog) {
-        nicheStats = (existingLog.niche_stats as Record<string, number>) || {};
-        totalSaved = existingLog.total_saved || 0;
-      }
-    }
-
-    // Create log entry on first batch only
-    if (!logId) {
-      await adminClient.from("trend_refresh_logs")
-        .update({ status: "error", error_message: "Superseded by new run", finished_at: new Date().toISOString() })
-        .eq("status", "running");
-
-      const { data: logEntry } = await adminClient.from("trend_refresh_logs").insert({
+    const { data: logEntry } = await adminClient
+      .from("trend_refresh_logs")
+      .insert({
         mode,
         status: "running",
         total_saved: 0,
         general_saved: 0,
         niche_stats: {},
         triggered_by: userId,
-      }).select("id").single();
-      logId = logEntry?.id || null;
+      })
+      .select("id")
+      .single();
+
+    logId = logEntry?.id || null;
+  }
+
+  const chainNextBatch = async (nextBatch: number) => {
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${serviceRoleKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mode, batch: nextBatch, logId, target_niches: targetNiches }),
+      });
+    } catch (e) {
+      console.error("Chain call failed:", e);
+    }
+  };
+
+  // =========================
+  // AI query generation for multiple niches
+  // =========================
+  const generateAiQueries = async (niches: string[]): Promise<Record<string, string[]>> => {
+    try {
+      const nicheDescriptions = niches.map((n) => {
+        const existing = NICHE_QUERIES[n] || [];
+        return `${n}: examples: ${existing.slice(0, 3).join(", ")}`;
+      }).join("\n");
+
+      const res = await fetch(AI_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            {
+              role: "system",
+              content:
+                `You are an expert on global TikTok trends. For each niche, generate 12-16 search queries that will find the most VIRAL and TRENDING videos worldwide. Generate queries in THREE languages:
+- 50% ENGLISH
+- 30% RUSSIAN
+- 20% KAZAKH
+Focus on current viral trends, popular hashtags, challenge names, viral sounds, trending topics.
+Return ONLY JSON object: {"niche1":["q1","q2",...],...}`,
+            },
+            {
+              role: "user",
+              content: `Generate trending TikTok search queries (today is ${new Date().toLocaleDateString("en")}):\n${nicheDescriptions}`,
+            },
+          ],
+        }),
+      });
+
+      const aiData = await res.json();
+      const content = aiData?.choices?.[0]?.message?.content || "";
+      const parsed = extractJsonObject(content);
+      if (parsed && typeof parsed === "object") {
+        console.log(`AI generated queries for: ${Object.keys(parsed).join(", ")}`);
+        return parsed;
+      }
+    } catch (e) {
+      console.error("AI query generation failed:", e);
+    }
+    return {};
+  };
+
+  // =========================
+  // Enforce category limit (trim weakest if over)
+  // =========================
+  const enforceLimit = async (nicheKey: string, limit: number) => {
+    if (!limit || limit <= 0) return;
+
+    const { count } = await adminClient
+      .from("videos")
+      .select("id", { count: "exact", head: true })
+      .eq("niche", nicheKey);
+
+    const currentCount = count || 0;
+    if (currentCount <= limit) return;
+
+    const excess = currentCount - limit;
+    const { data: weakest } = await adminClient
+      .from("videos")
+      .select("id")
+      .eq("niche", nicheKey)
+      .order("trend_score", { ascending: true })
+      .limit(excess);
+
+    if (weakest && weakest.length > 0) {
+      const ids = weakest.map((v) => v.id);
+      for (let i = 0; i < ids.length; i += 50) {
+        await adminClient.from("videos").delete().in("id", ids.slice(i, i + 50));
+      }
+      console.log(`🗑 ${nicheKey}: removed ${weakest.length} weakest videos (limit=${limit})`);
+    }
+  };
+
+  // =========================
+  // Process one niche
+  // =========================
+  const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
+    const limit = categoryLimits[nicheKey] || 0;
+
+    const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
+    const aiNicheQueries = aiQueries[nicheKey] || [];
+    const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
+
+    const combined = [
+      ...aiNicheQueries,
+      ...staticQueries.sort(() => Math.random() - 0.5),
+    ];
+
+    const uniqueQueries = [...new Set(combined)].slice(0, qCount);
+    let nicheSaved = 0;
+
+    const PAGES_PER_QUERY = 3;
+    const sortTypes = ["0", "1", "3"]; // relevance, likes, date
+    const publishTimes = ["0", "1", "7", "30"];
+
+    const COUNT = 20;
+
+    for (let qi = 0; qi < uniqueQueries.length; qi++) {
+      if (Date.now() - startTime > MAX_EXECUTION_MS) break;
+
+      // Re-check limit before each query
+      if (limit && limit > 0) {
+        const { count: midCount } = await adminClient
+          .from("videos")
+          .select("id", { count: "exact", head: true })
+          .eq("niche", nicheKey);
+
+        if ((midCount || 0) >= limit) {
+          console.log(`⏭ ${nicheKey}: reached limit (${midCount}/${limit}), stopping`);
+          break;
+        }
+      }
+
+      const query = uniqueQueries[qi];
+      const sortType = sortTypes[qi % sortTypes.length];
+      const publishTime = publishTimes[qi % publishTimes.length];
+
+      if (qi > 0) await sleep(800);
+
+      for (let page = 0; page < PAGES_PER_QUERY; page++) {
+        if (Date.now() - startTime > MAX_EXECUTION_MS) break;
+
+        // ✅ FIX: offset must be page*COUNT (was page*10 -> overlap)
+        const offset = String(page * COUNT);
+        if (page > 0) await sleep(500);
+
+        try {
+          const data = await callSocialKit("/tiktok/search", {
+            query,
+            count: String(COUNT),
+            sort_type: sortType,
+            publish_time: publishTime,
+            offset,
+          });
+
+          const videos = extractVideos(data);
+
+          let noId = 0, lowViews = 0, tooOld = 0, inBatchDup = 0;
+
+          const rowsRaw = videos.map((v) => {
+            const videoId = v.id || v.video_id || v.aweme_id;
+            if (!videoId) { noId++; return null; }
+
+            const trends = computeTrend(v);
+
+            const stats = v.stats || {};
+            const views = stats.views ?? v.views ?? v.playCount ?? 0;
+            if (views < MIN_VIEWS) { lowViews++; return null; }
+
+            const publishedAt = new Date(getPublishedAt(v));
+            if (publishedAt < thirtyDaysAgo) { tooOld++; return null; }
+
+            const caption = v.desc || v.caption || v.title || "";
+            const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
+
+            return {
+              platform: "tiktok",
+              platform_video_id: String(videoId),
+
+              url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
+              caption,
+
+              cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
+
+              author_username: username,
+              author_display_name: v.author?.nickname || v.author_display_name || "",
+              author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
+
+              views,
+              likes: stats.likes ?? v.likes ?? v.diggCount ?? 0,
+              comments: stats.comments ?? v.comments ?? v.commentCount ?? 0,
+              shares: stats.shares ?? v.shares ?? v.shareCount ?? 0,
+
+              duration_sec: v.video?.duration ?? v.duration_sec ?? v.duration ?? null,
+
+              fetched_at: nowIso,
+              region: "world",
+
+              niche: nicheKey,
+              categories: [nicheKey],
+
+              ...trends,
+            };
+          }).filter(Boolean) as any[];
+
+          // ✅ Local dedupe (protect against overlap & repeated IDs in same payload)
+          const map = new Map<string, any>();
+          for (const r of rowsRaw) {
+            if (map.has(r.platform_video_id)) inBatchDup++;
+            map.set(r.platform_video_id, r);
+          }
+          const videoRows = [...map.values()];
+
+          console.log(
+            `  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, inBatchDup=${inBatchDup})`,
+          );
+
+          if (videoRows.length === 0) {
+            if (videos.length < 5) {
+              console.log(`  ⏭ "${query}": no more results, skipping remaining pages`);
+              break;
+            }
+            continue;
+          }
+
+          // AI multi-categorization (best-effort)
+          try {
+            const captionList = videoRows
+              .map((v: any, i: number) => `${i}|${(v.caption || "").slice(0, 150)}`)
+              .join("\n");
+
+            const aiRes = await fetch(AI_URL, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash-lite",
+                messages: [
+                  {
+                    role: "system",
+                    content:
+                      `Categorize TikTok videos. Categories: ${ALL_CATEGORIES.join(",")}.
+Each video: index|caption. Return JSON array: [[idx,["cat1","cat2"]], ...].
+Max 3 categories per video. No explanation. JSON only.`,
+                  },
+                  { role: "user", content: captionList },
+                ],
+              }),
+            });
+
+            const aiData = await aiRes.json();
+            const aiContent = aiData?.choices?.[0]?.message?.content || "";
+            const parsedArr = extractJsonArray(aiContent);
+
+            if (parsedArr) {
+              for (const item of parsedArr as any[]) {
+                const idx = item?.[0];
+                const cats = item?.[1];
+                if (typeof idx !== "number" || !Array.isArray(cats) || !videoRows[idx]) continue;
+
+                const validCats = cats.filter((c: string) => ALL_CATEGORIES.includes(c)).slice(0, 3);
+                if (!validCats.includes(nicheKey)) validCats.unshift(nicheKey);
+                (videoRows[idx] as any).categories = validCats.slice(0, 3);
+              }
+            }
+          } catch (aiErr) {
+            console.warn("AI categorization failed; using single category");
+          }
+
+          // Check which are new (based on platform+id)
+          const platformIds = videoRows.map((v: any) => v.platform_video_id);
+
+          const { data: existing } = await adminClient
+            .from("videos")
+            .select("platform_video_id")
+            .eq("platform", "tiktok")
+            .in("platform_video_id", platformIds);
+
+          const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
+          const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
+
+          console.log(`  💾 "${query}" p${page}: ${newCount} new / ${existingIds.size} dupes`);
+
+          // ✅ FIX: conflict on (platform, platform_video_id)
+          const { error: upsertErr } = await adminClient
+            .from("videos")
+            .upsert(videoRows, { onConflict: "platform,platform_video_id" });
+
+          if (upsertErr) {
+            console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
+          } else {
+            nicheSaved += newCount;
+          }
+
+        } catch (err) {
+          console.error(`Niche ${nicheKey} query "${query}" p${page} failed:`, (err as Error).message);
+        }
+      }
     }
 
-    // Self-chaining helper
-    const chainNextBatch = async (nextBatch: number) => {
-      try {
-        await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${serviceRoleKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ mode, batch: nextBatch, logId, target_niches: targetNiches }),
-        });
-      } catch (e) {
-        console.error("Chain call failed:", e);
-      }
-    };
+    // Trim if over limit
+    const limitVal = categoryLimits[nicheKey];
+    if (limitVal && limitVal > 0) await enforceLimit(nicheKey, limitVal);
 
-    // AI-powered query generation for multiple niches at once
-    const generateAiQueries = async (niches: string[]): Promise<Record<string, string[]>> => {
-      try {
-        const nicheDescriptions = niches.map(n => {
-          const existing = NICHE_QUERIES[n] || [];
-          return `${n}: examples: ${existing.slice(0, 3).join(", ")}`;
-        }).join("\n");
+    return nicheSaved;
+  };
 
-        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
-            messages: [
-              { role: "system", content: `You are an expert on global TikTok trends. For each niche, generate 12-16 search queries that will find the most VIRAL and TRENDING videos worldwide. Generate queries in THREE languages:
-- 50% ENGLISH (global viral hashtags, trending topics)
-- 30% RUSSIAN (популярные хештеги, трендовые запросы на русском)
-- 20% KAZAKH (қазақша трендтер, вирал хештегтер)
-Focus on: current viral trends, popular hashtags, challenge names, viral sounds, trending topics. Include queries like "#viral", "#fyp", "trending [niche]", "#тренд", "#вирал", "#тренді". Return ONLY JSON: {"niche1":["query1","query2",...],...}` },
-              { role: "user", content: `Generate trending TikTok search queries for these niches (today is ${new Date().toLocaleDateString("en")}):\n${nicheDescriptions}` }
-            ],
-          }),
-        });
-        const aiData = await res.json();
-        const content = aiData?.choices?.[0]?.message?.content || "";
-        const match = content.match(/\{[\s\S]*\}/);
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          console.log(`AI generated queries for: ${Object.keys(parsed).join(", ")}`);
-          return parsed;
-        }
-      } catch (e) {
-        console.error("AI query generation failed:", e);
-      }
-      return {};
-    };
+  // =========================
+  // Batch selection
+  // =========================
+  const totalBatches = Math.ceil(allNicheKeys.length / BATCH_SIZE);
+  const start = batchIndex * BATCH_SIZE;
+  const nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
 
-    // Replace weakest videos when category limit reached
-    const enforceLimit = async (nicheKey: string, limit: number) => {
-      if (limit <= 0) return;
+  if (nicheKeys.length === 0) {
+    return new Response(JSON.stringify({ success: true, batch: batchIndex, totalSaved, nicheStats }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.join(", ")}`);
+
+  // Check limits before doing AI
+  const nichesToProcess: string[] = [];
+  for (const nicheKey of nicheKeys) {
+    const limit = categoryLimits[nicheKey];
+    if (limit && limit > 0) {
       const { count } = await adminClient
         .from("videos")
         .select("id", { count: "exact", head: true })
         .eq("niche", nicheKey);
-      
-      const currentCount = count || 0;
-      if (currentCount <= limit) return;
 
-      const excess = currentCount - limit;
-      const { data: weakest } = await adminClient
-        .from("videos")
-        .select("id")
-        .eq("niche", nicheKey)
-        .order("trend_score", { ascending: true })
-        .limit(excess);
-      
-      if (weakest && weakest.length > 0) {
-        const ids = weakest.map(v => v.id);
-        for (let i = 0; i < ids.length; i += 50) {
-          const batch = ids.slice(i, i + 50);
-          await adminClient.from("videos").delete().in("id", batch);
-        }
-        console.log(`🗑 ${nicheKey}: removed ${weakest.length} weakest videos (limit: ${limit})`);
+      if ((count || 0) >= limit) {
+        console.log(`⏭ ${nicheKey}: already at limit (${count}/${limit}), skipping`);
+        nicheStats[nicheKey] = 0;
+        continue;
       }
-    };
+    }
+    nichesToProcess.push(nicheKey);
+  }
 
-    // Process a single niche: run all queries in PARALLEL
-    const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
-      const limit = categoryLimits[nicheKey] || 0;
+  // AI queries only for needed niches
+  const aiQueries = nichesToProcess.length > 0 ? await generateAiQueries(nichesToProcess) : {};
 
-      const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
-      const aiNicheQueries = aiQueries[nicheKey] || [];
-      const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
-      // Global focus: mix all queries, prioritize English/AI-generated
-      const combinedQueries = [...aiNicheQueries, ...staticQueries.sort(() => Math.random() - 0.5)];
-      const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
-      let nicheSaved = 0;
-
-      const PAGES_PER_QUERY = 3; // 3 pages for maximum coverage
-      const sortTypes = ["0", "1", "3"]; // relevance, likes, date
-      const publishTimes = ["0", "1", "7", "30"]; // all time for max results, 7-day filter applied in code
-      
-      for (let qi = 0; qi < uniqueQueries.length; qi++) {
-        const query = uniqueQueries[qi];
-        
-        // Re-check limit BEFORE each query
-        if (limit && limit > 0) {
-          const { count: midCount } = await adminClient
-            .from("videos")
-            .select("id", { count: "exact", head: true })
-            .eq("niche", nicheKey);
-          if ((midCount || 0) >= limit) {
-            console.log(`⏭ ${nicheKey}: reached limit (${midCount}/${limit}), stopping`);
-            break;
-          }
-        }
-
-        if (qi > 0) await sleep(800); // 0.8s between queries (was 2s)
-        
-        const sortType = sortTypes[qi % sortTypes.length];
-        const publishTime = publishTimes[qi % publishTimes.length];
-        
-        // Paginate through pages per query
-        for (let page = 0; page < PAGES_PER_QUERY; page++) {
-          if (Date.now() - startTime > MAX_EXECUTION_MS) break;
-          
-          const offset = String(page * 10);
-          if (page > 0) await sleep(500); // 0.5s between pages (was 1.5s)
-          
-          try {
-            const data = await callSocialKit("/tiktok/search", { 
-              query, 
-              count: "20",
-              sort_type: sortType,
-              publish_time: publishTime,
-              offset,
-            });
-            const videos = extractVideos(data);
-            let noId = 0, lowViews = 0, tooOld = 0;
-            const videoRows = videos.map(v => {
-              const videoId = v.id || v.video_id || v.aweme_id;
-              if (!videoId) { noId++; return null; }
-              const trends = computeTrend(v);
-              
-              const stats = v.stats || {};
-              const views = stats.views || v.views || v.playCount || 0;
-              if (views < MIN_VIEWS) { lowViews++; return null; }
-              
-              const publishedAt = new Date(getPublishedAt({ ...v, stats: v.stats }));
-              if (publishedAt < sevenDaysAgo) { tooOld++; return null; }
-              
-              const caption = v.desc || v.caption || v.title || "";
-              const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
-
-              return {
-                platform: "tiktok",
-                platform_video_id: String(videoId),
-                url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
-                caption,
-                cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-                author_username: username,
-                author_display_name: v.author?.nickname || v.author_display_name || "",
-                author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
-                views,
-                likes: stats.likes || v.likes || v.diggCount || 0,
-                comments: stats.comments || v.comments || v.commentCount || 0,
-                shares: stats.shares || v.shares || v.shareCount || 0,
-                duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
-                fetched_at: now,
-                region: "world",
-                niche: nicheKey,
-                categories: [nicheKey],
-                ...trends,
-              };
-            }).filter(Boolean);
-
-            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld})`);
-
-            if (videoRows.length > 0) {
-              // AI multi-categorization
-              try {
-                const captionList = videoRows.map((v: any, i: number) => `${i}|${v.caption?.slice(0, 150) || ""}`).join("\n");
-                const aiRes = await fetch(AI_URL, {
-                  method: "POST",
-                  headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    model: "google/gemini-2.5-flash-lite",
-                    messages: [
-                      { role: "system", content: `Categorize TikTok videos. Categories: ${ALL_CATEGORIES.join(",")}.
-Each video: index|caption. Return JSON array: [[idx,["cat1","cat2"]], ...]. Max 3 categories per video. Always include the most relevant. No explanation, just JSON.` },
-                      { role: "user", content: captionList }
-                    ],
-                  }),
-                });
-                const aiData = await aiRes.json();
-                const aiContent = aiData?.choices?.[0]?.message?.content || "";
-                const aiMatch = aiContent.match(/\[[\s\S]*\]/);
-                if (aiMatch) {
-                  const catResults: [number, string[]][] = JSON.parse(aiMatch[0]);
-                  for (const [idx, cats] of catResults) {
-                    if (!videoRows[idx]) continue;
-                    const validCats = cats.filter((c: string) => ALL_CATEGORIES.includes(c));
-                    if (!validCats.includes(nicheKey)) validCats.unshift(nicheKey);
-                    if (validCats.length > 0) (videoRows[idx] as any).categories = validCats;
-                  }
-                }
-              } catch (aiErr) {
-                console.error(`AI categorization failed, using single category:`, aiErr.message);
-              }
-
-              const platformIds = videoRows.map((v: any) => v.platform_video_id);
-              const { data: existing } = await adminClient
-                .from("videos")
-                .select("platform_video_id")
-                .in("platform_video_id", platformIds);
-              const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
-              const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
-              console.log(`  💾 "${query}" p${page}: ${newCount} new / ${existingIds.size} dupes`);
-
-              const { error: upsertErr } = await adminClient
-                .from("videos")
-                .upsert(videoRows, { onConflict: "platform_video_id" });
-              if (upsertErr) console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
-              nicheSaved += newCount;
-            }
-            
-            // If this page returned 0 valid videos, skip remaining pages
-            if (videoRows.length === 0 && videos.length < 5) {
-              console.log(`  ⏭ "${query}": no more results, skipping remaining pages`);
-              break;
-            }
-          } catch (err) {
-            console.error(`Niche ${nicheKey} query "${query}" p${page} failed:`, err.message);
-          }
-        } // end pages loop
-      } // end queries loop
-
-      // Enforce category limit after inserting (trim weakest if over)
-      const limitVal = categoryLimits[nicheKey];
-      if (limitVal && limitVal > 0) {
-        await enforceLimit(nicheKey, limitVal);
-      }
-
-      return nicheSaved;
-    };
-
-    const totalBatches = Math.ceil(allNicheKeys.length / BATCH_SIZE);
-
-    // === Process niche batch ===
-    const start = batchIndex * BATCH_SIZE;
-    const nicheKeys = allNicheKeys.slice(start, start + BATCH_SIZE);
-    
-    if (nicheKeys.length > 0) {
-      console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.join(", ")}`);
-      
-      // Check limits FIRST before generating AI queries
-      const nichesToProcess: string[] = [];
-      for (const nicheKey of nicheKeys) {
-        const limit = categoryLimits[nicheKey];
-        if (limit && limit > 0) {
-          const { count: currentCount } = await adminClient
-            .from("videos")
-            .select("id", { count: "exact", head: true })
-            .eq("niche", nicheKey);
-          if ((currentCount || 0) >= limit) {
-            console.log(`⏭ ${nicheKey}: already at limit (${currentCount}/${limit}), skipping`);
-            nicheStats[nicheKey] = 0;
-            continue;
-          }
-        }
-        nichesToProcess.push(nicheKey);
-      }
-
-      // Generate AI queries ONLY for niches that need videos
-      const aiQueries = nichesToProcess.length > 0 ? await generateAiQueries(nichesToProcess) : {};
-      
-      // Process only non-full niches
-      for (const nicheKey of nichesToProcess) {
-        if (Date.now() - startTime > MAX_EXECUTION_MS) {
-          console.log(`⏱ Timeout safety: stopping after ${Math.round((Date.now() - startTime) / 1000)}s`);
-          break;
-        }
-        try {
-          const saved = await processNiche(nicheKey, aiQueries);
-          if (saved >= 0) {
-            nicheStats[nicheKey] = saved;
-            totalSaved += saved;
-            console.log(`✓ ${nicheKey}: ${saved} videos`);
-          }
-        } catch (e) {
-          console.error(`✗ ${nicheKey} failed:`, e.message);
-          nicheStats[nicheKey] = 0;
-        }
-        await sleep(1000);
-      }
-
-      // Update log after batch
-      if (logId) {
-        await adminClient.from("trend_refresh_logs").update({
-          total_saved: totalSaved,
-          niche_stats: nicheStats,
-        }).eq("id", logId);
-      }
-
-      console.log(`Batch ${batchIndex} done: ${nicheKeys.map(n => `${n}=${nicheStats[n]||0}`).join(", ")}, total: ${totalSaved}`);
+  // Process
+  for (const nicheKey of nichesToProcess) {
+    if (Date.now() - startTime > MAX_EXECUTION_MS) {
+      console.log(`⏱ Timeout safety: stopping after ${Math.round((Date.now() - startTime) / 1000)}s`);
+      break;
     }
 
-    // Check if run was stopped before chaining
-    const { data: currentLog } = logId
-      ? await adminClient.from("trend_refresh_logs").select("status").eq("id", logId).single()
-      : { data: null };
-    const wasStopped = currentLog?.status === "error";
+    try {
+      const saved = await processNiche(nicheKey, aiQueries);
+      nicheStats[nicheKey] = saved;
+      totalSaved += saved;
+      console.log(`✓ ${nicheKey}: ${saved} videos`);
+    } catch (e) {
+      console.error(`✗ ${nicheKey} failed:`, (e as Error).message);
+      nicheStats[nicheKey] = 0;
+    }
 
-    const nextBatch = batchIndex + 1;
-    if (!wasStopped && nextBatch < totalBatches) {
-      console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
-      await chainNextBatch(nextBatch);
-    } else {
-      // All batches done — use accumulated stats
-      console.log(`Refresh COMPLETE (accumulated: ${totalSaved}). Saving final stats...`);
-      if (logId) {
-        await adminClient.from("trend_refresh_logs").update({
+    await sleep(1000);
+  }
+
+  // Update log
+  if (logId) {
+    await adminClient
+      .from("trend_refresh_logs")
+      .update({ total_saved: totalSaved, niche_stats: nicheStats })
+      .eq("id", logId);
+  }
+
+  // Check stop flag
+  let wasStopped = false;
+  if (logId) {
+    const { data: currentLog } = await adminClient
+      .from("trend_refresh_logs")
+      .select("status")
+      .eq("id", logId)
+      .single();
+    wasStopped = currentLog?.status === "error";
+  }
+
+  const nextBatch = batchIndex + 1;
+  if (!wasStopped && nextBatch < totalBatches) {
+    console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
+    await chainNextBatch(nextBatch);
+  } else {
+    console.log(`Refresh COMPLETE (accumulated totalSaved=${totalSaved})`);
+    if (logId) {
+      await adminClient
+        .from("trend_refresh_logs")
+        .update({
           status: "done",
           total_saved: totalSaved,
           general_saved: 0,
           niche_stats: nicheStats,
           finished_at: new Date().toISOString(),
-        }).eq("id", logId);
-        console.log(`Final total: ${totalSaved} videos, niches: ${JSON.stringify(nicheStats)}`);
-      }
+        })
+        .eq("id", logId);
     }
-
-    return new Response(JSON.stringify({ success: true, batch: batchIndex, totalSaved, nicheStats }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-
-  } catch (err) {
-    console.error("Refresh trends error:", err);
-    try {
-      const ac = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-      await ac.from("trend_refresh_logs").update({
-        status: "error",
-        error_message: String(err),
-        finished_at: new Date().toISOString(),
-      }).eq("status", "running").order("started_at", { ascending: false }).limit(1);
-    } catch {}
-    return new Response(
-      JSON.stringify({ error: "Unable to process request. Please try again later." }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   }
+
+  return new Response(JSON.stringify({ success: true, batch: batchIndex, totalSaved, nicheStats }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });
