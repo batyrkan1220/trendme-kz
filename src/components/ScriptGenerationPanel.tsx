@@ -344,7 +344,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                       <Sparkles className="h-7 w-7 text-primary animate-pulse" />
                     </div>
-                    <p className="text-muted-foreground font-medium">Генерируем сценарий...</p>
+                    <p className="text-muted-foreground font-medium">{isKk ? "Сценарий генерациялануда..." : "Генерируем сценарий..."}</p>
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   </div>
                 ) : scriptContent ? (
