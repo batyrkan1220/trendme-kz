@@ -177,18 +177,26 @@ export default function VideoAnalysis() {
             placeholder="Вставьте ссылку на TikTok видео..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+            onKeyDown={(e) => e.key === "Enter" && !isPending && url.trim() && handleAnalyze(language || "ru")}
             className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm"
           />
-          <Button
-            onClick={handleAnalyze}
-            disabled={isPending}
-            className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
-          >
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-              <><Video className="h-4 w-4 mr-2" />Анализировать</>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleAnalyze("kk")}
+              disabled={isPending}
+              variant="outline"
+              className="h-11 md:h-12 px-4 rounded-xl font-semibold text-sm border-primary/30"
+            >
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "🇰🇿 Қазақша"}
+            </Button>
+            <Button
+              onClick={() => handleAnalyze("ru")}
+              disabled={isPending}
+              className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-4 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
+            >
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "🇷🇺 Русский"}
+            </Button>
+          </div>
         </div>
           <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}

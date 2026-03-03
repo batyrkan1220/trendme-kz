@@ -165,6 +165,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       transcript,
       summary,
       caption,
+      language,
       messages: apiMessages,
       onDelta: (text) => {
         accumulated += text;
