@@ -373,16 +373,17 @@ Deno.serve(async (req: Request) => {
               offset,
             });
             const videos = extractVideos(data);
+            let noId = 0, tooOld = 0, lowViews = 0;
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
-              if (!videoId) return null;
+              if (!videoId) { noId++; return null; }
               const trends = computeTrend(v);
               const publishedDate = new Date(trends.published_at);
-              if (publishedDate < freshWindow) return null;
+              if (publishedDate < freshWindow) { tooOld++; return null; }
               
               const stats = v.stats || {};
               const views = stats.views || v.views || v.playCount || 0;
-              if (views < MIN_VIEWS) return null;
+              if (views < MIN_VIEWS) { lowViews++; return null; }
               
               const caption = v.desc || v.caption || v.title || "";
               const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
@@ -409,6 +410,8 @@ Deno.serve(async (req: Request) => {
               };
             }).filter(Boolean);
 
+            console.log(`  📊 "${query}": ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, old=${tooOld}, lowViews=${lowViews})`);
+
             if (videoRows.length > 0) {
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
               const { data: existing } = await adminClient
@@ -417,6 +420,7 @@ Deno.serve(async (req: Request) => {
                 .in("platform_video_id", platformIds);
               const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
               const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
+              console.log(`  💾 "${query}": ${newCount} new / ${existingIds.size} dupes`);
 
               const { error: upsertErr } = await adminClient
                 .from("videos")
