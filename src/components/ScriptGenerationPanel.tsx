@@ -310,7 +310,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                   : "text-muted-foreground border-transparent hover:text-foreground"
               }`}
             >
-              📄 Исходный сценарий
+              📄 {isKk ? "Бастапқы сценарий" : "Исходный сценарий"}
             </button>
           </div>
 
