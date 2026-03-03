@@ -313,13 +313,25 @@ Deno.serve(async (req: Request) => {
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      const PARALLEL_QUERIES = 3;
+      const PARALLEL_QUERIES = 5;
+      const sortTypes = ["0", "1", "3"]; // 0=relevance, 1=likes, 3=date
+      const publishTimes = ["0", "1", "7", "30"]; // 0=all, 1=day, 7=week, 30=month
+      
       for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
-        if (i > 0) await sleep(1500); // 1.5s delay between batches
+        if (i > 0) await sleep(1200);
         const queryBatch = uniqueQueries.slice(i, i + PARALLEL_QUERIES);
-        const results = await Promise.allSettled(queryBatch.map(async (query) => {
+        const results = await Promise.allSettled(queryBatch.map(async (query, qi) => {
           try {
-            const data = await callSocialKit("/tiktok/search", { query, count: String(videosPerQuery) });
+            const sortType = sortTypes[(i + qi) % sortTypes.length];
+            const publishTime = publishTimes[(i + qi) % publishTimes.length];
+            const offset = String(Math.floor(Math.random() * 3) * 10); // 0, 10, or 20
+            const data = await callSocialKit("/tiktok/search", { 
+              query, 
+              count: String(videosPerQuery),
+              sort_type: sortType,
+              publish_time: publishTime,
+              offset,
+            });
             const videos = extractVideos(data);
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
