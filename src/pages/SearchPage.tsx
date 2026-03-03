@@ -7,6 +7,7 @@ import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -33,6 +34,7 @@ export default function SearchPage() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const { user } = useAuth();
+  const { spend, getCost } = useTokens();
   const queryClient = useQueryClient();
 
   const { data: recentQueries } = useQuery({
@@ -93,8 +95,10 @@ export default function SearchPage() {
     queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
   }, [user, userFavorites, queryClient]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!query.trim()) return;
+    const ok = await spend("search", `Поиск: ${query.trim()}`);
+    if (!ok) return;
     doSearch(query.trim());
   };
 

@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useTokens } from "@/hooks/useTokens";
 
 function formatNum(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
@@ -43,6 +44,7 @@ export default function AccountAnalysis() {
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { spend } = useTokens();
 
   // Fetch tracked accounts history
   const { data: trackedAccounts = [] } = useQuery({
@@ -108,8 +110,10 @@ export default function AccountAnalysis() {
     },
   });
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!url.trim()) return;
+    const ok = await spend("account_analysis", `Анализ аккаунта: ${url.trim()}`);
+    if (!ok) return;
     analyze(url.trim());
   };
 

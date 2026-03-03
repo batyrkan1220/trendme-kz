@@ -43,9 +43,12 @@ const NICHES = [
 ] as const;
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -88,7 +91,10 @@ export default function Trends() {
   const [niche, setNiche] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
+  const { balance } = useTokens();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const FREE_LIMIT = 5;
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -302,6 +308,43 @@ export default function Trends() {
               const views = Number(video.views) || 0;
               const tier = getTier(views);
               const velViews = video.velocity_views || 0;
+              const isLocked = i >= FREE_LIMIT && balance <= 0;
+
+              if (isLocked) {
+                return (
+                  <div
+                    key={video.id}
+                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col"
+                  >
+                    <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
+                      {video.cover_url ? (
+                        <img
+                          src={video.cover_url}
+                          alt=""
+                          loading="lazy"
+                          className="w-full h-full object-cover blur-md brightness-50"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted blur-md" />
+                      )}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
+                        <div className="h-14 w-14 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center">
+                          <Lock className="h-7 w-7 text-white/80" />
+                        </div>
+                        <p className="text-white/90 text-sm font-semibold text-center leading-snug">
+                          В демо-режиме доступны только первые {FREE_LIMIT} видео
+                        </p>
+                        <button
+                          onClick={() => navigate("/pricing")}
+                          className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                        >
+                          Снять ограничения
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div
