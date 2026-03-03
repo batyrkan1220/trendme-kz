@@ -272,7 +272,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                placeholder="Напишите свой запрос"
+                placeholder={isKk ? "Сұрауыңызды жазыңыз" : "Напишите свой запрос"}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 disabled={isGenerating}
               />
