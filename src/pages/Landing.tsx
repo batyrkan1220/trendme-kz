@@ -283,7 +283,7 @@ export default function Landing() {
                 <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5">
                   <step.icon className="h-7 w-7 text-primary-foreground" />
                 </div>
-                <div className="text-xs font-bold text-primary/40 uppercase tracking-widest mb-2">Шаг {step.num}</div>
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Шаг {step.num}</div>
                 <h3 className="text-xl font-bold text-foreground mb-2">{step.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
                 {i < steps.length - 1 && (
