@@ -68,17 +68,26 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const callSocialKit = async (path: string, params: Record<string, string>) => {
+    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+    const callSocialKit = async (path: string, params: Record<string, string>, retries = 3): Promise<any> => {
       const url = new URL(`${SOCIALKIT_BASE}${path}`);
       Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-      const res = await fetch(url.toString(), {
-        headers: { "x-access-key": socialKitKey },
-      });
-      if (!res.ok) {
+      for (let attempt = 0; attempt < retries; attempt++) {
+        const res = await fetch(url.toString(), {
+          headers: { "x-access-key": socialKitKey },
+        });
+        if (res.ok) return res.json();
         const text = await res.text();
+        if (text.includes("Rate limit") && attempt < retries - 1) {
+          const waitSec = Math.min(30, 10 * (attempt + 1));
+          console.log(`Rate limited on ${path}, waiting ${waitSec}s (attempt ${attempt + 1}/${retries})`);
+          await sleep(waitSec * 1000);
+          continue;
+        }
         throw new Error(`SocialKit error ${res.status}: ${text}`);
       }
-      return res.json();
+      throw new Error(`SocialKit failed after ${retries} retries`);
     };
 
     const getPublishedAt = (video: any): string => {
