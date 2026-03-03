@@ -371,7 +371,7 @@ export default function Landing() {
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground gradient-hero px-4 py-1 rounded-full shadow-lg">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground bg-primary px-4 py-1 rounded-full shadow-lg">
                     <Sparkles className="h-3 w-3" /> Популярный
                   </span>
                 )}
