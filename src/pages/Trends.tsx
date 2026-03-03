@@ -85,52 +85,10 @@ const PAGE_SIZE = 30;
 
 export default function Trends() {
   const [period, setPeriod] = useState<3 | 7 | 30 | 0>(7);
-  const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [niche, setNiche] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const { user } = useAuth();
-  const { balance } = useTokens();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const FREE_LIMIT = 5;
-
-  const { data: userSub } = useQuery({
-    queryKey: ["user-subscription", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("user_subscriptions")
-        .select("*, plans(price_rub)")
-        .eq("user_id", user!.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      const totalBatches = 7;
-      for (let batch = 0; batch < totalBatches; batch++) {
-        toast.loading(`Обновление ниш ${batch * 4 + 1}-${Math.min((batch + 1) * 4, 28)}...`, { id: "refresh" });
-        const { error } = await supabase.functions.invoke("refresh-trends", { body: { mass: true, batch } });
-        if (error) console.error(`Batch ${batch} error:`, error);
-      }
-      toast.success("Тренды обновлены! Все 30 категорий загружены", { id: "refresh" });
-      queryClient.invalidateQueries({ queryKey: ["trends"] });
-    } catch (e: any) {
-      toast.error("Ошибка обновления: " + (e.message || "Попробуйте позже"), { id: "refresh" });
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   const { data: allVideos = [], isLoading } = useQuery({
     queryKey: ["trends", period, niche],
