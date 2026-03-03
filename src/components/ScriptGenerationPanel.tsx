@@ -21,6 +21,7 @@ async function streamScript({
   transcript,
   summary,
   caption,
+  language,
   messages,
   onDelta,
   onDone,
@@ -29,6 +30,7 @@ async function streamScript({
   transcript: string;
   summary: any;
   caption: string;
+  language?: string;
   messages: Msg[];
   onDelta: (text: string) => void;
   onDone: () => void;
