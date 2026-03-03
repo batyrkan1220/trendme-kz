@@ -112,18 +112,28 @@ export default function Trends() {
     queryKey: ["trends", period, niche],
     queryFn: async () => {
       const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,categories";
+      const PAGE = 1000;
+      let all: any[] = [];
+      let from = 0;
 
-      let q = supabase.from("videos").select(selectFields);
-      if (period > 0) {
-        const since = new Date();
-        since.setDate(since.getDate() - period);
-        q = q.gte("published_at", since.toISOString());
+      while (true) {
+        let q = supabase.from("videos").select(selectFields);
+        if (period > 0) {
+          const since = new Date();
+          since.setDate(since.getDate() - period);
+          q = q.gte("published_at", since.toISOString());
+        }
+        if (niche !== "all") {
+          q = q.contains("categories", [niche]);
+        }
+        const { data } = await q.order("trend_score", { ascending: false }).range(from, from + PAGE - 1);
+        if (!data || data.length === 0) break;
+        all = all.concat(data);
+        if (data.length < PAGE) break;
+        from += PAGE;
       }
-      if (niche !== "all") {
-        q = q.contains("categories", [niche]);
-      }
-      const { data } = await q.order("trend_score", { ascending: false });
-      return data || [];
+
+      return all;
     },
     staleTime: 60_000,
   });
