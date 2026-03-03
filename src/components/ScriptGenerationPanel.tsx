@@ -9,6 +9,7 @@ interface ScriptPanelProps {
   transcript: string;
   summary: any;
   caption: string;
+  language?: "ru" | "kk";
   onBack: () => void;
 }
 
@@ -20,6 +21,7 @@ async function streamScript({
   transcript,
   summary,
   caption,
+  language,
   messages,
   onDelta,
   onDone,
@@ -28,6 +30,7 @@ async function streamScript({
   transcript: string;
   summary: any;
   caption: string;
+  language?: string;
   messages: Msg[];
   onDelta: (text: string) => void;
   onDone: () => void;
@@ -45,7 +48,7 @@ async function streamScript({
       "Content-Type": "application/json",
       Authorization: `Bearer ${session.access_token}`,
     },
-    body: JSON.stringify({ transcript, summary, caption, messages }),
+    body: JSON.stringify({ transcript, summary, caption, language, messages }),
   });
 
   if (!resp.ok) {
@@ -86,7 +89,7 @@ async function streamScript({
   onDone();
 }
 
-export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: ScriptPanelProps) {
+export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", onBack }: ScriptPanelProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"new" | "original">("new");
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -121,6 +124,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
       transcript,
       summary,
       caption,
+      language,
       messages: chatMsgs,
       onDelta: (text) => {
         accumulated += text;
@@ -161,6 +165,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: 
       transcript,
       summary,
       caption,
+      language,
       messages: apiMessages,
       onDelta: (text) => {
         accumulated += text;

@@ -395,6 +395,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
         const caption = body.caption || "";
+        const analysisLang = body.language === "kk" ? "kk" : "ru";
         const videoTitle = statsData?.title || statsData?.description || caption || "";
         const videoDescription = statsData?.description || caption || "";
         const videoDuration = statsData?.duration || "";
@@ -425,13 +426,19 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
                 messages: [
                   {
                     role: "system",
-                    content: `Ты — эксперт по анализу вирусного контента в TikTok. Проанализируй видео на основе всей доступной информации (описание, статистика, транскрипт если есть, комментарии) и верни структурированный анализ.
+                    content: analysisLang === "kk"
+                      ? `Сен — TikTok вирустық контентін талдау бойынша сарапшысыз. Бейнені барлық қолжетімді ақпарат негізінде (сипаттама, статистика, транскрипт бар болса, пікірлер) талдап, құрылымдалған талдау бер.
+
+МАҢЫЗДЫ: ТІЛДІ ҚАЗАҚША ЖАУАП БЕР. ТІЛЬДІ video_analysis функциясын шақырумен ғана жауап бер, қосымша мәтінсіз. Транскрипт қолжетімсіз болса, сипаттама, статистика және пікірлер бойынша талда.`
+                      : `Ты — эксперт по анализу вирусного контента в TikTok. Проанализируй видео на основе всей доступной информации (описание, статистика, транскрипт если есть, комментарии) и верни структурированный анализ.
 
 ВАЖНО: Отвечай ТОЛЬКО вызовом функции video_analysis, без лишнего текста. Если транскрипт недоступен, анализируй по описанию, статистике и комментариям.`
                   },
                   {
                     role: "user",
-                    content: `Проанализируй это TikTok видео.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
+                    content: analysisLang === "kk"
+                      ? `Осы TikTok бейнесін талда.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
+                      : `Проанализируй это TikTok видео.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
                   }
                 ],
                 tools: [

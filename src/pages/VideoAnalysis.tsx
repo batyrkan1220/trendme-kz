@@ -24,15 +24,16 @@ export default function VideoAnalysis() {
   const [url, setUrl] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
+  const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
 
   const { data: analysis, isPending, mutate: analyze } = useMutation({
-    mutationFn: async (videoUrl: string) => {
+    mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
       const [statsRes, analysisRes] = await Promise.allSettled([
         supabase.functions.invoke("socialkit", {
           body: { action: "video_stats", video_url: videoUrl },
         }),
         supabase.functions.invoke("socialkit", {
-          body: { action: "analyze_video", video_url: videoUrl, caption: "" },
+          body: { action: "analyze_video", video_url: videoUrl, caption: "", language: lang },
         }),
       ]);
 
@@ -54,11 +55,12 @@ export default function VideoAnalysis() {
     },
   });
 
-  const handleAnalyze = () => {
+  const handleAnalyze = (lang: "ru" | "kk") => {
     if (!url.trim()) return;
+    setLanguage(lang);
     setIsPlaying(false);
     setShowScript(false);
-    analyze(url.trim());
+    analyze({ videoUrl: url.trim(), lang });
   };
 
   const stats = analysis?.stats;
@@ -96,6 +98,7 @@ export default function VideoAnalysis() {
             transcript={transcript}
             summary={summary}
             caption=""
+            language={language || "ru"}
             onBack={() => setShowScript(false)}
           />
         </div>
@@ -128,23 +131,41 @@ export default function VideoAnalysis() {
                 <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на видео, чтобы начать анализ</p>
               </>
             )}
-            <div className="flex flex-col sm:flex-row gap-2 w-full">
+            <div className="flex flex-col gap-3 w-full">
               <Input
                 placeholder="Вставьте ссылку на TikTok видео..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+                onKeyDown={(e) => e.key === "Enter" && !isPending && url.trim() && handleAnalyze("ru")}
                 className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-sm"
               />
-              <Button
-                onClick={handleAnalyze}
-                disabled={isPending}
-                className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
-              >
-                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-                  <><Video className="h-4 w-4 mr-2" />Анализировать</>
-                )}
-              </Button>
+              {!isPending && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-muted-foreground text-center font-medium">Тілді таңдаңыз / Выберите язык</p>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleAnalyze("kk")}
+                      disabled={!url.trim()}
+                      variant="outline"
+                      className="flex-1 h-12 rounded-xl font-semibold text-sm border-primary/30 hover:bg-primary/10 hover:border-primary"
+                    >
+                      🇰🇿 Қазақ тілі
+                    </Button>
+                    <Button
+                      onClick={() => handleAnalyze("ru")}
+                      disabled={!url.trim()}
+                      className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
+                    >
+                      🇷🇺 Русский язык
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {isPending && (
+                <Button disabled className="h-12 gradient-hero text-primary-foreground border-0 rounded-xl font-semibold text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />Анализируем...
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -156,18 +177,26 @@ export default function VideoAnalysis() {
             placeholder="Вставьте ссылку на TikTok видео..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+            onKeyDown={(e) => e.key === "Enter" && !isPending && url.trim() && handleAnalyze(language || "ru")}
             className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm"
           />
-          <Button
-            onClick={handleAnalyze}
-            disabled={isPending}
-            className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
-          >
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-              <><Video className="h-4 w-4 mr-2" />Анализировать</>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleAnalyze("kk")}
+              disabled={isPending}
+              variant="outline"
+              className="h-11 md:h-12 px-4 rounded-xl font-semibold text-sm border-primary/30"
+            >
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "🇰🇿 Қазақша"}
+            </Button>
+            <Button
+              onClick={() => handleAnalyze("ru")}
+              disabled={isPending}
+              className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-4 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
+            >
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "🇷🇺 Русский"}
+            </Button>
+          </div>
         </div>
           <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}

@@ -38,7 +38,9 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { transcript, summary, caption, messages } = await req.json();
+    const { transcript, summary, caption, language, messages } = await req.json();
+    const lang = language === "kk" ? "kk" : "ru";
+    const langLabel = lang === "kk" ? "қазақ тілінде" : "на русском языке";
 
     // Build context about the video
     const contextParts: string[] = [];
@@ -60,7 +62,24 @@ serve(async (req) => {
 
     const videoContext = contextParts.join("\n\n");
 
-    const systemPrompt = `Ты — AI-сценарист для TikTok/Reels. Твоя задача — создавать вирусные адаптированные сценарии на основе анализа успешных видео.
+    const systemPrompt = lang === "kk"
+      ? `Сен — TikTok/Reels үшін AI-сценарист. Сенің міндетің — табысты бейнелерді талдау негізінде вирустық бейімделген сценарийлер жасау.
+
+БЕЙНЕ КОНТЕКСТІ:
+${videoContext}
+
+ЕРЕЖЕЛЕР:
+1. Түпнұсқаның құрылымы мен табыс формуласын сақта
+2. Контентті бейімде — сөзбе-сөз көшірме
+3. Хуктің 3 нұсқасын ұсын (назар аударатын бірінші сөйлем)
+4. Түсірілімге нұсқаулары бар толық бейімделген сценарий жаз [әрекет]
+5. Сценарий түсірілімге дайын болуы керек
+6. Сөйлесу стилін, қысқа сөйлемдерді қолдан
+7. Соңында CTA (әрекетке шақыру) қос
+8. ҚАЗАҚ ТІЛІНДЕ жауап бер
+
+Пайдаланушы өңдеуді сұраса — сценарийді оның тілектеріне сай түзе.`
+      : `Ты — AI-сценарист для TikTok/Reels. Твоя задача — создавать вирусные адаптированные сценарии на основе анализа успешных видео.
 
 КОНТЕКСТ ВИДЕО:
 ${videoContext}
@@ -85,7 +104,9 @@ ${videoContext}
         ]
       : [
           { role: "system", content: systemPrompt },
-          { role: "user", content: "Сгенерируй адаптированный сценарий на основе этого видео. Предложи 3 варианта хука и полный сценарий." },
+          { role: "user", content: lang === "kk"
+            ? "Осы бейне негізінде бейімделген сценарий жаса. Хуктің 3 нұсқасын және толық сценарийді ұсын."
+            : "Сгенерируй адаптированный сценарий на основе этого видео. Предложи 3 варианта хука и полный сценарий." },
         ];
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
