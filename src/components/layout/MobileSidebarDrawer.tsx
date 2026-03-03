@@ -113,10 +113,15 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
                 {user?.email?.split("@")[0] || "Пользователь"}
               </p>
             </div>
-            <button onClick={handleLogout} className="text-muted-foreground/50 hover:text-destructive transition-colors shrink-0">
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm text-destructive hover:bg-destructive/10 transition-colors font-medium"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span>Выйти</span>
+          </button>
         </div>
       </SheetContent>
     </Sheet>

@@ -232,24 +232,24 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
               <X className="h-5 w-5 text-foreground" />
             </button>
             {showLangPicker ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-6">
-                <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
-                  <Sparkles className="h-8 w-8 text-primary-foreground" />
+              <div className="flex flex-col items-center justify-center py-10 md:py-20 gap-5">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
+                  <Sparkles className="h-7 w-7 md:h-8 md:w-8 text-primary-foreground" />
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-base font-bold text-foreground">Тілді таңдаңыз / Выберите язык</p>
                   <p className="text-sm text-muted-foreground">Анализ будет на выбранном языке</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 w-full max-w-xs">
                   <button
                     onClick={() => startAnalysis("kk")}
-                    className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity"
+                    className="flex-1 px-4 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity"
                   >
                     🇰🇿 Қазақ тілі
                   </button>
                   <button
                     onClick={() => startAnalysis("ru")}
-                    className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity"
+                    className="flex-1 px-4 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity"
                   >
                     🇷🇺 Русский язык
                   </button>
