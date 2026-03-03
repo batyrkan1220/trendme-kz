@@ -380,19 +380,7 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
               offset,
             });
             const videos = extractVideos(data);
-            // DEBUG: log first video raw dates for first query of first niche
-            if (page === 0 && qi === 0 && videos.length > 0) {
-              const sample = videos.slice(0, 3).map(v => ({
-                id: v.id || v.video_id || v.aweme_id,
-                createTime: v.createTime,
-                created_at: v.created_at,
-                create_time: v.create_time,
-                parsed: getPublishedAt(v),
-                views: v.stats?.views || v.views || v.playCount,
-              }));
-              console.log(`🔍 RAW sample for "${query}":`, JSON.stringify(sample));
-            }
-            let noId = 0, lowViews = 0;
+            let noId = 0, lowViews = 0, tooOld = 0;
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
               if (!videoId) { noId++; return null; }
