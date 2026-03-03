@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Mail, Lock, ArrowRight, Loader2, User, Phone } from "lucide-react";
+import { Flame, Mail, Lock, ArrowRight, Loader2, User, Phone, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+type Mode = "login" | "register" | "forgot";
+
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -18,39 +21,37 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Заполните все поля");
+    if (!email) { toast.error("Введите email"); return; }
+
+    if (mode === "forgot") {
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      setLoading(false);
+      if (error) toast.error("Ошибка: " + error.message);
+      else toast.success("Ссылка для сброса отправлена на email");
       return;
     }
-    if (!isLogin && !name.trim()) {
-      toast.error("Введите имя");
-      return;
+
+    if (!password) { toast.error("Введите пароль"); return; }
+
+    if (mode === "register") {
+      if (!name.trim()) { toast.error("Введите имя"); return; }
+      if (!phone.trim()) { toast.error("Введите номер телефона"); return; }
+      if (password.length < 6) { toast.error("Пароль должен быть не менее 6 символов"); return; }
     }
-    if (!isLogin && !phone.trim()) {
-      toast.error("Введите номер телефона");
-      return;
-    }
+
     setLoading(true);
     try {
-      if (isLogin) {
+      if (mode === "login") {
         const { error } = await signIn(email, password);
-        if (error) {
-          toast.error("Ошибка входа: " + error.message);
-        } else {
-          navigate("/dashboard");
-        }
+        if (error) toast.error("Ошибка входа: " + error.message);
+        else navigate("/dashboard");
       } else {
-        if (password.length < 6) {
-          toast.error("Пароль должен быть не менее 6 символов");
-          setLoading(false);
-          return;
-        }
         const { error } = await signUp(email, password, { name: name.trim(), phone: phone.trim() });
-        if (error) {
-          toast.error("Ошибка регистрации: " + error.message);
-        } else {
-          toast.success("Проверьте email для подтверждения регистрации");
-        }
+        if (error) toast.error("Ошибка регистрации: " + error.message);
+        else toast.success("Проверьте email для подтверждения регистрации");
       }
     } finally {
       setLoading(false);
@@ -70,88 +71,73 @@ export default function Auth() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">TrendTok</h1>
             <p className="text-sm text-muted-foreground mt-2">
-              {isLogin ? "Войдите в свой аккаунт" : "Создайте аккаунт"}
+              {mode === "login" && "Войдите в свой аккаунт"}
+              {mode === "register" && "Создайте аккаунт"}
+              {mode === "forgot" && "Восстановление пароля"}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-3">
-            {!isLogin && (
+            {mode === "register" && (
               <>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Имя"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-11 h-12 bg-card border-border rounded-xl card-shadow"
-                    disabled={loading}
-                  />
+                  <Input type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow" disabled={loading} />
                 </div>
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="tel"
-                    placeholder="Номер телефона"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="pl-11 h-12 bg-card border-border rounded-xl card-shadow"
-                    disabled={loading}
-                  />
+                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow" disabled={loading} />
                 </div>
               </>
             )}
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-11 h-12 bg-card border-border rounded-xl card-shadow"
-                disabled={loading}
-              />
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow" disabled={loading} />
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="password"
-                placeholder="Пароль"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-11 h-12 bg-card border-border rounded-xl card-shadow"
-                disabled={loading}
-              />
-            </div>
+            {mode !== "forgot" && (
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow" disabled={loading} />
+              </div>
+            )}
           </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl text-base font-semibold"
-          >
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
+          {mode === "login" && (
+            <div className="text-right">
+              <button type="button" onClick={() => setMode("forgot")} className="text-xs text-primary hover:underline">
+                Забыли пароль?
+              </button>
+            </div>
+          )}
+
+          <Button type="submit" disabled={loading} className="w-full h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl text-base font-semibold">
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
               <>
-                {isLogin ? "Войти" : "Зарегистрироваться"}
+                {mode === "login" && "Войти"}
+                {mode === "register" && "Зарегистрироваться"}
+                {mode === "forgot" && "Отправить ссылку"}
                 <ArrowRight className="h-5 w-5 ml-2" />
               </>
             )}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground">
-          {isLogin ? "Нет аккаунта?" : "Уже есть аккаунт?"}{" "}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:underline font-semibold"
-          >
-            {isLogin ? "Зарегистрироваться" : "Войти"}
-          </button>
-        </p>
+        <div className="text-center text-sm text-muted-foreground space-y-2">
+          {mode === "forgot" ? (
+            <button onClick={() => setMode("login")} className="text-primary hover:underline font-semibold inline-flex items-center gap-1">
+              <ArrowLeft className="h-4 w-4" /> Назад ко входу
+            </button>
+          ) : (
+            <p>
+              {mode === "login" ? "Нет аккаунта?" : "Уже есть аккаунт?"}{" "}
+              <button onClick={() => setMode(mode === "login" ? "register" : "login")} className="text-primary hover:underline font-semibold">
+                {mode === "login" ? "Зарегистрироваться" : "Войти"}
+              </button>
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
