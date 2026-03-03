@@ -302,6 +302,21 @@ Deno.serve(async (req: Request) => {
 
     // Process a single niche: run all queries in PARALLEL
     const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
+      // CHECK LIMIT BEFORE SEARCHING — skip entirely if at/over limit
+      const limit = categoryLimits[nicheKey];
+      if (limit && limit > 0) {
+        const { count: currentCount } = await adminClient
+          .from("videos")
+          .select("id", { count: "exact", head: true })
+          .eq("niche", nicheKey)
+          .gte("published_at", freshWindow.toISOString());
+        
+        if ((currentCount || 0) >= limit) {
+          console.log(`⏭ ${nicheKey}: already at limit (${currentCount}/${limit}), skipping`);
+          return 0;
+        }
+      }
+
       const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
       const aiNicheQueries = aiQueries[nicheKey] || [];
       const staticQueries = [...(NICHE_QUERIES[nicheKey] || [])];
