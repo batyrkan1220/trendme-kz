@@ -255,7 +255,7 @@ export default function Landing() {
                   <div className={`w-11 h-11 rounded-xl ${f.color} flex items-center justify-center`}>
                     <f.icon className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <span className="text-[11px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-md">
+                  <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
                     {f.metric}
                   </span>
                 </div>
