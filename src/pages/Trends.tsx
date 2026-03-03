@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Eye, Heart, MessageCircle, Star, RefreshCw, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket, ChevronDown, Zap, Trophy, Target } from "lucide-react";
+import { TrendingUp, Eye, Heart, MessageCircle, Star, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket, ChevronDown, Zap, Trophy, Target } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   DropdownMenu,
