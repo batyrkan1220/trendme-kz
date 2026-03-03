@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
-const MIN_VIEWS = 1000; // Lowered from 3000 for more results
+const MIN_VIEWS = 3000; // Minimum views threshold
 const BATCH_SIZE = 5; // Process 5 niches per batch (was 1)
 
 Deno.serve(async (req: Request) => {
