@@ -74,8 +74,8 @@ const getTier = (views: number): TrendTier | null => {
 
 const tierConfig: Record<TrendTier, { label: string; icon: any; className: string; order: number }> = {
   strong: { label: "Strong Trend", icon: Trophy, className: "bg-amber-500/90 text-white", order: 0 },
-  mid: { label: "Mid Trend", icon: Zap, className: "bg-blue-500/80 text-white", order: 1 },
-  micro: { label: "Micro Trend", icon: Target, className: "bg-emerald-500/80 text-white", order: 2 },
+  mid: { label: "Mid Trend", icon: Zap, className: "bg-primary/80 text-white", order: 1 },
+  micro: { label: "Micro Trend", icon: Target, className: "bg-accent/80 text-white", order: 2 },
 };
 
 const PAGE_SIZE = 30;
