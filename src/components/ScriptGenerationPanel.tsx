@@ -234,7 +234,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           <ArrowLeft className="h-4 w-4 text-foreground" />
         </button>
         <Sparkles className="h-5 w-5 text-primary" />
-        <h2 className="text-base font-bold text-foreground">AI Сценарист</h2>
+        <h2 className="text-base font-bold text-foreground">{isKk ? "AI Сценарист" : "AI Сценарист"}</h2>
       </div>
 
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
