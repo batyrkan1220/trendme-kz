@@ -418,7 +418,7 @@ Deno.serve(async (req: Request) => {
               };
             }).filter(Boolean);
 
-            console.log(`  📊 "${query}": ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, old=${tooOld}, lowViews=${lowViews})`);
+            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, old=${tooOld}, lowViews=${lowViews})`);
 
             if (videoRows.length > 0) {
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
@@ -428,25 +428,25 @@ Deno.serve(async (req: Request) => {
                 .in("platform_video_id", platformIds);
               const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
               const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
-              console.log(`  💾 "${query}": ${newCount} new / ${existingIds.size} dupes`);
+              console.log(`  💾 "${query}" p${page}: ${newCount} new / ${existingIds.size} dupes`);
 
               const { error: upsertErr } = await adminClient
                 .from("videos")
                 .upsert(videoRows, { onConflict: "platform_video_id" });
               if (upsertErr) console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
-              return newCount;
+              nicheSaved += newCount;
             }
-            return 0;
+            
+            // If this page returned 0 valid videos, skip remaining pages
+            if (videoRows.length === 0 && videos.length < 5) {
+              console.log(`  ⏭ "${query}": no more results, skipping remaining pages`);
+              break;
+            }
           } catch (err) {
-            console.error(`Niche ${nicheKey} query "${query}" failed:`, err.message);
-            return 0;
+            console.error(`Niche ${nicheKey} query "${query}" p${page} failed:`, err.message);
           }
-        }));
-        
-        for (const r of results) {
-          if (r.status === "fulfilled") nicheSaved += r.value;
-        }
-      }
+        } // end pages loop
+      } // end queries loop
 
       // Enforce category limit after inserting (trim weakest if over)
       const limitVal = categoryLimits[nicheKey];
