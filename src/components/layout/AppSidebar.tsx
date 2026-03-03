@@ -9,7 +9,7 @@ import {
   Flame, ArrowRight, Shield,
   LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
-import logoImg from "@/assets/logo-trendme.png";
+import logoIcon from "@/assets/logo-icon-v2.png";
 
 interface NavItem {
   label: string;
