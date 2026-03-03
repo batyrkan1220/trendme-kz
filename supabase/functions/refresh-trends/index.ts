@@ -7,8 +7,15 @@ const corsHeaders = {
 };
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
-const MIN_VIEWS = 5000; // Lower threshold to maximize video collection
-const BATCH_SIZE = 1; // Process 1 niche per batch to guarantee completion within timeout
+const MIN_VIEWS = 5000;
+const BATCH_SIZE = 1;
+const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const ALL_CATEGORIES = [
+  "animals","art","auto","beauty","books","business","cinema","comedy",
+  "dance","diy","education","entertainment","family","fashion","fitness",
+  "food","gaming","lifestyle","marketing","medicine","music","news",
+  "podcast","psychology","realestate","religion","shopping","sports","tech","travel"
+];
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
