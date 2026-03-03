@@ -457,7 +457,6 @@ Deno.serve(async (req: Request) => {
     if (!wasStopped && nextBatch < totalBatches) {
       console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
       await chainNextBatch(nextBatch);
-      await chainNextBatch(nextBatch);
     } else {
       // All batches done — count real videos from DB
       console.log(`Refresh COMPLETE (accumulated: ${totalSaved}). Counting real totals from DB...`);
