@@ -333,13 +333,26 @@ Deno.serve(async (req: Request) => {
       const publishTimes = ["0", "1", "7", "30"]; // 0=all, 1=day, 7=week, 30=month
       
       for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
+        // Re-check limit BEFORE each query batch
+        if (limit && limit > 0) {
+          const { count: midCount } = await adminClient
+            .from("videos")
+            .select("id", { count: "exact", head: true })
+            .eq("niche", nicheKey)
+            .gte("published_at", freshWindow.toISOString());
+          if ((midCount || 0) >= limit) {
+            console.log(`⏭ ${nicheKey}: reached limit mid-search (${midCount}/${limit}), stopping`);
+            break;
+          }
+        }
+
         if (i > 0) await sleep(1200);
         const queryBatch = uniqueQueries.slice(i, i + PARALLEL_QUERIES);
         const results = await Promise.allSettled(queryBatch.map(async (query, qi) => {
           try {
             const sortType = sortTypes[(i + qi) % sortTypes.length];
             const publishTime = publishTimes[(i + qi) % publishTimes.length];
-            const offset = String(Math.floor(Math.random() * 3) * 10); // 0, 10, or 20
+            const offset = String(Math.floor(Math.random() * 3) * 10);
             const data = await callSocialKit("/tiktok/search", { 
               query, 
               count: String(videosPerQuery),
@@ -385,7 +398,6 @@ Deno.serve(async (req: Request) => {
             }).filter(Boolean);
 
             if (videoRows.length > 0) {
-              // Check which videos already exist to count only truly new ones
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
               const { data: existing } = await adminClient
                 .from("videos")
