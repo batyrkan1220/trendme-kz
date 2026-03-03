@@ -187,7 +187,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const freshWindow = new Date(Date.now() - 7 * 24 * 3600000); // Only last 7 days
+    const freshWindow = new Date(Date.now() - 14 * 24 * 3600000); // Last 14 days instead of 7
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
