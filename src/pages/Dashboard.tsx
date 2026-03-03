@@ -65,7 +65,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-6 lg:p-8 space-y-5 md:space-y-8 animate-fade-in max-w-5xl w-full overflow-hidden">
+      <div className="p-3 md:p-6 lg:p-8 space-y-5 md:space-y-8 animate-fade-in w-full overflow-hidden">
         {/* Hero greeting */}
         <div className="relative rounded-2xl md:rounded-3xl overflow-hidden">
           <div className="absolute inset-0 gradient-hero opacity-95" />
