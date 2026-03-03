@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sheet";
 import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
-  Star, ScrollText, CreditCard, LogOut, Flame, ArrowRight, Shield
+  Star, ScrollText, LogOut, Flame, ArrowRight, Shield
 } from "lucide-react";
 import logoIcon from "@/assets/logo-icon-cropped.png";
 
