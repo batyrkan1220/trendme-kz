@@ -128,15 +128,9 @@ Deno.serve(async (req: Request) => {
       return ["kz", "ru", "kg", "uz"].includes(region) || ["kk", "ru", "kz"].includes(lang);
     };
     
-    const shouldSaveVideo = (video: any, caption: string): boolean => {
-      // 1. Caption has cyrillic
-      if (hasCyrillic(caption)) return true;
-      // 2. Author is from KZ/RU region
-      if (isKzRuAuthor(video)) return true;
-      // 3. No text but author from KZ
-      const region = (video.region || video.author?.region || "").toLowerCase();
-      if ((!caption || caption.trim().length < 3) && region === "kz") return true;
-      return false;
+    const shouldSaveVideo = (_video: any, _caption: string): boolean => {
+      // Filter disabled — save all videos from search results
+      return true;
     };
 
     // Check mode
