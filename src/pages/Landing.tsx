@@ -171,15 +171,14 @@ export default function Landing() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-[4.2rem] lg:text-[4.8rem] font-extrabold leading-[1.08] tracking-tight mb-6 md:mb-8">
-            Находите{" "}
+          <h1 className="text-3xl sm:text-4xl md:text-[3.5rem] lg:text-[4.2rem] font-extrabold leading-[1.1] tracking-tight mb-6 md:mb-8">
+            <span className="whitespace-nowrap">Находите{" "}
             <span className="relative inline-block">
               <span className="relative z-10">вирусные видео</span>
               <span className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/30 to-blue-400/20 rounded-lg -skew-y-1 scale-y-110 scale-x-105" />
-            </span>{" "}
-            из
+            </span>{" "}из</span>
             <br />
-            TikTok и снимайте лучше
+            <span className="whitespace-nowrap">TikTok и снимайте лучше</span>
           </h1>
 
           {/* Subtitle */}
