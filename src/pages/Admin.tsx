@@ -146,6 +146,21 @@ function UsersTab() {
   const [tokenDialog, setTokenDialog] = useState<{ userId: string; email: string } | null>(null);
   const [tokenAmount, setTokenAmount] = useState("");
   const [tokenNote, setTokenNote] = useState("");
+  const [subDialog, setSubDialog] = useState<{ userId: string; email: string } | null>(null);
+  const [subPlanId, setSubPlanId] = useState("");
+  const [subDays, setSubDays] = useState("30");
+  const [subNote, setSubNote] = useState("");
+
+  const { data: plans = [] } = useQuery({
+    queryKey: ["admin-plans-for-users"],
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-plans`, {
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      });
+      if (!res.ok) throw new Error("Failed");
+      return (await res.json()).plans || [];
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users-list", search],
@@ -216,6 +231,35 @@ function UsersTab() {
     onError: () => toast.error("Ошибка обновления токенов"),
   });
 
+  const subMutation = useMutation({
+    mutationFn: async ({ user_id, plan_id, duration_days, note }: { user_id: string; plan_id: string; duration_days: number; note: string }) => {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=assign-subscription`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_id, plan_id, duration_days, note }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
+      setSubDialog(null);
+      setSubPlanId("");
+      setSubDays("30");
+      setSubNote("");
+      const msg = data?.tokens_added > 0 ? `Тариф назначен, начислено ${data.tokens_added} ⚡` : "Тариф назначен";
+      toast.success(msg);
+    },
+    onError: () => toast.error("Ошибка назначения тарифа"),
+  });
+
   const users = data?.users || [];
 
   return (
@@ -263,6 +307,10 @@ function UsersTab() {
                         {new Date(u.created_at).toLocaleDateString("ru-RU")}
                       </td>
                       <td className="p-3">
+                        <button
+                          onClick={() => setSubDialog({ userId: u.id, email: u.email })}
+                          className="hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors"
+                        >
                         {sub ? (
                           <div className="flex flex-col gap-0.5">
                             <Badge variant={isExpired ? "destructive" : "default"} className="text-xs w-fit">
@@ -274,8 +322,9 @@ function UsersTab() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
+                          <span className="text-xs text-muted-foreground hover:text-primary">+ Назначить</span>
                         )}
+                        </button>
                       </td>
                       <td className="p-3">
                         <button
@@ -369,6 +418,56 @@ function UsersTab() {
             >
               {tokenMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
               Применить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Subscription assign dialog */}
+      <Dialog open={!!subDialog} onOpenChange={(o) => { if (!o) setSubDialog(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Назначить тариф
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{subDialog?.email}</p>
+            <div>
+              <label className="text-sm font-medium text-foreground">Тариф</label>
+              <Select value={subPlanId} onValueChange={setSubPlanId}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Выберите тариф" /></SelectTrigger>
+                <SelectContent>
+                  {plans.filter((p: any) => p.is_active).map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}
+                      {p.tokens_included > 0 ? ` (+${p.tokens_included} ⚡)` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Срок (дней)</label>
+              <Input type="number" value={subDays} onChange={(e) => setSubDays(e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Примечание</label>
+              <Input value={subNote} onChange={(e) => setSubNote(e.target.value)} placeholder="Необязательно" className="mt-1" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSubDialog(null)}>Отмена</Button>
+            <Button
+              onClick={() => {
+                if (!subPlanId || !subDialog) return toast.error("Выберите тариф");
+                subMutation.mutate({ user_id: subDialog.userId, plan_id: subPlanId, duration_days: Number(subDays), note: subNote });
+              }}
+              disabled={subMutation.isPending || !subPlanId}
+            >
+              {subMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              Назначить
             </Button>
           </DialogFooter>
         </DialogContent>
