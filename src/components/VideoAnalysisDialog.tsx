@@ -243,7 +243,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 <div className="flex gap-3">
                   <button
                     onClick={() => startAnalysis("kk")}
-                    className="px-6 py-3 rounded-xl border border-primary/30 text-foreground font-semibold text-sm hover:bg-primary/10 hover:border-primary transition-colors"
+                    className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity"
                   >
                     🇰🇿 Қазақ тілі
                   </button>
