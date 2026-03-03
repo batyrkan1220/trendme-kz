@@ -199,7 +199,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
+    const sevenDaysAgo = new Date(Date.now() - 30 * 24 * 3600000); // 30 days for max fill
 
     // Load accumulated stats from DB log if continuing a run
     let nicheStats: Record<string, number> = {};
