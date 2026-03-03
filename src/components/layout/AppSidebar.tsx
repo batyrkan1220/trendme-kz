@@ -2,11 +2,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useTokens } from "@/hooks/useTokens";
 import {
   LayoutDashboard, TrendingUp, Search,
   Video, UserCircle, BookOpen, ScrollText,
   Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight, Shield, Sparkles
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface NavItem {
   label: string;
@@ -41,6 +43,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const { balance, totalEarned } = useTokens();
+  const tokenPercent = totalEarned > 0 ? Math.min(100, (balance / totalEarned) * 100) : 0;
 
   const handleLogout = async () => {
     await signOut();
@@ -123,45 +127,32 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
       {/* Bottom */}
       <div className="border-t border-sidebar-border py-3 px-2 space-y-1 shrink-0">
-        {/* Token counter */}
+        {/* Token widget */}
         {!collapsed && (
-          <Link
-            to="/tokens"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm hover:bg-muted/60 transition-colors group"
-          >
-            <Flame className="h-4 w-4 text-primary shrink-0" />
-            <span className="flex-1 text-sm text-muted-foreground font-medium">Токены</span>
-            <span className="text-xs font-bold text-foreground">1000</span>
-          </Link>
+          <div className="bg-muted/50 rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Flame className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Осталось токенов:</span>
+              </div>
+              <span className="text-sm font-bold text-foreground">{balance}</span>
+            </div>
+            <Progress value={tokenPercent} className="h-1.5" />
+            <Link
+              to="/pricing"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              Открыть тарифы <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
         )}
         {collapsed && (
           <Link
             to="/tokens"
-            title="Токены"
+            title={`Токены: ${balance}`}
             className="flex justify-center py-2 rounded-xl text-muted-foreground hover:bg-muted/60 transition-colors"
           >
-            <Coins className="h-[18px] w-[18px]" />
-          </Link>
-        )}
-
-        {/* Pricing */}
-        {!collapsed && (
-          <Link
-            to="/pricing"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-muted/60 transition-colors"
-          >
-            <CreditCard className="h-4 w-4 shrink-0" />
-            <span>Тарифы</span>
-            <ArrowRight className="h-3 w-3 ml-auto" />
-          </Link>
-        )}
-        {collapsed && (
-          <Link
-            to="/pricing"
-            title="Тарифы"
-            className="flex justify-center py-2 rounded-xl text-muted-foreground hover:bg-muted/60 transition-colors"
-          >
-            <CreditCard className="h-[18px] w-[18px]" />
+            <Flame className="h-[18px] w-[18px] text-primary" />
           </Link>
         )}
 
