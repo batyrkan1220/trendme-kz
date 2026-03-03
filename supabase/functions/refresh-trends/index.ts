@@ -410,6 +410,8 @@ Deno.serve(async (req: Request) => {
               };
             }).filter(Boolean);
 
+            console.log(`  📊 "${query}": ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, old=${tooOld}, lowViews=${lowViews})`);
+
             if (videoRows.length > 0) {
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
               const { data: existing } = await adminClient
@@ -418,6 +420,7 @@ Deno.serve(async (req: Request) => {
                 .in("platform_video_id", platformIds);
               const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
               const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
+              console.log(`  💾 "${query}": ${newCount} new / ${existingIds.size} dupes`);
 
               const { error: upsertErr } = await adminClient
                 .from("videos")
