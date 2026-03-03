@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Search, Video, UserCircle, BookOpen, ArrowRight, Eye, Heart, MessageCircle, Plus, Play, X, ExternalLink, Music, Flame, Rocket, Sparkles, Zap } from "lucide-react";
+import { TrendingUp, Search, Video, UserCircle, BookOpen, ArrowRight, Eye, Heart, MessageCircle, Share2, Plus, Play, X, ExternalLink, Music, Flame, Rocket, Sparkles, Zap, Trophy, Target } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { useState } from "react";
