@@ -421,7 +421,7 @@ Deno.serve(async (req: Request) => {
               };
             }).filter(Boolean);
 
-            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, old=${tooOld}, lowViews=${lowViews})`);
+            console.log(`  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews})`);
 
             if (videoRows.length > 0) {
               const platformIds = videoRows.map((v: any) => v.platform_video_id);
