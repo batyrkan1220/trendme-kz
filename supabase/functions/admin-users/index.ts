@@ -288,6 +288,46 @@ Deno.serve(async (req) => {
       });
     }
 
+    // UPDATE USER TOKENS
+    if (req.method === "POST" && action === "update-tokens") {
+      const { user_id, amount, description } = await req.json();
+      if (!user_id || amount === undefined) throw new Error("user_id and amount required");
+
+      // Update balance
+      const { data: current } = await adminClient
+        .from("user_tokens")
+        .select("balance")
+        .eq("user_id", user_id)
+        .maybeSingle();
+
+      if (!current) {
+        // Create token record if missing
+        await adminClient.from("user_tokens").insert({
+          user_id,
+          balance: Math.max(0, amount),
+          total_earned: amount > 0 ? amount : 0,
+        });
+      } else {
+        const newBalance = current.balance + amount;
+        const updateData: any = { balance: Math.max(0, newBalance), updated_at: new Date().toISOString() };
+        if (amount > 0) updateData.total_earned = (current as any).total_earned + amount;
+        else updateData.total_spent = (current as any).total_spent + Math.abs(amount);
+        await adminClient.from("user_tokens").update(updateData).eq("user_id", user_id);
+      }
+
+      // Log transaction
+      await adminClient.from("token_transactions").insert({
+        user_id,
+        amount,
+        action_type: amount > 0 ? "admin_credit" : "admin_debit",
+        description: description || (amount > 0 ? "Начисление администратором" : "Списание администратором"),
+      });
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     throw new Error("Unknown action");
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), {
