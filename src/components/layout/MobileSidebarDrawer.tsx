@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
+import { useTokens } from "@/hooks/useTokens";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
-  BookOpen, ScrollText, Coins, CreditCard, LogOut, Flame, ArrowRight
+  Star, ScrollText, CreditCard, LogOut, Flame, ArrowRight, Shield
 } from "lucide-react";
 import logoIcon from "@/assets/logo-icon-cropped.png";
 
