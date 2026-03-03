@@ -38,7 +38,9 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { transcript, summary, caption, messages } = await req.json();
+    const { transcript, summary, caption, language, messages } = await req.json();
+    const lang = language === "kk" ? "kk" : "ru";
+    const langLabel = lang === "kk" ? "қазақ тілінде" : "на русском языке";
 
     // Build context about the video
     const contextParts: string[] = [];
