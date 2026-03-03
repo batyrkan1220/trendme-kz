@@ -364,13 +364,27 @@ function RefreshSection() {
   });
 
   const { data: videoCounts = {} } = useQuery({
-    queryKey: ["video-counts-by-niche"],
+    queryKey: ["video-counts-by-category"],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      const { data } = await supabase.from("videos").select("niche").gte("published_at", sevenDaysAgo);
       const counts: Record<string, number> = {};
-      for (const row of data || []) {
-        if (row.niche) counts[row.niche] = (counts[row.niche] || 0) + 1;
+      let from = 0;
+      const PAGE = 1000;
+      while (true) {
+        const { data, error } = await supabase
+          .from("videos")
+          .select("categories")
+          .gte("published_at", sevenDaysAgo)
+          .range(from, from + PAGE - 1);
+        if (error || !data || data.length === 0) break;
+        for (const row of data) {
+          const cats = (row as any).categories as string[] | null;
+          if (cats) {
+            for (const c of cats) counts[c] = (counts[c] || 0) + 1;
+          }
+        }
+        if (data.length < PAGE) break;
+        from += PAGE;
       }
       return counts;
     },
