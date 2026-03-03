@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Loader2, User, Phone, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,10 @@ export default function Auth() {
       {/* Background blurs */}
       <div className="absolute top-0 right-0 w-72 md:w-96 h-72 md:h-96 rounded-full blur-3xl opacity-[0.08]" style={{ background: "hsl(var(--primary))" }} />
       <div className="absolute bottom-0 left-0 w-72 md:w-96 h-72 md:h-96 rounded-full blur-3xl opacity-[0.06]" style={{ background: "hsl(var(--primary))" }} />
+
+      <Link to="/" className="absolute top-4 left-4 md:top-6 md:left-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="h-4 w-4" /> На главную
+      </Link>
 
       <div className="w-full max-w-sm space-y-6 md:space-y-8 animate-fade-in relative">
         {/* Logo & Title */}
