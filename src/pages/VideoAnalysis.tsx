@@ -27,13 +27,13 @@ export default function VideoAnalysis() {
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
 
   const { data: analysis, isPending, mutate: analyze } = useMutation({
-    mutationFn: async (videoUrl: string) => {
+    mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
       const [statsRes, analysisRes] = await Promise.allSettled([
         supabase.functions.invoke("socialkit", {
           body: { action: "video_stats", video_url: videoUrl },
         }),
         supabase.functions.invoke("socialkit", {
-          body: { action: "analyze_video", video_url: videoUrl, caption: "" },
+          body: { action: "analyze_video", video_url: videoUrl, caption: "", language: lang },
         }),
       ]);
 
