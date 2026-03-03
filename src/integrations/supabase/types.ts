@@ -165,8 +165,10 @@ export type Database = {
           created_at: string
           goal: string | null
           id: string
+          name: string | null
           niche: string | null
           onboarding_completed: boolean
+          phone: string | null
           updated_at: string
           user_id: string
         }
@@ -174,8 +176,10 @@ export type Database = {
           created_at?: string
           goal?: string | null
           id?: string
+          name?: string | null
           niche?: string | null
           onboarding_completed?: boolean
+          phone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -183,8 +187,10 @@ export type Database = {
           created_at?: string
           goal?: string | null
           id?: string
+          name?: string | null
           niche?: string | null
           onboarding_completed?: boolean
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }
