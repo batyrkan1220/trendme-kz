@@ -234,7 +234,7 @@ Deno.serve(async (req: Request) => {
             Authorization: `Bearer ${serviceRoleKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ mode, batch: nextBatch, logId }),
+          body: JSON.stringify({ mode, batch: nextBatch, logId, target_niches: targetNiches }),
         });
       } catch (e) {
         console.error("Chain call failed:", e);
