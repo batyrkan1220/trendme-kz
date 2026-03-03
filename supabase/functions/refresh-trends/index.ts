@@ -172,8 +172,11 @@ Deno.serve(async (req: Request) => {
   };
 
   const getPublishedAt = (video: any): string => {
-    if (video.createTime) return new Date(video.createTime * 1000).toISOString();
-    if (video.create_time) return new Date(video.create_time * 1000).toISOString();
+    const ct = video.createTime ?? video.create_time;
+    if (typeof ct === "number") {
+      const sec = ct > 1e12 ? Math.floor(ct / 1000) : ct;
+      return new Date(sec * 1000).toISOString();
+    }
     if (video.created_at) return new Date(video.created_at).toISOString();
     if (video.published_at) return new Date(video.published_at).toISOString();
     return new Date().toISOString();
