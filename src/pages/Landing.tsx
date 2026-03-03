@@ -307,19 +307,19 @@ export default function Landing() {
             </Link>
           </div>
 
-          <div className="flex items-center justify-center gap-4 md:gap-8 text-sm md:text-base text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <CircleDot className="h-4 w-4" />
+          <div className="flex items-center justify-center gap-3 md:gap-8 text-xs md:text-base text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <CircleDot className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
               Без карты
             </span>
             <span className="text-border">•</span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4" />
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
               Доступ сразу
             </span>
             <span className="text-border">•</span>
-            <span className="flex items-center gap-1.5">
-              <Zap className="h-4 w-4" />
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
               50 запросов/день
             </span>
           </div>
