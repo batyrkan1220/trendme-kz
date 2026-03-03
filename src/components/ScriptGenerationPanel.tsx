@@ -204,7 +204,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const saveScript = async () => {
     if (!user || !scriptContent || isSaving) return;
     setIsSaving(true);
-    const title = caption?.slice(0, 80) || "Сценарий";
+    const title = caption?.slice(0, 80) || (isKk ? "Сценарий" : "Сценарий");
     const { error } = await supabase.from("saved_scripts" as any).insert({
       user_id: user.id,
       title,
@@ -212,9 +212,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       source_video_url: null,
     });
     if (error) {
-      toast.error("Ошибка сохранения");
+      toast.error(isKk ? "Сақтау қатесі" : "Ошибка сохранения");
     } else {
-      toast.success("Сценарий сохранён в Библиотеку! 📚");
+      toast.success(isKk ? "Сценарий Кітапханаға сақталды! 📚" : "Сценарий сохранён в Библиотеку! 📚");
     }
     setIsSaving(false);
   };
