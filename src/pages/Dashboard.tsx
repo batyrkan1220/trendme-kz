@@ -20,6 +20,31 @@ function fmt(n: number) {
   return String(n);
 }
 
+const getTimeAgo = (published_at: string | null) => {
+  if (!published_at) return "";
+  const h = Math.floor((Date.now() - new Date(published_at).getTime()) / 3600000);
+  if (h < 1) return "только что";
+  if (h < 24) return `${h}ч назад`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}д назад`;
+  return `${Math.floor(d / 30)} мес. назад`;
+};
+
+type TrendTier = "strong" | "mid" | "micro";
+
+const getTier = (views: number): TrendTier | null => {
+  if (views >= 80_000) return "strong";
+  if (views >= 15_000) return "mid";
+  if (views >= 3_000) return "micro";
+  return null;
+};
+
+const tierConfig: Record<TrendTier, { label: string; icon: any; className: string }> = {
+  strong: { label: "Strong Trend", icon: Trophy, className: "bg-amber-500/90 text-white" },
+  mid: { label: "Mid Trend", icon: Zap, className: "bg-primary/80 text-white" },
+  micro: { label: "Micro Trend", icon: Target, className: "bg-primary/60 text-white" },
+};
+
 export default function Dashboard() {
   const { user } = useAuth();
   const name = user?.email?.split("@")[0] || "друг";
