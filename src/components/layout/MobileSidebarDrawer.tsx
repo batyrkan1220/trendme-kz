@@ -27,7 +27,7 @@ const toolItems: NavItem[] = [
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Библиотека", icon: BookOpen, path: "/library" },
+  { label: "Избранные", icon: BookOpen, path: "/library" },
   { label: "Журнал", icon: ScrollText, path: "/journal" },
 ];
 

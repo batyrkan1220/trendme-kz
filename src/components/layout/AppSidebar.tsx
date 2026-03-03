@@ -5,7 +5,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useTokens } from "@/hooks/useTokens";
 import {
   LayoutDashboard, TrendingUp, Search,
-  Video, UserCircle, BookOpen, ScrollText,
+  Video, UserCircle, Star, ScrollText,
   Flame, ArrowRight, Shield,
   LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
@@ -30,7 +30,7 @@ const aiVideoItems: NavItem[] = [
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Библиотека", icon: BookOpen, path: "/library", iconColor: "text-emerald-500" },
+  { label: "Избранные", icon: Star, path: "/library", iconColor: "text-amber-500" },
   { label: "Журнал", icon: ScrollText, path: "/journal", iconColor: "text-sky-500" },
 ];
 

@@ -2,7 +2,7 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, TrendingUp, Search, Sparkles, BookOpen, Menu,
+  LayoutDashboard, TrendingUp, Search, Sparkles, Star, Menu,
   Video, UserCircle
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -122,8 +122,8 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
             location.pathname === "/library" ? "text-primary" : "text-muted-foreground"
           )}
         >
-          <BookOpen className={cn("h-5 w-5", location.pathname === "/library" && "text-primary")} />
-          <span className="text-[10px] font-medium leading-tight">Библиотека</span>
+          <Star className={cn("h-5 w-5", location.pathname === "/library" && "text-primary")} />
+          <span className="text-[10px] font-medium leading-tight">Избранные</span>
         </Link>
 
         <button
