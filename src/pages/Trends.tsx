@@ -208,7 +208,7 @@ export default function Trends() {
               className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-sm font-semibold border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">{refreshing ? "Обновление..." : "Обновить"}</span>
+              <span className="hidden sm:inline">{refreshing ? "Обновление..." : "Обновление 7 дней"}</span>
             </button>
           </div>
 
