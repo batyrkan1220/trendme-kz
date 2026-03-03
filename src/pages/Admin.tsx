@@ -342,6 +342,40 @@ function TrendsManagementTab() {
 
 function RefreshSection() {
   const queryClient = useQueryClient();
+  const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
+  const [selectAll, setSelectAll] = useState(true);
+
+  const { data: nicheQueries = {} } = useQuery({
+    queryKey: ["trend-settings", "niche_queries"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
+      return (data?.value as Record<string, string[]>) || {};
+    },
+  });
+
+  const { data: categoryLimits = {} } = useQuery({
+    queryKey: ["trend-settings", "category_limits"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
+      return (data?.value as Record<string, number>) || {};
+    },
+  });
+
+  const { data: videoCounts = {} } = useQuery({
+    queryKey: ["video-counts-by-niche"],
+    queryFn: async () => {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
+      const { data } = await supabase.from("videos").select("niche").gte("published_at", sevenDaysAgo);
+      const counts: Record<string, number> = {};
+      for (const row of data || []) {
+        if (row.niche) counts[row.niche] = (counts[row.niche] || 0) + 1;
+      }
+      return counts;
+    },
+    refetchInterval: 10000,
+  });
+
+  const allNiches = Object.keys(nicheQueries).sort();
 
   const { data: logs = [] } = useQuery({
     queryKey: ["refresh-logs"],
@@ -354,10 +388,21 @@ function RefreshSection() {
 
   const isRunning = logs.some((l: any) => l.status === "running");
 
+  const toggleNiche = (niche: string) => {
+    setSelectAll(false);
+    setSelectedNiches(prev => prev.includes(niche) ? prev.filter(n => n !== niche) : [...prev, niche]);
+  };
+
   const triggerRefresh = async () => {
-    toast.info("Обновление запущено на сервере. Можете закрыть страницу — процесс продолжится.");
+    const niches = selectAll ? null : selectedNiches;
+    if (!selectAll && selectedNiches.length === 0) {
+      toast.error("Выберите хотя бы одну категорию");
+      return;
+    }
+    const label = selectAll ? "все категории" : `${selectedNiches.length} категорий`;
+    toast.info(`Обновление запущено: ${label}. Каждая категория будет заполнена до лимита.`);
     supabase.functions.invoke("refresh-trends", { 
-      body: { mode: "mass" } 
+      body: { mode: "mass", ...(niches ? { target_niches: niches } : {}) } 
     }).then(() => {
       queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
     }).catch(() => {
@@ -369,18 +414,89 @@ function RefreshSection() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader><CardTitle className="text-lg">Массовое обновление трендов</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Обновление трендов</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          {/* Category selection */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={selectAll ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setSelectAll(true); setSelectedNiches([]); }}
+                className="gap-1.5"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Все категории
+              </Button>
+              <Button
+                variant={!selectAll ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectAll(false)}
+                className="gap-1.5"
+              >
+                <Hash className="h-3.5 w-3.5" />
+                Выбрать категории
+              </Button>
+            </div>
+
+            {!selectAll && (
+              <div className="space-y-2">
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedNiches([...allNiches])}>
+                    Выбрать все
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => {
+                    const unfilled = allNiches.filter(n => (videoCounts[n] || 0) < (categoryLimits[n] || 100));
+                    setSelectedNiches(unfilled);
+                  }}>
+                    Только незаполненные
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedNiches([])}>
+                    Сбросить
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 max-h-[300px] overflow-y-auto">
+                  {allNiches.map(niche => {
+                    const count = videoCounts[niche] || 0;
+                    const limit = categoryLimits[niche] || 100;
+                    const isFull = count >= limit;
+                    const isSelected = selectedNiches.includes(niche);
+                    return (
+                      <button
+                        key={niche}
+                        onClick={() => toggleNiche(niche)}
+                        className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs border transition-colors ${
+                          isSelected 
+                            ? "bg-primary text-primary-foreground border-primary" 
+                            : isFull 
+                              ? "bg-muted/30 border-border/50 text-muted-foreground"
+                              : "bg-background border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <span className="font-medium truncate">{niche}</span>
+                        <span className={`ml-1 text-[10px] ${isFull ? "text-green-500" : ""}`}>
+                          {count}/{limit}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           <Button 
             onClick={triggerRefresh} 
             disabled={isRunning} 
             size="lg"
             className="w-full gap-3 h-14 text-base"
           >
-            {isRunning ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
+            {isRunning ? <Loader2 className="h-5 w-5 animate-spin" /> : <Play className="h-5 w-5" />}
             {isRunning 
               ? "⏳ Обновление идёт на сервере..." 
-              : "🚀 Запустить обновление (все 30 категорий)"
+              : selectAll 
+                ? "🚀 Запустить (все категории)"
+                : `🚀 Запустить (${selectedNiches.length} категорий)`
             }
           </Button>
           {isRunning && (
@@ -411,7 +527,7 @@ function RefreshSection() {
             </div>
           )}
           <p className="text-sm text-muted-foreground">
-            Обновление запускается на сервере и работает независимо от браузера. Даже если закроете страницу — процесс продолжится.
+            Каждая категория заполняется до лимита, после чего переходит к следующей. Лимит достигнут — категория пропускается.
           </p>
         </CardContent>
       </Card>
