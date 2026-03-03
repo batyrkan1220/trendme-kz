@@ -1,7 +1,7 @@
 {
-  "name": "Trend TikTok — Социальная аналитика",
-  "short_name": "Trend TikTok",
-  "description": "Платформа для мониторинга трендов TikTok, анализа контента и отслеживания аккаунтов",
+  "name": "TrendMe — Социальная аналитика",
+  "short_name": "TrendMe",
+  "description": "TrendMe — платформа для мониторинга трендов, анализа контента и отслеживания аккаунтов",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f6fa",
