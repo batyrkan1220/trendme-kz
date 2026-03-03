@@ -412,10 +412,10 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      // Enforce category limit
-      const limit = categoryLimits[nicheKey];
-      if (limit && limit > 0) {
-        await enforceLimit(nicheKey, limit);
+      // Enforce category limit after inserting (trim weakest if over)
+      const limitVal = categoryLimits[nicheKey];
+      if (limitVal && limitVal > 0) {
+        await enforceLimit(nicheKey, limitVal);
       }
 
       return nicheSaved;
