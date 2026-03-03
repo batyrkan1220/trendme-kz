@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { PageTransition } from "@/components/PageTransition";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -14,6 +16,7 @@ import VideoAnalysis from "./pages/VideoAnalysis";
 import AccountAnalysis from "./pages/AccountAnalysis";
 import Journal from "./pages/Journal";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 import Razvedka from "./pages/Razvedka";
 import Library from "./pages/Library";
 import Analytics from "./pages/Analytics";
@@ -26,8 +29,21 @@ const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
-  if (loading) {
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setOnboardingDone(data?.onboarding_completed ?? false);
+      });
+  }, [user]);
+
+  if (loading || (user && onboardingDone === null)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -36,6 +52,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
+  if (!onboardingDone) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }
 
@@ -44,6 +61,7 @@ const AppRoutes = () => (
     <Route element={<PageTransition />}>
       <Route path="/auth" element={<Auth />} />
       <Route path="/landing" element={<Landing />} />
+      <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/" element={<Index />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
