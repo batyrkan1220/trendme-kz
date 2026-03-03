@@ -19,7 +19,7 @@ export default function Pricing() {
               key={plan.name}
               className={`rounded-2xl p-6 border transition-all hover-lift ${
                 plan.popular
-                  ? "gradient-card glow-primary border-primary/20"
+                  ? "bg-card border-primary/20 shadow-md"
                   : "bg-card border-border/50 card-shadow card-shadow-hover"
               }`}
             >
