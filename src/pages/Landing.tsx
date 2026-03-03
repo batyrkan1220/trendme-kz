@@ -62,9 +62,9 @@ const stats = [
 ];
 
 const trendingVideos = [
-  { title: "Утренние рутины", author: "@lifestyle_kz", views: "2.4M", likes: "342K", comments: "12K", growth: "+580%", tag: "🔥 В тренде" },
-  { title: "Рецепт за 60 сек", author: "@chef_pro", views: "1.8M", likes: "256K", comments: "8.5K", growth: "+420%", tag: "📈 Растёт" },
-  { title: "Лайфхак для дома", author: "@diy_master", views: "3.1M", likes: "489K", comments: "15K", growth: "+720%", tag: "💥 Вирусное" },
+  { title: "Утренние рутины", author: "@lifestyle_kz", views: "2.4M", likes: "342K", comments: "12K", growth: "+580%", tag: "🔥 В тренде", img: trendImg1 },
+  { title: "Рецепт за 60 сек", author: "@chef_pro", views: "1.8M", likes: "256K", comments: "8.5K", growth: "+420%", tag: "📈 Растёт", img: trendImg2 },
+  { title: "Лайфхак для дома", author: "@diy_master", views: "3.1M", likes: "489K", comments: "15K", growth: "+720%", tag: "💥 Вирусное", img: trendImg3 },
 ];
 
 const testimonials = [
