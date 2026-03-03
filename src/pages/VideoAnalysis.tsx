@@ -146,8 +146,7 @@ export default function VideoAnalysis() {
                     <Button
                       onClick={() => handleAnalyze("kk")}
                       disabled={!url.trim()}
-                      variant="outline"
-                      className="flex-1 h-12 rounded-xl font-semibold text-sm border-primary/30 hover:bg-primary/10 hover:border-primary"
+                      className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
                     >
                       🇰🇿 Қазақ тілі
                     </Button>
@@ -184,8 +183,7 @@ export default function VideoAnalysis() {
             <Button
               onClick={() => handleAnalyze("kk")}
               disabled={isPending}
-              variant="outline"
-              className="h-11 md:h-12 px-4 rounded-xl font-semibold text-sm border-primary/30"
+              className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-4 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
             >
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "🇰🇿 Қазақша"}
             </Button>
