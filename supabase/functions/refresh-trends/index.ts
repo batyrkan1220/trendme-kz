@@ -14,15 +14,7 @@ const MIN_VIEWS = 5000;
 // Batching across niches
 const BATCH_SIZE = 1;
 
-// AI
-const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-
-const ALL_CATEGORIES = [
-  "animals","art","auto","beauty","books","business","cinema","comedy",
-  "dance","diy","education","entertainment","family","fashion","fitness",
-  "food","gaming","lifestyle","marketing","medicine","music","news",
-  "podcast","psychology","realestate","religion","shopping","sports","tech","travel"
-];
+// AI disabled — no AI query generation or categorization
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
