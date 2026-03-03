@@ -39,8 +39,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       .select("onboarding_completed")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
-        setOnboardingDone(data?.onboarding_completed ?? false);
+      .then(async ({ data }) => {
+        if (!data) {
+          // No profile exists (old user) — create one and skip onboarding
+          await supabase.from("profiles").insert({ user_id: user.id, onboarding_completed: true });
+          setOnboardingDone(true);
+        } else {
+          setOnboardingDone(data.onboarding_completed ?? false);
+        }
       });
   }, [user]);
 
