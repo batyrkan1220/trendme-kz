@@ -191,18 +191,30 @@ function AnimatedStat({ value, label }: { value: string; label: string }) {
 /* ─── Trending showcase ─── */
 function TrendingShowcase() {
   const [active, setActive] = useState(0);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const interval = setInterval(() => setActive((a) => (a + 1) % trendingVideos.length), 3000);
     return () => clearInterval(interval);
   }, []);
 
+  // Auto-scroll to active card on mobile
+  useEffect(() => {
+    const card = cardRefs.current[active];
+    if (card && containerRef.current) {
+      card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  }, [active]);
+
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex gap-4 md:gap-5 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible scrollbar-none">
+      <div ref={containerRef} className="flex gap-4 md:gap-5 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible scrollbar-none">
         <style>{`.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}`}</style>
         {trendingVideos.map((v, i) => (
           <div
             key={v.title}
+            ref={(el) => { cardRefs.current[i] = el; }}
             className={`relative rounded-2xl p-4 md:p-6 border transition-all duration-500 cursor-pointer min-w-[260px] w-[75vw] md:w-auto md:min-w-0 snap-center shrink-0 md:shrink ${
               i === active
                 ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.2)] scale-[1.02]"
