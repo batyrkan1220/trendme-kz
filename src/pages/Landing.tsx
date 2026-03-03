@@ -4,7 +4,7 @@ import {
   TrendingUp, Search, BarChart3, Eye, Zap,
   ArrowRight, Check, Sparkles, Star, Users, FileText, ChevronRight,
   Target, Clock, Flame, Video, Lightbulb,
-  Rocket, CircleDot, Heart, MessageCircle, Share2, Play
+  Rocket, CircleDot, Heart, MessageCircle, Share2, Play, Menu, X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import logoIcon from "@/assets/logo-icon-cropped.png";
@@ -27,6 +27,75 @@ function useReveal() {
     return () => obs.disconnect();
   }, []);
   return { ref, visible };
+}
+
+/* ─── Landing Nav with mobile menu ─── */
+function LandingNav() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navLinks = [
+    { href: "#how", label: "Как это работает" },
+    { href: "#features", label: "Инструменты" },
+    { href: "#reviews", label: "Отзывы" },
+    { href: "#pricing", label: "Тарифы" },
+    { href: "#faq", label: "FAQ" },
+  ];
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-[72px] flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <img src={logoIcon} alt="TrendMe" className="w-9 h-9 md:w-10 md:h-10 rounded-xl shadow-lg" />
+          <BrandName className="text-xl md:text-2xl" />
+        </div>
+        <div className="hidden md:flex items-center gap-10">
+          {navLinks.map((l) => (
+            <a key={l.href} href={l.href} className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">{l.label}</a>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 md:gap-4">
+          <Link to="/auth" className="hidden sm:block">
+            <Button variant="ghost" className="text-[15px] font-medium text-muted-foreground hover:text-foreground px-4 md:px-5 h-10 md:h-11">
+              Войти
+            </Button>
+          </Link>
+          <Link to="/auth" className="hidden sm:block">
+            <Button className="bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold px-5 md:px-6 h-10 md:h-11 hover:bg-primary/90">
+              Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Button>
+          </Link>
+          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 text-foreground">
+            {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile dropdown */}
+      {menuOpen && (
+        <div className="md:hidden bg-background border-t border-border/40 px-4 py-4 space-y-1 animate-fade-in">
+          {navLinks.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              onClick={() => setMenuOpen(false)}
+              className="block px-3 py-2.5 rounded-xl text-[15px] font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              {l.label}
+            </a>
+          ))}
+          <div className="pt-3 border-t border-border/40 flex flex-col gap-2">
+            <Link to="/auth" onClick={() => setMenuOpen(false)}>
+              <Button variant="ghost" className="w-full justify-center text-[15px] font-medium">Войти</Button>
+            </Link>
+            <Link to="/auth" onClick={() => setMenuOpen(false)}>
+              <Button className="w-full justify-center bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold h-11">
+                Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
 }
 
 
@@ -129,11 +198,12 @@ function TrendingShowcase() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+      <div className="flex gap-4 md:gap-5 overflow-x-auto pb-4 md:pb-0 snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible scrollbar-none">
+        <style>{`.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}`}</style>
         {trendingVideos.map((v, i) => (
           <div
             key={v.title}
-            className={`relative rounded-2xl p-5 md:p-6 border transition-all duration-500 cursor-pointer ${
+            className={`relative rounded-2xl p-5 md:p-6 border transition-all duration-500 cursor-pointer min-w-[280px] md:min-w-0 snap-center shrink-0 md:shrink ${
               i === active
                 ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.2)] scale-[1.02]"
                 : "bg-card/60 border-border/40 opacity-70 hover:opacity-90"
@@ -202,33 +272,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-[72px] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img src={logoIcon} alt="TrendMe" className="w-9 h-9 md:w-10 md:h-10 rounded-xl shadow-lg" />
-            <BrandName className="text-xl md:text-2xl" />
-          </div>
-          <div className="hidden md:flex items-center gap-10">
-            <a href="#how" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Как это работает</a>
-            <a href="#features" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
-            <a href="#reviews" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
-            <a href="#pricing" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
-            <a href="#faq" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <Link to="/auth">
-              <Button variant="ghost" className="text-[15px] font-medium text-muted-foreground hover:text-foreground px-4 md:px-5 h-10 md:h-11">
-                Войти
-              </Button>
-            </Link>
-            <Link to="/auth">
-              <Button className="bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold px-5 md:px-6 h-10 md:h-11 hover:bg-primary/90">
-                Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <LandingNav />
 
       {/* ═══ Hero ═══ */}
       <section className="pt-28 pb-12 md:pt-44 md:pb-20 px-4 relative">
