@@ -364,10 +364,10 @@ Deno.serve(async (req: Request) => {
           try {
             const sortType = sortTypes[(i + qi) % sortTypes.length];
             const publishTime = publishTimes[(i + qi) % publishTimes.length];
-            const offset = String(Math.floor(Math.random() * 3) * 10);
+            const offset = String(Math.floor(Math.random() * 5) * 10);
             const data = await callSocialKit("/tiktok/search", { 
               query, 
-              count: String(videosPerQuery),
+              count: String(Math.min(videosPerQuery, 50)),
               sort_type: sortType,
               publish_time: publishTime,
               offset,
