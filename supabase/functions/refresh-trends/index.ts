@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-    const MAX_EXECUTION_MS = 50000; // 50s safety limit
+    const MAX_EXECUTION_MS = 120000; // 120s — edge functions support up to 150s
     const startTime = Date.now();
 
     const callSocialKit = async (path: string, params: Record<string, string>, retries = 3): Promise<any> => {
