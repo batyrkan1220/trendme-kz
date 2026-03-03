@@ -395,6 +395,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
         const caption = body.caption || "";
+        const analysisLang = body.language === "kk" ? "kk" : "ru";
         const videoTitle = statsData?.title || statsData?.description || caption || "";
         const videoDescription = statsData?.description || caption || "";
         const videoDuration = statsData?.duration || "";
