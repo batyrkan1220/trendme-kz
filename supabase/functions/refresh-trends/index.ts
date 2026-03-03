@@ -317,7 +317,7 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
 
     // Process a single niche: run all queries in PARALLEL
     const processNiche = async (nicheKey: string, aiQueries: Record<string, string[]>) => {
-      // CHECK LIMIT BEFORE SEARCHING — skip entirely if at/over limit
+      // CHECK LIMIT BEFORE ANYTHING — skip entirely if at/over limit
       const limit = categoryLimits[nicheKey];
       if (limit && limit > 0) {
         const { count: currentCount } = await adminClient
@@ -327,8 +327,9 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
         
         if ((currentCount || 0) >= limit) {
           console.log(`⏭ ${nicheKey}: already at limit (${currentCount}/${limit}), skipping`);
-          return 0;
+          return -1; // signal: skipped due to limit
         }
+        console.log(`📦 ${nicheKey}: ${currentCount}/${limit}, searching for more...`);
       }
 
       const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
