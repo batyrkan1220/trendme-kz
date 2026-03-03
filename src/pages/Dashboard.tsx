@@ -89,37 +89,40 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in w-full overflow-hidden">
-        {/* Stats + Quick Actions row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
-          <div className="bg-card rounded-xl border border-border/60 p-3 md:p-4 card-shadow flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Heart className="h-4 w-4 text-primary" />
+      <div className="p-3 md:p-6 lg:p-8 space-y-3 md:space-y-6 animate-fade-in w-full overflow-hidden">
+        {/* Page title - mobile */}
+        <h1 className="text-xl md:text-2xl font-bold text-foreground md:hidden">Главная</h1>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 md:gap-3">
+          <div className="bg-card rounded-xl border border-border/60 p-2.5 md:p-4 card-shadow flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Heart className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
             </div>
             <div>
-              <p className="text-lg font-extrabold text-foreground leading-none">{favCount}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">В избранном</p>
+              <p className="text-base md:text-lg font-extrabold text-foreground leading-none">{favCount}</p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-0.5">Избранное</p>
             </div>
           </div>
-          <div className="bg-card rounded-xl border border-border/60 p-3 md:p-4 card-shadow flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="h-4 w-4 text-primary" />
+          <div className="bg-card rounded-xl border border-border/60 p-2.5 md:p-4 card-shadow flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
             </div>
             <div>
-              <p className="text-lg font-extrabold text-foreground leading-none">{trendingVideos.length}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">В трендах</p>
+              <p className="text-base md:text-lg font-extrabold text-foreground leading-none">{trendingVideos.length}</p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-0.5">Тренды</p>
             </div>
           </div>
-          <div className="bg-card rounded-xl border border-border/60 p-3 md:p-4 card-shadow flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Zap className="h-4 w-4 text-primary" />
+          <div className="bg-card rounded-xl border border-border/60 p-2.5 md:p-4 card-shadow flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
             </div>
             <div>
-              <p className="text-lg font-extrabold text-foreground leading-none">{scriptsCount}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Сценариев</p>
+              <p className="text-base md:text-lg font-extrabold text-foreground leading-none">{scriptsCount}</p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-0.5">Сценарии</p>
             </div>
           </div>
-          <Link to="/search" className="bg-primary rounded-xl p-3 md:p-4 flex items-center gap-3 hover:bg-primary/90 transition-colors group">
+          <Link to="/search" className="hidden sm:flex bg-primary rounded-xl p-3 md:p-4 items-center gap-3 hover:bg-primary/90 transition-colors group">
             <div className="w-9 h-9 rounded-xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
               <Plus className="h-4 w-4 text-primary-foreground" />
             </div>
@@ -130,21 +133,27 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {/* Quick Actions - horizontal scroll on mobile */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-3 px-3 md:mx-0 md:px-0">
+          <Link
+            to="/search"
+            className="sm:hidden flex items-center gap-2 bg-primary rounded-xl px-3 py-2 border border-primary hover:bg-primary/90 transition-colors shrink-0 group"
+          >
+            <div className="w-7 h-7 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
+              <Plus className="h-3.5 w-3.5 text-primary-foreground" />
+            </div>
+            <p className="text-xs font-bold text-primary-foreground whitespace-nowrap">Новый поиск</p>
+          </Link>
           {quickActions.map((a) => (
             <Link
               key={a.path}
               to={a.path}
-              className="flex items-center gap-2 bg-card rounded-xl px-3 py-2.5 border border-border/60 hover:border-primary/30 transition-colors shrink-0 group"
+              className="flex items-center gap-2 bg-card rounded-xl px-2.5 py-2 border border-border/60 hover:border-primary/30 transition-colors shrink-0 group"
             >
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                <a.icon className="h-4 w-4 text-primary" />
+              <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                <a.icon className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
               </div>
-              <div>
-                <p className="text-xs font-semibold text-foreground whitespace-nowrap">{a.label}</p>
-                <p className="text-[10px] text-muted-foreground whitespace-nowrap">{a.desc}</p>
-              </div>
+              <p className="text-xs font-semibold text-foreground whitespace-nowrap">{a.label}</p>
             </Link>
           ))}
         </div>
