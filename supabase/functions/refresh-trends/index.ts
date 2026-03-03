@@ -59,8 +59,10 @@ Deno.serve(async (req: Request) => {
       .single();
 
     const NICHE_QUERIES: Record<string, string[]> = nicheSettingsRow?.value as any || {};
-    const allNicheKeys = Object.keys(NICHE_QUERIES);
-    console.log(`Loaded ${allNicheKeys.length} niches from DB: ${allNicheKeys.join(", ")}`);
+    const allAvailableNiches = Object.keys(NICHE_QUERIES);
+    // Will be filtered after parsing body (targetNiches)
+    let allNicheKeys = allAvailableNiches;
+    console.log(`Loaded ${allAvailableNiches.length} niches from DB: ${allAvailableNiches.join(", ")}`);
 
     if (allNicheKeys.length === 0) {
       return new Response(JSON.stringify({ error: "No niches configured in trend_settings" }), {
