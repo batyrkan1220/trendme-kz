@@ -275,12 +275,12 @@ export default function Landing() {
       <LandingNav />
 
       {/* ═══ Hero ═══ */}
-      <section className="pt-28 pb-12 md:pt-44 md:pb-20 px-4 relative">
+      <section className="pt-24 pb-8 md:pt-44 md:pb-20 px-4 relative">
         <div className="absolute top-0 left-0 right-0 h-[700px] bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 text-sm md:text-base font-medium text-foreground mb-8 md:mb-10">
+          <div className="inline-flex items-center gap-2 text-sm md:text-base font-medium text-foreground mb-5 md:mb-10">
             <TikTokIcon className="h-5 w-5 md:h-6 md:w-6" />
             TikTok Official Partner
           </div>
@@ -294,7 +294,7 @@ export default function Landing() {
             из TikTok и снимайте лучше
           </h1>
 
-          <p className="text-[15px] sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed">
+          <p className="text-[15px] sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-6 md:mb-12 leading-relaxed">
             Узнайте, какие видео взрывают вашу нишу прямо сейчас. AI подскажет формат и напишет сценарий — вам останется только снять.
           </p>
 
@@ -327,9 +327,9 @@ export default function Landing() {
       </section>
 
       {/* ═══ Stats (animated counters kept) ═══ */}
-      <section className="py-12 md:py-20 px-4">
+      <section className="py-6 md:py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12">
             {stats.map((s) => (
               <AnimatedStat key={s.label} value={s.value} label={s.label} />
             ))}
