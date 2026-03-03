@@ -146,6 +146,21 @@ function UsersTab() {
   const [tokenDialog, setTokenDialog] = useState<{ userId: string; email: string } | null>(null);
   const [tokenAmount, setTokenAmount] = useState("");
   const [tokenNote, setTokenNote] = useState("");
+  const [subDialog, setSubDialog] = useState<{ userId: string; email: string } | null>(null);
+  const [subPlanId, setSubPlanId] = useState("");
+  const [subDays, setSubDays] = useState("30");
+  const [subNote, setSubNote] = useState("");
+
+  const { data: plans = [] } = useQuery({
+    queryKey: ["admin-plans-for-users"],
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-plans`, {
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      });
+      if (!res.ok) throw new Error("Failed");
+      return (await res.json()).plans || [];
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users-list", search],
