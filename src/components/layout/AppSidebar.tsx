@@ -2,11 +2,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useTokens } from "@/hooks/useTokens";
 import {
   LayoutDashboard, TrendingUp, Search,
   Video, UserCircle, BookOpen, ScrollText,
   Coins, CreditCard, LogOut, ChevronLeft, ChevronRight, Flame, ArrowRight, Shield, Sparkles
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface NavItem {
   label: string;
