@@ -391,7 +391,7 @@ Focus on: current viral trends, popular hashtags, challenge names, viral sounds,
               if (views < MIN_VIEWS) { lowViews++; return null; }
               
               const publishedAt = new Date(getPublishedAt({ ...v, stats: v.stats }));
-              if (publishedAt < sevenDaysAgo) { return null; }
+              if (publishedAt < sevenDaysAgo) { tooOld++; return null; }
               
               const caption = v.desc || v.caption || v.title || "";
               const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
