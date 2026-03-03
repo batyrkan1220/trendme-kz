@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Mail, Lock, ArrowRight, Loader2, User, Phone, ArrowLeft } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2, User, Phone, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logoIcon from "@/assets/logo-icon-cropped.png";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -59,18 +60,27 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-[0.08]" style={{ background: "hsl(258 80% 58%)" }} />
-      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-[0.06]" style={{ background: "hsl(168 76% 42%)" }} />
+    <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 py-8 relative overflow-hidden">
+      {/* Background blurs */}
+      <div className="absolute top-0 right-0 w-72 md:w-96 h-72 md:h-96 rounded-full blur-3xl opacity-[0.08]" style={{ background: "hsl(var(--primary))" }} />
+      <div className="absolute bottom-0 left-0 w-72 md:w-96 h-72 md:h-96 rounded-full blur-3xl opacity-[0.06]" style={{ background: "hsl(var(--primary))" }} />
 
-      <div className="w-full max-w-sm space-y-8 animate-fade-in relative">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl gradient-hero glow-primary animate-bounce-soft">
-            <Flame className="h-8 w-8 text-primary-foreground" />
+      <div className="w-full max-w-sm space-y-6 md:space-y-8 animate-fade-in relative">
+        {/* Logo & Title */}
+        <div className="text-center space-y-3 md:space-y-4">
+          <div className="inline-block animate-bounce-soft">
+            <img
+              src={logoIcon}
+              alt="TrendMe"
+              className="h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-lg mx-auto"
+            />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">TrendTok</h1>
-            <p className="text-sm text-muted-foreground mt-2">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+              <span className="text-foreground">Trend</span>
+              <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Me</span>
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1.5 md:mt-2">
               {mode === "login" && "Войдите в свой аккаунт"}
               {mode === "register" && "Создайте аккаунт"}
               {mode === "forgot" && "Восстановление пароля"}
@@ -78,28 +88,29 @@ export default function Auth() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-3">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
+          <div className="space-y-2.5 md:space-y-3">
             {mode === "register" && (
               <>
-                <div className="relative">
+                <div className="relative animate-fade-in">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow" disabled={loading} />
+                  <Input type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="pl-11 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} />
                 </div>
-                <div className="relative">
+                <div className="relative animate-fade-in">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow" disabled={loading} />
+                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-11 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} />
                 </div>
               </>
             )}
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow" disabled={loading} />
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-11 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} />
             </div>
             {mode !== "forgot" && (
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow" disabled={loading} />
+                <Input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-11 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} />
               </div>
             )}
           </div>
@@ -112,18 +123,19 @@ export default function Auth() {
             </div>
           )}
 
-          <Button type="submit" disabled={loading} className="w-full h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl text-base font-semibold">
+          <Button type="submit" disabled={loading} className="w-full h-11 md:h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl text-sm md:text-base font-semibold">
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
               <>
                 {mode === "login" && "Войти"}
                 {mode === "register" && "Зарегистрироваться"}
                 {mode === "forgot" && "Отправить ссылку"}
-                <ArrowRight className="h-5 w-5 ml-2" />
+                <ArrowRight className="h-4 w-4 md:h-5 md:w-5 ml-2" />
               </>
             )}
           </Button>
         </form>
 
+        {/* Switch mode */}
         <div className="text-center text-sm text-muted-foreground space-y-2">
           {mode === "forgot" ? (
             <button onClick={() => setMode("login")} className="text-primary hover:underline font-semibold inline-flex items-center gap-1">
