@@ -24,7 +24,7 @@ import Library from "./pages/Library";
 import Analytics from "./pages/Analytics";
 import Tokens from "./pages/Tokens";
 import Pricing from "./pages/Pricing";
-import Landing from "./pages/Landing";
+
 import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
@@ -79,7 +79,7 @@ const AppRoutes = () => (
   <Routes>
     <Route element={<PageTransition />}>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/landing" element={<Landing />} />
+      <Route path="/landing" element={<Navigate to="/" replace />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<Index />} />
