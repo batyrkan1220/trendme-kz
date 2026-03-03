@@ -280,7 +280,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {steps.map((step, i) => (
               <div key={step.num} className="relative text-center">
-                <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center mx-auto mb-5 glow-primary">
+                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5">
                   <step.icon className="h-7 w-7 text-primary-foreground" />
                 </div>
                 <div className="text-xs font-bold text-primary/40 uppercase tracking-widest mb-2">Шаг {step.num}</div>
