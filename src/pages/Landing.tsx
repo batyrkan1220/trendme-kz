@@ -203,7 +203,7 @@ function TrendingShowcase() {
         {trendingVideos.map((v, i) => (
           <div
             key={v.title}
-            className={`relative rounded-2xl p-5 md:p-6 border transition-all duration-500 cursor-pointer min-w-[280px] md:min-w-0 snap-center shrink-0 md:shrink ${
+            className={`relative rounded-2xl p-4 md:p-6 border transition-all duration-500 cursor-pointer min-w-[260px] w-[75vw] md:w-auto md:min-w-0 snap-center shrink-0 md:shrink ${
               i === active
                 ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.2)] scale-[1.02]"
                 : "bg-card/60 border-border/40 opacity-70 hover:opacity-90"
