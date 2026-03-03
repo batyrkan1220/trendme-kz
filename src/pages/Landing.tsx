@@ -206,7 +206,7 @@ export default function Landing() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-3xl mx-auto">
             {stats.map((s) => (
               <div key={s.label} className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-4 card-shadow hover-lift transition-all">
-                <s.icon className="h-5 w-5 text-accent mx-auto mb-2" />
+                <s.icon className="h-5 w-5 text-primary mx-auto mb-2" />
                 <div className="text-2xl md:text-3xl font-extrabold text-foreground">{s.value}</div>
                 <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
               </div>
