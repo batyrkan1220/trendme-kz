@@ -335,7 +335,7 @@ Deno.serve(async (req: Request) => {
 
         for (const query of uniqueQueries) {
           try {
-            const data = await callSocialKit("/tiktok/search", { query, count: "30" });
+            const data = await callSocialKit("/tiktok/search", { query, count: String(videosPerQuery) });
             const videos = extractVideos(data);
             const videoRows = videos.map(v => {
               const videoId = v.id || v.video_id || v.aweme_id;
