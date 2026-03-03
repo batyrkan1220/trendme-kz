@@ -353,7 +353,7 @@ export default function Landing() {
       <section id="pricing" className="py-16 md:py-28 px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Тарифы</p>
+            <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">Тарифы</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
               Выберите свой <span className="text-accent font-extrabold">план</span>
             </h2>

@@ -59,7 +59,7 @@ export default function Auth() {
             <Flame className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold gradient-text">TrendTok</h1>
+            <h1 className="text-3xl font-bold text-foreground">TrendTok</h1>
             <p className="text-sm text-muted-foreground mt-2">
               {isLogin ? "Войдите в свой аккаунт" : "Создайте аккаунт"}
             </p>
