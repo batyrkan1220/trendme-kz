@@ -29,16 +29,14 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-// Convert a string (UUID, nicheKey) to a numeric seed
 function hashString(str: string): number {
   let h = 0;
   for (let i = 0; i < str.length; i++) {
     h = ((h << 5) - h + str.charCodeAt(i)) | 0;
   }
-  return h;
+  return h >>> 0;
 }
 
-// Stable shuffle: same seed + same array → same order every time
 function stableShuffle<T>(array: T[], seed: number): T[] {
   const arr = [...array];
   const rng = mulberry32(seed);
@@ -49,7 +47,6 @@ function stableShuffle<T>(array: T[], seed: number): T[] {
   return arr;
 }
 
-// Pick rotated keywords with wrap-around
 function pickRotatedKeywords(
   nicheKey: string,
   allKeywords: string[],
@@ -57,21 +54,32 @@ function pickRotatedKeywords(
   seed: string,
   rotationIndex: number,
 ): string[] {
-  // Clean: dedupe, trim, remove empties
-  const cleaned = [...new Set(allKeywords.map((k) => k.trim()).filter(Boolean))];
+  const seen = new Set<string>();
+  const cleaned: string[] = [];
+  for (const k of allKeywords || []) {
+    const t = String(k ?? "").trim();
+    if (!t) continue;
+    const key = t.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push(t);
+  }
+
   if (cleaned.length === 0) return [];
-  if (cleaned.length <= qCount) return cleaned;
 
-  // Combine seed + nicheKey for per-niche variation
   const combinedSeed = hashString(seed + ":" + nicheKey);
+
+  if (cleaned.length <= qCount) {
+    return stableShuffle(cleaned, combinedSeed);
+  }
+
   const shuffled = stableShuffle(cleaned, combinedSeed);
-
   const total = shuffled.length;
-  const offset = (rotationIndex * qCount) % total;
+  const take = Math.min(qCount, total);
+  const offset = (rotationIndex * take) % total;
 
-  // Wrap-around slice
   const result: string[] = [];
-  for (let i = 0; i < qCount; i++) {
+  for (let i = 0; i < take; i++) {
     result.push(shuffled[(offset + i) % total]);
   }
   return result;
