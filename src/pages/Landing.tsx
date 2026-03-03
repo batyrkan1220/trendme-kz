@@ -410,7 +410,7 @@ export default function Landing() {
       <section className="py-16 md:py-20 px-4">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">
-            Частые <span className="text-accent font-extrabold">вопросы</span>
+            Частые <span className="text-primary font-extrabold">вопросы</span>
           </h2>
           <div className="space-y-4">
             {[
