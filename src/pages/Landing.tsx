@@ -294,7 +294,7 @@ export default function Landing() {
             из TikTok и снимайте лучше
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed">
+          <p className="text-[15px] sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed">
             Узнайте, какие видео взрывают вашу нишу прямо сейчас. AI подскажет формат и напишет сценарий — вам останется только снять.
           </p>
 
