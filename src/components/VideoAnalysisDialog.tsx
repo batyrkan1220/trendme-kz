@@ -58,14 +58,22 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     if (open && video && video.url !== lastAnalyzedUrl.current) {
       lastAnalyzedUrl.current = video.url;
       reset();
-      analyze(video);
+      setShowLangPicker(true);
     }
     if (!open) {
       lastAnalyzedUrl.current = null;
       setIsPlaying(false);
       setShowScript(false);
+      setShowLangPicker(false);
     }
   }, [open, video]);
+
+  const startAnalysis = (lang: "ru" | "kk") => {
+    if (!video) return;
+    setLanguage(lang);
+    setShowLangPicker(false);
+    analyze({ v: video, lang });
+  };
 
   if (!video) return null;
 
