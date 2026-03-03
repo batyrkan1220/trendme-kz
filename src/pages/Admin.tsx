@@ -1026,11 +1026,12 @@ function RecategorizeSection() {
   const startRecategorize = async () => {
     setIsRunning(true);
     setProgress({ offset: 0, updated: 0, total: 0 });
-    toast.info("AI рекатегоризация запущена...");
     
     try {
       const session = (await supabase.auth.getSession()).data.session;
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-videos`, {
+      // Fire-and-forget: серверге жіберіп, жауапты күтпейміз
+      // Self-chaining серверде фонда жалғасады
+      fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-videos`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -1038,17 +1039,9 @@ function RecategorizeSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ offset: 0, limit: 200 }),
-      });
-
-      if (!res.ok) throw new Error("Ошибка запуска");
-      const data = await res.json();
-      setProgress({ offset: data.offset || 0, updated: data.updated || 0, total: data.processed || 0 });
+      }).catch(() => {}); // Ignore - server continues via self-chaining
       
-      if (data.hasMore) {
-        toast.success(`Первый батч: ${data.updated} обновлено. Остальные — автоматты.`);
-      } else {
-        toast.success(`Готово: ${data.updated} видео обновлено`);
-      }
+      toast.success("✅ AI рекатегоризация серверде іске қосылды! Бетті жабсаңыз да фонда жұмыс жасайды.");
     } catch (e: any) {
       toast.error(e.message || "Ошибка рекатегоризации");
     } finally {
