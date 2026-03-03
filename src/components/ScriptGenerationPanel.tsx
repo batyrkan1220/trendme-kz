@@ -300,7 +300,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
               }`}
             >
               <Sparkles className="h-4 w-4" />
-              Новый сценарий
+              {isKk ? "Жаңа сценарий" : "Новый сценарий"}
             </button>
             <button
               onClick={() => setActiveTab("original")}
