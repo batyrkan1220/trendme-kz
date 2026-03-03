@@ -4,7 +4,7 @@ import {
   TrendingUp, Search, BarChart3, Eye, Zap,
   ArrowRight, Check, Sparkles, Star, Users, FileText, ChevronRight,
   Target, Clock, Flame, Video, Lightbulb,
-  Rocket, CircleDot, Heart, MessageCircle, Share2, Play
+  Rocket, CircleDot, Heart, MessageCircle, Share2, Play, Menu, X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import logoIcon from "@/assets/logo-icon-cropped.png";
