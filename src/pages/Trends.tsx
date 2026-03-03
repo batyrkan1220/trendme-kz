@@ -117,7 +117,7 @@ export default function Trends() {
       if (period > 0) {
         const since = new Date();
         since.setDate(since.getDate() - period);
-        q = q.gte("published_at", since.toISOString());
+        q = q.gte("fetched_at", since.toISOString());
       }
       // No minimum views filter — show all videos
       if (niche !== "all") {
