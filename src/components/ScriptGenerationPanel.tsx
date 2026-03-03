@@ -89,7 +89,7 @@ async function streamScript({
   onDone();
 }
 
-export function ScriptGenerationPanel({ transcript, summary, caption, onBack }: ScriptPanelProps) {
+export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", onBack }: ScriptPanelProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"new" | "original">("new");
   const [messages, setMessages] = useState<Msg[]>([]);
