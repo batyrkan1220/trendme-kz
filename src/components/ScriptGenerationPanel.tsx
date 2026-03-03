@@ -198,7 +198,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
   const copyScript = () => {
     navigator.clipboard.writeText(scriptRef.current || scriptContent);
-    toast.success("Сценарий скопирован!");
+    toast.success(isKk ? "Сценарий көшірілді!" : "Сценарий скопирован!");
   };
 
   const saveScript = async () => {
