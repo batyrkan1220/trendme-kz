@@ -2,7 +2,7 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, TrendingUp, Search, Sparkles, BookOpen, Menu,
+  LayoutDashboard, TrendingUp, Search, Sparkles, Star, Menu,
   Video, UserCircle
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
