@@ -523,22 +523,22 @@ export default function Landing() {
       </section>
 
       {/* ═══ Footer ═══ */}
-      <footer className="border-t border-border/50 py-10 md:py-12 px-4">
+      <footer className="border-t border-border/50 py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <img src={logoIcon} alt="TrendMe" className="w-8 h-8 rounded-lg" />
-              <BrandName className="text-base" />
+            <div className="flex items-center gap-2.5">
+              <img src={logoIcon} alt="TrendMe" className="w-9 h-9 rounded-lg" />
+              <BrandName className="text-lg md:text-xl" />
             </div>
-            <div className="flex items-center gap-6">
-              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
-              <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
-              <a href="#reviews" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
-              <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+            <div className="flex items-center gap-8">
+              <a href="#features" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
+              <a href="#pricing" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
+              <a href="#reviews" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
+              <a href="#faq" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
             </div>
           </div>
-          <div className="mt-6 pt-6 border-t border-border/30 text-center">
-            <p className="text-sm text-muted-foreground">
+          <div className="mt-8 pt-8 border-t border-border/30 text-center">
+            <p className="text-[15px] text-muted-foreground">
               © 2026 TrendMe. Все права защищены.
             </p>
           </div>
