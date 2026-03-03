@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTokens } from "@/hooks/useTokens";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,6 +92,7 @@ async function streamScript({
 
 export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", onBack }: ScriptPanelProps) {
   const { user } = useAuth();
+  const { spend } = useTokens();
   const isKk = language === "kk";
   const [activeTab, setActiveTab] = useState<"new" | "original">("new");
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -103,7 +105,11 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
   // Auto-generate on mount
   useEffect(() => {
-    generateScript([]);
+    (async () => {
+      const ok = await spend("script_generation", isKk ? "Сценарий генерациясы" : "Генерация сценария");
+      if (!ok) { onBack(); return; }
+      generateScript([]);
+    })();
   }, []);
 
   const generateScript = async (chatMsgs: Msg[]) => {
@@ -186,7 +192,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     });
   };
 
-  const handleRegenerate = () => {
+  const handleRegenerate = async () => {
+    const ok = await spend("script_generation", isKk ? "Сценарийді қайта генерациялау" : "Перегенерация сценария");
+    if (!ok) return;
     generateScript([]);
     setMessages([{
       role: "assistant",
