@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
+import { useTokens } from "@/hooks/useTokens";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
-  BookOpen, ScrollText, Coins, CreditCard, LogOut, Flame, ArrowRight
+  Star, ScrollText, CreditCard, LogOut, Flame, ArrowRight, Shield
 } from "lucide-react";
 import logoIcon from "@/assets/logo-icon-cropped.png";
 
@@ -28,7 +30,7 @@ const toolItems: NavItem[] = [
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Избранные", icon: BookOpen, path: "/library" },
+  { label: "Избранные", icon: Star, path: "/library" },
   { label: "Журнал", icon: ScrollText, path: "/journal" },
 ];
 
@@ -41,6 +43,8 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
+  const { balance } = useTokens();
 
   const handleLogout = async () => {
     await signOut();
@@ -90,13 +94,14 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
           {renderGroup("Поиск контента", searchItems)}
           {renderGroup("Инструменты", toolItems)}
           {renderGroup("Идеи", ideaItems)}
+          {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin" }])}
         </nav>
 
         <div className="border-t border-border/50 p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px)+70px)]">
           <Link to="/tokens" onClick={onClose} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm hover:bg-muted/60 transition-colors">
             <Flame className="h-4 w-4 text-primary shrink-0" />
             <span className="flex-1 text-muted-foreground font-medium">Токены</span>
-            <span className="text-xs font-bold text-foreground">1000</span>
+            <span className="text-xs font-bold text-foreground">{balance}</span>
           </Link>
           <Link to="/pricing" onClick={onClose} className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-muted/60 transition-colors">
             <CreditCard className="h-4 w-4 shrink-0" />
