@@ -1482,11 +1482,11 @@ function TariffsTab() {
 }
 
 function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose: () => void; onSave: (p: any) => void; saving: boolean }) {
-  const [form, setForm] = useState({ ...plan, features: Array.isArray(plan.features) ? plan.features.join("\n") : "" });
+  const [form, setForm] = useState({ ...plan, tokens_included: plan.tokens_included ?? 0, features: Array.isArray(plan.features) ? plan.features.join("\n") : "" });
   const handleSave = () => {
     onSave({
       ...(plan.id ? { id: plan.id } : {}), name: form.name, price_rub: Number(form.price_rub), duration_days: Number(form.duration_days),
-      max_requests: Number(form.max_requests), max_tracked_accounts: Number(form.max_tracked_accounts),
+      max_requests: Number(form.max_requests), max_tracked_accounts: Number(form.max_tracked_accounts), tokens_included: Number(form.tokens_included),
       features: form.features.split("\n").map((f: string) => f.trim()).filter(Boolean), is_active: form.is_active, sort_order: Number(form.sort_order),
     });
   };
@@ -1504,6 +1504,7 @@ function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose:
             <div><label className="text-sm text-muted-foreground">Макс запросов (-1 = ∞)</label><Input type="number" value={form.max_requests} onChange={(e) => setForm({ ...form, max_requests: e.target.value })} /></div>
             <div><label className="text-sm text-muted-foreground">Макс авторов (-1 = ∞)</label><Input type="number" value={form.max_tracked_accounts} onChange={(e) => setForm({ ...form, max_tracked_accounts: e.target.value })} /></div>
           </div>
+          <div><label className="text-sm text-muted-foreground">⚡ Токенов при покупке</label><Input type="number" value={form.tokens_included} onChange={(e) => setForm({ ...form, tokens_included: e.target.value })} placeholder="0" /></div>
           <div><label className="text-sm text-muted-foreground">Фичи (по одной на строку)</label><textarea className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-20" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} /></div>
           <div className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded" /><span className="text-sm">Активен</span></div>
         </div>
