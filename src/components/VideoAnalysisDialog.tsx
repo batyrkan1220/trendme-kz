@@ -37,12 +37,14 @@ const fmt = (n: number) => {
 export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
+  const [language, setLanguage] = useState<"ru" | "kk">("ru");
+  const [showLangPicker, setShowLangPicker] = useState(false);
   const lastAnalyzedUrl = useRef<string | null>(null);
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
-    mutationFn: async (v: VideoData) => {
+    mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "analyze_video", video_url: v.url, caption: v.caption || "" },
+        body: { action: "analyze_video", video_url: v.url, caption: v.caption || "", language: lang },
       });
       if (error) throw error;
       return data;
