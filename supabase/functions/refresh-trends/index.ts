@@ -116,8 +116,6 @@ Deno.serve(async (req: Request) => {
     let mode = "full";
     let batchIndex = 0;
     let logId: string | null = null;
-    let existingNicheStats: Record<string, number> = {};
-    let existingTotalSaved = 0;
     try {
       const body = await req.json();
       if (body?.lite) mode = "lite";
@@ -126,8 +124,6 @@ Deno.serve(async (req: Request) => {
       else if (body?.mode === "lite") mode = "lite";
       if (typeof body?.batch === "number") batchIndex = body.batch;
       if (body?.logId) logId = body.logId;
-      if (body?.nicheStats) existingNicheStats = body.nicheStats;
-      if (typeof body?.totalSaved === "number") existingTotalSaved = body.totalSaved;
     } catch { /* no body = cron call */ }
 
     // Load thresholds from DB
@@ -277,11 +273,28 @@ Deno.serve(async (req: Request) => {
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
     const now = new Date().toISOString();
-    const nicheStats: Record<string, number> = { ...existingNicheStats };
-    let totalSaved = existingTotalSaved;
 
-    // Create log entry on first batch only
+    // Load accumulated stats from DB log if continuing a run
+    let nicheStats: Record<string, number> = {};
+    let totalSaved = 0;
+    if (logId) {
+      const { data: existingLog } = await adminClient
+        .from("trend_refresh_logs")
+        .select("niche_stats, total_saved")
+        .eq("id", logId)
+        .single();
+      if (existingLog) {
+        nicheStats = (existingLog.niche_stats as Record<string, number>) || {};
+        totalSaved = existingLog.total_saved || 0;
+      }
+    }
+
+    // Create log entry on first batch only; cancel any stale running logs first
     if (!logId) {
+      await adminClient.from("trend_refresh_logs")
+        .update({ status: "error", error_message: "Superseded by new run", finished_at: new Date().toISOString() })
+        .eq("status", "running");
+
       const { data: logEntry } = await adminClient.from("trend_refresh_logs").insert({
         mode,
         status: "running",
@@ -293,8 +306,8 @@ Deno.serve(async (req: Request) => {
       logId = logEntry?.id || null;
     }
 
-    // Self-chaining helper
-    const chainNextBatch = async (nextBatch: number, updatedNicheStats: Record<string, number>, updatedTotalSaved: number) => {
+    // Self-chaining helper - reads accumulated stats from DB log
+    const chainNextBatch = async (nextBatch: number) => {
       try {
         await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
           method: "POST",
@@ -306,8 +319,6 @@ Deno.serve(async (req: Request) => {
             mode,
             batch: nextBatch,
             logId,
-            nicheStats: updatedNicheStats,
-            totalSaved: updatedTotalSaved,
           }),
         });
       } catch (e) {
@@ -347,106 +358,77 @@ Deno.serve(async (req: Request) => {
 
         for (const query of uniqueQueries) {
           try {
-            const data = await callSocialKit("/tiktok/search", { query, count: "100" });
+            const data = await callSocialKit("/tiktok/search", { query, count: "30" });
             const videos = extractVideos(data);
-            allRawVideos.push(...videos);
+            const videoRows = videos.map(v => {
+              const videoId = v.id || v.video_id || v.aweme_id;
+              if (!videoId) return null;
+              const trends = computeTrend(v);
+              const publishedDate = new Date(trends.published_at);
+              if (publishedDate < sevenDaysAgo) return null;
+              const stats = v.stats || {};
+              const caption = v.desc || v.caption || v.title || "";
+              const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
+              return {
+                platform: "tiktok",
+                platform_video_id: String(videoId),
+                url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
+                caption,
+                cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
+                author_username: username,
+                author_display_name: v.author?.nickname || v.author_display_name || "",
+                author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
+                views: stats.views || v.views || v.playCount || 0,
+                likes: stats.likes || v.likes || v.diggCount || 0,
+                comments: stats.comments || v.comments || v.commentCount || 0,
+                shares: stats.shares || v.shares || v.shareCount || 0,
+                duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
+                fetched_at: now,
+                region: "kz",
+                niche: nicheKey,
+                categories: [nicheKey],
+                ...trends,
+              };
+            }).filter(Boolean);
+
+            const cyrillicRows = videoRows.filter((row: any) => {
+              const cap = row.caption || "";
+              return /[а-яА-ЯёЁәғқңөұүіӘҒҚҢӨҰҮІ]/.test(cap);
+            });
+
+            if (cyrillicRows.length > 0) {
+              const { data: upserted, error: upsertErr } = await adminClient
+                .from("videos")
+                .upsert(cyrillicRows, { onConflict: "platform_video_id" })
+                .select("id");
+              if (upsertErr) console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
+              nicheSaved += upserted?.length || 0;
+            }
           } catch (err) {
             console.error(`Niche ${nicheKey} query "${query}" failed:`, err.message);
           }
         }
 
-        // Deduplicate raw videos by ID
-        const seenIds = new Set<string>();
-        const uniqueRawVideos = allRawVideos.filter(v => {
-          const id = String(v.id || v.video_id || v.aweme_id || "");
-          if (!id || seenIds.has(id)) return false;
-          seenIds.add(id);
-          return true;
-        });
-
-        // Run AI viral detection on all collected videos
-        const viralScores = await detectViralWithAI(uniqueRawVideos, nicheKey);
-        console.log(`Niche ${nicheKey}: ${uniqueRawVideos.length} unique videos, AI scored ${viralScores.size}`);
-
-        // Build rows with AI-boosted trend scores
-        const videoRows = uniqueRawVideos.map(v => {
-          const videoId = v.id || v.video_id || v.aweme_id;
-          if (!videoId) return null;
-          const trends = computeTrend(v);
-          const publishedDate = new Date(trends.published_at);
-          if (publishedDate < sevenDaysAgo) return null;
-          const stats = v.stats || {};
-          const caption = v.desc || v.caption || v.title || "";
-          const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
-
-          // Boost trend_score with AI viral score
-          const aiScore = viralScores.get(String(videoId)) || 0;
-          const boostedTrendScore = trends.trend_score + (aiScore * 10); // AI score 0-100 → boost 0-1000
-
-          return {
-            platform: "tiktok",
-            platform_video_id: String(videoId),
-            url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
-            caption,
-            cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-            author_username: username,
-            author_display_name: v.author?.nickname || v.author_display_name || "",
-            author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
-            views: stats.views || v.views || v.playCount || 0,
-            likes: stats.likes || v.likes || v.diggCount || 0,
-            comments: stats.comments || v.comments || v.commentCount || 0,
-            shares: stats.shares || v.shares || v.shareCount || 0,
-            duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
-            fetched_at: now,
-            region: "kz",
-            niche: nicheKey,
-            categories: [nicheKey],
-            ...trends,
-            trend_score: boostedTrendScore,
-          };
-        }).filter(Boolean);
-
-        // Filter: keep only videos with Cyrillic captions OR high AI viral score (>=70)
-        const filteredRows = videoRows.filter((row: any) => {
-          const cap = row.caption || "";
-          const hasCyrillic = /[а-яА-ЯёЁәғқңөұүіӘҒҚҢӨҰҮІ]/.test(cap);
-          const aiScore = viralScores.get(row.platform_video_id) || 0;
-          return hasCyrillic || aiScore >= 70;
-        });
-
-        if (filteredRows.length > 0) {
-          console.log(`Niche ${nicheKey}: upserting ${filteredRows.length} filtered rows...`);
-          const { data: upserted, error: upsertErr } = await adminClient
-            .from("videos")
-            .upsert(filteredRows, { onConflict: "platform_video_id" })
-            .select("id");
-          if (upsertErr) {
-            console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
-          }
-          nicheSaved += upserted?.length || 0;
-        } else {
-          console.log(`Niche ${nicheKey}: 0 rows passed filter (${videoRows.length} before filter)`);
-        }
-
         nicheStats[nicheKey] = nicheSaved;
         totalSaved += nicheSaved;
-        console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos (AI boosted)`);
-      }));
-    }
 
-    // Update log with progress
-    if (logId) {
-      await adminClient.from("trend_refresh_logs").update({
-        total_saved: totalSaved,
-        niche_stats: nicheStats,
-      }).eq("id", logId);
+        // Update log IMMEDIATELY after each niche
+        if (logId) {
+          await adminClient.from("trend_refresh_logs").update({
+            total_saved: totalSaved,
+            niche_stats: nicheStats,
+          }).eq("id", logId);
+        }
+
+        console.log(`Niche ${nicheKey}: saved ${nicheSaved} videos, total: ${totalSaved}`);
+      }));
     }
 
     // Chain to next batch or finish
     const nextBatch = batchIndex + 1;
     if (nextBatch < totalBatches) {
       console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
-      chainNextBatch(nextBatch, nicheStats, totalSaved);
+      await chainNextBatch(nextBatch);
     } else {
       // All batches done — mark as complete
       console.log(`Refresh COMPLETE. Total saved: ${totalSaved}`);
