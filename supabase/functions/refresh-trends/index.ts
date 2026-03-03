@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 const MIN_VIEWS = 3000; // Minimum views threshold
-const BATCH_SIZE = 3; // Process 3 niches per batch (reduced from 5 to avoid rate limits)
+const BATCH_SIZE = 2; // Process 2 niches per batch to stay within timeout
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -69,6 +69,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+    const MAX_EXECUTION_MS = 50000; // 50s safety limit
+    const startTime = Date.now();
 
     const callSocialKit = async (path: string, params: Record<string, string>, retries = 3): Promise<any> => {
       const url = new URL(`${SOCIALKIT_BASE}${path}`);
@@ -311,10 +313,9 @@ Deno.serve(async (req: Request) => {
       const uniqueQueries = [...new Set(combinedQueries)].slice(0, qCount);
       let nicheSaved = 0;
 
-      // Run queries sequentially in small batches to avoid rate limits
-      const PARALLEL_QUERIES = 2;
+      const PARALLEL_QUERIES = 3;
       for (let i = 0; i < uniqueQueries.length; i += PARALLEL_QUERIES) {
-        if (i > 0) await sleep(3000); // 3s delay between batches
+        if (i > 0) await sleep(1500); // 1.5s delay between batches
         const queryBatch = uniqueQueries.slice(i, i + PARALLEL_QUERIES);
         const results = await Promise.allSettled(queryBatch.map(async (query) => {
           try {
@@ -399,6 +400,10 @@ Deno.serve(async (req: Request) => {
       
       // Process niches sequentially to avoid SocialKit rate limits
       for (const nicheKey of nicheKeys) {
+        if (Date.now() - startTime > MAX_EXECUTION_MS) {
+          console.log(`⏱ Timeout safety: stopping after ${Math.round((Date.now() - startTime) / 1000)}s`);
+          break;
+        }
         try {
           const saved = await processNiche(nicheKey, aiQueries);
           nicheStats[nicheKey] = saved;
@@ -408,7 +413,7 @@ Deno.serve(async (req: Request) => {
           console.error(`✗ ${nicheKey} failed:`, e.message);
           nicheStats[nicheKey] = 0;
         }
-        await sleep(2000); // 2s pause between niches
+        await sleep(1000); // 1s pause between niches
       }
 
       // Update log after batch
