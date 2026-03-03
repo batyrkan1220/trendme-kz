@@ -105,7 +105,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         <img src={logoIcon} alt="TrendMe" className="h-8 w-8 rounded-lg shrink-0 object-cover" />
         {!collapsed && (
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-base text-foreground tracking-tight">TrendMe</span>
+            <span className="font-bold text-base tracking-tight"><span className="text-foreground">Trend</span><span className="text-primary">Me</span></span>
             <span className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md uppercase">Beta</span>
           </div>
         )}
