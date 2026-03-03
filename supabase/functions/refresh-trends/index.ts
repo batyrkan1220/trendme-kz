@@ -284,7 +284,7 @@ Deno.serve(async (req: Request) => {
         .from("videos")
         .select("id", { count: "exact", head: true })
         .eq("niche", nicheKey)
-        .gte("published_at", thirtyDaysAgo.toISOString());
+        .gte("published_at", freshWindow.toISOString());
       
       const currentCount = count || 0;
       if (currentCount <= limit) return;
