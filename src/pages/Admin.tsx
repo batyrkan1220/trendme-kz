@@ -384,9 +384,30 @@ function RefreshSection() {
             }
           </Button>
           {isRunning && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Обновление работает на сервере. Можете закрыть страницу — процесс не остановится.</span>
+            <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Обновление работает на сервере.</span>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-1.5 shrink-0"
+                onClick={async () => {
+                  const runningLog = logs.find((l: any) => l.status === "running");
+                  if (!runningLog) return;
+                  const { error } = await supabase.from("trend_refresh_logs").update({
+                    status: "error",
+                    error_message: "Остановлено вручную администратором",
+                    finished_at: new Date().toISOString(),
+                  }).eq("id", runningLog.id);
+                  if (error) { toast.error("Не удалось остановить"); return; }
+                  toast.success("Обновление остановлено");
+                  queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
+                }}
+              >
+                <X className="h-4 w-4" />Остановить
+              </Button>
             </div>
           )}
           <p className="text-sm text-muted-foreground">
