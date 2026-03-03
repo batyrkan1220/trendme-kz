@@ -67,7 +67,7 @@ export default function Dashboard() {
             </div>
             <Link
               to="/search"
-              className="hidden sm:flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-white/30 transition-colors"
+              className="hidden sm:flex items-center gap-2 bg-primary-foreground/20 backdrop-blur-sm text-primary-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-foreground/30 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Новый поиск
