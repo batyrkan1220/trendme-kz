@@ -414,7 +414,7 @@ Deno.serve(async (req: Request) => {
                 shares: stats.shares || v.shares || v.shareCount || 0,
                 duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
                 fetched_at: now,
-                region: "kz",
+                region: "world",
                 niche: nicheKey,
                 categories: [nicheKey],
                 ...trends,
