@@ -9,7 +9,7 @@ import {
   Flame, ArrowRight, Shield,
   LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
-import logoIcon from "@/assets/logo-icon-v2.png";
+import logoIcon from "@/assets/logo-icon-cropped.png";
 
 interface NavItem {
   label: string;
