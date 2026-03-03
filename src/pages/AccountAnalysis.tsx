@@ -128,7 +128,7 @@ export default function AccountAnalysis() {
             <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center">
               <UserCircle className="h-10 w-10 text-muted-foreground/30" />
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground text-center">Анализ аккаунта 👤</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Анализ аккаунта 👤</h1>
             <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на профиль TikTok для анализа</p>
             <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Input
