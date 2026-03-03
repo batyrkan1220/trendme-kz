@@ -411,13 +411,6 @@ Deno.serve(async (req: Request) => {
         await sleep(2000); // 2s pause between niches
       }
 
-      for (const r of results) {
-        if (r.status === "fulfilled") {
-          nicheStats[r.value.nicheKey] = r.value.saved;
-          totalSaved += r.value.saved;
-        }
-      }
-
       // Update log after batch
       if (logId) {
         await adminClient.from("trend_refresh_logs").update({
