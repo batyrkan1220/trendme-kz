@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import {
   TrendingUp, Search, BarChart3, Eye, Zap,
   ArrowRight, Check, Sparkles, Star, Play, Users, FileText, ChevronRight,
-  Target, Clock, Globe, Shield, Flame, BarChart, Video, Lightbulb
+  Target, Clock, Globe, Shield, Flame, BarChart, Video, Lightbulb,
+  Rocket, CircleDot
 } from "lucide-react";
 import logoIcon from "@/assets/logo-icon-cropped.png";
 
@@ -11,13 +12,6 @@ const BrandName = ({ className = "" }: { className?: string }) => (
   <span className={`font-bold tracking-tight ${className}`}>
     <span className="text-foreground">Trend</span>
     <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Me</span>
-  </span>
-);
-
-const BrandNameLight = ({ className = "" }: { className?: string }) => (
-  <span className={`font-bold tracking-tight ${className}`}>
-    <span className="text-primary-foreground">Trend</span>
-    <span className="text-primary-foreground/70">Me</span>
   </span>
 );
 
@@ -32,51 +26,45 @@ const features = [
     icon: TrendingUp,
     title: "Мониторинг трендов",
     desc: "Получайте уведомления о новых трендах раньше конкурентов. Анализ хештегов, звуков и форматов в реальном времени.",
-    color: "bg-primary",
     metric: "2x быстрее",
   },
   {
     icon: Search,
     title: "Умный поиск",
     desc: "Поиск по ключевым словам, нишам и авторам с фильтрацией по просмотрам, ER и velocity-метрикам.",
-    color: "bg-primary",
     metric: "10M+ видео",
   },
   {
     icon: Eye,
     title: "Разведка конкурентов",
     desc: "Отслеживайте стратегии конкурентов. Узнавайте какие форматы и темы дают им максимальный охват.",
-    color: "bg-primary",
     metric: "∞ авторов",
   },
   {
     icon: BarChart3,
     title: "Глубокая аналитика",
     desc: "Velocity просмотров, вовлечённость, прогноз виральности — полная картина по каждому видео.",
-    color: "bg-primary",
     metric: "15+ метрик",
   },
   {
     icon: FileText,
     title: "ИИ-сценарии",
     desc: "Анализируем вирусные видео и генерируем сценарии, адаптированные под вашу нишу и стиль.",
-    color: "bg-primary",
     metric: "GPT-5",
   },
   {
     icon: Zap,
     title: "Автоматические отчёты",
     desc: "Ежедневные инсайты, рекомендации по контенту и оповещения о трендах прямо в ваш аккаунт.",
-    color: "bg-primary",
     metric: "24/7",
   },
 ];
 
 const stats = [
-  { value: "10M+", label: "Видео в базе", icon: Video },
-  { value: "50K+", label: "Трендов найдено", icon: TrendingUp },
-  { value: "2 500+", label: "Пользователей", icon: Users },
-  { value: "98%", label: "Точность ИИ", icon: Target },
+  { value: "5M+", label: "видео проанализировано" },
+  { value: "150+", label: "ниш и категорий" },
+  { value: "24/7", label: "мониторинг трендов" },
+  { value: "98%", label: "точность аналитики" },
 ];
 
 const testimonials = [
@@ -137,38 +125,32 @@ const steps = [
   { num: "03", title: "Действуйте", desc: "Готовые сценарии, рекомендации и стратегия", icon: Lightbulb },
 ];
 
-const painPoints = [
-  { problem: "Тратите часы на поиск идей?", solution: "ИИ генерирует сценарии за 30 секунд" },
-  { problem: "Не знаете что сейчас в тренде?", solution: "Получайте тренды на 48ч раньше" },
-  { problem: "Конкуренты растут быстрее?", solution: "Разведка покажет их стратегию" },
-  { problem: "Низкие охваты и ER?", solution: "Velocity-метрики прогнозируют виральность" },
-];
-
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 md:h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={logoIcon} alt="TrendMe" className="w-8 h-8 md:w-9 md:h-9 rounded-xl shadow-lg" />
             <BrandName className="text-base md:text-lg" />
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Возможности</a>
             <a href="#how" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Как это работает</a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
+            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
             <a href="#reviews" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
+            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
+            <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             <Link to="/auth">
-              <Button variant="ghost" className="text-xs md:text-sm font-medium text-muted-foreground hover:text-foreground px-2 md:px-4">
+              <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-foreground px-3 md:px-4">
                 Войти
               </Button>
             </Link>
             <Link to="/auth">
-              <Button className="gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-xs md:text-sm font-semibold px-3 md:px-5 h-8 md:h-9">
-                Начать бесплатно
+              <Button className="bg-primary text-primary-foreground rounded-xl text-sm font-semibold px-4 md:px-5 h-9 md:h-10 hover:bg-primary/90">
+                Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Link>
           </div>
@@ -176,104 +158,71 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-28 pb-16 md:pt-44 md:pb-32 px-4 relative">
-        <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[150px] pointer-events-none" />
-        <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[130px] pointer-events-none" />
+      <section className="pt-32 pb-16 md:pt-48 md:pb-24 px-4 relative">
+        {/* Soft gradient blobs */}
+        <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent pointer-events-none" />
+        <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.06] rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 text-primary text-sm font-semibold px-4 py-1.5 rounded-full mb-8">
-            <TikTokIcon className="h-4 w-4" />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 text-sm font-medium text-foreground mb-8 md:mb-10">
+            <TikTokIcon className="h-5 w-5" />
             TikTok Official Partner
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-[4.5rem] font-extrabold leading-[1.05] tracking-tight mb-6">
-            Ваши видео будут
-            <br />
-            <span className="text-foreground">залетать в ТОП</span>
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-[4.2rem] lg:text-[4.8rem] font-extrabold leading-[1.08] tracking-tight mb-6 md:mb-8">
+            Находите{" "}
+            <span className="relative inline-block">
+              <span className="relative z-10">вирусные видео</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/30 to-blue-400/20 rounded-lg -skew-y-1 scale-y-110 scale-x-105" />
+            </span>{" "}
+            из TikTok и снимайте лучше
           </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            ИИ-платформа для мониторинга трендов, анализа конкурентов и генерации вирусных сценариев. Более 2 500 авторов уже растут с нами.
+          {/* Subtitle */}
+          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 md:mb-12 leading-relaxed">
+            Узнайте, какие видео взрывают вашу нишу прямо сейчас. AI подскажет формат и напишет сценарий — вам останется только снять.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+          {/* CTA Button */}
+          <div className="mb-6 md:mb-8">
             <Link to="/auth">
-              <Button className="gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-bold px-8 h-14 min-h-[56px] text-[15px]">
+              <Button className="bg-primary text-primary-foreground rounded-2xl text-base md:text-lg font-bold px-8 md:px-10 h-14 md:h-16 shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.4)] hover:shadow-[0_12px_40px_-6px_hsl(var(--primary)/0.5)] hover:bg-primary/90 transition-all">
+                <Rocket className="mr-2 h-5 w-5" />
                 Попробовать бесплатно
-                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <a href="#how">
-              <Button variant="outline" className="rounded-xl text-base font-semibold px-8 h-14 min-h-[56px] border-border/50 bg-card hover:bg-muted">
-                <Play className="mr-2 h-4 w-4" />
-                Как это работает
-              </Button>
-            </a>
           </div>
 
-          <p className="text-xs text-muted-foreground mb-14">
-            Бесплатно · Без карты · Настройка за 30 секунд
-          </p>
+          {/* Trust badges */}
+          <div className="flex items-center justify-center gap-3 md:gap-6 text-xs md:text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <CircleDot className="h-3.5 w-3.5" />
+              Без карты
+            </span>
+            <span className="text-border">•</span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              Доступ сразу
+            </span>
+            <span className="text-border">•</span>
+            <span className="flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5" />
+              50 запросов/день
+            </span>
+          </div>
+        </div>
+      </section>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-3xl mx-auto">
+      {/* Stats */}
+      <section className="pb-16 md:pb-28 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
             {stats.map((s) => (
-              <div key={s.label} className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-4 card-shadow hover-lift transition-all">
-                <s.icon className="h-5 w-5 text-primary mx-auto mb-2" />
-                <div className="text-2xl md:text-3xl font-extrabold text-foreground">{s.value}</div>
-                <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pain Points */}
-      <section className="py-12 md:py-16 px-4 border-y border-border/30">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {painPoints.map((p) => (
-              <div key={p.problem} className="flex flex-col gap-2 p-5 rounded-2xl bg-card border border-border/50 card-shadow">
-                <p className="text-sm font-medium text-foreground">{p.problem}</p>
-                <p className="text-sm text-primary font-semibold flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 shrink-0" />
-                  {p.solution}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-16 md:py-28 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Возможности</p>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Всё для <span className="text-primary font-extrabold">роста</span> в TikTok
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Один инструмент заменяет десятки сервисов. Работайте умнее, а не больше.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {features.map((f) => (
-              <div
-                key={f.title}
-                className="group relative rounded-2xl p-6 bg-card border border-border/50 card-shadow hover-lift transition-all duration-300 hover:border-primary/20"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-11 h-11 rounded-xl ${f.color} flex items-center justify-center`}>
-                    <f.icon className="h-5 w-5 text-primary-foreground" />
-                  </div>
-                  <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
-                    {f.metric}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-foreground mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              <div key={s.label} className="text-center">
+                <div className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">{s.value}</div>
+                <div className="text-xs md:text-sm text-muted-foreground mt-1.5">{s.label}</div>
               </div>
             ))}
           </div>
@@ -281,12 +230,12 @@ export default function Landing() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="py-16 md:py-28 px-4 bg-muted/30">
+      <section id="how" className="py-16 md:py-28 px-4 bg-muted/30 border-y border-border/30">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Как это работает</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Три шага к <span className="text-primary font-extrabold">вирусному контенту</span>
+              Три шага к <span className="text-primary">вирусному контенту</span>
             </h2>
           </div>
 
@@ -310,7 +259,7 @@ export default function Landing() {
 
           <div className="text-center mt-12">
             <Link to="/auth">
-              <Button className="bg-primary text-primary-foreground border-0 rounded-xl text-base font-bold px-8 h-13 min-h-[52px] hover:opacity-90">
+              <Button className="bg-primary text-primary-foreground rounded-xl text-base font-bold px-8 h-13 min-h-[52px] hover:bg-primary/90">
                 Начать сейчас — бесплатно
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -319,13 +268,48 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Features */}
+      <section id="features" className="py-16 md:py-28 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12 md:mb-16">
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Инструменты</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
+              Всё для <span className="text-primary">роста</span> в TikTok
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Один инструмент заменяет десятки сервисов
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f) => (
+              <div
+                key={f.title}
+                className="group relative rounded-2xl p-6 bg-card border border-border/50 card-shadow hover-lift transition-all duration-300 hover:border-primary/20"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center">
+                    <f.icon className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
+                    {f.metric}
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-2">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
-      <section id="reviews" className="py-16 md:py-28 px-4">
+      <section id="reviews" className="py-16 md:py-28 px-4 bg-muted/30 border-y border-border/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Реальные <span className="text-primary font-extrabold">результаты</span>
+              Реальные <span className="text-primary">результаты</span>
             </h2>
             <p className="text-muted-foreground text-lg">Наши пользователи растут быстрее</p>
           </div>
@@ -363,12 +347,12 @@ export default function Landing() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-16 md:py-28 px-4 bg-muted/30">
+      <section id="pricing" className="py-16 md:py-28 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Тарифы</p>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4">
-              Выберите свой <span className="text-primary font-extrabold">план</span>
+              Выберите свой <span className="text-primary">план</span>
             </h2>
             <p className="text-muted-foreground text-lg">Начните бесплатно. Масштабируйтесь, когда будете готовы.</p>
           </div>
@@ -379,7 +363,7 @@ export default function Landing() {
                 key={plan.name}
                 className={`rounded-2xl p-6 md:p-7 border transition-all hover-lift relative ${
                   plan.popular
-                    ? "gradient-card glow-primary border-primary/20 scale-[1.02] md:scale-105"
+                    ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.15)] scale-[1.02] md:scale-105"
                     : "bg-card border-border/50 card-shadow"
                 }`}
               >
@@ -406,7 +390,7 @@ export default function Landing() {
                   <Button
                     className={`w-full rounded-xl h-11 font-semibold ${
                       plan.popular
-                        ? "bg-primary text-primary-foreground border-0"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
                         : "bg-secondary text-secondary-foreground border border-border hover:bg-muted"
                     }`}
                   >
@@ -420,10 +404,10 @@ export default function Landing() {
       </section>
 
       {/* FAQ */}
-      <section className="py-16 md:py-20 px-4">
+      <section id="faq" className="py-16 md:py-20 px-4 bg-muted/30 border-t border-border/30">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">
-            Частые <span className="text-primary font-extrabold">вопросы</span>
+            Частые <span className="text-primary">вопросы</span>
           </h2>
           <div className="space-y-4">
             {[
@@ -449,9 +433,9 @@ export default function Landing() {
       {/* CTA */}
       <section className="py-12 md:py-24 px-3 md:px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="rounded-2xl md:rounded-3xl gradient-hero p-6 md:p-16 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.15),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.08),transparent_50%)]" />
+          <div className="rounded-2xl md:rounded-3xl bg-primary p-8 md:p-16 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.12),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.06),transparent_50%)]" />
             <div className="relative z-10">
               <div className="inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-xs md:text-sm font-semibold px-3 md:px-4 py-1.5 rounded-full mb-5 md:mb-6">
                 <Flame className="h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -480,12 +464,15 @@ export default function Landing() {
       <footer className="border-t border-border/50 py-10 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <BrandName className="text-sm" />
+            <div className="flex items-center gap-2">
+              <img src={logoIcon} alt="TrendMe" className="w-7 h-7 rounded-lg" />
+              <BrandName className="text-sm" />
+            </div>
             <div className="flex items-center gap-6">
-              <a href="#features" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Возможности</a>
+              <a href="#features" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
               <a href="#pricing" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
               <a href="#reviews" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
-              <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Политика конфиденциальности</a>
+              <a href="#faq" className="text-xs text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
             </div>
           </div>
           <div className="mt-6 pt-6 border-t border-border/30 text-center">
