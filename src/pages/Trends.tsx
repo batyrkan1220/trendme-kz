@@ -326,7 +326,7 @@ export default function Trends() {
               const views = Number(video.views) || 0;
               const tier = getTier(views);
               const velViews = video.velocity_views || 0;
-              const isLocked = i >= FREE_LIMIT && balance <= 0;
+              const isLocked = i >= FREE_LIMIT && isFreePlan;
 
               if (isLocked) {
                 return (
