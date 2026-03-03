@@ -453,7 +453,7 @@ export default function Landing() {
                 Бесплатный старт. Без привязки карты. Первые инсайты через 30 секунд.
               </p>
               <Link to="/auth">
-                <Button className="bg-white text-foreground hover:bg-white/90 rounded-xl text-base font-bold px-10 h-14 min-h-[56px] shadow-xl">
+                <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-base font-bold px-10 h-14 min-h-[56px] shadow-xl">
                   Создать аккаунт бесплатно
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
