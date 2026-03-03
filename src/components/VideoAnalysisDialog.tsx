@@ -231,7 +231,31 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             >
               <X className="h-5 w-5 text-foreground" />
             </button>
-            {isPending ? (
+            {showLangPicker ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-6">
+                <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
+                  <Sparkles className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-base font-bold text-foreground">Тілді таңдаңыз / Выберите язык</p>
+                  <p className="text-sm text-muted-foreground">Анализ будет на выбранном языке</p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => startAnalysis("kk")}
+                    className="px-6 py-3 rounded-xl border border-primary/30 text-foreground font-semibold text-sm hover:bg-primary/10 hover:border-primary transition-colors"
+                  >
+                    🇰🇿 Қазақ тілі
+                  </button>
+                  <button
+                    onClick={() => startAnalysis("ru")}
+                    className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity"
+                  >
+                    🇷🇺 Русский язык
+                  </button>
+                </div>
+              </div>
+            ) : isPending ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <div className="relative">
                   <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">

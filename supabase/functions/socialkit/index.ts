@@ -436,7 +436,9 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
                   },
                   {
                     role: "user",
-                    content: `Проанализируй это TikTok видео.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
+                    content: analysisLang === "kk"
+                      ? `Осы TikTok бейнесін талда.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
+                      : `Проанализируй это TikTok видео.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
                   }
                 ],
                 tools: [
