@@ -447,28 +447,28 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 px-4">
+      <section className="py-12 md:py-24 px-3 md:px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="rounded-3xl gradient-hero p-10 md:p-16 relative overflow-hidden">
+          <div className="rounded-2xl md:rounded-3xl gradient-hero p-6 md:p-16 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.15),transparent_60%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.08),transparent_50%)]" />
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
-                <Flame className="h-4 w-4" />
+              <div className="inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-xs md:text-sm font-semibold px-3 md:px-4 py-1.5 rounded-full mb-5 md:mb-6">
+                <Flame className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 Присоединяйтесь к 2 500+ авторам
               </div>
-              <h2 className="text-3xl md:text-5xl font-extrabold text-primary-foreground mb-4">
+              <h2 className="text-2xl md:text-5xl font-extrabold text-primary-foreground mb-3 md:mb-4">
                 Начните расти
-                <br className="hidden sm:block" />
+                <br />
                 в TikTok сегодня
               </h2>
-              <p className="text-primary-foreground/80 text-lg mb-8 max-w-lg mx-auto">
+              <p className="text-primary-foreground/80 text-sm md:text-lg mb-6 md:mb-8 max-w-lg mx-auto">
                 Бесплатный старт. Без привязки карты. Первые инсайты через 30 секунд.
               </p>
               <Link to="/auth">
-                <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-base font-bold px-10 h-14 min-h-[56px] shadow-xl">
+                <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-sm md:text-base font-bold px-6 md:px-10 h-12 md:h-14 shadow-xl">
                   Создать аккаунт бесплатно
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
                 </Button>
               </Link>
             </div>
