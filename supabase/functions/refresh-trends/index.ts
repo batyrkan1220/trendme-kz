@@ -9,7 +9,8 @@ const corsHeaders = {
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 
 // Filters
-const MIN_VIEWS = 5000;
+const MIN_VIEWS = 3000;
+const MAX_AGE_DAYS = 90;
 
 // Batching across niches
 const BATCH_SIZE = 1;
@@ -85,7 +86,7 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends COUNT=30 PAGES=3 offset=page*10 sort=3,1 pub=7,30 skip=tooOld";
+const VERSION = "refresh-trends COUNT=30 PAGES=5 offset=page*10 sort=3,1 pub=7,30 maxAge=90 minViews=1000/3000";
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
@@ -138,7 +139,7 @@ Deno.serve(async (req: Request) => {
   const startTime = Date.now();
 
   const nowIso = new Date().toISOString();
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600000);
+  const maxAgeCutoff = new Date(Date.now() - MAX_AGE_DAYS * 24 * 3600000);
 
   // =========================
   // Helpers
@@ -297,7 +298,7 @@ Deno.serve(async (req: Request) => {
   // =========================
   // Weak niches detection
   // =========================
-  const sinceIso = thirtyDaysAgo.toISOString();
+  const sinceIso = new Date(Date.now() - 30 * 24 * 3600000).toISOString();
   const { data: nicheRows, error: nicheRowsErr } = await adminClient
     .from("videos")
     .select("niche")
@@ -439,7 +440,7 @@ Deno.serve(async (req: Request) => {
 
     let nicheSaved = 0;
 
-    const PAGES_PER_QUERY = 3;
+    const PAGES_PER_QUERY = 5;
     const ACTUAL_PAGE_SIZE = 10; // SocialKit returns max 10 per request regardless of count
     const sortTypes = ["3", "1"]; // date, likes
     const publishTimes = ["7", "30"];
@@ -512,11 +513,11 @@ Deno.serve(async (req: Request) => {
 
             const stats = v.stats || {};
             const views = stats.views ?? v.views ?? v.playCount ?? 0;
-            const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 3000 : MIN_VIEWS;
+            const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 1000 : MIN_VIEWS;
             if (views < minViewsForNiche) { lowViews++; return null; }
 
             const publishedAt = new Date(getPublishedAt(v));
-            if (publishedAt < thirtyDaysAgo) { tooOld++; return null; }
+            if (publishedAt < maxAgeCutoff) { tooOld++; return null; }
 
             const caption = v.desc || v.caption || v.title || "";
             const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
