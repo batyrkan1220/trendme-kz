@@ -298,7 +298,7 @@ Deno.serve(async (req: Request) => {
   // =========================
   // Weak niches detection
   // =========================
-  const sinceIso = thirtyDaysAgo.toISOString();
+  const sinceIso = new Date(Date.now() - 30 * 24 * 3600000).toISOString();
   const { data: nicheRows, error: nicheRowsErr } = await adminClient
     .from("videos")
     .select("niche")
