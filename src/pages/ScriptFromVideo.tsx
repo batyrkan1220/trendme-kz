@@ -90,11 +90,9 @@ export default function ScriptFromVideo() {
             videoUrl={url}
             coverUrl={coverUrl}
             onBack={() => {
-              // Reset to allow new URL
               setUrl("");
               setLanguage(null);
-              // Force re-render by resetting mutation
-              window.location.reload();
+              reset();
             }}
           />
         </div>
