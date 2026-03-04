@@ -207,6 +207,18 @@ export default function SearchPage() {
             </Button>
           </div>
 
+          {results.length === 0 && searchResults && !isSearching && (
+            <div className="flex flex-col items-center justify-center py-16 gap-4 animate-fade-in">
+              <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
+                <SearchIcon className="h-8 w-8 text-muted-foreground/30" />
+              </div>
+              <p className="text-lg font-semibold text-foreground">Ничего не найдено</p>
+              <p className="text-sm text-muted-foreground text-center max-w-sm">
+                По запросу «{query}» не найдено видео. Попробуйте изменить запрос.
+              </p>
+            </div>
+          )}
+
           {results.length > 0 && (
             <>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
