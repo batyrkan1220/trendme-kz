@@ -760,7 +760,7 @@ function RefreshSection() {
     refetchInterval: 30000,
   });
 
-
+  const { data: logs = [] } = useQuery({
     queryKey: ["refresh-logs"],
     queryFn: async () => {
       const { data } = await supabase.from("trend_refresh_logs").select("*").order("started_at", { ascending: false }).limit(20);
