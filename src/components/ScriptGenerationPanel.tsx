@@ -99,9 +99,9 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [scriptContent, setScriptContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [chatInput, setChatInput] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef("");
+  const savedScriptId = useRef<string | null>(null);
 
   // Auto-generate on mount
   useEffect(() => {
