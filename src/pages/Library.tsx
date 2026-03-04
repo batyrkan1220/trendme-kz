@@ -318,18 +318,23 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
 
             {/* Header row */}
             <div className="flex items-center gap-3 p-4">
-              {/* Play button */}
+              {/* Video thumbnail preview */}
               {!isPlaying && videoId && (
-                <button
+                <div
                   onClick={(e) => { e.stopPropagation(); setPlayingAnalysisId(a.id); }}
-                  className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl bg-muted overflow-hidden group"
+                  className="relative w-16 h-20 sm:w-20 sm:h-24 shrink-0 rounded-xl bg-black overflow-hidden cursor-pointer group"
                 >
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 group-hover:from-primary/30 group-hover:to-primary/10 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Play className="h-5 w-5 text-primary fill-primary ml-0.5" />
+                  <iframe
+                    src={`https://www.tiktok.com/player/v1/${videoId}?music_info=0&description=0&muted=1&play_button=0&volume_control=0`}
+                    className="w-full h-full border-0 pointer-events-none scale-100"
+                    tabIndex={-1}
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Play className="h-4 w-4 text-foreground fill-foreground ml-0.5" />
                     </div>
                   </div>
-                </button>
+                </div>
               )}
 
               {/* Info */}
