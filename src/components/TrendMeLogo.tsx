@@ -4,6 +4,7 @@ interface TrendMeLogoProps {
 }
 
 export function TrendMeLogo({ size = 48, className = "" }: TrendMeLogoProps) {
+  const id = `logo-bg-${size}`;
   return (
     <svg
       width={size}
@@ -11,30 +12,33 @@ export function TrendMeLogo({ size = 48, className = "" }: TrendMeLogoProps) {
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={`shrink-0 ${className}`}
     >
       <defs>
-        <linearGradient id="logo-bg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+        <linearGradient id={id} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
           <stop stopColor="hsl(var(--primary))" />
           <stop offset="1" stopColor="#6366f1" />
         </linearGradient>
       </defs>
-      {/* Rounded square background */}
-      <rect width="48" height="48" rx="12" fill="url(#logo-bg)" />
-      {/* Trend arrow going up */}
+      {/* Circle background */}
+      <circle cx="24" cy="24" r="24" fill={`url(#${id})`} />
+      {/* Play triangle */}
       <path
-        d="M10 34 L18 26 L24 30 L38 14"
-        stroke="white"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
+        d="M19 15 L19 33 L33 24 Z"
+        fill="white"
+        opacity="0.95"
       />
-      {/* Arrow head */}
+      {/* Upward arrow from play */}
       <path
-        d="M32 14 L38 14 L38 20"
+        d="M30 22 L35 12"
         stroke="white"
-        strokeWidth="3.5"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M32 12 L35 12 L35 15"
+        stroke="white"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
