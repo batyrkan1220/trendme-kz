@@ -101,9 +101,8 @@ function LandingNav() {
 
 /* ─── Brand ─── */
 const BrandName = ({ className = "" }: { className?: string }) => (
-  <span className={`font-bold tracking-tight ${className}`}>
-    <span className="text-foreground">Trend</span>
-    <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Me</span>
+  <span className={`font-bold tracking-tight text-foreground ${className}`}>
+    trendme
   </span>
 );
 

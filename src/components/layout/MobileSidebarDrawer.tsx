@@ -88,7 +88,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
       <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col" style={{ maxHeight: '100dvh' }}>
         <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5 shrink-0">
           <TrendMeLogo size={32} />
-          <SheetTitle className="font-bold text-base tracking-tight"><span className="text-foreground">Trend</span><span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Me</span></SheetTitle>
+          <SheetTitle className="font-bold text-base tracking-tight text-foreground">trendme</SheetTitle>
           <span className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md uppercase">Beta</span>
         </SheetHeader>
 
