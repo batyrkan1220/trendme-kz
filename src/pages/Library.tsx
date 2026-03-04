@@ -298,44 +298,20 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
 
         return (
           <div key={a.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden transition-all">
-            {/* Full-width video player when playing */}
-            {isPlaying && videoId && (
-              <div className="relative aspect-[9/16] max-h-[500px] bg-black">
+            {/* Inline video player — always visible if videoId exists */}
+            {videoId && (
+              <div className="relative aspect-[9/16] max-h-[480px] bg-black">
                 <iframe
                   src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
                   className="w-full h-full border-0"
                   allow="autoplay; encrypted-media; fullscreen"
                   allowFullScreen
                 />
-                <button
-                  onClick={() => setPlayingAnalysisId(null)}
-                  className="absolute top-3 right-3 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
               </div>
             )}
 
             {/* Header row */}
             <div className="flex items-center gap-3 p-4">
-              {/* Video thumbnail preview */}
-              {!isPlaying && videoId && (
-                <div
-                  onClick={(e) => { e.stopPropagation(); setPlayingAnalysisId(a.id); }}
-                  className="relative w-16 h-20 sm:w-20 sm:h-24 shrink-0 rounded-xl bg-black overflow-hidden cursor-pointer group"
-                >
-                  <iframe
-                    src={`https://www.tiktok.com/player/v1/${videoId}?music_info=0&description=0&muted=1&play_button=0&volume_control=0`}
-                    className="w-full h-full border-0 pointer-events-none scale-100"
-                    tabIndex={-1}
-                  />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Play className="h-4 w-4 text-foreground fill-foreground ml-0.5" />
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Info */}
               <div
