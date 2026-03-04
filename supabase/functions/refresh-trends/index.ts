@@ -474,6 +474,7 @@ Deno.serve(async (req: Request) => {
         if (page > 0) await sleep(500);
 
         try {
+          console.log("SK params", { query, count: String(COUNT), offset, sortType, publishTime });
           const data = await callSocialKit("/tiktok/search", {
             query,
             count: String(COUNT),
