@@ -367,13 +367,7 @@ Deno.serve(async (req: Request) => {
     logId = logEntry?.id || null;
   }
 
-  // Rotation seed = logId (stable across all batches of this run)
-  const rotationSeed = logId || crypto.randomUUID();
-  const rotationIndex = batchIndex;
-
-  if (batchIndex === 0) {
-    console.log(`🔀 Rotation seed=${rotationSeed}, index=${rotationIndex}`);
-  }
+  // Per-niche cursor rotation (seed is stable per niche, cursor advances each run)
 
   const chainNextBatch = async (nextBatch: number) => {
     try {
