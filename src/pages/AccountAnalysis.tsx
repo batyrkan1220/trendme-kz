@@ -173,15 +173,14 @@ export default function AccountAnalysis() {
                   <span className="text-xs text-muted-foreground font-normal ml-auto">{trackedAccounts.length} аккаунтов</span>
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {trackedAccounts.slice(historyPage * HISTORY_PAGE_SIZE, (historyPage + 1) * HISTORY_PAGE_SIZE).map((acc) => (
+                  {trackedAccounts.slice(historyPage * HISTORY_PAGE_SIZE, (historyPage + 1) * HISTORY_PAGE_SIZE).map((acc) => {
+                    const hasAnalysis = !!(acc.analysis_json as Record<string, any>)?.top_videos;
+                    return (
                     <div
                       key={acc.id}
-                      className="bg-card rounded-xl border border-border/50 p-3 card-shadow hover:bg-muted/50 transition-colors flex items-center gap-3 text-left group"
+                      className="bg-card rounded-xl border border-border/50 p-3 card-shadow hover:bg-muted/30 transition-colors group"
                     >
-                      <button
-                        onClick={() => loadSavedAnalysis(acc)}
-                        className="flex items-center gap-3 flex-1 min-w-0"
-                      >
+                      <div className="flex items-center gap-3">
                         {acc.avatar_url ? (
                           <img src={acc.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/10 shrink-0" />
                         ) : (
@@ -189,20 +188,36 @@ export default function AccountAnalysis() {
                             {acc.username?.charAt(0).toUpperCase()}
                           </div>
                         )}
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-foreground truncate">@{acc.username}</p>
                           <p className="text-xs text-muted-foreground">{formatNum(Number(acc.followers || 0))} подписчиков</p>
                         </div>
-                      </button>
-                      <button
-                        onClick={() => deleteMutation.mutate(acc.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-lg flex items-center justify-center hover:bg-destructive/10 hover:text-destructive text-muted-foreground shrink-0"
-                        title="Удалить"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                        <button
+                          onClick={() => deleteMutation.mutate(acc.id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-lg flex items-center justify-center hover:bg-destructive/10 hover:text-destructive text-muted-foreground shrink-0"
+                          title="Удалить"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                      {hasAnalysis ? (
+                        <button
+                          onClick={() => loadSavedAnalysis(acc)}
+                          className="w-full mt-2 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Eye className="h-3 w-3" /> Смотреть анализ
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                          className="w-full mt-2 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/70 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <RefreshCw className="h-3 w-3" /> Анализировать
+                        </button>
+                      )}
                     </div>
-                  ))}
+                  );})}
+
                 </div>
                 {trackedAccounts.length > HISTORY_PAGE_SIZE && (
                   <div className="flex items-center justify-center gap-2 pt-1">
