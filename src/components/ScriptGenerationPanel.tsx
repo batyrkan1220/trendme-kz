@@ -339,14 +339,6 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 {/* Copy button */}
                 <div className="flex flex-wrap justify-end gap-2 mb-3 md:mb-4">
                   <button
-                    onClick={saveScript}
-                    disabled={!scriptContent || isGenerating || isSaving}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-primary-foreground bg-primary hover:opacity-90 transition-opacity disabled:opacity-50"
-                  >
-                    <BookOpen className="h-4 w-4" />
-                    {isSaving ? (isKk ? "Сақтаудамын..." : "Сохраняю...") : (isKk ? "Кітапханаға" : "В библиотеку")}
-                  </button>
-                  <button
                     onClick={copyScript}
                     disabled={!scriptContent}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
