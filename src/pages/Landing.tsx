@@ -550,28 +550,28 @@ export default function Landing() {
       </section>
 
       {/* ═══ CTA ═══ */}
-      <section className="py-12 md:py-24 px-3 md:px-4">
+      <section className="py-8 md:py-24 px-3 md:px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="rounded-2xl md:rounded-3xl bg-primary p-8 md:p-16 relative overflow-hidden">
+          <div className="rounded-2xl md:rounded-3xl bg-primary p-6 md:p-16 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.12),transparent_60%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.06),transparent_50%)]" />
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-sm md:text-base font-semibold px-4 py-1.5 rounded-full mb-5 md:mb-6">
-                <Flame className="h-4 w-4 md:h-5 md:w-5" />
+              <div className="inline-flex items-center gap-1.5 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-xs md:text-base font-semibold px-3 md:px-4 py-1 md:py-1.5 rounded-full mb-4 md:mb-6">
+                <Flame className="h-3.5 w-3.5 md:h-5 md:w-5" />
                 Присоединяйтесь к 2 500+ авторам
               </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-primary-foreground mb-3 md:mb-5">
+              <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-primary-foreground mb-2 md:mb-5">
                 Начните расти
                 <br />
                 в TikTok сегодня
               </h2>
-              <p className="text-primary-foreground/80 text-base md:text-xl mb-6 md:mb-8 max-w-lg mx-auto">
+              <p className="text-primary-foreground/80 text-sm md:text-xl mb-5 md:mb-8 max-w-lg mx-auto">
                 Бесплатный старт. Без привязки карты. Первые инсайты через 30 секунд.
               </p>
               <Link to="/auth">
-                <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-base md:text-lg font-bold px-8 md:px-12 h-13 md:h-14 shadow-xl">
+                <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-sm md:text-lg font-bold px-6 md:px-12 h-11 md:h-14 shadow-xl">
                   Создать аккаунт бесплатно
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
                 </Button>
               </Link>
             </div>
