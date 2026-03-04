@@ -136,16 +136,8 @@ export default function AccountAnalysis() {
     analyze(url.trim());
   };
 
-  // Auto-load most recent analysis on page load
-  useEffect(() => {
-    if (!account && !isPending && trackedAccounts.length > 0) {
-      const latest = trackedAccounts[0];
-      const analysis = latest.analysis_json as Record<string, any> | null;
-      if (analysis && analysis.top_videos) {
-        setAccount({ ...latest, ...analysis });
-      }
-    }
-  }, [trackedAccounts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const topVideos: TopVideo[] = account?.top_videos || [];
 
   const topVideos: TopVideo[] = account?.top_videos || [];
 
