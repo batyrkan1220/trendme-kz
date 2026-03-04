@@ -958,14 +958,18 @@ function RefreshSection() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{grandTotal}</p>
-                      <p className="text-xs text-muted-foreground">Всего видео</p>
+                      <p className="text-xs text-muted-foreground">Этот запуск</p>
                     </div>
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{totalNiche}</p>
                       <p className="text-xs text-muted-foreground">По категориям</p>
+                    </div>
+                    <div className="bg-primary/10 rounded-md p-2">
+                      <p className="text-lg font-bold text-primary">{cumulative7d}</p>
+                      <p className="text-xs text-muted-foreground">За 7 дней</p>
                     </div>
                   </div>
 
