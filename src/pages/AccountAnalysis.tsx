@@ -84,7 +84,9 @@ export default function AccountAnalysis() {
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);
 
-  const { data: account, isPending, mutate: analyze } = useMutation({
+  const [account, setAccount] = useState<any>(null);
+
+  const { isPending, mutate: analyze } = useMutation({
     mutationFn: async (profileUrl: string) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
         body: { action: "account_stats", profile_url: profileUrl },
@@ -92,7 +94,8 @@ export default function AccountAnalysis() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setAccount(data);
       queryClient.invalidateQueries({ queryKey: ["accounts-tracked"] });
       toast.success("Аккаунт проанализирован");
     },
@@ -100,6 +103,20 @@ export default function AccountAnalysis() {
       toast.error("Ошибка: " + err.message);
     },
   });
+
+  const loadSavedAnalysis = useCallback((acc: any) => {
+    const analysis = acc.analysis_json as Record<string, any> | null;
+    if (analysis && analysis.top_videos) {
+      setAccount({
+        ...acc,
+        ...analysis,
+      });
+    } else {
+      // No saved analysis, re-analyze
+      setUrl(acc.profile_url);
+      analyze(acc.profile_url);
+    }
+  }, [analyze]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
