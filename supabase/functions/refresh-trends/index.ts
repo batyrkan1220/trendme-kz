@@ -721,14 +721,13 @@ Deno.serve(async (req: Request) => {
           status: "done",
           total_saved: totalSaved,
           general_saved: 0,
-          niche_stats: {
-            ...nicheStats,
-            _rotation: {
-              seed: rotationSeed,
-              index: rotationIndex,
-              keywords_used: keywordsUsedPerNiche,
+            niche_stats: {
+              ...nicheStats,
+              _rotation: {
+                mode: "per_niche_cursor",
+                keywords_used: keywordsUsedPerNiche,
+              },
             },
-          },
           finished_at: new Date().toISOString(),
         })
         .eq("id", logId);
