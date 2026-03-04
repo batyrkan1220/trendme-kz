@@ -1,0 +1,1 @@
+ALTER TABLE public.accounts_tracked ADD COLUMN IF NOT EXISTS analysis_json jsonb DEFAULT NULL;

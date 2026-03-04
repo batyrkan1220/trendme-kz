@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       accounts_tracked: {
         Row: {
+          analysis_json: Json | null
           avatar_url: string | null
           bio: string | null
           bio_link: string | null
@@ -32,6 +33,7 @@ export type Database = {
           verified: boolean | null
         }
         Insert: {
+          analysis_json?: Json | null
           avatar_url?: string | null
           bio?: string | null
           bio_link?: string | null
@@ -48,6 +50,7 @@ export type Database = {
           verified?: boolean | null
         }
         Update: {
+          analysis_json?: Json | null
           avatar_url?: string | null
           bio?: string | null
           bio_link?: string | null
