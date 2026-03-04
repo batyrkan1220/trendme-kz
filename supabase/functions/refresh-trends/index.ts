@@ -436,11 +436,11 @@ Deno.serve(async (req: Request) => {
 
     let nicheSaved = 0;
 
-    const PAGES_PER_QUERY = 3;
+    const PAGES_PER_QUERY = 2;
     const sortTypes = ["3", "1"]; // date, likes
     const publishTimes = ["7", "30"];
 
-    const COUNT = 20;
+    const COUNT = 30;
 
     for (let qi = 0; qi < selectedKeywords.length; qi++) {
       if (Date.now() - startTime > MAX_EXECUTION_MS) break;
