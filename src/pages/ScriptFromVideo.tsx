@@ -25,7 +25,7 @@ export default function ScriptFromVideo() {
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
   const { spend } = useTokens();
 
-  const { data: analysis, isPending, mutate: analyze } = useMutation({
+  const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
       const [statsRes, analysisRes] = await Promise.allSettled([
         supabase.functions.invoke("socialkit", {
@@ -90,11 +90,9 @@ export default function ScriptFromVideo() {
             videoUrl={url}
             coverUrl={coverUrl}
             onBack={() => {
-              // Reset to allow new URL
               setUrl("");
               setLanguage(null);
-              // Force re-render by resetting mutation
-              window.location.reload();
+              reset();
             }}
           />
         </div>
