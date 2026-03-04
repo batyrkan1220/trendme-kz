@@ -523,12 +523,12 @@ export default function Landing() {
       </section>
 
       {/* ═══ FAQ ═══ */}
-      <section id="faq" className="py-16 md:py-24 px-4">
+      <section id="faq" className="py-10 md:py-24 px-4">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mb-10 md:mb-12">
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-center mb-6 md:mb-12">
             Частые <span className="text-primary">вопросы</span>
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {[
               { q: "Как быстро я увижу результат?", a: "Первые инсайты вы получите сразу после регистрации. Большинство пользователей замечают рост охватов уже в первую неделю." },
               { q: "Нужно ли привязывать аккаунт TikTok?", a: "Нет, мы работаем через открытые данные. Вам не нужно давать доступ к своему аккаунту." },
@@ -536,11 +536,11 @@ export default function Landing() {
               { q: "Подходит ли для Reels и Shorts?", a: "Сейчас фокус на TikTok, но скоро добавим Instagram Reels и YouTube Shorts." },
             ].map((faq) => (
               <details key={faq.q} className="group rounded-2xl bg-card border border-border/50 card-shadow">
-                <summary className="flex items-center justify-between cursor-pointer p-5 md:p-6 text-sm md:text-base font-semibold text-foreground list-none">
+                <summary className="flex items-center justify-between cursor-pointer p-4 md:p-6 text-xs md:text-base font-semibold text-foreground list-none">
                   {faq.q}
-                  <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground transition-transform group-open:rotate-90 shrink-0" />
+                  <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground transition-transform group-open:rotate-90 shrink-0 ml-2" />
                 </summary>
-                <div className="px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-muted-foreground leading-relaxed -mt-1">
+                <div className="px-4 md:px-6 pb-4 md:pb-6 text-xs md:text-base text-muted-foreground leading-relaxed -mt-1">
                   {faq.a}
                 </div>
               </details>
