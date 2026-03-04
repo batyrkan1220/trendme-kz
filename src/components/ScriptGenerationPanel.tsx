@@ -220,7 +220,8 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       source_video_url: null,
     });
     if (error) {
-      toast.error(isKk ? "Сақтау қатесі" : "Ошибка сохранения");
+      console.error("Save script error:", error);
+      toast.error(isKk ? "Сақтау қатесі: " + error.message : "Ошибка сохранения: " + error.message);
     } else {
       toast.success(isKk ? "Сценарий Кітапханаға сақталды! 📚" : "Сценарий сохранён в Библиотеку! 📚");
     }
