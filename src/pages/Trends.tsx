@@ -313,7 +313,7 @@ export default function Trends() {
                           src={video.cover_url}
                           alt=""
                           loading="lazy"
-                          className="w-full h-full object-cover blur-md brightness-50"
+                          className="w-full h-full object-cover blur-[6px] brightness-75"
                         />
                       ) : (
                         <div className="w-full h-full bg-muted blur-md" />
