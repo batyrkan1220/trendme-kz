@@ -959,7 +959,7 @@ function RefreshSection() {
                       <p className="text-xs text-muted-foreground">По категориям</p>
                     </div>
                     <div className="bg-primary/10 rounded-md p-2">
-                      <p className="text-lg font-bold text-primary">{cumulative7d}</p>
+                      <p className="text-lg font-bold text-primary">{totalVideos7d}</p>
                       <p className="text-xs text-muted-foreground">За 7 дней</p>
                     </div>
                   </div>
