@@ -5,7 +5,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useTokens } from "@/hooks/useTokens";
 import {
   LayoutDashboard, TrendingUp, Search,
-  Video, UserCircle, Star, ScrollText,
+  Video, UserCircle, Star, ScrollText, Sparkles,
   Flame, ArrowRight, Shield,
   LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
