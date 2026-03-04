@@ -233,7 +233,7 @@ function TrendingShowcase() {
             <div className={`w-full aspect-video rounded-xl mb-4 overflow-hidden relative transition-all duration-500 ${
               i === active ? "shadow-lg" : ""
             }`}>
-              <img src={v.img} alt={v.title} className="w-full h-full object-cover" />
+              <img src={v.img} alt={v.title} width={512} height={287} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm transition-colors ${
                   i === active ? "bg-primary/80" : "bg-black/30"
