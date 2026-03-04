@@ -15,7 +15,6 @@ const navItems = [
 
 const analysisItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
-  { icon: Sparkles, path: "/ai-script", label: "AI Сценарий" },
   { icon: UserCircle, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 
