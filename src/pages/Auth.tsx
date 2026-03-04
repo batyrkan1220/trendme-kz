@@ -77,9 +77,8 @@ export default function Auth() {
             <TrendMeLogo size={56} className="md:w-16 md:h-16 shadow-lg mx-auto" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-              <span className="text-foreground">Trend</span>
-              <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Me</span>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+              trendme
             </h1>
             <p className="text-sm text-muted-foreground mt-1.5 md:mt-2">
               {mode === "login" && "Войдите в свой аккаунт"}

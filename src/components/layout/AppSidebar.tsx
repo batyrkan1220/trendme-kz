@@ -105,7 +105,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         <TrendMeLogo size={32} />
         {!collapsed && (
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-base tracking-tight"><span className="text-foreground">Trend</span><span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">Me</span></span>
+            <span className="font-bold text-base tracking-tight text-foreground">trendme</span>
             <span className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md uppercase">Beta</span>
           </div>
         )}
