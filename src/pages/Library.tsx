@@ -468,9 +468,9 @@ function ScriptsTab({ scripts, removeScript, copyText }: any) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pb-20 md:pb-0">
       {scripts.map((s: any) => (
-        <div key={s.id} className="bg-card rounded-2xl border border-border/50 p-5 hover:shadow-lg transition-all">
+        <div key={s.id} className="bg-card rounded-xl md:rounded-2xl border border-border/50 p-3 md:p-5 hover:shadow-lg transition-all">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2 min-w-0">
               <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
