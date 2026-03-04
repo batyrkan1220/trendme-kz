@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Eye, Heart, MessageCircle, Trash2, Sparkles, Copy, Play, ExternalLink, X, Share2, Music, FileText, ChevronDown, ChevronUp, Target } from "lucide-react";
+import { Eye, Heart, MessageCircle, Trash2, Sparkles, Copy, Play, ExternalLink, X, Share2, Music, FileText, ChevronDown, ChevronUp, Target, Video } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -58,7 +58,7 @@ export default function Library() {
   const [tab, setTab] = useState<Tab>("favorites");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [expandedAnalysis, setExpandedAnalysis] = useState<string | null>(null);
-  const [playingAnalysisId, setPlayingAnalysisId] = useState<string | null>(null);
+  
 
   // Favorites
   const { data: favorites = [] } = useQuery({
@@ -166,7 +166,7 @@ export default function Library() {
 
         {/* Analyses tab */}
         {tab === "analyses" && (
-          <AnalysesTab analyses={analyses} expandedAnalysis={expandedAnalysis} toggleExpand={toggleExpand} removeAnalysis={removeAnalysis} copyText={copyText} playingAnalysisId={playingAnalysisId} setPlayingAnalysisId={setPlayingAnalysisId} />
+          <AnalysesTab analyses={analyses} expandedAnalysis={expandedAnalysis} toggleExpand={toggleExpand} removeAnalysis={removeAnalysis} copyText={copyText} />
         )}
 
         {/* Scripts tab */}
@@ -274,14 +274,12 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
 }
 
 /* ─── Analyses Tab ─── */
-function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis, copyText, playingAnalysisId, setPlayingAnalysisId }: {
+function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis, copyText }: {
   analyses: any[];
   expandedAnalysis: string | null;
   toggleExpand: (id: string) => void;
   removeAnalysis: (id: string) => void;
   copyText: (text: string) => void;
-  playingAnalysisId: string | null;
-  setPlayingAnalysisId: (id: string | null) => void;
 }) {
   if (analyses.length === 0) {
     return (
@@ -296,71 +294,56 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
       {analyses.map((a: any) => {
         const summary = parseSummary(a.summary_json);
         const transcript = parseTranscript(a.transcript_text);
         const isExpanded = expandedAnalysis === a.id;
         const date = new Date(a.analyzed_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
-        const videoId = extractVideoId(a.video_url, a.platform_video_id);
 
         return (
           <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
-            {/* Video player / preview */}
-            <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
-              {playingAnalysisId === a.id && videoId ? (
-                <>
-                  <iframe
-                    src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                    className="w-full h-full border-0"
-                    allow="autoplay; encrypted-media; fullscreen"
-                    allowFullScreen
-                  />
-                  <button onClick={() => setPlayingAnalysisId(null)} className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors">
-                    <X className="h-4 w-4" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div
-                    className="w-full h-full bg-gradient-to-br from-primary/20 via-muted to-primary/10 flex items-center justify-center cursor-pointer"
-                    onClick={() => videoId && setPlayingAnalysisId(a.id)}
-                  >
-                    <div className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center hover:scale-110 transition-transform">
-                      <Play className="h-7 w-7 text-white fill-white ml-0.5" />
-                    </div>
-                  </div>
-                  {/* Delete button */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeAnalysis(a.id); }}
-                      className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </button>
-                  </div>
-                  {/* External link */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); window.open(a.video_url, '_blank'); }}
-                    className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5 text-foreground" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="px-3 pt-2 pb-1 cursor-pointer" onClick={() => toggleExpand(a.id)}>
-              <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
-                {summary?.topic || "Анализ видео"}
-              </h3>
-              <p className="text-[11px] text-muted-foreground mt-1">{date}</p>
+            {/* Compact preview header */}
+            <div className="flex items-center gap-3 p-3 border-b border-border/30">
+              {/* Mini video icon / link */}
+              <a
+                href={a.video_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 via-muted to-primary/10 flex items-center justify-center hover:scale-105 transition-transform"
+                title="Открыть видео"
+              >
+                <Play className="h-5 w-5 text-primary fill-primary ml-0.5" />
+              </a>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
+                  {summary?.topic || "Анализ видео"}
+                </h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{date}</p>
+              </div>
+              <div className="flex flex-col gap-1 shrink-0">
+                <button
+                  onClick={() => removeAnalysis(a.id)}
+                  className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  title="Удалить"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+                <a
+                  href={a.video_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                  title="Открыть видео"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
             </div>
 
             {/* Tags */}
             {summary?.tags?.length > 0 && (
-              <div className="flex flex-wrap gap-1 px-3 pb-2">
+              <div className="flex flex-wrap gap-1 px-3 pt-2">
                 {summary.tags.slice(0, 3).map((tag: string, i: number) => (
                   <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
                 ))}
@@ -378,7 +361,6 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
             {/* Expanded content */}
             {isExpanded && (
               <div className="px-3 pb-3 space-y-3 border-t border-border/30 pt-3">
-                {/* Language */}
                 {summary?.language && (
                   <div className="flex items-center gap-2 text-xs">
                     <span className="text-muted-foreground">Язык:</span>
@@ -388,8 +370,6 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                     </span>
                   </div>
                 )}
-
-                {/* Niches */}
                 {summary?.niches?.length > 0 && (
                   <div>
                     <p className="text-[11px] text-muted-foreground mb-1">Категории</p>
@@ -400,8 +380,6 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                     </div>
                   </div>
                 )}
-
-                {/* Summary text */}
                 {summary?.summary && (
                   <div>
                     <div className="flex items-center justify-between mb-1">
@@ -415,8 +393,6 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                     </div>
                   </div>
                 )}
-
-                {/* Hooks */}
                 {summary?.hooks?.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold text-foreground mb-1">Хуки</p>
@@ -430,8 +406,6 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                     </div>
                   </div>
                 )}
-
-                {/* Transcript */}
                 {transcript && (
                   <div>
                     <div className="flex items-center justify-between mb-1">
