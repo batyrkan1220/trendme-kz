@@ -1,332 +1,311 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Search, Video, UserCircle, Star, ArrowRight, Eye, Heart, MessageCircle, Share2, Plus, Play, X, ExternalLink, Music, Zap, Trophy, Target } from "lucide-react";
+import { TrendingUp, Search, Video, UserCircle, Star, ArrowRight, CheckCircle2, Play, Zap, Target, BookOpen, ChevronDown, ChevronUp, ExternalLink, Lightbulb, Sparkles, BarChart3, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
-const quickActions = [
-  { label: "Тренды", desc: "Горячие видео", icon: TrendingUp, path: "/trends", emoji: "🔥" },
-  { label: "Поиск", desc: "По ключевым словам", icon: Search, path: "/search", emoji: "🔍" },
-  { label: "Анализ видео", desc: "Разбор видео", icon: Video, path: "/video-analysis", emoji: "🎬" },
-  { label: "Анализ профиля", desc: "Статистика автора", icon: UserCircle, path: "/account-analysis", emoji: "👤" },
-  { label: "Избранные", desc: "Сохранённое", icon: Star, path: "/library", emoji: "⭐" },
-];
-
-function fmt(n: number) {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
-  return String(n);
+interface StepProps {
+  number: number;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  details: React.ReactNode;
+  path: string;
+  pathLabel: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  completed: boolean;
+  onComplete: () => void;
 }
 
-const getTimeAgo = (published_at: string | null) => {
-  if (!published_at) return "";
-  const h = Math.floor((Date.now() - new Date(published_at).getTime()) / 3600000);
-  if (h < 1) return "только что";
-  if (h < 24) return `${h}ч назад`;
-  const d = Math.floor(h / 24);
-  if (d < 30) return `${d}д назад`;
-  return `${Math.floor(d / 30)} мес. назад`;
-};
+function TutorialStep({ number, title, description, icon: Icon, details, path, pathLabel, isOpen, onToggle, completed, onComplete }: StepProps) {
+  return (
+    <div className={cn(
+      "rounded-2xl border transition-all duration-300",
+      isOpen ? "border-primary/40 bg-card shadow-lg" : "border-border/60 bg-card/80 hover:border-primary/20",
+      completed && !isOpen && "border-primary/20 bg-primary/[0.03]"
+    )}>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 md:gap-4 p-4 md:p-5 text-left"
+      >
+        <div className={cn(
+          "w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+          completed ? "bg-primary/15" : isOpen ? "bg-primary/10" : "bg-muted"
+        )}>
+          {completed ? (
+            <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+          ) : (
+            <span className="text-base md:text-lg font-bold text-primary">{number}</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4 text-primary shrink-0" />
+            <h3 className="text-sm md:text-base font-bold text-foreground truncate">{title}</h3>
+          </div>
+          <p className="text-xs md:text-sm text-muted-foreground mt-0.5 line-clamp-1">{description}</p>
+        </div>
+        <div className="shrink-0 text-muted-foreground">
+          {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </div>
+      </button>
 
-type TrendTier = "strong" | "mid" | "micro";
+      {isOpen && (
+        <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-4 animate-fade-in">
+          <div className="border-t border-border/40 pt-4" />
+          <div className="text-sm text-foreground/80 leading-relaxed space-y-3">
+            {details}
+          </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
+            <Link
+              to={path}
+              className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-5 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors"
+            >
+              {pathLabel} <ArrowRight className="h-4 w-4" />
+            </Link>
+            {!completed && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onComplete(); }}
+                className="inline-flex items-center justify-center gap-2 bg-muted text-foreground rounded-xl px-5 py-2.5 text-sm font-medium hover:bg-muted/80 transition-colors"
+              >
+                <CheckCircle2 className="h-4 w-4" /> Түсіндім, келесіге
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
-const getTier = (views: number): TrendTier | null => {
-  if (views >= 80_000) return "strong";
-  if (views >= 15_000) return "mid";
-  if (views >= 3_000) return "micro";
-  return null;
-};
-
-const tierConfig: Record<TrendTier, { label: string; icon: any; className: string }> = {
-  strong: { label: "Strong Trend", icon: Trophy, className: "bg-amber-500/90 text-white" },
-  mid: { label: "Mid Trend", icon: Zap, className: "bg-primary/80 text-white" },
-  micro: { label: "Micro Trend", icon: Target, className: "bg-primary/60 text-white" },
-};
+function Tip({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex gap-2 bg-primary/5 border border-primary/10 rounded-xl p-3">
+      <Lightbulb className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+      <p className="text-xs text-foreground/70">{children}</p>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [openStep, setOpenStep] = useState(0);
+  const [completed, setCompleted] = useState<Set<number>>(new Set());
 
-  const { data: trendingVideos = [], isLoading } = useQuery({
-    queryKey: ["dashboard-trends"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("videos")
-        .select("id, platform_video_id, caption, cover_url, author_username, author_avatar_url, views, likes, comments, shares, trend_score, velocity_views, url, published_at")
-        .order("trend_score", { ascending: false })
-        .limit(10);
-      return data || [];
-    },
-    staleTime: 24 * 60 * 60 * 1000,
-    refetchInterval: 24 * 60 * 60 * 1000,
-  });
+  const handleComplete = (step: number) => {
+    setCompleted(prev => new Set(prev).add(step));
+    if (step < 5) setOpenStep(step + 1);
+  };
 
-  const { data: favCount = 0 } = useQuery({
-    queryKey: ["favorites-count", user?.id],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("favorites")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user!.id);
-      return count || 0;
-    },
-    enabled: !!user,
-  });
+  const progress = Math.round((completed.size / 6) * 100);
 
-  const { data: scriptsCount = 0 } = useQuery({
-    queryKey: ["scripts-count", user?.id],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("saved_scripts")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user!.id);
-      return count || 0;
+  const steps = [
+    {
+      title: "🔥 Тренды — вирусты видеоларды тап",
+      description: "Платформаның негізгі құралы — трендтегі видеоларды қара",
+      icon: TrendingUp,
+      path: "/trends",
+      pathLabel: "Трендтерге өту",
+      details: (
+        <>
+          <p><strong>Тренды</strong> бөлімі — бұл платформаның жүрегі. Мұнда TikTok-тағы ең вирусты және тез өсіп жатқан видеолар жиналады.</p>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">Не көресің:</p>
+            <ul className="space-y-1.5 ml-1">
+              <li className="flex items-start gap-2"><Zap className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" /><span><strong>Strong Trend</strong> — 80K+ көрілім, вирусты контент</span></li>
+              <li className="flex items-start gap-2"><Target className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" /><span><strong>Mid Trend</strong> — 15K+ көрілім, жақсы серпін</span></li>
+              <li className="flex items-start gap-2"><Sparkles className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" /><span><strong>Micro Trend</strong> — 3K+ көрілім, жаңа бастаушыларға тамаша</span></li>
+            </ul>
+          </div>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">Қалай қолданасың:</p>
+            <ol className="space-y-1.5 ml-1 list-decimal list-inside">
+              <li>Нише бойынша фильтрлеп, өз тақырыбыңдағы трендтерді тап</li>
+              <li>Видеоның <strong>velocity</strong> көрсеткішіне назар аудар — ол қаншалықты тез өсіп жатқанын көрсетеді</li>
+              <li>Ұнаған видеоны ⭐ Избранноеге сақта</li>
+              <li>Видеоны қарап, оны өз стиліңмен қайта жаса</li>
+            </ol>
+          </div>
+          <Tip>Micro Trend — ең жақсы бастау нүктесі. Бәсекелес аз, бірақ серпін бар!</Tip>
+        </>
+      ),
     },
-    enabled: !!user,
-  });
+    {
+      title: "🔍 Іздеу — кілт сөздер бойынша тап",
+      description: "Кез-келген тақырып бойынша TikTok видеоларын іздеу",
+      icon: Search,
+      path: "/search",
+      pathLabel: "Іздеуге өту",
+      details: (
+        <>
+          <p><strong>Іздеу</strong> арқылы кез-келген кілт сөз бойынша TikTok видеоларын таба аласың.</p>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">Қалай қолданасың:</p>
+            <ol className="space-y-1.5 ml-1 list-decimal list-inside">
+              <li>Іздеу жолағына кілт сөзді жаз (мысалы: "рецепт", "фитнес", "бизнес")</li>
+              <li>Нәтижелерді көрілім, лайк бойынша сұрыпта</li>
+              <li>Қызықты видеоларды Избранноеге қос</li>
+            </ol>
+          </div>
+          <Tip>Нақты кілт сөздерді қолдан: "тамақ" емес, "үйде жасайтын десерт" деп іздесең — нәтиже дәлірек болады.</Tip>
+        </>
+      ),
+    },
+    {
+      title: "🎬 Видео анализ — вирусты видеоны бөлшекте",
+      description: "Кез-келген TikTok видеосын терең талда",
+      icon: Video,
+      path: "/video-analysis",
+      pathLabel: "Видео анализге өту",
+      details: (
+        <>
+          <p><strong>Видео анализ</strong> арқылы кез-келген TikTok видеосын толық талдауға болады: не себепті вирусты болды, қандай тәсілдер қолданылды.</p>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">Не көресің:</p>
+            <ul className="space-y-1.5 ml-1">
+              <li className="flex items-start gap-2"><BarChart3 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" /><span>Видеоның статистикасы (көрілім, лайк, комменттер)</span></li>
+              <li className="flex items-start gap-2"><FileText className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" /><span>AI талдауы — не жасайды видеоны вирусты</span></li>
+            </ul>
+          </div>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">Қалай қолданасың:</p>
+            <ol className="space-y-1.5 ml-1 list-decimal list-inside">
+              <li>TikTok видеосының сілтемесін көшір</li>
+              <li>Видео анализ бетіне қой</li>
+              <li>AI талдауын оқып, өз видеоңа қолдан</li>
+            </ol>
+          </div>
+          <Tip>Трендтерде тапқан видеоларды бірден анализге жібер — олардың сәттілік формуласын ашасың!</Tip>
+        </>
+      ),
+    },
+    {
+      title: "👤 Аккаунт анализ — авторды зертте",
+      description: "Кез-келген TikTok авторының профилін талда",
+      icon: UserCircle,
+      path: "/account-analysis",
+      pathLabel: "Аккаунт анализге өту",
+      details: (
+        <>
+          <p><strong>Аккаунт анализ</strong> — бәсекелестерді немесе ұнаған авторларды зерттеу үшін. Олардың стратегиясын түсін.</p>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">Қалай қолданасың:</p>
+            <ol className="space-y-1.5 ml-1 list-decimal list-inside">
+              <li>TikTok авторының username-ін немесе профиль сілтемесін жаз</li>
+              <li>Аккаунттың толық статистикасын қара</li>
+              <li>Олардың ең сәтті видеоларын тап</li>
+            </ol>
+          </div>
+          <Tip>Өз нишеңдегі ТОП-5 авторды зертте — олардың контент стратегиясын көшір!</Tip>
+        </>
+      ),
+    },
+    {
+      title: "⭐ Избранное — жинақтаңды құр",
+      description: "Ұнаған видеолар мен сценарийлерді сақта",
+      icon: Star,
+      path: "/library",
+      pathLabel: "Избранноеге өту",
+      details: (
+        <>
+          <p><strong>Избранное</strong> — сен сақтаған барлық видеолар мен AI сценарийлер осында жиналады.</p>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">Не сақтауға болады:</p>
+            <ul className="space-y-1.5 ml-1">
+              <li className="flex items-start gap-2"><Play className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" /><span><strong>Видеолар</strong> — трендтерден немесе іздеуден тапқан видеолар</span></li>
+              <li className="flex items-start gap-2"><FileText className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" /><span><strong>Сценарийлер</strong> — AI арқылы жасалған видео сценарийлер</span></li>
+            </ul>
+          </div>
+          <Tip>Апта сайын 5-10 тренд видеоны сақтап, контент-планыңды осыған негіздесең — серпін кепілдікті!</Tip>
+        </>
+      ),
+    },
+    {
+      title: "📝 AI Сценарий — бірден видео жаса",
+      description: "Тренд видеоны негізге алып, AI-мен сценарий жаз",
+      icon: Sparkles,
+      path: "/trends",
+      pathLabel: "Тренд тауып, сценарий жаз",
+      details: (
+        <>
+          <p><strong>AI Сценарий</strong> — трендті видеоны негізге алып, өзіңнің стиліңде жаңа сценарий жазады.</p>
+          <div className="space-y-2">
+            <p className="font-semibold text-foreground">Қалай қолданасың:</p>
+            <ol className="space-y-1.5 ml-1 list-decimal list-inside">
+              <li>Трендтерде немесе Іздеуде видеоны тап</li>
+              <li>Видео картасындағы "Сценарий" батырмасын бас</li>
+              <li>AI автоматты түрде сценарий жасайды</li>
+              <li>Сценарийді өңдеп, өз видеоңды түсір!</li>
+            </ol>
+          </div>
+          <Tip>Ең жақсы стратегия: Micro Trend тауып → AI сценарий жазып → бірден түсіру. Жылдамдық — табыстың кілті!</Tip>
+        </>
+      ),
+    },
+  ];
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-6 lg:p-8 space-y-3 md:space-y-6 animate-fade-in w-full overflow-hidden">
-        {/* Page title - mobile */}
-        <h1 className="text-xl md:text-2xl font-bold text-foreground md:hidden">Главная</h1>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 md:gap-3">
-          <div className="bg-card rounded-xl border border-border/60 p-2.5 md:p-4 card-shadow flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Heart className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-base md:text-lg font-extrabold text-foreground leading-none">{favCount}</p>
-              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-0.5">Избранное</p>
-            </div>
+      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in w-full overflow-hidden max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+            <h1 className="text-lg md:text-2xl font-bold text-foreground">Платформаны үйрен</h1>
           </div>
-          <div className="bg-card rounded-xl border border-border/60 p-2.5 md:p-4 card-shadow flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-base md:text-lg font-extrabold text-foreground leading-none">{trendingVideos.length}</p>
-              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-0.5">Тренды</p>
-            </div>
-          </div>
-          <div className="bg-card rounded-xl border border-border/60 p-2.5 md:p-4 card-shadow flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-base md:text-lg font-extrabold text-foreground leading-none">{scriptsCount}</p>
-              <p className="text-[9px] md:text-[10px] text-muted-foreground mt-0.5">Сценарии</p>
-            </div>
-          </div>
-          <Link to="/search" className="hidden sm:flex bg-primary rounded-xl p-3 md:p-4 items-center gap-3 hover:bg-primary/90 transition-colors group">
-            <div className="w-9 h-9 rounded-xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
-              <Plus className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-primary-foreground leading-none">Новый поиск</p>
-              <p className="text-[10px] text-primary-foreground/70 mt-0.5">Найти видео</p>
-            </div>
-          </Link>
+          <p className="text-sm text-muted-foreground">
+            Қадам-қадаммен TrendMe платформасын меңгер. Әр қадамды оқып, тиісті бөлімге өт.
+          </p>
         </div>
 
-        {/* Quick Actions - horizontal scroll on mobile */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-3 px-3 md:mx-0 md:px-0">
-          <Link
-            to="/search"
-            className="sm:hidden flex items-center gap-2 bg-primary rounded-xl px-3 py-2 border border-primary hover:bg-primary/90 transition-colors shrink-0 group"
-          >
-            <div className="w-7 h-7 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
-              <Plus className="h-3.5 w-3.5 text-primary-foreground" />
-            </div>
-            <p className="text-xs font-bold text-primary-foreground whitespace-nowrap">Новый поиск</p>
-          </Link>
-          {quickActions.map((a) => (
-            <Link
-              key={a.path}
-              to={a.path}
-              className="flex items-center gap-2 bg-card rounded-xl px-2.5 py-2 border border-border/60 hover:border-primary/30 transition-colors shrink-0 group"
-            >
-              <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                <a.icon className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
-              </div>
-              <p className="text-xs font-semibold text-foreground whitespace-nowrap">{a.label}</p>
-            </Link>
+        {/* Progress */}
+        <div className="bg-card rounded-xl border border-border/60 p-3 md:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-muted-foreground">Прогресс</span>
+            <span className="text-xs font-bold text-primary">{completed.size}/6 қадам</span>
+          </div>
+          <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          {completed.size === 6 && (
+            <p className="text-xs text-primary font-semibold mt-2 flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Тамаша! Сен платформаны толық меңгердің! 🎉
+            </p>
+          )}
+        </div>
+
+        {/* Steps */}
+        <div className="space-y-3">
+          {steps.map((step, i) => (
+            <TutorialStep
+              key={i}
+              number={i + 1}
+              {...step}
+              isOpen={openStep === i}
+              onToggle={() => setOpenStep(openStep === i ? -1 : i)}
+              completed={completed.has(i)}
+              onComplete={() => handleComplete(i)}
+            />
           ))}
         </div>
 
-        {/* Trending Videos */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="section-label">🔥 Топ тренды</p>
-            <Link to="/trends" className="text-xs text-primary hover:underline flex items-center gap-1 pr-3 font-semibold">
-              Все тренды <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-
-          {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
-              {[...Array(10)].map((_, i) => (
-                <div key={i} className="bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse">
-                  <div className="aspect-[9/14] bg-muted m-2 rounded-2xl" />
-                  <div className="px-3 py-3 space-y-2">
-                    <div className="h-4 bg-muted rounded w-2/3" />
-                    <div className="h-3 bg-muted rounded w-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : trendingVideos.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
-              {trendingVideos.map((video) => {
-                const views = Number(video.views) || 0;
-                const tier = getTier(views);
-                const velViews = video.velocity_views || 0;
-                const timeAgo = getTimeAgo(video.published_at);
-
-                return (
-                  <div
-                    key={video.id}
-                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col"
-                  >
-                    <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
-                      {playingId === video.id ? (
-                        <>
-                          <iframe
-                            src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                            className="w-full h-full border-0"
-                            allow="autoplay; encrypted-media; fullscreen"
-                            allowFullScreen
-                          />
-                          <button
-                            onClick={() => setPlayingId(null)}
-                            className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {video.cover_url ? (
-                            <img
-                              src={video.cover_url}
-                              alt=""
-                              loading="lazy"
-                              className="w-full h-full object-cover cursor-pointer"
-                              onClick={() => setPlayingId(video.id)}
-                            />
-                          ) : (
-                            <div
-                              className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
-                              onClick={() => setPlayingId(video.id)}
-                            >
-                              <Play className="h-12 w-12 text-muted-foreground/30" />
-                            </div>
-                          )}
-
-                          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2.5 z-10 pointer-events-none">
-                            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm">
-                              <Music className="h-3 w-3 text-foreground" />
-                              <span className="text-[11px] font-bold text-foreground">TikTok</span>
-                            </div>
-                          </div>
-
-                          {tier && (
-                            <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
-                              <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg ${tierConfig[tier].className}`}>
-                                {(() => {
-                                  const Icon = tierConfig[tier].icon;
-                                  return <Icon className="h-3.5 w-3.5" />;
-                                })()}
-                                <span className="text-[10px] font-bold">{tierConfig[tier].label}</span>
-                              </div>
-                              {velViews > 10 && (
-                                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
-                                  <TrendingUp className="h-3 w-3 text-white" />
-                                  <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          <button
-                            onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
-                            className="absolute top-12 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5 text-foreground" />
-                          </button>
-
-                          <div
-                            className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"
-                            onClick={() => setPlayingId(video.id)}
-                          >
-                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
-                              <Play className="h-6 w-6 md:h-7 md:w-7 text-white fill-white ml-0.5" />
-                            </div>
-                          </div>
-
-                          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
-                      <span className="flex flex-col items-center gap-0.5">
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.views))}</span>
-                      </span>
-                      <span className="flex flex-col items-center gap-0.5">
-                        <Heart className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.likes))}</span>
-                      </span>
-                      <span className="flex flex-col items-center gap-0.5">
-                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span>
-                      </span>
-                      <span className="flex flex-col items-center gap-0.5">
-                        <Share2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.shares || 0))}</span>
-                      </span>
-                    </div>
-
-                    <div className="px-3 pt-3 flex items-center gap-2">
-                      {video.author_avatar_url ? (
-                        <img src={video.author_avatar_url} alt="" className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
-                      )}
-                      <span className="text-sm font-semibold text-foreground truncate">
-                        @{video.author_username}
-                      </span>
-                    </div>
-
-                    <div className="px-3 pt-1.5 pb-1">
-                      <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">
-                        {video.caption || "Без описания"}
-                      </p>
-                    </div>
-
-                    {timeAgo && (
-                      <div className="px-3 pb-3">
-                        <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="bg-card rounded-2xl p-10 md:p-14 border border-border/60 text-center card-shadow">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="h-8 w-8 text-primary/40" />
-              </div>
-              <p className="text-sm font-medium text-foreground mb-1">Пока нет данных о трендах</p>
-              <p className="text-xs text-muted-foreground">Данные появятся после обновления</p>
-            </div>
-          )}
+        {/* Quick start CTA */}
+        <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 md:p-6 text-center space-y-3">
+          <h2 className="text-base md:text-lg font-bold text-foreground">🚀 Дайынсың ба?</h2>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Ең жақсы стратегия: Трендтерді тауып → Анализ жасап → AI сценарий жазып → Видео түсір!
+          </p>
+          <Link
+            to="/trends"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold hover:bg-primary/90 transition-colors"
+          >
+            Трендтерді қарау <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </AppLayout>
