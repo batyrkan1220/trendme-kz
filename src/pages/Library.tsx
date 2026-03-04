@@ -214,7 +214,7 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4 pb-20 md:pb-0">
       {favorites.map((fav: any) => {
         const video = fav.videos;
         if (!video) return null;
