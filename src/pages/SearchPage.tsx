@@ -102,6 +102,13 @@ export default function SearchPage() {
     doSearch(query.trim());
   };
 
+  const handleSearchDirect = async (q: string) => {
+    if (!q.trim()) return;
+    const ok = await spend("search", `Поиск: ${q.trim()}`);
+    if (!ok) return;
+    doSearch(q.trim());
+  };
+
   const results = searchResults?.videos || [];
   const relatedKeywords: string[] = searchResults?.relatedKeywords || [];
 
