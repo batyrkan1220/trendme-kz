@@ -516,11 +516,12 @@ export default function AccountAnalysis() {
               <Clock className="h-5 w-5 text-primary" /> История отслеживания
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {trackedAccounts.map((acc) => (
+              {trackedAccounts.map((acc) => {
+                const hasAnalysis = !!(acc.analysis_json as Record<string, any>)?.top_videos;
+                return (
                 <div
                   key={acc.id}
-                  className="bg-card rounded-xl border border-border/50 p-4 card-shadow hover-lift transition-all group cursor-pointer"
-                  onClick={() => loadSavedAnalysis(acc)}
+                  className="bg-card rounded-xl border border-border/50 p-4 card-shadow hover-lift transition-all group"
                 >
                   <div className="flex items-center gap-3">
                     {acc.avatar_url ? (
@@ -539,7 +540,8 @@ export default function AccountAnalysis() {
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
-                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }} title="Обновить"
+                        onClick={(e) => { e.stopPropagation(); setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                        title="Обновить"
                       >
                         <RefreshCw className="h-3.5 w-3.5" />
                       </Button>
@@ -547,19 +549,27 @@ export default function AccountAnalysis() {
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => deleteMutation.mutate(acc.id)}
+                        onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(acc.id); }}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Heart className="h-3 w-3" /> {formatNum(Number(acc.total_likes || 0))}</span>
                     <span className="flex items-center gap-1"><Video className="h-3 w-3" /> {formatNum(Number(acc.total_videos || 0))}</span>
                     {acc.verified && <span className="flex items-center gap-1 text-primary"><Check className="h-3 w-3" /> Верифицирован</span>}
                   </div>
+                  {hasAnalysis && (
+                    <button
+                      onClick={() => loadSavedAnalysis(acc)}
+                      className="w-full mt-3 py-2 rounded-xl bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" /> Смотреть анализ
+                    </button>
+                  )}
                 </div>
-              ))}
+              );})}
             </div>
           </div>
         )}
