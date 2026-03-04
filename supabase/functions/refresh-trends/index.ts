@@ -615,6 +615,14 @@ Deno.serve(async (req: Request) => {
     const limitVal = categoryLimits[nicheKey];
     if (limitVal && limitVal > 0) await enforceLimit(nicheKey, limitVal);
 
+    // Advance per-niche cursor for next run
+    await adminClient
+      .from("trend_niche_cursors")
+      .upsert(
+        { niche: nicheKey, cursor: nicheRotationIndex + 1, updated_at: new Date().toISOString() },
+        { onConflict: "niche" }
+      );
+
     return nicheSaved;
   };
 
