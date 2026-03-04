@@ -633,6 +633,13 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           ? Math.round(topVideos.reduce((sum: number, v: any) => sum + (v.views || 0), 0) / topVideos.length)
           : 0;
 
+        const analysisPayload = {
+          avg_likes_per_video: avgLikesPerVideo,
+          engagement_rate: Math.round(engagementRate * 100) / 100,
+          avg_views: avgViews,
+          top_videos: topVideos.slice(0, 12),
+        };
+
         const { data: account } = await userClient
           .from("accounts_tracked")
           .upsert(
@@ -649,6 +656,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
               bio: accountData.signature || accountData.bio || "",
               bio_link: accountData.bioLink || accountData.bio_link || null,
               fetched_at: new Date().toISOString(),
+              analysis_json: analysisPayload,
             },
             { onConflict: "user_id,username" }
           )
@@ -663,10 +671,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         return json({
           ...account,
-          avg_likes_per_video: avgLikesPerVideo,
-          engagement_rate: Math.round(engagementRate * 100) / 100,
-          avg_views: avgViews,
-          top_videos: topVideos.slice(0, 12),
+          ...analysisPayload,
         });
       }
 

@@ -84,7 +84,9 @@ export default function AccountAnalysis() {
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);
 
-  const { data: account, isPending, mutate: analyze } = useMutation({
+  const [account, setAccount] = useState<any>(null);
+
+  const { isPending, mutate: analyze } = useMutation({
     mutationFn: async (profileUrl: string) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
         body: { action: "account_stats", profile_url: profileUrl },
@@ -92,7 +94,8 @@ export default function AccountAnalysis() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setAccount(data);
       queryClient.invalidateQueries({ queryKey: ["accounts-tracked"] });
       toast.success("Аккаунт проанализирован");
     },
@@ -100,6 +103,20 @@ export default function AccountAnalysis() {
       toast.error("Ошибка: " + err.message);
     },
   });
+
+  const loadSavedAnalysis = useCallback((acc: any) => {
+    const analysis = acc.analysis_json as Record<string, any> | null;
+    if (analysis && analysis.top_videos) {
+      setAccount({
+        ...acc,
+        ...analysis,
+      });
+    } else {
+      // No saved analysis, re-analyze
+      setUrl(acc.profile_url);
+      analyze(acc.profile_url);
+    }
+  }, [analyze]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -159,7 +176,7 @@ export default function AccountAnalysis() {
                       className="bg-card rounded-xl border border-border/50 p-3 card-shadow hover:bg-muted/50 transition-colors flex items-center gap-3 text-left group"
                     >
                       <button
-                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                        onClick={() => loadSavedAnalysis(acc)}
                         className="flex items-center gap-3 flex-1 min-w-0"
                       >
                         {acc.avatar_url ? (
@@ -484,7 +501,8 @@ export default function AccountAnalysis() {
               {trackedAccounts.map((acc) => (
                 <div
                   key={acc.id}
-                  className="bg-card rounded-xl border border-border/50 p-4 card-shadow hover-lift transition-all group"
+                  className="bg-card rounded-xl border border-border/50 p-4 card-shadow hover-lift transition-all group cursor-pointer"
+                  onClick={() => loadSavedAnalysis(acc)}
                 >
                   <div className="flex items-center gap-3">
                     {acc.avatar_url ? (
@@ -503,7 +521,7 @@ export default function AccountAnalysis() {
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
-                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }} title="Обновить"
                       >
                         <RefreshCw className="h-3.5 w-3.5" />
                       </Button>
