@@ -269,6 +269,7 @@ function TrendingShowcase() {
           <button
             key={i}
             onClick={() => setActive(i)}
+            aria-label={`Перейти к слайду ${i + 1}`}
             className={`h-2 rounded-full transition-all duration-500 ${
               i === active ? "w-8 bg-primary" : "w-2 bg-border"
             }`}
