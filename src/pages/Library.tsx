@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { LazyIframe } from "@/components/LazyIframe";
 
 type Tab = "favorites" | "analyses" | "scripts";
 
@@ -300,7 +301,7 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
             {/* Video player preview */}
             <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
               {videoId ? (
-                <iframe
+                <LazyIframe
                   src={`https://www.tiktok.com/player/v1/${videoId}?music_info=0&description=0&muted=1&play_button=1&volume_control=0`}
                   className="w-full h-full border-0"
                   allow="autoplay; encrypted-media; fullscreen"
