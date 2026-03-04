@@ -316,7 +316,7 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
           <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
             {/* Compact preview header */}
             <div className="flex items-center gap-3 p-3 border-b border-border/30">
-              {/* Mini video preview */}
+              {/* Mini video preview thumbnail */}
               <a
                 href={a.video_url}
                 target="_blank"
@@ -324,7 +324,11 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
                 title="Открыть видео"
               >
-                <Video className="h-5 w-5 text-muted-foreground" />
+                {a._cover_url ? (
+                  <img src={a._cover_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <Video className="h-5 w-5 text-muted-foreground" />
+                )}
               </a>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
