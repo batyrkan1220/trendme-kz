@@ -136,9 +136,6 @@ export default function AccountAnalysis() {
     analyze(url.trim());
   };
 
-
-  const topVideos: TopVideo[] = account?.top_videos || [];
-
   const topVideos: TopVideo[] = account?.top_videos || [];
 
   return (
