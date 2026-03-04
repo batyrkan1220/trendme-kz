@@ -44,6 +44,13 @@ function parseTranscript(raw: any): string {
   return t;
 }
 
+function extractVideoId(url: string, storedId?: string | null): string | null {
+  if (storedId) return storedId;
+  // Extract from URLs like https://www.tiktok.com/@user/video/7611995834628066561
+  const match = url?.match(/\/video\/(\d+)/);
+  return match ? match[1] : null;
+}
+
 export default function Library() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
