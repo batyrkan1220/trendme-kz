@@ -287,81 +287,79 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
       {analyses.map((a: any) => {
         const summary = parseSummary(a.summary_json);
         const transcript = parseTranscript(a.transcript_text);
         const isExpanded = expandedAnalysis === a.id;
-        const isPlaying = playingAnalysisId === a.id;
-        const date = new Date(a.analyzed_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+        const date = new Date(a.analyzed_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
         const videoId = extractVideoId(a.video_url, a.platform_video_id);
 
         return (
-          <div key={a.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden transition-all">
-            {/* Inline video player — always visible if videoId exists */}
-            {videoId && (
-              <div className="relative aspect-[9/16] max-h-[480px] bg-black">
+          <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
+            {/* Video player preview */}
+            <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
+              {videoId ? (
                 <iframe
-                  src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                  src={`https://www.tiktok.com/player/v1/${videoId}?music_info=0&description=0&muted=1&play_button=1&volume_control=0`}
                   className="w-full h-full border-0"
                   allow="autoplay; encrypted-media; fullscreen"
                   allowFullScreen
                 />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-muted">
+                  <Play className="h-12 w-12 text-muted-foreground/30" />
+                </div>
+              )}
+              {/* Delete button overlay */}
+              <div className="absolute top-2 right-2 z-10">
+                <button
+                  onClick={() => removeAnalysis(a.id)}
+                  className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </button>
+              </div>
+              {/* External link */}
+              <button
+                onClick={() => window.open(a.video_url, '_blank')}
+                className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+              >
+                <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+              </button>
+            </div>
+
+            {/* Info */}
+            <div className="px-3 pt-2 pb-1 cursor-pointer" onClick={() => toggleExpand(a.id)}>
+              <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
+                {summary?.topic || "Анализ видео"}
+              </h3>
+              <p className="text-[11px] text-muted-foreground mt-1">{date}</p>
+            </div>
+
+            {/* Tags */}
+            {summary?.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-1 px-3 pb-2">
+                {summary.tags.slice(0, 3).map((tag: string, i: number) => (
+                  <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
+                ))}
               </div>
             )}
 
-            {/* Header row */}
-            <div className="flex items-center gap-3 p-4">
-
-              {/* Info */}
-              <div
-                className="flex-1 min-w-0 cursor-pointer"
-                onClick={() => toggleExpand(a.id)}
-              >
-                <h3 className="text-sm font-semibold text-foreground truncate">
-                  {summary?.topic || "Анализ видео"}
-                </h3>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">{date}</p>
-                {summary?.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {summary.tags.slice(0, 3).map((tag: string, i: number) => (
-                      <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  onClick={(e) => { e.stopPropagation(); removeAnalysis(a.id); }}
-                  className="text-muted-foreground/50 hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/5"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-                <button onClick={() => toggleExpand(a.id)} className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
-                  {isExpanded ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
-                </button>
-              </div>
+            {/* Expand toggle */}
+            <div className="mt-auto border-t border-border/30">
+              <button onClick={() => toggleExpand(a.id)} className="w-full flex items-center justify-center gap-1 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {isExpanded ? "Свернуть" : "Подробнее"}
+              </button>
             </div>
 
             {/* Expanded content */}
             {isExpanded && (
-              <div className="px-4 pb-5 space-y-4 border-t border-border/30 pt-4">
-                {/* Tags */}
-                {summary?.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {summary.tags.map((tag: string, i: number) => (
-                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
+              <div className="px-3 pb-3 space-y-3 border-t border-border/30 pt-3">
                 {/* Language */}
                 {summary?.language && (
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-xs">
                     <span className="text-muted-foreground">Язык:</span>
                     <span className="font-medium text-foreground">
                       {summary.language === "Русский" ? "🇷🇺 " : summary.language === "English" ? "🇺🇸 " : ""}
@@ -373,12 +371,10 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 {/* Niches */}
                 {summary?.niches?.length > 0 && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-2">Категории</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-[11px] text-muted-foreground mb-1">Категории</p>
+                    <div className="flex flex-wrap gap-1">
                       {summary.niches.map((niche: string, i: number) => (
-                        <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-card border border-border/50 text-foreground">
-                          {niche}
-                        </span>
+                        <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-card border border-border/50 text-foreground">{niche}</span>
                       ))}
                     </div>
                   </div>
@@ -387,39 +383,14 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 {/* Summary text */}
                 {summary?.summary && (
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-semibold text-foreground">Суть</p>
-                      <button onClick={() => copyText(summary.summary)} className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50">
-                        <Copy className="h-3 w-3" /> Копировать
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-semibold text-foreground">Суть</p>
+                      <button onClick={() => copyText(summary.summary)} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                        <Copy className="h-3 w-3" />
                       </button>
                     </div>
-                    <div className="bg-muted/30 rounded-xl p-4">
-                      <p className="text-sm text-foreground/80 leading-relaxed">{summary.summary}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Structure / Timeline */}
-                {summary?.structure?.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold text-foreground mb-3">Структура</p>
-                    <div className="relative pl-8 space-y-4">
-                      <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border" />
-                      {summary.structure.map((seg: any, i: number) => (
-                        <div key={i} className="relative">
-                          <div className={`absolute -left-8 top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            i === summary.structure.length - 1 ? "bg-primary border-primary" : "bg-card border-border"
-                          }`}>
-                            <div className={`w-2 h-2 rounded-full ${i === summary.structure.length - 1 ? "bg-primary-foreground" : "bg-muted-foreground/50"}`} />
-                          </div>
-                          <div className="bg-muted/30 rounded-xl p-3">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-bold text-primary">{seg.time || seg.timestamp}</span>
-                            </div>
-                            <p className="text-sm text-foreground/80 leading-relaxed">{seg.description || seg.text}</p>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="bg-muted/30 rounded-xl p-3">
+                      <p className="text-xs text-foreground/80 leading-relaxed">{summary.summary}</p>
                     </div>
                   </div>
                 )}
@@ -427,12 +398,12 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 {/* Hooks */}
                 {summary?.hooks?.length > 0 && (
                   <div>
-                    <p className="text-sm font-semibold text-foreground mb-2">Хуки и приёмы</p>
-                    <div className="space-y-2">
+                    <p className="text-xs font-semibold text-foreground mb-1">Хуки</p>
+                    <div className="space-y-1">
                       {summary.hooks.map((hook: string, i: number) => (
-                        <div key={i} className="flex items-start gap-2 bg-muted/30 rounded-xl p-3">
-                          <Target className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                          <p className="text-sm text-foreground/80">{hook}</p>
+                        <div key={i} className="flex items-start gap-1.5 bg-muted/30 rounded-lg p-2">
+                          <Target className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                          <p className="text-xs text-foreground/80">{hook}</p>
                         </div>
                       ))}
                     </div>
@@ -442,26 +413,17 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 {/* Transcript */}
                 {transcript && (
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-semibold text-foreground">Транскрибация</p>
-                      <button onClick={() => copyText(transcript)} className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50">
-                        <Copy className="h-3 w-3" /> Копировать
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-semibold text-foreground">Транскрибация</p>
+                      <button onClick={() => copyText(transcript)} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                        <Copy className="h-3 w-3" />
                       </button>
                     </div>
-                    <div className="bg-muted/30 rounded-xl p-4 max-h-60 overflow-y-auto">
-                      <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
+                    <div className="bg-muted/30 rounded-xl p-3 max-h-40 overflow-y-auto">
+                      <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
                     </div>
                   </div>
                 )}
-
-                {/* Link to original */}
-                <button
-                  onClick={() => window.open(a.video_url, '_blank')}
-                  className="flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Открыть оригинал
-                </button>
               </div>
             )}
           </div>
