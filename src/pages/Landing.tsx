@@ -399,31 +399,31 @@ export default function Landing() {
       </section>
 
       {/* ═══ Features ═══ */}
-      <section id="features" className="py-16 md:py-28 px-4 bg-muted/20 border-y border-border/30">
+      <section id="features" className="py-10 md:py-28 px-4 bg-muted/20 border-y border-border/30">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Инструменты</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <p className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">Инструменты</p>
+            <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4">
               Всё для <span className="text-primary">роста</span> в TikTok
             </h2>
-            <p className="text-muted-foreground text-base md:text-lg lg:text-xl max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-sm md:text-lg lg:text-xl max-w-2xl mx-auto">
               Один инструмент заменяет десятки сервисов. Работайте умнее.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {features.map((f) => (
-              <div key={f.title} className="group relative rounded-2xl p-6 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all duration-300 hover:border-primary/20 h-full">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_-2px_hsl(var(--primary)/0.25)]">
-                    <f.icon className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
+              <div key={f.title} className="group relative rounded-2xl p-5 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all duration-300 hover:border-primary/20 h-full">
+                <div className="flex items-start justify-between mb-3 md:mb-4">
+                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_-2px_hsl(var(--primary)/0.25)]">
+                    <f.icon className="h-4 w-4 md:h-6 md:w-6 text-primary-foreground" />
                   </div>
-                  <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md">
+                  <span className="text-[10px] md:text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 md:px-2.5 md:py-1 rounded-md">
                     {f.metric}
                   </span>
                 </div>
-                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{f.title}</h3>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{f.desc}</p>
+                <h3 className="text-base md:text-xl font-bold text-foreground mb-1.5 md:mb-2">{f.title}</h3>
+                <p className="text-xs md:text-base text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
