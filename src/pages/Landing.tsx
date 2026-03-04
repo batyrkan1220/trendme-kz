@@ -360,24 +360,24 @@ export default function Landing() {
       </section>
 
       {/* ═══ How it works ═══ */}
-      <section id="how" className="py-16 md:py-28 px-4">
+      <section id="how" className="py-10 md:py-28 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Как это работает</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <p className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">Как это работает</p>
+            <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4">
               Три шага к <span className="text-primary">вирусному контенту</span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
             {steps.map((step, i) => (
               <div key={step.num} className="relative text-center">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.3)]">
-                  <step.icon className="h-7 w-7 md:h-8 md:w-8 text-primary-foreground" />
+                <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4 md:mb-5 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.3)]">
+                  <step.icon className="h-6 w-6 md:h-8 md:w-8 text-primary-foreground" />
                 </div>
-                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Шаг {step.num}</div>
-                <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">{step.title}</h3>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{step.desc}</p>
+                <div className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 md:mb-2">Шаг {step.num}</div>
+                <h3 className="text-lg md:text-2xl font-bold text-foreground mb-1.5 md:mb-2">{step.title}</h3>
+                <p className="text-xs md:text-base text-muted-foreground leading-relaxed">{step.desc}</p>
                 {i < steps.length - 1 && (
                   <div className="hidden md:block absolute top-10 -right-5 w-10">
                     <ChevronRight className="h-6 w-6 text-border" />
@@ -387,11 +387,11 @@ export default function Landing() {
             ))}
           </div>
 
-          <div className="text-center mt-12 md:mt-16">
+          <div className="text-center mt-8 md:mt-16">
             <Link to="/auth">
-              <Button className="bg-primary text-primary-foreground rounded-xl text-base md:text-lg font-bold px-8 md:px-10 h-13 min-h-[52px] md:min-h-[56px] hover:bg-primary/90">
+              <Button className="bg-primary text-primary-foreground rounded-xl text-sm md:text-lg font-bold px-6 md:px-10 h-11 md:min-h-[56px] hover:bg-primary/90">
                 Начать сейчас — бесплатно
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
               </Button>
             </Link>
           </div>
