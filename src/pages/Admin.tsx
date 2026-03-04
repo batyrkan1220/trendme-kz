@@ -970,14 +970,20 @@ function RefreshSection() {
                         📊 По категориям ({nicheEntries.length})
                       </summary>
                       <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
-                        {nicheEntries.map(([niche, count]) => (
-                          <div key={niche} className="flex items-center justify-between bg-muted/30 rounded px-2 py-1 text-xs">
-                            <span className="truncate font-medium">{niche}</span>
-                            <Badge variant={Number(count) > 0 ? "default" : "secondary"} className="ml-1 text-[10px] px-1.5 py-0">
-                              {count as number}
-                            </Badge>
-                          </div>
-                        ))}
+                        {nicheEntries.map(([niche, count]) => {
+                          const total7d = videoCounts[niche] || 0;
+                          return (
+                            <div key={niche} className="flex items-center justify-between bg-muted/30 rounded px-2 py-1 text-xs">
+                              <span className="truncate font-medium">{niche}</span>
+                              <span className="ml-1 flex items-center gap-1 shrink-0">
+                                <Badge variant={Number(count) > 0 ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                                  +{count as number}
+                                </Badge>
+                                <span className="text-[10px] text-muted-foreground">/ {total7d}</span>
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </details>
                   )}
