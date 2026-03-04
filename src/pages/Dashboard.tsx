@@ -2,8 +2,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import {
   TrendingUp, Search, Video, UserCircle, Star, ArrowRight,
   CheckCircle2, Play, Zap, Target, BookOpen, ChevronDown, ChevronUp,
-  Lightbulb, Sparkles, BarChart3, FileText, Copy, MousePointerClick,
-  Eye, Heart, MessageCircle, Trophy, Filter, Clock, Link2
+  Lightbulb, Sparkles, BarChart3, FileText, MousePointerClick,
+  Eye, Heart, MessageCircle, Trophy, Filter, Clock
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -40,7 +40,7 @@ function ScreenHint({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-muted/60 border border-border/40 rounded-xl p-3 space-y-2">
       <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-        <MousePointerClick className="h-3 w-3" /> Экранда не көресің
+        <MousePointerClick className="h-3 w-3" /> Что ты увидишь на экране
       </div>
       <div className="text-xs text-foreground/70 leading-relaxed">{children}</div>
     </div>
@@ -62,244 +62,244 @@ function NumberedStep({ n, children }: { n: number; children: React.ReactNode })
 const steps = [
   {
     emoji: "🔥",
-    title: "Тренды — вирусты видеоларды тап",
-    subtitle: "Қазір ТикТокта не вирусты? Мұнда көресің",
+    title: "Тренды — найди вирусные видео",
+    subtitle: "Что сейчас набирает обороты в ТикТоке",
     icon: TrendingUp,
     path: "/trends",
-    pathLabel: "Трендтерге өту",
+    pathLabel: "Перейти к трендам",
     color: "from-amber-500/20 to-orange-500/10",
     borderColor: "border-amber-500/30",
     details: (
       <>
         <p className="text-sm text-foreground/80 leading-relaxed">
-          <strong>Тренды</strong> бөліміне кірген кезде — сен қазір ТикТокта ең тез өсіп жатқан видеоларды көресің. Бұл видеолар автоматты түрде жиналып, рейтингке қойылады.
+          <strong>Тренды</strong> — сердце платформы. Здесь собраны самые быстрорастущие видео из ТикТока. Они автоматически ранжируются по скорости роста.
         </p>
 
         <ScreenHint>
-          <p>Әр видео картасында мынаны көресің:</p>
+          <p>На каждой карточке видео ты увидишь:</p>
           <div className="grid grid-cols-2 gap-2 mt-2">
-            <div className="flex items-center gap-1.5"><Eye className="h-3 w-3 text-muted-foreground" /> <span>Көрілімдер саны</span></div>
-            <div className="flex items-center gap-1.5"><Heart className="h-3 w-3 text-muted-foreground" /> <span>Лайктар саны</span></div>
-            <div className="flex items-center gap-1.5"><MessageCircle className="h-3 w-3 text-muted-foreground" /> <span>Комменттер</span></div>
-            <div className="flex items-center gap-1.5"><TrendingUp className="h-3 w-3 text-muted-foreground" /> <span>Жылдамдық (+/ч)</span></div>
+            <div className="flex items-center gap-1.5"><Eye className="h-3 w-3 text-muted-foreground" /> <span>Просмотры</span></div>
+            <div className="flex items-center gap-1.5"><Heart className="h-3 w-3 text-muted-foreground" /> <span>Лайки</span></div>
+            <div className="flex items-center gap-1.5"><MessageCircle className="h-3 w-3 text-muted-foreground" /> <span>Комментарии</span></div>
+            <div className="flex items-center gap-1.5"><TrendingUp className="h-3 w-3 text-muted-foreground" /> <span>Скорость роста (+/ч)</span></div>
           </div>
         </ScreenHint>
 
         <div className="space-y-2">
-          <p className="text-xs font-bold text-foreground">Видео деңгейлері:</p>
+          <p className="text-xs font-bold text-foreground">Уровни видео:</p>
           <div className="flex flex-wrap gap-1.5">
-            <StepBadge icon={Trophy} text="Strong Trend — 80K+ көрілім" className="bg-amber-500/15 text-amber-700 dark:text-amber-400" />
-            <StepBadge icon={Zap} text="Mid Trend — 15K+ көрілім" className="bg-primary/10 text-primary" />
-            <StepBadge icon={Target} text="Micro Trend — 3K+ көрілім" className="bg-primary/[0.07] text-primary/80" />
+            <StepBadge icon={Trophy} text="Strong Trend — 80K+ просмотров" className="bg-amber-500/15 text-amber-700 dark:text-amber-400" />
+            <StepBadge icon={Zap} text="Mid Trend — 15K+ просмотров" className="bg-primary/10 text-primary" />
+            <StepBadge icon={Target} text="Micro Trend — 3K+ просмотров" className="bg-primary/[0.07] text-primary/80" />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground flex items-center gap-1"><Filter className="h-3 w-3" /> Фильтрлер:</p>
-          <p className="text-xs text-foreground/70">Жоғарғы жақтағы нише батырмаларын бас — өз тақырыбыңдағы трендтер ғана көрінеді. Мысалы: "Красота", "Еда", "Бизнес".</p>
+          <p className="text-xs font-bold text-foreground flex items-center gap-1"><Filter className="h-3 w-3" /> Фильтры:</p>
+          <p className="text-xs text-foreground/70">Нажми на кнопки ниш вверху — увидишь тренды только по своей теме. Например: «Красота», «Еда», «Бизнес».</p>
         </div>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground">📋 Нақты қадамдар:</p>
+          <p className="text-xs font-bold text-foreground">📋 Пошаговая инструкция:</p>
           <div className="space-y-1">
-            <NumberedStep n={1}>Сол жақтағы <strong>Тренды</strong> менюін бас</NumberedStep>
-            <NumberedStep n={2}>Өз нишеңді таңда (мысалы: "Красота")</NumberedStep>
-            <NumberedStep n={3}>Видеоларды көрілім мен velocity бойынша қара</NumberedStep>
-            <NumberedStep n={4}>Ұнаған видеоны <strong>⭐ батырмасын</strong> басып сақта</NumberedStep>
-            <NumberedStep n={5}>Видеоның ▶️ батырмасын басып, тікелей қара</NumberedStep>
+            <NumberedStep n={1}>Нажми <strong>Тренды</strong> в боковом меню</NumberedStep>
+            <NumberedStep n={2}>Выбери свою нишу (например: «Красота»)</NumberedStep>
+            <NumberedStep n={3}>Смотри видео по просмотрам и velocity (скорости роста)</NumberedStep>
+            <NumberedStep n={4}>Нажми <strong>⭐</strong> чтобы сохранить понравившееся видео</NumberedStep>
+            <NumberedStep n={5}>Нажми <strong>▶️</strong> чтобы посмотреть видео прямо на платформе</NumberedStep>
           </div>
         </div>
 
         <Tip>
-          Жаңа бастаушыға кеңес: <strong>Micro Trend</strong> видеоларынан баста — бәсекелес аз, бірақ серпін жақсы. Осы видеоны өз стиліңмен қайта жаса!
+          Совет для начинающих: начни с <strong>Micro Trend</strong> видео — конкуренция меньше, но динамика хорошая. Переделай такое видео в своём стиле!
         </Tip>
       </>
     ),
   },
   {
     emoji: "🔍",
-    title: "Іздеу — кілт сөзбен тап",
-    subtitle: "Кез-келген тақырыпты теріп, видеоларды тап",
+    title: "Поиск — ищи по ключевым словам",
+    subtitle: "Найди видео по любой теме",
     icon: Search,
     path: "/search",
-    pathLabel: "Іздеуге өту",
+    pathLabel: "Перейти к поиску",
     color: "from-blue-500/20 to-cyan-500/10",
     borderColor: "border-blue-500/30",
     details: (
       <>
         <p className="text-sm text-foreground/80 leading-relaxed">
-          <strong>Іздеу</strong> арқылы ТикТоктан кез-келген тақырыпқа байланысты видеоларды табасың. Нәтижелер көрілім бойынша сұрыпталады.
+          <strong>Поиск</strong> позволяет находить видео из ТикТока по любому ключевому слову. Результаты сортируются по просмотрам.
         </p>
 
         <ScreenHint>
-          <p>Жоғарғы жақта үлкен іздеу жолағы бар. Кілт сөзді теріп, Enter бас немесе 🔍 батырмасын бас.</p>
+          <p>Вверху большая строка поиска. Введи ключевое слово и нажми Enter или 🔍.</p>
         </ScreenHint>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground">📋 Нақты қадамдар:</p>
+          <p className="text-xs font-bold text-foreground">📋 Пошаговая инструкция:</p>
           <div className="space-y-1">
-            <NumberedStep n={1}>Сол жақтағы <strong>Іздеу</strong> менюін бас</NumberedStep>
-            <NumberedStep n={2}>Іздеу жолағына кілт сөзді жаз, мысалы: <strong>"үйде тамақ жасау"</strong></NumberedStep>
-            <NumberedStep n={3}>Нәтижелерді қара — видеолар көрілім бойынша сұрыпталған</NumberedStep>
-            <NumberedStep n={4}>Ұнаған видеоны ⭐ сақта немесе тікелей қара</NumberedStep>
+            <NumberedStep n={1}>Нажми <strong>Поиск</strong> в боковом меню</NumberedStep>
+            <NumberedStep n={2}>Введи ключевое слово, например: <strong>«домашний десерт»</strong></NumberedStep>
+            <NumberedStep n={3}>Посмотри результаты — видео отсортированы по просмотрам</NumberedStep>
+            <NumberedStep n={4}>Сохрани понравившееся видео ⭐ или посмотри его</NumberedStep>
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground">💡 Іздеу мысалдары:</p>
+          <p className="text-xs font-bold text-foreground">💡 Примеры запросов:</p>
           <div className="flex flex-wrap gap-1.5">
-            {["рецепт десерт", "фитнес үйде", "бизнес идея", "макияж tutorial", "мотивация"].map(q => (
-              <span key={q} className="bg-muted rounded-lg px-2.5 py-1 text-[11px] font-medium text-foreground/70">"{q}"</span>
+            {["рецепт десерт", "фитнес дома", "бизнес идея", "макияж tutorial", "мотивация"].map(q => (
+              <span key={q} className="bg-muted rounded-lg px-2.5 py-1 text-[11px] font-medium text-foreground/70">«{q}»</span>
             ))}
           </div>
         </div>
 
-        <Tip>Нақты сөздер қолдан: "тамақ" емес — <strong>"үйде жасайтын десерт рецепт"</strong>. Нақтырақ іздесең — дәлірек нәтиже аласың.</Tip>
+        <Tip>Используй конкретные фразы: не «еда», а <strong>«домашний десерт рецепт»</strong>. Чем точнее запрос — тем лучше результаты.</Tip>
       </>
     ),
   },
   {
     emoji: "🎬",
-    title: "Видео анализ — видеоны бөлшекте",
-    subtitle: "Неліктен вирусты? AI-мен талда",
+    title: "Анализ видео — разбери по полочкам",
+    subtitle: "Почему это видео стало вирусным? AI разберёт",
     icon: Video,
     path: "/video-analysis",
-    pathLabel: "Видео анализге өту",
+    pathLabel: "Перейти к анализу видео",
     color: "from-purple-500/20 to-pink-500/10",
     borderColor: "border-purple-500/30",
     details: (
       <>
         <p className="text-sm text-foreground/80 leading-relaxed">
-          Кез-келген ТикТок видеосының сілтемесін қой — AI оны толық талдайды: не себепті вирусты болды, қандай тәсілдер қолданылған, сен не үйрене аласың.
+          Вставь ссылку на любое видео из ТикТока — AI полностью его разберёт: почему стало вирусным, какие приёмы использованы, что ты можешь перенять.
         </p>
 
         <ScreenHint>
-          <p>Бетте бір ғана іздеу жолағы бар — ТикТок видеосының сілтемесін осыған қоясың. AI бірнеше секундта нәтиже береді.</p>
+          <p>На странице одно поле ввода — вставь туда ссылку на ТикТок видео. AI проанализирует за несколько секунд.</p>
         </ScreenHint>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground">📋 Нақты қадамдар:</p>
+          <p className="text-xs font-bold text-foreground">📋 Пошаговая инструкция:</p>
           <div className="space-y-1">
-            <NumberedStep n={1}>ТикТокта видеоны аш → <strong>Бөлісу → Сілтемені көшіру</strong></NumberedStep>
-            <NumberedStep n={2}>TrendMe-де <strong>Видео анализ</strong> бетін аш</NumberedStep>
-            <NumberedStep n={3}>Сілтемені жолаққа қой → <strong>"Анализ"</strong> бас</NumberedStep>
-            <NumberedStep n={4}>AI талдауын оқы — видеоның сәттілік формуласын түсін</NumberedStep>
+            <NumberedStep n={1}>В ТикТоке открой видео → <strong>Поделиться → Скопировать ссылку</strong></NumberedStep>
+            <NumberedStep n={2}>Открой <strong>Анализ видео</strong> в TrendMe</NumberedStep>
+            <NumberedStep n={3}>Вставь ссылку в поле → нажми <strong>«Анализировать»</strong></NumberedStep>
+            <NumberedStep n={4}>Прочитай AI-разбор и применяй к своему контенту</NumberedStep>
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground flex items-center gap-1"><BarChart3 className="h-3 w-3" /> AI не талдайды:</p>
+          <p className="text-xs font-bold text-foreground flex items-center gap-1"><BarChart3 className="h-3 w-3" /> Что анализирует AI:</p>
           <ul className="space-y-1 ml-1 text-xs text-foreground/70">
-            <li>• Видеоның хук (алғашқы 3 секунд) — назар аударту тәсілі</li>
-            <li>• Контент құрылымы — қалай салынған</li>
-            <li>• Аудитория реакциясы — комменттер мен лайктар</li>
-            <li>• Сенің контентіңе қолдану жолдары</li>
+            <li>• Хук (первые 3 секунды) — как привлекает внимание</li>
+            <li>• Структура контента — как построено видео</li>
+            <li>• Реакция аудитории — комментарии и лайки</li>
+            <li>• Рекомендации — что применить в своём контенте</li>
           </ul>
         </div>
 
-        <Tip>Трендтер бетінен тапқан <strong>Strong Trend</strong> видеоларын анализге жібер — олардың жетістік формуласын ашып, өзіңе қолданасың!</Tip>
+        <Tip>Отправляй на анализ <strong>Strong Trend</strong> видео из Трендов — раскрой их формулу успеха и используй для себя!</Tip>
       </>
     ),
   },
   {
     emoji: "👤",
-    title: "Аккаунт анализ — авторды зертте",
-    subtitle: "Бәсекелестерді немесе үлгі авторларды талда",
+    title: "Анализ аккаунта — изучи автора",
+    subtitle: "Разбери стратегию конкурентов или лучших авторов",
     icon: UserCircle,
     path: "/account-analysis",
-    pathLabel: "Аккаунт анализге өту",
+    pathLabel: "Перейти к анализу аккаунта",
     color: "from-green-500/20 to-emerald-500/10",
     borderColor: "border-green-500/30",
     details: (
       <>
         <p className="text-sm text-foreground/80 leading-relaxed">
-          Кез-келген ТикТок авторының аккаунтын толық зертте: қанша подписчик, қандай видеолар жақсы жұмыс істейді, қандай стратегия қолданады.
+          Изучи любой ТикТок-аккаунт: сколько подписчиков, какие видео заходят лучше всего, какая стратегия используется.
         </p>
 
         <ScreenHint>
-          <p>Бетте іздеу жолағы бар — ТикТок авторының <strong>username</strong>-ін немесе профиль сілтемесін жаз.</p>
+          <p>На странице поле ввода — введи <strong>username</strong> автора или вставь ссылку на его профиль.</p>
         </ScreenHint>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground">📋 Нақты қадамдар:</p>
+          <p className="text-xs font-bold text-foreground">📋 Пошаговая инструкция:</p>
           <div className="space-y-1">
-            <NumberedStep n={1}><strong>Аккаунт анализ</strong> бетін аш</NumberedStep>
-            <NumberedStep n={2}>Автордың username-ін жаз, мысалы: <strong>@username</strong></NumberedStep>
-            <NumberedStep n={3}>Аккаунт статистикасын қара: подписчиктер, лайктар, видео саны</NumberedStep>
-            <NumberedStep n={4}>Олардың ТОП видеоларын тап — не жақсы жұмыс істейді</NumberedStep>
+            <NumberedStep n={1}>Открой <strong>Анализ аккаунта</strong></NumberedStep>
+            <NumberedStep n={2}>Введи username автора, например: <strong>@username</strong></NumberedStep>
+            <NumberedStep n={3}>Посмотри статистику: подписчики, лайки, кол-во видео</NumberedStep>
+            <NumberedStep n={4}>Найди их ТОП видео — что заходит лучше всего</NumberedStep>
           </div>
         </div>
 
-        <Tip>Өз нишеңдегі <strong>ТОП-5 авторды</strong> тап. Олардың ең көп көрілген 3 видеосын анализ жаса. Осыдан паттерн табасың!</Tip>
+        <Tip>Найди <strong>ТОП-5 авторов</strong> в своей нише. Разбери их 3 самых популярных видео. Ты увидишь закономерности!</Tip>
       </>
     ),
   },
   {
     emoji: "⭐",
-    title: "Избранное — жинақтаңды құр",
-    subtitle: "Сақталған видеолар мен сценарийлер",
+    title: "Избранное — твоя коллекция",
+    subtitle: "Сохранённые видео и сценарии в одном месте",
     icon: Star,
     path: "/library",
-    pathLabel: "Избранноеге өту",
+    pathLabel: "Перейти в Избранное",
     color: "from-yellow-500/20 to-amber-500/10",
     borderColor: "border-yellow-500/30",
     details: (
       <>
         <p className="text-sm text-foreground/80 leading-relaxed">
-          Барлық сақтаған видеоларың мен AI жасаған сценарийлерің бір жерде жиналады.
+          Все сохранённые видео и AI-сценарии собираются здесь. Это твоя личная библиотека контент-идей.
         </p>
 
         <ScreenHint>
-          <p>Екі таб бар: <strong>"Видеолар"</strong> — сақтаған видеолар, <strong>"Сценарийлер"</strong> — AI жазған сценарийлер.</p>
+          <p>Два таба: <strong>«Видео»</strong> — сохранённые видео, <strong>«Сценарии»</strong> — AI-сценарии.</p>
         </ScreenHint>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground">📋 Қалай сақтайсың:</p>
+          <p className="text-xs font-bold text-foreground">📋 Как сохранять:</p>
           <div className="space-y-1">
-            <NumberedStep n={1}>Трендтерде немесе Іздеуде видеоны тап</NumberedStep>
-            <NumberedStep n={2}>Видео картасындағы <strong>⭐ батырмасын</strong> бас</NumberedStep>
-            <NumberedStep n={3}>Видео автоматты түрде Избранноеге қосылады</NumberedStep>
-            <NumberedStep n={4}>Кейін Избранноеден қарап, контент жасай аласың</NumberedStep>
+            <NumberedStep n={1}>Найди видео в Трендах или Поиске</NumberedStep>
+            <NumberedStep n={2}>Нажми <strong>⭐ на карточке</strong> видео</NumberedStep>
+            <NumberedStep n={3}>Видео автоматически добавится в Избранное</NumberedStep>
+            <NumberedStep n={4}>Возвращайся сюда, когда будешь планировать контент</NumberedStep>
           </div>
         </div>
 
-        <Tip>Апта сайын <strong>5-10 тренд видео</strong> сақта. Осыларға негізделіп контент-план жаса — бұл сенің вирусты контент жинағың!</Tip>
+        <Tip>Сохраняй <strong>5-10 трендовых видео</strong> каждую неделю. Составляй контент-план на их основе — это твой банк вирусных идей!</Tip>
       </>
     ),
   },
   {
     emoji: "✨",
-    title: "AI Сценарий — видеоңды жоспарла",
-    subtitle: "Тренд негізінде AI сценарий жаз",
+    title: "AI Сценарий — спланируй своё видео",
+    subtitle: "На основе тренда AI напишет сценарий для тебя",
     icon: Sparkles,
     path: "/trends",
-    pathLabel: "Тренд тауып, сценарий жаз",
+    pathLabel: "Найти тренд и написать сценарий",
     color: "from-violet-500/20 to-fuchsia-500/10",
     borderColor: "border-violet-500/30",
     details: (
       <>
         <p className="text-sm text-foreground/80 leading-relaxed">
-          Тренд видеоны тауып, оны негізге алып <strong>AI-мен өзіңнің стиліңде жаңа сценарий</strong> жаздыра аласың. Сценарий бірден дайын — тек түсір!
+          Нашёл трендовое видео? Нажми кнопку — и <strong>AI напишет сценарий в твоём стиле</strong>. Готовый план для съёмки!
         </p>
 
         <ScreenHint>
-          <p>Трендтер немесе Іздеу бетінде видео картасында <strong>"📝 Сценарий"</strong> батырмасы бар. Оны бассаң — AI панелі ашылады.</p>
+          <p>На карточке видео (в Трендах или Поиске) есть кнопка <strong>«📝 Сценарий»</strong>. Нажми — откроется AI-панель.</p>
         </ScreenHint>
 
         <div className="space-y-1.5">
-          <p className="text-xs font-bold text-foreground">📋 Нақты қадамдар:</p>
+          <p className="text-xs font-bold text-foreground">📋 Пошаговая инструкция:</p>
           <div className="space-y-1">
-            <NumberedStep n={1}><strong>Трендтер</strong> бетіне кір → Micro Trend видеоны тап</NumberedStep>
-            <NumberedStep n={2}>Видео картасындағы <strong>"📝 Сценарий"</strong> батырмасын бас</NumberedStep>
-            <NumberedStep n={3}>AI автоматты түрде сценарий жасайды (10-15 секунд)</NumberedStep>
-            <NumberedStep n={4}>Сценарийді оқы, қажет болса өңде</NumberedStep>
-            <NumberedStep n={5}><strong>"Сақтау"</strong> батырмасын бас → Избранноеде табасың</NumberedStep>
-            <NumberedStep n={6}>Сценарий бойынша видеоңды түсір! 🎬</NumberedStep>
+            <NumberedStep n={1}>Перейди в <strong>Тренды</strong> → найди Micro Trend видео</NumberedStep>
+            <NumberedStep n={2}>Нажми <strong>«📝 Сценарий»</strong> на карточке видео</NumberedStep>
+            <NumberedStep n={3}>AI автоматически напишет сценарий (10-15 секунд)</NumberedStep>
+            <NumberedStep n={4}>Прочитай и отредактируй при необходимости</NumberedStep>
+            <NumberedStep n={5}>Нажми <strong>«Сохранить»</strong> → найдёшь в Избранном</NumberedStep>
+            <NumberedStep n={6}>Снимай видео по готовому сценарию! 🎬</NumberedStep>
           </div>
         </div>
 
         <Tip>
-          <strong>Ең тиімді стратегия:</strong> Micro Trend тауып → AI сценарий жазып → 24 сағат ішінде түсіру. Жылдамдық = вирустық мүмкіндік! 🚀
+          <strong>Лучшая стратегия:</strong> Micro Trend → AI сценарий → снять за 24 часа. Скорость = шанс на вирусность! 🚀
         </Tip>
       </>
     ),
@@ -338,12 +338,12 @@ export default function Dashboard() {
                 <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-lg md:text-xl font-bold text-foreground">Платформаны үйрен</h1>
-                <p className="text-xs text-muted-foreground">6 қадамда TrendMe-ді толық меңгер</p>
+                <h1 className="text-lg md:text-xl font-bold text-foreground">Как пользоваться платформой</h1>
+                <p className="text-xs text-muted-foreground">Освой TrendMe за 6 простых шагов</p>
               </div>
             </div>
             <p className="text-sm text-foreground/70 leading-relaxed max-w-xl">
-              Әр қадамды ашып оқы, бөлімге өтіп көр, содан <strong>"Түсіндім"</strong> батырмасын бас. Аяқтаған кезде — сен тренд табудың шебері боласың! 💪
+              Открывай каждый шаг, читай инструкцию, переходи в раздел и нажимай <strong>«Понятно»</strong>. Когда пройдёшь все — ты будешь находить тренды как профи! 💪
             </p>
           </div>
         </div>
@@ -355,7 +355,7 @@ export default function Dashboard() {
               <Clock className="h-3.5 w-3.5 text-muted-foreground" /> Прогресс
             </span>
             <span className={cn("text-xs font-bold", allDone ? "text-primary" : "text-muted-foreground")}>
-              {completed.size}/{steps.length} қадам
+              {completed.size}/{steps.length} шагов
             </span>
           </div>
           <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
@@ -367,7 +367,7 @@ export default function Dashboard() {
           {allDone && (
             <div className="mt-2.5 bg-primary/[0.06] border border-primary/15 rounded-lg p-2.5 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              <p className="text-xs font-semibold text-primary">Тамаша! Сен TrendMe-ді толық меңгердің! Енді трендтерді тауып, контент жаса! 🎉</p>
+              <p className="text-xs font-semibold text-primary">Отлично! Ты полностью освоил TrendMe! Теперь иди искать тренды и создавай контент! 🎉</p>
             </div>
           )}
         </div>
@@ -386,7 +386,6 @@ export default function Dashboard() {
                   isOpen ? `${step.borderColor} bg-card shadow-lg` : isDone ? "border-primary/15 bg-primary/[0.02]" : "border-border/50 bg-card/80 hover:border-border"
                 )}
               >
-                {/* Header */}
                 <button
                   onClick={() => setOpenStep(isOpen ? -1 : i)}
                   className="w-full flex items-center gap-3 md:gap-4 p-3.5 md:p-5 text-left"
@@ -413,7 +412,6 @@ export default function Dashboard() {
                   </div>
                 </button>
 
-                {/* Content */}
                 {isOpen && (
                   <div className="px-3.5 md:px-5 pb-4 md:pb-5 space-y-3.5 animate-fade-in">
                     <div className="border-t border-border/30" />
@@ -430,7 +428,7 @@ export default function Dashboard() {
                           onClick={(e) => { e.stopPropagation(); handleComplete(i); }}
                           className="inline-flex items-center justify-center gap-2 bg-muted hover:bg-muted/70 text-foreground rounded-xl px-5 py-2.5 text-sm font-medium transition-colors"
                         >
-                          <CheckCircle2 className="h-4 w-4" /> Түсіндім, келесіге
+                          <CheckCircle2 className="h-4 w-4" /> Понятно, дальше
                         </button>
                       )}
                     </div>
@@ -445,21 +443,21 @@ export default function Dashboard() {
         <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl p-5 md:p-7 text-center space-y-3 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,hsl(var(--primary)/0.08),transparent_60%)]" />
           <div className="relative space-y-3">
-            <h2 className="text-base md:text-lg font-bold text-foreground">🚀 Ең тиімді стратегия</h2>
+            <h2 className="text-base md:text-lg font-bold text-foreground">🚀 Лучшая стратегия</h2>
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-medium text-foreground/70">
-              <span className="bg-card border border-border/60 rounded-lg px-3 py-1.5">1. Тренд тап</span>
+              <span className="bg-card border border-border/60 rounded-lg px-3 py-1.5">1. Найди тренд</span>
               <ArrowRight className="h-3 w-3 text-primary" />
-              <span className="bg-card border border-border/60 rounded-lg px-3 py-1.5">2. Анализ жаса</span>
+              <span className="bg-card border border-border/60 rounded-lg px-3 py-1.5">2. Разбери видео</span>
               <ArrowRight className="h-3 w-3 text-primary" />
-              <span className="bg-card border border-border/60 rounded-lg px-3 py-1.5">3. Сценарий жаз</span>
+              <span className="bg-card border border-border/60 rounded-lg px-3 py-1.5">3. Напиши сценарий</span>
               <ArrowRight className="h-3 w-3 text-primary" />
-              <span className="bg-primary/10 border border-primary/20 text-primary rounded-lg px-3 py-1.5 font-bold">4. Түсір! 🎬</span>
+              <span className="bg-primary/10 border border-primary/20 text-primary rounded-lg px-3 py-1.5 font-bold">4. Снимай! 🎬</span>
             </div>
             <Link
               to="/trends"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-xl px-6 py-3 text-sm font-bold hover:bg-primary/90 transition-colors shadow-md"
             >
-              Трендтерді қарау <ArrowRight className="h-4 w-4" />
+              Перейти к трендам <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
