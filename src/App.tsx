@@ -26,6 +26,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Tokens = lazy(() => import("./pages/Tokens"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Admin = lazy(() => import("./pages/Admin"));
+const ScriptFromVideo = lazy(() => import("./pages/ScriptFromVideo"));
 
 const queryClient = new QueryClient();
 
