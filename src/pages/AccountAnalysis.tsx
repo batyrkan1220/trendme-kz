@@ -176,7 +176,7 @@ export default function AccountAnalysis() {
                       className="bg-card rounded-xl border border-border/50 p-3 card-shadow hover:bg-muted/50 transition-colors flex items-center gap-3 text-left group"
                     >
                       <button
-                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                        onClick={() => loadSavedAnalysis(acc)}
                         className="flex items-center gap-3 flex-1 min-w-0"
                       >
                         {acc.avatar_url ? (
