@@ -367,13 +367,7 @@ Deno.serve(async (req: Request) => {
     logId = logEntry?.id || null;
   }
 
-  // Rotation seed = logId (stable across all batches of this run)
-  const rotationSeed = logId || crypto.randomUUID();
-  const rotationIndex = batchIndex;
-
-  if (batchIndex === 0) {
-    console.log(`🔀 Rotation seed=${rotationSeed}, index=${rotationIndex}`);
-  }
+  // Per-niche cursor rotation (seed is stable per niche, cursor advances each run)
 
   const chainNextBatch = async (nextBatch: number) => {
     try {
@@ -430,13 +424,22 @@ Deno.serve(async (req: Request) => {
     const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
     const allKeywords = NICHE_QUERIES[nicheKey] || [];
 
-    // Seeded rotation: different logId → different shuffle; same logId + batchIndex → same pick
-    const selectedKeywords = pickRotatedKeywords(nicheKey, allKeywords, qCount, rotationSeed, rotationIndex);
+    // Per-niche cursor: read current rotation index
+    const { data: cursorRow } = await adminClient
+      .from("trend_niche_cursors")
+      .select("cursor")
+      .eq("niche", nicheKey)
+      .maybeSingle();
+
+    const nicheRotationIndex = cursorRow?.cursor ?? 0;
+    const nicheSeed = nicheKey; // stable seed per niche — shuffle order never changes
+
+    const selectedKeywords = pickRotatedKeywords(nicheKey, allKeywords, qCount, nicheSeed, nicheRotationIndex);
 
     // Store for debug logging
     keywordsUsedPerNiche[nicheKey] = selectedKeywords;
 
-    console.log(`  🔑 ${nicheKey}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (rotation=${rotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
+    console.log(`  🔑 ${nicheKey}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (cursor=${nicheRotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
 
     let nicheSaved = 0;
 
@@ -612,6 +615,14 @@ Deno.serve(async (req: Request) => {
     const limitVal = categoryLimits[nicheKey];
     if (limitVal && limitVal > 0) await enforceLimit(nicheKey, limitVal);
 
+    // Advance per-niche cursor for next run
+    await adminClient
+      .from("trend_niche_cursors")
+      .upsert(
+        { niche: nicheKey, cursor: nicheRotationIndex + 1, updated_at: new Date().toISOString() },
+        { onConflict: "niche" }
+      );
+
     return nicheSaved;
   };
 
@@ -678,8 +689,7 @@ Deno.serve(async (req: Request) => {
         niche_stats: {
           ...nicheStats,
           _rotation: {
-            seed: rotationSeed,
-            index: rotationIndex,
+            mode: "per_niche_cursor",
             keywords_used: keywordsUsedPerNiche,
           },
         },
@@ -711,14 +721,13 @@ Deno.serve(async (req: Request) => {
           status: "done",
           total_saved: totalSaved,
           general_saved: 0,
-          niche_stats: {
-            ...nicheStats,
-            _rotation: {
-              seed: rotationSeed,
-              index: rotationIndex,
-              keywords_used: keywordsUsedPerNiche,
+            niche_stats: {
+              ...nicheStats,
+              _rotation: {
+                mode: "per_niche_cursor",
+                keywords_used: keywordsUsedPerNiche,
+              },
             },
-          },
           finished_at: new Date().toISOString(),
         })
         .eq("id", logId);
