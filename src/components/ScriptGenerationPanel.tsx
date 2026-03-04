@@ -142,6 +142,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       },
       onDone: () => {
         setIsGenerating(false);
+        autoSaveScript();
       },
       onError: (err) => {
         toast.error(err);
