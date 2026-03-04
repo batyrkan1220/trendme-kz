@@ -44,6 +44,13 @@ function parseTranscript(raw: any): string {
   return t;
 }
 
+function extractVideoId(url: string, storedId?: string | null): string | null {
+  if (storedId) return storedId;
+  // Extract from URLs like https://www.tiktok.com/@user/video/7611995834628066561
+  const match = url?.match(/\/video\/(\d+)/);
+  return match ? match[1] : null;
+}
+
 export default function Library() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -287,72 +294,73 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
         const isExpanded = expandedAnalysis === a.id;
         const isPlaying = playingAnalysisId === a.id;
         const date = new Date(a.analyzed_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-        const videoId = a.platform_video_id;
+        const videoId = extractVideoId(a.video_url, a.platform_video_id);
 
         return (
           <div key={a.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden transition-all">
-            {/* Header with compact video preview */}
-            <div className="flex items-stretch gap-0">
-              {/* Compact video preview */}
-              <div className="relative w-20 sm:w-24 shrink-0 bg-black overflow-hidden">
-                {isPlaying && videoId ? (
-                  <>
-                    <iframe
-                      src={`https://www.tiktok.com/player/v1/${videoId}?music_info=0&description=0&muted=0&play_button=1&volume_control=1`}
-                      className="w-full h-full border-0"
-                      allow="autoplay; encrypted-media; fullscreen"
-                      allowFullScreen
-                    />
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setPlayingAnalysisId(null); }}
-                      className="absolute top-1 right-1 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </>
-                ) : (
-                  <div
-                    className="w-full h-full min-h-[80px] flex items-center justify-center cursor-pointer bg-muted/80 hover:bg-muted transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (videoId) setPlayingAnalysisId(a.id);
-                      else window.open(a.video_url, '_blank');
-                    }}
-                  >
-                    <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <Play className="h-4 w-4 text-foreground fill-foreground ml-0.5" />
+            {/* Full-width video player when playing */}
+            {isPlaying && videoId && (
+              <div className="relative aspect-[9/16] max-h-[500px] bg-black">
+                <iframe
+                  src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                  className="w-full h-full border-0"
+                  allow="autoplay; encrypted-media; fullscreen"
+                  allowFullScreen
+                />
+                <button
+                  onClick={() => setPlayingAnalysisId(null)}
+                  className="absolute top-3 right-3 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Header row */}
+            <div className="flex items-center gap-3 p-4">
+              {/* Play button */}
+              {!isPlaying && videoId && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setPlayingAnalysisId(a.id); }}
+                  className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl bg-muted overflow-hidden group"
+                >
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 group-hover:from-primary/30 group-hover:to-primary/10 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Play className="h-5 w-5 text-primary fill-primary ml-0.5" />
                     </div>
+                  </div>
+                </button>
+              )}
+
+              {/* Info */}
+              <div
+                className="flex-1 min-w-0 cursor-pointer"
+                onClick={() => toggleExpand(a.id)}
+              >
+                <h3 className="text-sm font-semibold text-foreground truncate">
+                  {summary?.topic || "Анализ видео"}
+                </h3>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{date}</p>
+                {summary?.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {summary.tags.slice(0, 3).map((tag: string, i: number) => (
+                      <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* Info section */}
-              <div
-                className="flex-1 flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/30 transition-colors min-w-0"
-                onClick={() => toggleExpand(a.id)}
-              >
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-foreground truncate">
-                    {summary?.topic || "Анализ видео"}
-                  </h3>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{date}</p>
-                  {summary?.tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {summary.tags.slice(0, 3).map((tag: string, i: number) => (
-                        <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); removeAnalysis(a.id); }}
-                    className="text-muted-foreground/50 hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/5"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+              {/* Actions */}
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={(e) => { e.stopPropagation(); removeAnalysis(a.id); }}
+                  className="text-muted-foreground/50 hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/5"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <button onClick={() => toggleExpand(a.id)} className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
                   {isExpanded ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
-                </div>
+                </button>
               </div>
             </div>
 
