@@ -310,22 +310,10 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 href={a.video_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-muted hover:scale-105 transition-transform"
+                className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
                 title="Открыть видео"
               >
-                <img
-                  src={`https://www.tiktok.com/api/img/?itemId=${extractVideoId(a.video_url, a.platform_video_id)}&location=0`}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const el = e.currentTarget;
-                    el.style.display = 'none';
-                    el.parentElement!.classList.add('flex', 'items-center', 'justify-center');
-                    const icon = document.createElement('div');
-                    icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>';
-                    el.parentElement!.appendChild(icon);
-                  }}
-                />
+                <Video className="h-5 w-5 text-muted-foreground" />
               </a>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
