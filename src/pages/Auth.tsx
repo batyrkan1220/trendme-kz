@@ -76,6 +76,9 @@ export default function Auth() {
             <img
               src={logoIcon}
               alt="TrendMe"
+              width={64}
+              height={64}
+              decoding="async"
               className="h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-lg mx-auto"
             />
           </div>
