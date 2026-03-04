@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS idx_search_queries_user_query ON public.search_queries (user_id, query_text);
