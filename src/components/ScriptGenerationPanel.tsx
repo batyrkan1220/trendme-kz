@@ -229,7 +229,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
         user_id: user.id,
         title,
         content,
-        source_video_url: null,
+        source_video_url: videoUrl || null,
       }).select("id").single();
       if (error) {
         console.error("Auto-save insert error:", error);
