@@ -325,14 +325,9 @@ export default function Trends() {
                         <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
                           <Lock className="h-5 w-5 text-white" />
                         </div>
-                        <div className="text-center space-y-1">
-                          <p className="text-white text-[13px] font-semibold leading-snug drop-shadow-md">
-                            В демо-режиме доступны
-                          </p>
-                          <p className="text-white/60 text-[11px]">
-                            только первые {FREE_LIMIT} видео
-                          </p>
-                        </div>
+                        <p className="text-white text-[13px] font-semibold leading-snug drop-shadow-md text-center">
+                          В демо-режиме доступны<br />только первые {FREE_LIMIT} видео
+                        </p>
                         <button
                           onClick={(e) => { e.stopPropagation(); navigate("/pricing"); }}
                           className="mt-1 px-5 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/30"
