@@ -689,8 +689,7 @@ Deno.serve(async (req: Request) => {
         niche_stats: {
           ...nicheStats,
           _rotation: {
-            seed: rotationSeed,
-            index: rotationIndex,
+            mode: "per_niche_cursor",
             keywords_used: keywordsUsedPerNiche,
           },
         },
