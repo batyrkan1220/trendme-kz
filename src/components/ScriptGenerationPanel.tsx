@@ -11,6 +11,8 @@ interface ScriptPanelProps {
   summary: any;
   caption: string;
   language?: "ru" | "kk";
+  videoUrl?: string;
+  coverUrl?: string | null;
   onBack: () => void;
 }
 
@@ -90,7 +92,7 @@ async function streamScript({
   onDone();
 }
 
-export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", onBack }: ScriptPanelProps) {
+export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", videoUrl, coverUrl, onBack }: ScriptPanelProps) {
   const { user } = useAuth();
   const { spend } = useTokens();
   const isKk = language === "kk";
@@ -227,7 +229,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
         user_id: user.id,
         title,
         content,
-        source_video_url: null,
+        source_video_url: videoUrl || null,
       }).select("id").single();
       if (error) {
         console.error("Auto-save insert error:", error);

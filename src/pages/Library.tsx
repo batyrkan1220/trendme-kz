@@ -109,7 +109,7 @@ export default function Library() {
     enabled: !!user,
   });
 
-  // Scripts
+  // Scripts — also fetch cover_url from videos table
   const { data: scripts = [] } = useQuery({
     queryKey: ["saved-scripts", user?.id],
     queryFn: async () => {
@@ -118,7 +118,22 @@ export default function Library() {
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
-      return (data || []) as any[];
+      const items = (data || []) as any[];
+      // Try to match cover_url from videos table using source_video_url
+      const videoUrls = items.map(s => s.source_video_url).filter(Boolean);
+      if (videoUrls.length > 0) {
+        const { data: vids } = await supabase
+          .from("videos")
+          .select("url, cover_url, platform_video_id")
+          .in("url", videoUrls);
+        const coverMap = new Map((vids || []).map(v => [v.url, { cover_url: v.cover_url, platform_video_id: v.platform_video_id }]));
+        items.forEach(s => {
+          const match = coverMap.get(s.source_video_url);
+          s._cover_url = match?.cover_url || null;
+          s._platform_video_id = match?.platform_video_id || null;
+        });
+      }
+      return items;
     },
     enabled: !!user,
   });
@@ -625,9 +640,26 @@ function ScriptsTab({ scripts, removeScript, copyText }: any) {
           <div key={s.id} className="group bg-card rounded-xl md:rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
             {/* Header */}
             <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-3 border-b border-border/30">
-              <div className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-              </div>
+              {/* Video preview thumbnail */}
+              {s.source_video_url ? (
+                <a
+                  href={s.source_video_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
+                  title="Открыть видео"
+                >
+                  {s._cover_url ? (
+                    <img src={s._cover_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <Play className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </a>
+              ) : (
+                <div className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <h3 className="text-xs md:text-sm font-semibold text-foreground line-clamp-2 leading-snug">
                   {s.title}
@@ -649,6 +681,17 @@ function ScriptsTab({ scripts, removeScript, copyText }: any) {
                 >
                   <Trash2 className="h-3 w-3 md:h-3.5 md:w-3.5" />
                 </button>
+                {s.source_video_url && (
+                  <a
+                    href={s.source_video_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                    title="Открыть видео"
+                  >
+                    <ExternalLink className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                  </a>
+                )}
               </div>
             </div>
 
@@ -656,15 +699,6 @@ function ScriptsTab({ scripts, removeScript, copyText }: any) {
             {!isExpanded && (
               <div className="px-2.5 md:px-3 pt-2 pb-1">
                 <p className="text-[11px] md:text-xs text-foreground/70 line-clamp-3 whitespace-pre-wrap leading-relaxed">{s.content}</p>
-              </div>
-            )}
-
-            {/* Source video link */}
-            {s.source_video_url && (
-              <div className="px-2.5 md:px-3 pt-1">
-                <a href={s.source_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] md:text-[11px] text-primary hover:underline">
-                  <ExternalLink className="h-3 w-3" /> Видео-источник
-                </a>
               </div>
             )}
 
