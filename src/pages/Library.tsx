@@ -331,7 +331,7 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 href={a.video_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
+                className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
                 title="Открыть видео"
               >
                 {a._cover_url ? (
