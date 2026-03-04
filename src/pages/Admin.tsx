@@ -736,6 +736,19 @@ function RefreshSection() {
 
   const allNiches = Object.keys(nicheQueries).sort();
 
+  const { data: totalVideos7d = 0 } = useQuery({
+    queryKey: ["videos-count-7d"],
+    queryFn: async () => {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
+      const { count } = await supabase
+        .from("videos")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", sevenDaysAgo);
+      return count || 0;
+    },
+    refetchInterval: 30000,
+  });
+
   const { data: logs = [] } = useQuery({
     queryKey: ["refresh-logs"],
     queryFn: async () => {
@@ -894,12 +907,9 @@ function RefreshSection() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2"><BookOpen className="h-5 w-5" />Журнал обновлений</CardTitle>
-            {(() => {
-              const total7d = Object.values(videoCounts).reduce((a, b) => a + b, 0);
-              return total7d > 0 ? (
-                <p className="text-sm text-muted-foreground">📹 Видео за последние 7 дней: <span className="font-semibold text-foreground">{total7d}</span></p>
-              ) : null;
-            })()}
+            {totalVideos7d > 0 && (
+              <p className="text-sm text-muted-foreground">📹 Добавлено видео за 7 дней: <span className="font-semibold text-foreground">{totalVideos7d}</span></p>
+            )}
           </CardHeader>
           <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
             {logs.map((log: any) => {
