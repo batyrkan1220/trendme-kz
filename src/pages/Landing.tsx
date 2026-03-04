@@ -243,7 +243,7 @@ function TrendingShowcase() {
               </div>
             </div>
 
-            <h4 className="font-bold text-foreground text-base mb-1">{v.title}</h4>
+            <h3 className="font-bold text-foreground text-base mb-1">{v.title}</h3>
             <p className="text-sm text-muted-foreground mb-3">{v.author}</p>
 
             {/* Stats */}
