@@ -155,10 +155,10 @@ export default function Library() {
   return (
     <AppLayout>
       <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Избранные ⭐</h1>
+        <h1 className="text-xl md:text-3xl font-bold text-foreground">Избранные ⭐</h1>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-full sm:w-fit overflow-x-auto">
+        <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-full sm:w-fit overflow-x-auto no-scrollbar">
           {([
             { key: "favorites" as Tab, icon: Heart, label: "Видео", count: favorites.length },
             { key: "analyses" as Tab, icon: FileText, label: "Анализы", count: analyses.length },
@@ -167,15 +167,15 @@ export default function Library() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 md:px-4 md:py-2.5 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
                 tab === t.key
                   ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <t.icon className="h-4 w-4" />
+              <t.icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span>{t.label}</span>
-              <span className="bg-primary/10 text-primary text-xs font-semibold px-1.5 py-0.5 rounded-md">{t.count}</span>
+              <span className="bg-primary/10 text-primary text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-md">{t.count}</span>
             </button>
           ))}
         </div>
@@ -214,15 +214,15 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4 pb-20 md:pb-0">
       {favorites.map((fav: any) => {
         const video = fav.videos;
         if (!video) return null;
         const timeAgo = getTimeAgo(video.published_at);
 
         return (
-          <div key={fav.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col">
-            <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
+          <div key={fav.id} className="group bg-card rounded-xl md:rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col">
+            <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-xl md:rounded-2xl m-1.5 md:m-2">
               {playingId === video.id ? (
                 <>
                   <iframe
@@ -265,26 +265,26 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
                 </>
               )}
             </div>
-            <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
-              <span className="flex flex-col items-center gap-0.5"><Eye className="h-4 w-4 text-muted-foreground" /><span className="text-[11px] font-bold text-foreground">{fmt(Number(video.views))}</span></span>
-              <span className="flex flex-col items-center gap-0.5"><Heart className="h-4 w-4 text-muted-foreground" /><span className="text-[11px] font-bold text-foreground">{fmt(Number(video.likes))}</span></span>
-              <span className="flex flex-col items-center gap-0.5"><MessageCircle className="h-4 w-4 text-muted-foreground" /><span className="text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span></span>
-              <span className="flex flex-col items-center gap-0.5"><Share2 className="h-4 w-4 text-muted-foreground" /><span className="text-[11px] font-bold text-foreground">{fmt(Number(video.shares || 0))}</span></span>
+            <div className="flex items-center justify-around px-1.5 md:px-2 py-1.5 md:py-2 border-b border-border/30">
+              <span className="flex flex-col items-center gap-0.5"><Eye className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" /><span className="text-[10px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.views))}</span></span>
+              <span className="flex flex-col items-center gap-0.5"><Heart className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" /><span className="text-[10px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.likes))}</span></span>
+              <span className="flex flex-col items-center gap-0.5"><MessageCircle className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" /><span className="text-[10px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span></span>
+              <span className="flex flex-col items-center gap-0.5"><Share2 className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" /><span className="text-[10px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.shares || 0))}</span></span>
             </div>
-            <div className="px-3 pt-3 flex items-center gap-2">
+            <div className="px-2 md:px-3 pt-2 md:pt-3 flex items-center gap-1.5 md:gap-2">
               {video.author_avatar_url ? (
-                <img src={video.author_avatar_url} alt="" loading="lazy" className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0" />
+                <img src={video.author_avatar_url} alt="" loading="lazy" className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
+                <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-muted flex-shrink-0" />
               )}
-              <span className="text-sm font-semibold text-foreground truncate">@{video.author_username}</span>
+              <span className="text-xs md:text-sm font-semibold text-foreground truncate">@{video.author_username}</span>
             </div>
-            <div className="px-3 pt-1.5 pb-1">
-              <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">{video.caption || "Без описания"}</p>
+            <div className="px-2 md:px-3 pt-1 md:pt-1.5 pb-1">
+              <p className="text-[10px] md:text-xs text-foreground/80 line-clamp-2 leading-relaxed">{video.caption || "Без описания"}</p>
             </div>
             {timeAgo && (
-              <div className="px-3 pb-2">
-                <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
+              <div className="px-2 md:px-3 pb-2">
+                <span className="text-[10px] md:text-[11px] text-muted-foreground">{timeAgo}</span>
               </div>
             )}
           </div>
@@ -315,7 +315,7 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4 pb-20 md:pb-0">
       {analyses.map((a: any) => {
         const summary = parseSummary(a.summary_json);
         const transcript = parseTranscript(a.transcript_text);
@@ -323,15 +323,15 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
         const date = new Date(a.analyzed_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
 
         return (
-          <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
+          <div key={a.id} className="group bg-card rounded-xl md:rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
             {/* Compact preview header */}
-            <div className="flex items-center gap-3 p-3 border-b border-border/30">
+            <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-3 border-b border-border/30">
               {/* Mini video preview thumbnail */}
               <a
                 href={a.video_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
+                className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
                 title="Открыть видео"
               >
                 {a._cover_url ? (
@@ -341,36 +341,36 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 )}
               </a>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
+                <h3 className="text-xs md:text-sm font-semibold text-foreground line-clamp-2 leading-snug">
                   {summary?.topic || "Анализ видео"}
                 </h3>
                 <p className="text-[11px] text-muted-foreground mt-0.5">{date}</p>
               </div>
-              <div className="flex flex-col gap-1 shrink-0">
+              <div className="flex flex-col gap-0.5 md:gap-1 shrink-0">
                 <button
                   onClick={() => removeAnalysis(a.id)}
-                  className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
                   title="Удалить"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-3 w-3 md:h-3.5 md:w-3.5" />
                 </button>
                 <a
                   href={a.video_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                  className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
                   title="Открыть видео"
                 >
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <ExternalLink className="h-3 w-3 md:h-3.5 md:w-3.5" />
                 </a>
               </div>
             </div>
 
             {/* Tags */}
             {summary?.tags?.length > 0 && (
-              <div className="flex flex-wrap gap-1 px-3 pt-2">
+              <div className="flex flex-wrap gap-1 px-2.5 md:px-3 pt-2">
                 {summary.tags.slice(0, 3).map((tag: string, i: number) => (
-                  <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
+                  <span key={i} className="px-1.5 md:px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
                 ))}
               </div>
             )}
@@ -468,9 +468,9 @@ function ScriptsTab({ scripts, removeScript, copyText }: any) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pb-20 md:pb-0">
       {scripts.map((s: any) => (
-        <div key={s.id} className="bg-card rounded-2xl border border-border/50 p-5 hover:shadow-lg transition-all">
+        <div key={s.id} className="bg-card rounded-xl md:rounded-2xl border border-border/50 p-3 md:p-5 hover:shadow-lg transition-all">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2 min-w-0">
               <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
