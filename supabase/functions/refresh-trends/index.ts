@@ -513,11 +513,11 @@ Deno.serve(async (req: Request) => {
 
             const stats = v.stats || {};
             const views = stats.views ?? v.views ?? v.playCount ?? 0;
-            const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 3000 : MIN_VIEWS;
+            const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 1000 : MIN_VIEWS;
             if (views < minViewsForNiche) { lowViews++; return null; }
 
             const publishedAt = new Date(getPublishedAt(v));
-            if (publishedAt < thirtyDaysAgo) { tooOld++; return null; }
+            if (publishedAt < maxAgeCutoff) { tooOld++; return null; }
 
             const caption = v.desc || v.caption || v.title || "";
             const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
