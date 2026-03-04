@@ -9,7 +9,8 @@ const corsHeaders = {
 const SOCIALKIT_BASE = "https://api.socialkit.dev";
 
 // Filters
-const MIN_VIEWS = 5000;
+const MIN_VIEWS = 3000;
+const MAX_AGE_DAYS = 90;
 
 // Batching across niches
 const BATCH_SIZE = 1;
