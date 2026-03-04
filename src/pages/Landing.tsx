@@ -580,23 +580,23 @@ export default function Landing() {
       </section>
 
       {/* ═══ Footer ═══ */}
-      <footer className="border-t border-border/50 py-12 md:py-16 px-4">
+      <footer className="border-t border-border/50 py-8 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <TrendMeLogo size={28} className="md:w-9 md:h-9" />
-              <BrandName className="text-base md:text-xl" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+            <div className="flex items-center gap-2">
+              <TrendMeLogo size={24} className="md:w-9 md:h-9" />
+              <BrandName className="text-sm md:text-xl" />
             </div>
-            <div className="flex items-center gap-8">
-              <a href="#features" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
-              <a href="#pricing" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
-              <a href="#reviews" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
-              <a href="#faq" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+            <div className="flex items-center gap-4 md:gap-8 flex-wrap justify-center">
+              <a href="#features" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
+              <a href="#pricing" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
+              <a href="#reviews" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
+              <a href="#faq" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-border/30 text-center">
-            <p className="text-[15px] text-muted-foreground">
-              © 2026 TrendMe. Все права защищены.
+          <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border/30 text-center">
+            <p className="text-xs md:text-[15px] text-muted-foreground">
+              © 2026 trendme. Все права защищены.
             </p>
           </div>
         </div>
