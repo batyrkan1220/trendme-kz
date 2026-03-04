@@ -89,7 +89,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
         <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5 shrink-0">
           <TrendMeLogo size={28} />
           <SheetTitle className="font-bold text-base tracking-tight text-foreground">trendme</SheetTitle>
-          <span className="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md uppercase">Beta</span>
+          
         </SheetHeader>
 
         <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
