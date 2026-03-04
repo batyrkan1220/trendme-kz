@@ -386,15 +386,19 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
             {/* Expanded content */}
             {isExpanded && (
               <div className="px-2.5 md:px-4 pb-3 md:pb-4 space-y-2.5 md:space-y-3 border-t border-border/30 pt-2.5 md:pt-3">
-                {summary?.language && (
-                  <div className="flex items-center gap-2 text-[11px] md:text-xs">
-                    <span className="text-muted-foreground">Язык:</span>
-                    <span className="font-medium text-foreground">
-                      {summary.language === "Русский" ? "🇷🇺 " : summary.language === "English" ? "🇺🇸 " : ""}
-                      {summary.language}
-                    </span>
+                {/* Language */}
+                {(summary?.language || summary?.data?.tone) && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] md:text-xs">
+                    {summary?.language && (
+                      <span><span className="text-muted-foreground">Язык: </span><span className="font-medium text-foreground">{summary.language === "Русский" ? "🇷🇺 " : summary.language === "English" ? "🇺🇸 " : ""}{summary.language}</span></span>
+                    )}
+                    {summary?.data?.tone && (
+                      <span><span className="text-muted-foreground">Тон: </span><span className="font-medium text-foreground">{summary.data.tone}</span></span>
+                    )}
                   </div>
                 )}
+
+                {/* Niches / Categories */}
                 {summary?.niches?.length > 0 && (
                   <div>
                     <p className="text-[10px] md:text-[11px] text-muted-foreground mb-1">Категории</p>
@@ -405,19 +409,54 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                     </div>
                   </div>
                 )}
-                {summary?.summary && (
+
+                {/* Stats */}
+                {summary?.stats && (
                   <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-[11px] md:text-xs font-semibold text-foreground">Суть</p>
-                      <button onClick={() => copyText(summary.summary)} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg md:rounded-xl p-2 md:p-3">
-                      <p className="text-[11px] md:text-xs text-foreground/80 leading-relaxed">{summary.summary}</p>
+                    <p className="text-[10px] md:text-[11px] text-muted-foreground mb-1 flex items-center gap-1"><BarChart3 className="h-3 w-3" /> Статистика</p>
+                    <div className="flex flex-wrap gap-2">
+                      {summary.stats.views != null && <span className="flex items-center gap-1 text-[11px] md:text-xs text-foreground"><Eye className="h-3 w-3 text-muted-foreground" />{fmt(Number(summary.stats.views))}</span>}
+                      {summary.stats.likes != null && <span className="flex items-center gap-1 text-[11px] md:text-xs text-foreground"><Heart className="h-3 w-3 text-muted-foreground" />{fmt(Number(summary.stats.likes))}</span>}
+                      {summary.stats.comments != null && <span className="flex items-center gap-1 text-[11px] md:text-xs text-foreground"><MessageCircle className="h-3 w-3 text-muted-foreground" />{fmt(Number(summary.stats.comments))}</span>}
+                      {summary.stats.shares != null && <span className="flex items-center gap-1 text-[11px] md:text-xs text-foreground"><Share2 className="h-3 w-3 text-muted-foreground" />{fmt(Number(summary.stats.shares))}</span>}
                     </div>
                   </div>
                 )}
+
+                {/* Hook phrase / text_hook / visual_hook */}
+                {(summary?.hook_phrase || summary?.text_hook || summary?.visual_hook) && (
+                  <div>
+                    <p className="text-[11px] md:text-xs font-semibold text-foreground mb-1 flex items-center gap-1"><Zap className="h-3 w-3 text-primary" /> Хуки</p>
+                    <div className="space-y-1">
+                      {summary.hook_phrase && (
+                        <div className="flex items-start gap-1.5 bg-muted/30 rounded-lg p-1.5 md:p-2">
+                          <Target className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                          <p className="text-[11px] md:text-xs text-foreground/80">{summary.hook_phrase}</p>
+                        </div>
+                      )}
+                      {summary.text_hook && summary.text_hook !== summary.hook_phrase && (
+                        <div className="flex items-start gap-1.5 bg-muted/30 rounded-lg p-1.5 md:p-2">
+                          <Target className="h-3 w-3 text-accent-foreground mt-0.5 shrink-0" />
+                          <div>
+                            <span className="text-[9px] md:text-[10px] text-muted-foreground">Текстовый: </span>
+                            <p className="text-[11px] md:text-xs text-foreground/80 inline">{summary.text_hook}</p>
+                          </div>
+                        </div>
+                      )}
+                      {summary.visual_hook && (
+                        <div className="flex items-start gap-1.5 bg-muted/30 rounded-lg p-1.5 md:p-2">
+                          <Eye className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
+                          <div>
+                            <span className="text-[9px] md:text-[10px] text-muted-foreground">Визуальный: </span>
+                            <p className="text-[11px] md:text-xs text-foreground/80 inline">{summary.visual_hook}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Legacy hooks array */}
                 {summary?.hooks?.length > 0 && (
                   <div>
                     <p className="text-[11px] md:text-xs font-semibold text-foreground mb-1">Хуки</p>
@@ -431,6 +470,113 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                     </div>
                   </div>
                 )}
+
+                {/* Summary / Суть */}
+                {(summary?.summary || summary?.data?.summary) && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[11px] md:text-xs font-semibold text-foreground">Суть</p>
+                      <button onClick={() => copyText(summary?.summary || summary?.data?.summary)} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg md:rounded-xl p-2 md:p-3">
+                      <p className="text-[11px] md:text-xs text-foreground/80 leading-relaxed">{summary?.summary || summary?.data?.summary}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Funnel */}
+                {summary?.funnel && (
+                  <div>
+                    <p className="text-[11px] md:text-xs font-semibold text-foreground mb-1 flex items-center gap-1"><Layers className="h-3 w-3 text-primary" /> Воронка</p>
+                    <div className="bg-muted/30 rounded-lg p-2 md:p-3 space-y-1">
+                      {summary.funnel.goal && <p className="text-[11px] md:text-xs text-foreground/80"><span className="text-muted-foreground">Цель: </span>{summary.funnel.goal}</p>}
+                      {summary.funnel.direction && <p className="text-[11px] md:text-xs text-foreground/80"><span className="text-muted-foreground">Направление: </span>{summary.funnel.direction}</p>}
+                    </div>
+                  </div>
+                )}
+
+                {/* Structure / timeline */}
+                {summary?.structure?.length > 0 && (
+                  <div>
+                    <p className="text-[11px] md:text-xs font-semibold text-foreground mb-1 flex items-center gap-1"><Clock className="h-3 w-3 text-primary" /> Структура видео</p>
+                    <div className="space-y-1.5">
+                      {summary.structure.map((s: any, i: number) => (
+                        <div key={i} className="bg-muted/30 rounded-lg p-1.5 md:p-2">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            {s.time && <span className="text-[9px] md:text-[10px] font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">{s.time}</span>}
+                            <span className="text-[11px] md:text-xs font-semibold text-foreground">{s.title}</span>
+                          </div>
+                          <p className="text-[10px] md:text-[11px] text-foreground/70 leading-relaxed">{s.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Nested data format: keyPoints */}
+                {summary?.data?.keyPoints?.length > 0 && (
+                  <div>
+                    <p className="text-[11px] md:text-xs font-semibold text-foreground mb-1">Ключевые моменты</p>
+                    <div className="space-y-1">
+                      {summary.data.keyPoints.map((kp: string, i: number) => (
+                        <div key={i} className="flex items-start gap-1.5 bg-muted/30 rounded-lg p-1.5 md:p-2">
+                          <span className="text-[10px] text-primary font-bold mt-0.5">{i + 1}.</span>
+                          <p className="text-[11px] md:text-xs text-foreground/80">{kp}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* mainTopics */}
+                {summary?.data?.mainTopics?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] md:text-[11px] text-muted-foreground mb-1">Основные темы</p>
+                    <div className="flex flex-wrap gap-1">
+                      {summary.data.mainTopics.map((t: string, i: number) => (
+                        <span key={i} className="px-1.5 md:px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-medium bg-primary/10 text-primary">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* targetAudience */}
+                {summary?.data?.targetAudience && (
+                  <div className="flex items-start gap-1.5 text-[11px] md:text-xs">
+                    <Users className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <span className="text-muted-foreground">Аудитория: </span>
+                      <span className="text-foreground/80">{summary.data.targetAudience}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* quotes */}
+                {summary?.data?.quotes?.length > 0 && (
+                  <div>
+                    <p className="text-[11px] md:text-xs font-semibold text-foreground mb-1 flex items-center gap-1"><Quote className="h-3 w-3 text-muted-foreground" /> Цитаты</p>
+                    {summary.data.quotes.map((q: string, i: number) => (
+                      <div key={i} className="bg-muted/30 rounded-lg p-2 md:p-3 border-l-2 border-primary/30 mt-1">
+                        <p className="text-[11px] md:text-xs text-foreground/80 italic leading-relaxed">"{q}"</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* timeline (nested data) */}
+                {summary?.data?.timeline && (
+                  <div className="flex items-start gap-1.5 text-[11px] md:text-xs">
+                    <Clock className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <span className="text-muted-foreground">Хронология: </span>
+                      <span className="text-foreground/80">{summary.data.timeline}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Transcript */}
                 {transcript && (
                   <div>
                     <div className="flex items-center justify-between mb-1">
