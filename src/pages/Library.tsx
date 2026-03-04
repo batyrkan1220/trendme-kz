@@ -158,7 +158,7 @@ export default function Library() {
         <h1 className="text-xl md:text-3xl font-bold text-foreground">Избранные ⭐</h1>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-full sm:w-fit overflow-x-auto">
+        <div className="flex gap-1 bg-muted/50 rounded-xl p-1 w-full sm:w-fit overflow-x-auto no-scrollbar">
           {([
             { key: "favorites" as Tab, icon: Heart, label: "Видео", count: favorites.length },
             { key: "analyses" as Tab, icon: FileText, label: "Анализы", count: analyses.length },
@@ -167,15 +167,15 @@ export default function Library() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 md:px-4 md:py-2.5 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
                 tab === t.key
                   ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <t.icon className="h-4 w-4" />
+              <t.icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span>{t.label}</span>
-              <span className="bg-primary/10 text-primary text-xs font-semibold px-1.5 py-0.5 rounded-md">{t.count}</span>
+              <span className="bg-primary/10 text-primary text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded-md">{t.count}</span>
             </button>
           ))}
         </div>
