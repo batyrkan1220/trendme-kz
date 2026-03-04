@@ -283,8 +283,8 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
               <p className="text-[10px] md:text-xs text-foreground/80 line-clamp-2 leading-relaxed">{video.caption || "Без описания"}</p>
             </div>
             {timeAgo && (
-              <div className="px-3 pb-2">
-                <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
+              <div className="px-2 md:px-3 pb-2">
+                <span className="text-[10px] md:text-[11px] text-muted-foreground">{timeAgo}</span>
               </div>
             )}
           </div>
