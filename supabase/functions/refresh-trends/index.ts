@@ -85,7 +85,7 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends COUNT=30 PAGES=2 sort=3,1 pub=7,30 skip=tooOld";
+const VERSION = "refresh-trends COUNT=30 PAGES=3 offset=page*10 sort=3,1 pub=7,30 skip=tooOld";
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
