@@ -431,37 +431,37 @@ export default function Landing() {
       </section>
 
       {/* ═══ Testimonials ═══ */}
-      <section id="reviews" className="py-16 md:py-28 px-4">
+      <section id="reviews" className="py-10 md:py-28 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <p className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">Отзывы</p>
+            <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4">
               Реальные <span className="text-primary">результаты</span>
             </h2>
-            <p className="text-muted-foreground text-base md:text-lg">Наши пользователи растут быстрее</p>
+            <p className="text-muted-foreground text-sm md:text-lg">Наши пользователи растут быстрее</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {testimonials.map((t) => (
-              <div key={t.name} className="rounded-2xl p-6 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all h-full">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-1">
+              <div key={t.name} className="rounded-2xl p-5 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all h-full">
+                <div className="flex items-center justify-between mb-3 md:mb-4">
+                  <div className="flex gap-0.5 md:gap-1">
                     {Array.from({ length: t.rating }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 md:h-5 md:w-5 fill-[hsl(45,90%,55%)] text-[hsl(45,90%,55%)]" />
+                      <Star key={i} className="h-3.5 w-3.5 md:h-5 md:w-5 fill-[hsl(45,90%,55%)] text-[hsl(45,90%,55%)]" />
                     ))}
                   </div>
-                  <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                  <span className="text-[10px] md:text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full">
                     {t.result}
                   </span>
                 </div>
-                <p className="text-sm md:text-base text-foreground leading-relaxed mb-5">«{t.text}»</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-xl">
+                <p className="text-xs md:text-base text-foreground leading-relaxed mb-4 md:mb-5">«{t.text}»</p>
+                <div className="flex items-center gap-2.5 md:gap-3">
+                  <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-lg md:text-xl">
                     {t.avatar}
                   </div>
                   <div>
-                    <div className="text-sm md:text-base font-semibold text-foreground">{t.name}</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">{t.role}</div>
+                    <div className="text-xs md:text-base font-semibold text-foreground">{t.name}</div>
+                    <div className="text-[10px] md:text-sm text-muted-foreground">{t.role}</div>
                   </div>
                 </div>
               </div>
