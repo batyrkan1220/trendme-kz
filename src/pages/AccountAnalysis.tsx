@@ -140,8 +140,7 @@ export default function AccountAnalysis() {
 
   return (
     <AppLayout>
-  if (!account && !isPending) {
-    return (
+      {!account && !isPending ? (
         /* Centered empty state */
         <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
