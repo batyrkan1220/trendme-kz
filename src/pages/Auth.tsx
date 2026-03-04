@@ -15,6 +15,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phoneCode, setPhoneCode] = useState("+7");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -51,7 +52,7 @@ export default function Auth() {
         if (error) toast.error("Ошибка входа: " + error.message);
         else navigate("/dashboard");
       } else {
-        const { error } = await signUp(email, password, { name: name.trim(), phone: phone.trim() });
+        const { error } = await signUp(email, password, { name: name.trim(), phone: `${phoneCode}${phone.trim()}` });
         if (error) toast.error("Ошибка регистрации: " + error.message);
         else toast.success("Проверьте email для подтверждения регистрации");
       }
@@ -97,9 +98,30 @@ export default function Auth() {
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="pl-11 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} />
                 </div>
-                <div className="relative animate-fade-in">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-11 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} />
+                <div className="relative animate-fade-in flex gap-2">
+                  <div className="relative shrink-0 w-[90px]">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <select
+                      value={phoneCode}
+                      onChange={(e) => setPhoneCode(e.target.value)}
+                      className="h-11 md:h-12 w-full pl-9 pr-2 bg-card border border-border rounded-xl card-shadow text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      disabled={loading}
+                    >
+                      <option value="+7">🇰🇿 +7</option>
+                      <option value="+7">🇷🇺 +7</option>
+                      <option value="+998">🇺🇿 +998</option>
+                      <option value="+996">🇰🇬 +996</option>
+                      <option value="+992">🇹🇯 +992</option>
+                      <option value="+993">🇹🇲 +993</option>
+                      <option value="+375">🇧🇾 +375</option>
+                      <option value="+380">🇺🇦 +380</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+49">🇩🇪 +49</option>
+                      <option value="+90">🇹🇷 +90</option>
+                    </select>
+                  </div>
+                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} />
                 </div>
               </>
             )}
