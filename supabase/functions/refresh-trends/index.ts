@@ -139,7 +139,7 @@ Deno.serve(async (req: Request) => {
   const startTime = Date.now();
 
   const nowIso = new Date().toISOString();
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600000);
+  const maxAgeCutoff = new Date(Date.now() - MAX_AGE_DAYS * 24 * 3600000);
 
   // =========================
   // Helpers
