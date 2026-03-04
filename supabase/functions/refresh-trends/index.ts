@@ -424,13 +424,22 @@ Deno.serve(async (req: Request) => {
     const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
     const allKeywords = NICHE_QUERIES[nicheKey] || [];
 
-    // Seeded rotation: different logId → different shuffle; same logId + batchIndex → same pick
-    const selectedKeywords = pickRotatedKeywords(nicheKey, allKeywords, qCount, rotationSeed, rotationIndex);
+    // Per-niche cursor: read current rotation index
+    const { data: cursorRow } = await adminClient
+      .from("trend_niche_cursors")
+      .select("cursor")
+      .eq("niche", nicheKey)
+      .maybeSingle();
+
+    const nicheRotationIndex = cursorRow?.cursor ?? 0;
+    const nicheSeed = nicheKey; // stable seed per niche — shuffle order never changes
+
+    const selectedKeywords = pickRotatedKeywords(nicheKey, allKeywords, qCount, nicheSeed, nicheRotationIndex);
 
     // Store for debug logging
     keywordsUsedPerNiche[nicheKey] = selectedKeywords;
 
-    console.log(`  🔑 ${nicheKey}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (rotation=${rotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
+    console.log(`  🔑 ${nicheKey}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (cursor=${nicheRotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
 
     let nicheSaved = 0;
 
