@@ -74,7 +74,7 @@ export default function Auth() {
         {/* Logo & Title */}
         <div className="text-center space-y-3 md:space-y-4">
           <div className="inline-block animate-bounce-soft">
-            <TrendMeLogo size={56} className="md:w-16 md:h-16 shadow-lg mx-auto" />
+            <TrendMeLogo size={48} className="shadow-lg mx-auto" />
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
