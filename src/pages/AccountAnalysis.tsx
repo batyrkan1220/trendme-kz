@@ -150,28 +150,61 @@ export default function AccountAnalysis() {
               <div className="w-full mt-4 space-y-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Clock className="h-4 w-4 text-primary" /> История отслеживания
+                  <span className="text-xs text-muted-foreground font-normal ml-auto">{trackedAccounts.length} аккаунтов</span>
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {trackedAccounts.slice(0, 6).map((acc) => (
-                    <button
+                  {trackedAccounts.slice(historyPage * HISTORY_PAGE_SIZE, (historyPage + 1) * HISTORY_PAGE_SIZE).map((acc) => (
+                    <div
                       key={acc.id}
-                      onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
-                      className="bg-card rounded-xl border border-border/50 p-3 card-shadow hover:bg-muted/50 transition-colors flex items-center gap-3 text-left"
+                      className="bg-card rounded-xl border border-border/50 p-3 card-shadow hover:bg-muted/50 transition-colors flex items-center gap-3 text-left group"
                     >
-                      {acc.avatar_url ? (
-                        <img src={acc.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/10 shrink-0" />
-                      ) : (
-                        <div className="h-8 w-8 rounded-full gradient-hero flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
-                          {acc.username?.charAt(0).toUpperCase()}
+                      <button
+                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                        className="flex items-center gap-3 flex-1 min-w-0"
+                      >
+                        {acc.avatar_url ? (
+                          <img src={acc.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/10 shrink-0" />
+                        ) : (
+                          <div className="h-8 w-8 rounded-full gradient-hero flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
+                            {acc.username?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">@{acc.username}</p>
+                          <p className="text-xs text-muted-foreground">{formatNum(Number(acc.followers || 0))} подписчиков</p>
                         </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">@{acc.username}</p>
-                        <p className="text-xs text-muted-foreground">{formatNum(Number(acc.followers || 0))} подписчиков</p>
-                      </div>
-                    </button>
+                      </button>
+                      <button
+                        onClick={() => deleteMutation.mutate(acc.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-lg flex items-center justify-center hover:bg-destructive/10 hover:text-destructive text-muted-foreground shrink-0"
+                        title="Удалить"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   ))}
                 </div>
+                {trackedAccounts.length > HISTORY_PAGE_SIZE && (
+                  <div className="flex items-center justify-center gap-2 pt-1">
+                    <button
+                      onClick={() => setHistoryPage(p => Math.max(0, p - 1))}
+                      disabled={historyPage === 0}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-muted/70 text-foreground disabled:opacity-40 transition-colors"
+                    >
+                      ← Назад
+                    </button>
+                    <span className="text-xs text-muted-foreground">
+                      {historyPage + 1} / {Math.ceil(trackedAccounts.length / HISTORY_PAGE_SIZE)}
+                    </span>
+                    <button
+                      onClick={() => setHistoryPage(p => Math.min(Math.ceil(trackedAccounts.length / HISTORY_PAGE_SIZE) - 1, p + 1))}
+                      disabled={historyPage >= Math.ceil(trackedAccounts.length / HISTORY_PAGE_SIZE) - 1}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-muted/70 text-foreground disabled:opacity-40 transition-colors"
+                    >
+                      Дальше →
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
