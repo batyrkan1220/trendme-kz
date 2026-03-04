@@ -346,13 +346,13 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 </h3>
                 <p className="text-[11px] text-muted-foreground mt-0.5">{date}</p>
               </div>
-              <div className="flex flex-col gap-1 shrink-0">
+              <div className="flex flex-col gap-0.5 md:gap-1 shrink-0">
                 <button
                   onClick={() => removeAnalysis(a.id)}
-                  className="w-7 h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
                   title="Удалить"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-3 w-3 md:h-3.5 md:w-3.5" />
                 </button>
                 <a
                   href={a.video_url}
