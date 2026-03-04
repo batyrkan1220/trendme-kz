@@ -75,30 +75,38 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+const SuspenseFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
 const AppRoutes = () => (
-  <Routes>
-    <Route element={<PageTransition />}>
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/landing" element={<Navigate to="/" replace />} />
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/" element={<Index />} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-      <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
-      <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
-      <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
-      <Route path="/favorites" element={<Navigate to="/library" replace />} />
-      <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
-      <Route path="/razvedka" element={<ProtectedRoute><Razvedka /></ProtectedRoute>} />
-      <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
-      <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-      <Route path="/tokens" element={<ProtectedRoute><Tokens /></ProtectedRoute>} />
-      <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
-      <Route path="*" element={<NotFound />} />
-    </Route>
-  </Routes>
+  <Suspense fallback={<SuspenseFallback />}>
+    <Routes>
+      <Route element={<PageTransition />}>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/landing" element={<Navigate to="/" replace />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+        <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
+        <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
+        <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
+        <Route path="/favorites" element={<Navigate to="/library" replace />} />
+        <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
+        <Route path="/razvedka" element={<ProtectedRoute><Razvedka /></ProtectedRoute>} />
+        <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
+        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+        <Route path="/tokens" element={<ProtectedRoute><Tokens /></ProtectedRoute>} />
+        <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  </Suspense>
 );
 
 const App = () => (
