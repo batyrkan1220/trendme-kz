@@ -960,14 +960,10 @@ function RefreshSection() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{grandTotal}</p>
                       <p className="text-xs text-muted-foreground">Этот запуск</p>
-                    </div>
-                    <div className="bg-muted/40 rounded-md p-2">
-                      <p className="text-lg font-bold text-foreground">{totalNiche}</p>
-                      <p className="text-xs text-muted-foreground">По категориям</p>
                     </div>
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{totalVideosAll}</p>
