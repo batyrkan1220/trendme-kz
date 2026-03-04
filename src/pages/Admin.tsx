@@ -929,15 +929,6 @@ function RefreshSection() {
               const totalGeneral = log.general_saved || 0;
               const grandTotal = totalNiche + totalGeneral;
 
-              // Sum total_saved from all logs within 7 days before this log
-              const logTime = startedAt.getTime();
-              const sevenDaysBefore = logTime - 7 * 24 * 3600000;
-              const cumulative7d = logs
-                .filter((l: any) => {
-                  const t = new Date(l.started_at).getTime();
-                  return t > sevenDaysBefore && t <= logTime;
-                })
-                .reduce((sum: number, l: any) => sum + (l.total_saved || 0), 0);
 
               return (
                 <div key={log.id} className="border border-border rounded-lg p-3 space-y-2">
@@ -968,7 +959,7 @@ function RefreshSection() {
                       <p className="text-xs text-muted-foreground">По категориям</p>
                     </div>
                     <div className="bg-primary/10 rounded-md p-2">
-                      <p className="text-lg font-bold text-primary">{cumulative7d}</p>
+                      <p className="text-lg font-bold text-primary">{totalVideos7d}</p>
                       <p className="text-xs text-muted-foreground">За 7 дней</p>
                     </div>
                   </div>
