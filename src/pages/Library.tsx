@@ -274,7 +274,15 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
 }
 
 /* ─── Analyses Tab ─── */
-function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis, copyText, playingAnalysisId, setPlayingAnalysisId }: any) {
+function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis, copyText, playingAnalysisId, setPlayingAnalysisId }: {
+  analyses: any[];
+  expandedAnalysis: string | null;
+  toggleExpand: (id: string) => void;
+  removeAnalysis: (id: string) => void;
+  copyText: (text: string) => void;
+  playingAnalysisId: string | null;
+  setPlayingAnalysisId: (id: string | null) => void;
+}) {
   if (analyses.length === 0) {
     return (
       <div className="text-center py-20">
@@ -298,36 +306,48 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
 
         return (
           <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
-            {/* Video player preview */}
+            {/* Video player / preview */}
             <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
-              {videoId ? (
-                <LazyIframe
-                  src={`https://www.tiktok.com/player/v1/${videoId}?music_info=0&description=0&muted=1&play_button=1&volume_control=0`}
-                  className="w-full h-full border-0"
-                  allow="autoplay; encrypted-media; fullscreen"
-                  allowFullScreen
-                />
+              {playingAnalysisId === a.id && videoId ? (
+                <>
+                  <iframe
+                    src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                    className="w-full h-full border-0"
+                    allow="autoplay; encrypted-media; fullscreen"
+                    allowFullScreen
+                  />
+                  <button onClick={() => setPlayingAnalysisId(null)} className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
+                </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-muted">
-                  <Play className="h-12 w-12 text-muted-foreground/30" />
-                </div>
+                <>
+                  <div
+                    className="w-full h-full bg-gradient-to-br from-primary/20 via-muted to-primary/10 flex items-center justify-center cursor-pointer"
+                    onClick={() => videoId && setPlayingAnalysisId(a.id)}
+                  >
+                    <div className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center hover:scale-110 transition-transform">
+                      <Play className="h-7 w-7 text-white fill-white ml-0.5" />
+                    </div>
+                  </div>
+                  {/* Delete button */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeAnalysis(a.id); }}
+                      className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </button>
+                  </div>
+                  {/* External link */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); window.open(a.video_url, '_blank'); }}
+                    className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+                  </button>
+                </>
               )}
-              {/* Delete button overlay */}
-              <div className="absolute top-2 right-2 z-10">
-                <button
-                  onClick={() => removeAnalysis(a.id)}
-                  className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </button>
-              </div>
-              {/* External link */}
-              <button
-                onClick={() => window.open(a.video_url, '_blank')}
-                className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-              >
-                <ExternalLink className="h-3.5 w-3.5 text-foreground" />
-              </button>
             </div>
 
             {/* Info */}
