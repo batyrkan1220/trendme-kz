@@ -109,7 +109,7 @@ export default function Library() {
     enabled: !!user,
   });
 
-  // Scripts
+  // Scripts — also fetch cover_url from videos table
   const { data: scripts = [] } = useQuery({
     queryKey: ["saved-scripts", user?.id],
     queryFn: async () => {
@@ -118,7 +118,22 @@ export default function Library() {
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
-      return (data || []) as any[];
+      const items = (data || []) as any[];
+      // Try to match cover_url from videos table using source_video_url
+      const videoUrls = items.map(s => s.source_video_url).filter(Boolean);
+      if (videoUrls.length > 0) {
+        const { data: vids } = await supabase
+          .from("videos")
+          .select("url, cover_url, platform_video_id")
+          .in("url", videoUrls);
+        const coverMap = new Map((vids || []).map(v => [v.url, { cover_url: v.cover_url, platform_video_id: v.platform_video_id }]));
+        items.forEach(s => {
+          const match = coverMap.get(s.source_video_url);
+          s._cover_url = match?.cover_url || null;
+          s._platform_video_id = match?.platform_video_id || null;
+        });
+      }
+      return items;
     },
     enabled: !!user,
   });
