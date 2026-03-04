@@ -199,21 +199,12 @@ export default function AccountAnalysis() {
                         </button>
                       </div>
                       {hasAnalysis ? (
-                        expandedAccId === acc.id ? (
-                          <button
-                            onClick={() => setExpandedAccId(null)}
-                            className="w-full mt-2 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/70 transition-colors flex items-center justify-center gap-1.5"
-                          >
-                            <X className="h-3 w-3" /> Закрыть
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setExpandedAccId(acc.id)}
-                            className="w-full mt-2 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-1.5"
-                          >
-                            <Eye className="h-3 w-3" /> Смотреть анализ
-                          </button>
-                        )
+                        <button
+                          onClick={() => setPreviewAcc(acc)}
+                          className="w-full mt-2 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Eye className="h-3 w-3" /> Смотреть анализ
+                        </button>
                       ) : (
                         <button
                           onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
@@ -222,56 +213,6 @@ export default function AccountAnalysis() {
                           <RefreshCw className="h-3 w-3" /> Анализировать
                         </button>
                       )}
-                      {/* Inline expanded analysis */}
-                      {expandedAccId === acc.id && hasAnalysis && (() => {
-                        const a = acc.analysis_json as Record<string, any>;
-                        const vids: TopVideo[] = (a.top_videos || []).slice(0, 6);
-                        return (
-                          <div className="mt-3 space-y-3 animate-fade-in">
-                            <div className="grid grid-cols-3 gap-1.5">
-                              <div className="bg-muted/50 rounded-lg p-2 text-center">
-                                <p className="text-xs font-bold text-foreground">{a.engagement_rate || 0}%</p>
-                                <p className="text-[10px] text-muted-foreground">ER</p>
-                              </div>
-                              <div className="bg-muted/50 rounded-lg p-2 text-center">
-                                <p className="text-xs font-bold text-foreground">{formatNum(a.avg_views || 0)}</p>
-                                <p className="text-[10px] text-muted-foreground">Просм.</p>
-                              </div>
-                              <div className="bg-muted/50 rounded-lg p-2 text-center">
-                                <p className="text-xs font-bold text-foreground">{formatNum(a.avg_likes_per_video || 0)}</p>
-                                <p className="text-[10px] text-muted-foreground">Лайки</p>
-                              </div>
-                            </div>
-                            {vids.length > 0 && (
-                              <div className="space-y-1.5">
-                                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Топ видео</p>
-                                <div className="grid grid-cols-3 gap-1.5">
-                                  {vids.map((v, i) => (
-                                    <a key={v.id || i} href={v.url} target="_blank" rel="noopener noreferrer" className="block">
-                                      <div className="relative aspect-[9/14] rounded-lg overflow-hidden bg-muted">
-                                        {v.cover ? (
-                                          <img src={v.cover} alt="" loading="lazy" className="w-full h-full object-cover" />
-                                        ) : (
-                                          <div className="w-full h-full flex items-center justify-center"><Play className="h-4 w-4 text-muted-foreground/30" /></div>
-                                        )}
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1">
-                                          <span className="text-[9px] text-white font-medium flex items-center gap-0.5"><Eye className="h-2.5 w-2.5" />{formatNum(v.views)}</span>
-                                        </div>
-                                      </div>
-                                    </a>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            <button
-                              onClick={() => loadSavedAnalysis(acc)}
-                              className="w-full py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
-                            >
-                              <BarChart3 className="h-3 w-3" /> Полный анализ
-                            </button>
-                          </div>
-                        );
-                      })()}
                     </div>
                   );})}
 
