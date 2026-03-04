@@ -341,7 +341,7 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 )}
               </a>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
+                <h3 className="text-xs md:text-sm font-semibold text-foreground line-clamp-2 leading-snug">
                   {summary?.topic || "Анализ видео"}
                 </h3>
                 <p className="text-[11px] text-muted-foreground mt-0.5">{date}</p>
