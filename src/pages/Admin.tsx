@@ -743,7 +743,7 @@ function RefreshSection() {
       const { count } = await supabase
         .from("videos")
         .select("*", { count: "exact", head: true })
-        .gte("created_at", sevenDaysAgo);
+        .gte("published_at", sevenDaysAgo);
       return count || 0;
     },
     refetchInterval: 30000,
