@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { LazyIframe } from "@/components/LazyIframe";
+
 
 type Tab = "favorites" | "analyses" | "scripts";
 
