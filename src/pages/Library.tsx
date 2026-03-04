@@ -368,9 +368,9 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
 
             {/* Tags */}
             {summary?.tags?.length > 0 && (
-              <div className="flex flex-wrap gap-1 px-3 pt-2">
+              <div className="flex flex-wrap gap-1 px-2.5 md:px-3 pt-2">
                 {summary.tags.slice(0, 3).map((tag: string, i: number) => (
-                  <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
+                  <span key={i} className="px-1.5 md:px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
                 ))}
               </div>
             )}
