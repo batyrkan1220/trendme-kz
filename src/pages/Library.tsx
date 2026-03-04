@@ -287,37 +287,76 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
       {analyses.map((a: any) => {
         const summary = parseSummary(a.summary_json);
         const transcript = parseTranscript(a.transcript_text);
         const isExpanded = expandedAnalysis === a.id;
-        const isPlaying = playingAnalysisId === a.id;
-        const date = new Date(a.analyzed_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+        const date = new Date(a.analyzed_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
         const videoId = extractVideoId(a.video_url, a.platform_video_id);
 
         return (
-          <div key={a.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden transition-all">
-            {/* Inline video player — always visible if videoId exists */}
-            {videoId && (
-              <div className="relative aspect-[9/16] max-h-[480px] bg-black">
+          <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
+            {/* Video player preview */}
+            <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
+              {videoId ? (
                 <iframe
-                  src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                  src={`https://www.tiktok.com/player/v1/${videoId}?music_info=0&description=0&muted=1&play_button=1&volume_control=0`}
                   className="w-full h-full border-0"
                   allow="autoplay; encrypted-media; fullscreen"
                   allowFullScreen
                 />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-muted">
+                  <Play className="h-12 w-12 text-muted-foreground/30" />
+                </div>
+              )}
+              {/* Delete button overlay */}
+              <div className="absolute top-2 right-2 z-10">
+                <button
+                  onClick={() => removeAnalysis(a.id)}
+                  className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </button>
+              </div>
+              {/* External link */}
+              <button
+                onClick={() => window.open(a.video_url, '_blank')}
+                className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+              >
+                <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+              </button>
+            </div>
+
+            {/* Info */}
+            <div className="px-3 pt-2 pb-1 cursor-pointer" onClick={() => toggleExpand(a.id)}>
+              <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
+                {summary?.topic || "Анализ видео"}
+              </h3>
+              <p className="text-[11px] text-muted-foreground mt-1">{date}</p>
+            </div>
+
+            {/* Tags */}
+            {summary?.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-1 px-3 pb-2">
+                {summary.tags.slice(0, 3).map((tag: string, i: number) => (
+                  <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{tag}</span>
+                ))}
               </div>
             )}
 
-            {/* Header row */}
-            <div className="flex items-center gap-3 p-4">
+            {/* Expand toggle */}
+            <div className="mt-auto border-t border-border/30">
+              <button onClick={() => toggleExpand(a.id)} className="w-full flex items-center justify-center gap-1 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {isExpanded ? "Свернуть" : "Подробнее"}
+              </button>
+            </div>
 
-              {/* Info */}
-              <div
-                className="flex-1 min-w-0 cursor-pointer"
-                onClick={() => toggleExpand(a.id)}
-              >
+            {/* Expanded content */}
+            {isExpanded && (
+              <div className="px-3 pb-3 space-y-3 border-t border-border/30 pt-3">
                 <h3 className="text-sm font-semibold text-foreground truncate">
                   {summary?.topic || "Анализ видео"}
                 </h3>
