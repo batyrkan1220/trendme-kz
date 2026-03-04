@@ -74,7 +74,7 @@ export default function Library() {
     enabled: !!user,
   });
 
-  // Analyses
+  // Analyses — also fetch cover_url from videos table
   const { data: analyses = [] } = useQuery({
     queryKey: ["user-analyses", user?.id],
     queryFn: async () => {
@@ -83,7 +83,18 @@ export default function Library() {
         .select("*")
         .eq("user_id", user!.id)
         .order("analyzed_at", { ascending: false });
-      return (data || []) as any[];
+      const items = (data || []) as any[];
+      // Try to match cover_url from videos table
+      const videoIds = items.map(a => a.platform_video_id).filter(Boolean);
+      if (videoIds.length > 0) {
+        const { data: vids } = await supabase
+          .from("videos")
+          .select("platform_video_id, cover_url")
+          .in("platform_video_id", videoIds);
+        const coverMap = new Map((vids || []).map(v => [v.platform_video_id, v.cover_url]));
+        items.forEach(a => { a._cover_url = coverMap.get(a.platform_video_id) || null; });
+      }
+      return items;
     },
     enabled: !!user,
   });
@@ -305,7 +316,7 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
           <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
             {/* Compact preview header */}
             <div className="flex items-center gap-3 p-3 border-b border-border/30">
-              {/* Mini video preview */}
+              {/* Mini video preview thumbnail */}
               <a
                 href={a.video_url}
                 target="_blank"
@@ -313,7 +324,11 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
                 title="Открыть видео"
               >
-                <Video className="h-5 w-5 text-muted-foreground" />
+                {a._cover_url ? (
+                  <img src={a._cover_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <Video className="h-5 w-5 text-muted-foreground" />
+                )}
               </a>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
