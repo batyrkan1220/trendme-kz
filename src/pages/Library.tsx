@@ -58,7 +58,7 @@ export default function Library() {
   const [tab, setTab] = useState<Tab>("favorites");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [expandedAnalysis, setExpandedAnalysis] = useState<string | null>(null);
-  const [playingAnalysisId, setPlayingAnalysisId] = useState<string | null>(null);
+  
 
   // Favorites
   const { data: favorites = [] } = useQuery({
