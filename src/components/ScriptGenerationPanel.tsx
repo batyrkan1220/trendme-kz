@@ -11,6 +11,8 @@ interface ScriptPanelProps {
   summary: any;
   caption: string;
   language?: "ru" | "kk";
+  videoUrl?: string;
+  coverUrl?: string | null;
   onBack: () => void;
 }
 
