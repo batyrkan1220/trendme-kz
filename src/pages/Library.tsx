@@ -668,13 +668,6 @@ function ScriptsTab({ scripts, removeScript, copyText }: any) {
               </div>
               <div className="flex flex-col gap-0.5 md:gap-1 shrink-0">
                 <button
-                  onClick={() => copyText(s.content)}
-                  className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
-                  title="Копировать"
-                >
-                  <Copy className="h-3 w-3 md:h-3.5 md:w-3.5" />
-                </button>
-                <button
                   onClick={() => removeScript(s.id)}
                   className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
                   title="Удалить"
