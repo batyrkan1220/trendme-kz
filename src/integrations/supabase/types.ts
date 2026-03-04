@@ -304,6 +304,27 @@ export type Database = {
         }
         Relationships: []
       }
+      trend_niche_cursors: {
+        Row: {
+          cursor: number
+          id: string
+          niche: string
+          updated_at: string
+        }
+        Insert: {
+          cursor?: number
+          id?: string
+          niche: string
+          updated_at?: string
+        }
+        Update: {
+          cursor?: number
+          id?: string
+          niche?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trend_refresh_logs: {
         Row: {
           error_message: string | null
