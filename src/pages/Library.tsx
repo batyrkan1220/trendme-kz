@@ -84,6 +84,16 @@ export default function Library() {
         .eq("user_id", user!.id)
         .order("analyzed_at", { ascending: false });
       const items = (data || []) as any[];
+      // Extract video IDs from URLs where platform_video_id is null
+      const extractId = (url: string) => {
+        const m = url?.match(/\/video\/(\d+)/);
+        return m ? m[1] : null;
+      };
+      items.forEach(a => {
+        if (!a.platform_video_id) {
+          a.platform_video_id = extractId(a.video_url);
+        }
+      });
       // Try to match cover_url from videos table
       const videoIds = items.map(a => a.platform_video_id).filter(Boolean);
       if (videoIds.length > 0) {
