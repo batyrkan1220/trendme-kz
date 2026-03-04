@@ -520,7 +520,7 @@ export default function AccountAnalysis() {
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
-                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                        onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }} title="Обновить"
                       >
                         <RefreshCw className="h-3.5 w-3.5" />
                       </Button>
