@@ -271,16 +271,16 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
               <span className="flex flex-col items-center gap-0.5"><MessageCircle className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" /><span className="text-[10px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span></span>
               <span className="flex flex-col items-center gap-0.5"><Share2 className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" /><span className="text-[10px] md:text-[11px] font-bold text-foreground">{fmt(Number(video.shares || 0))}</span></span>
             </div>
-            <div className="px-3 pt-3 flex items-center gap-2">
+            <div className="px-2 md:px-3 pt-2 md:pt-3 flex items-center gap-1.5 md:gap-2">
               {video.author_avatar_url ? (
-                <img src={video.author_avatar_url} alt="" loading="lazy" className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0" />
+                <img src={video.author_avatar_url} alt="" loading="lazy" className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
+                <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-muted flex-shrink-0" />
               )}
-              <span className="text-sm font-semibold text-foreground truncate">@{video.author_username}</span>
+              <span className="text-xs md:text-sm font-semibold text-foreground truncate">@{video.author_username}</span>
             </div>
-            <div className="px-3 pt-1.5 pb-1">
-              <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">{video.caption || "Без описания"}</p>
+            <div className="px-2 md:px-3 pt-1 md:pt-1.5 pb-1">
+              <p className="text-[10px] md:text-xs text-foreground/80 line-clamp-2 leading-relaxed">{video.caption || "Без описания"}</p>
             </div>
             {timeAgo && (
               <div className="px-3 pb-2">
