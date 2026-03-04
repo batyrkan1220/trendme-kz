@@ -112,7 +112,7 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
             analysisActive || showAnalysis ? "text-primary" : "text-muted-foreground"
           )}
         >
-          <Sparkles className={cn("h-5 w-5", (analysisActive || showAnalysis) && "text-primary")} />
+          <Search className={cn("h-5 w-5", (analysisActive || showAnalysis) && "text-primary")} />
           <span className="text-[10px] font-medium leading-tight">Анализ</span>
         </button>
 
