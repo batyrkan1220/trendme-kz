@@ -52,7 +52,7 @@ export default function Auth() {
         if (error) toast.error("Ошибка входа: " + error.message);
         else navigate("/dashboard");
       } else {
-        const { error } = await signUp(email, password, { name: name.trim(), phone: phone.trim() });
+        const { error } = await signUp(email, password, { name: name.trim(), phone: `${phoneCode}${phone.trim()}` });
         if (error) toast.error("Ошибка регистрации: " + error.message);
         else toast.success("Проверьте email для подтверждения регистрации");
       }
