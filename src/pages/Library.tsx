@@ -601,6 +601,8 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
 
 /* ─── Scripts Tab ─── */
 function ScriptsTab({ scripts, removeScript, copyText }: any) {
+  const [expandedScript, setExpandedScript] = useState<string | null>(null);
+
   if (scripts.length === 0) {
     return (
       <div className="text-center py-20">
@@ -614,29 +616,83 @@ function ScriptsTab({ scripts, removeScript, copyText }: any) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pb-20 md:pb-0">
-      {scripts.map((s: any) => (
-        <div key={s.id} className="bg-card rounded-xl md:rounded-2xl border border-border/50 p-3 md:p-5 hover:shadow-lg transition-all">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Sparkles className="h-4 w-4 text-primary" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4 pb-20 md:pb-0">
+      {scripts.map((s: any) => {
+        const isExpanded = expandedScript === s.id;
+        const date = new Date(s.created_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+        return (
+          <div key={s.id} className="group bg-card rounded-xl md:rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
+            {/* Header */}
+            <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-3 border-b border-border/30">
+              <div className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" />
               </div>
-              <h3 className="text-sm font-semibold text-foreground line-clamp-1">{s.title}</h3>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs md:text-sm font-semibold text-foreground line-clamp-2 leading-snug">
+                  {s.title}
+                </h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{date}</p>
+              </div>
+              <div className="flex flex-col gap-0.5 md:gap-1 shrink-0">
+                <button
+                  onClick={() => copyText(s.content)}
+                  className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                  title="Копировать"
+                >
+                  <Copy className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                </button>
+                <button
+                  onClick={() => removeScript(s.id)}
+                  className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  title="Удалить"
+                >
+                  <Trash2 className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-0.5 shrink-0">
-              <button onClick={() => copyText(s.content)} className="text-muted-foreground/50 hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-muted/50" title="Копировать">
-                <Copy className="h-4 w-4" />
-              </button>
-              <button onClick={() => removeScript(s.id)} className="text-muted-foreground/50 hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-destructive/5" title="Удалить">
-                <Trash2 className="h-4 w-4" />
+
+            {/* Preview text */}
+            {!isExpanded && (
+              <div className="px-2.5 md:px-3 pt-2 pb-1">
+                <p className="text-[11px] md:text-xs text-foreground/70 line-clamp-3 whitespace-pre-wrap leading-relaxed">{s.content}</p>
+              </div>
+            )}
+
+            {/* Source video link */}
+            {s.source_video_url && (
+              <div className="px-2.5 md:px-3 pt-1">
+                <a href={s.source_video_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] md:text-[11px] text-primary hover:underline">
+                  <ExternalLink className="h-3 w-3" /> Видео-источник
+                </a>
+              </div>
+            )}
+
+            {/* Expand toggle */}
+            <div className="mt-auto border-t border-border/30">
+              <button onClick={() => setExpandedScript(prev => prev === s.id ? null : s.id)} className="w-full flex items-center justify-center gap-1 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {isExpanded ? "Свернуть" : "Подробнее"}
               </button>
             </div>
+
+            {/* Expanded: full script */}
+            {isExpanded && (
+              <div className="px-2.5 md:px-4 pb-3 md:pb-4 border-t border-border/30 pt-2.5 md:pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[11px] md:text-xs font-semibold text-foreground">Полный сценарий</p>
+                  <button onClick={() => copyText(s.content)} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                    <Copy className="h-3 w-3" /> Копировать
+                  </button>
+                </div>
+                <div className="bg-muted/30 rounded-lg md:rounded-xl p-2 md:p-3 max-h-64 md:max-h-96 overflow-y-auto">
+                  <p className="text-[11px] md:text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap">{s.content}</p>
+                </div>
+              </div>
+            )}
           </div>
-          <p className="text-xs text-foreground/70 line-clamp-5 whitespace-pre-wrap leading-relaxed">{s.content}</p>
-          <p className="text-[11px] text-muted-foreground mt-3">{new Date(s.created_at).toLocaleDateString("ru-RU")}</p>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
