@@ -749,7 +749,18 @@ function RefreshSection() {
     refetchInterval: 30000,
   });
 
-  const { data: logs = [] } = useQuery({
+  const { data: totalVideosAll = 0 } = useQuery({
+    queryKey: ["videos-count-all"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("videos")
+        .select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+    refetchInterval: 30000,
+  });
+
+
     queryKey: ["refresh-logs"],
     queryFn: async () => {
       const { data } = await supabase.from("trend_refresh_logs").select("*").order("started_at", { ascending: false }).limit(20);
