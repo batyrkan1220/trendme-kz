@@ -439,7 +439,8 @@ Deno.serve(async (req: Request) => {
 
     let nicheSaved = 0;
 
-    const PAGES_PER_QUERY = 2;
+    const PAGES_PER_QUERY = 3;
+    const ACTUAL_PAGE_SIZE = 10; // SocialKit returns max 10 per request regardless of count
     const sortTypes = ["3", "1"]; // date, likes
     const publishTimes = ["7", "30"];
 
