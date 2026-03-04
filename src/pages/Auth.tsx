@@ -74,14 +74,7 @@ export default function Auth() {
         {/* Logo & Title */}
         <div className="text-center space-y-3 md:space-y-4">
           <div className="inline-block animate-bounce-soft">
-            <img
-              src={logoIcon}
-              alt="TrendMe"
-              width={64}
-              height={64}
-              decoding="async"
-              className="h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-lg mx-auto"
-            />
+            <TrendMeLogo size={56} className="md:w-16 md:h-16 shadow-lg mx-auto" />
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">

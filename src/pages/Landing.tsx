@@ -585,7 +585,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <img src={logoIcon} alt="TrendMe" width={36} height={36} loading="lazy" decoding="async" className="w-9 h-9 rounded-lg" />
+              <TrendMeLogo size={36} />
               <BrandName className="text-lg md:text-xl" />
             </div>
             <div className="flex items-center gap-8">
