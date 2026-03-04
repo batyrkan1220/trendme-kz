@@ -193,14 +193,19 @@ function TrendingShowcase() {
   const [active, setActive] = useState(0);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasInteracted = useRef(false);
 
   useEffect(() => {
-    const interval = setInterval(() => setActive((a) => (a + 1) % trendingVideos.length), 3000);
+    const interval = setInterval(() => {
+      hasInteracted.current = true;
+      setActive((a) => (a + 1) % trendingVideos.length);
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-scroll to active card on mobile
+  // Auto-scroll to active card on mobile — only after first auto-switch
   useEffect(() => {
+    if (!hasInteracted.current) return;
     const card = cardRefs.current[active];
     if (card && containerRef.current) {
       card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
