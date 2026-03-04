@@ -274,7 +274,15 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
 }
 
 /* ─── Analyses Tab ─── */
-function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis, copyText, playingAnalysisId, setPlayingAnalysisId }: any) {
+function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis, copyText, playingAnalysisId, setPlayingAnalysisId }: {
+  analyses: any[];
+  expandedAnalysis: string | null;
+  toggleExpand: (id: string) => void;
+  removeAnalysis: (id: string) => void;
+  copyText: (text: string) => void;
+  playingAnalysisId: string | null;
+  setPlayingAnalysisId: (id: string | null) => void;
+}) {
   if (analyses.length === 0) {
     return (
       <div className="text-center py-20">
