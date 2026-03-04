@@ -117,14 +117,14 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
         </button>
 
         <Link
-          to="/library"
+          to="/ai-script"
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
-            location.pathname === "/library" ? "text-primary" : "text-muted-foreground"
+            location.pathname === "/ai-script" ? "text-primary" : "text-muted-foreground"
           )}
         >
-          <Star className={cn("h-5 w-5", location.pathname === "/library" && "text-primary")} />
-          <span className="text-[10px] font-medium leading-tight">Избранные</span>
+          <Sparkles className={cn("h-5 w-5", location.pathname === "/ai-script" && "text-primary")} />
+          <span className="text-[10px] font-medium leading-tight">Сценарий</span>
         </Link>
 
         <button
