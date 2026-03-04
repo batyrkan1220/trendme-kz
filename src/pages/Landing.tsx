@@ -278,17 +278,17 @@ export default function Landing() {
       <LandingNav />
 
       {/* ═══ Hero ═══ */}
-      <section className="pt-24 pb-8 md:pt-44 md:pb-20 px-4 relative">
-        <div className="absolute top-0 left-0 right-0 h-[700px] bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
+      <section className="pt-20 pb-6 md:pt-44 md:pb-20 px-4 relative">
+        <div className="absolute top-0 left-0 right-0 h-[500px] md:h-[700px] bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent pointer-events-none" />
+        <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[600px] md:w-[900px] h-[300px] md:h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 text-sm md:text-base font-medium text-foreground mb-5 md:mb-10">
-            <TikTokIcon className="h-5 w-5 md:h-6 md:w-6" />
+          <div className="inline-flex items-center gap-1.5 text-xs md:text-base font-medium text-foreground mb-4 md:mb-10">
+            <TikTokIcon className="h-4 w-4 md:h-6 md:w-6" />
             TikTok Official Partner
           </div>
 
-          <h1 className="text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[4rem] font-extrabold leading-[1.12] tracking-tight mb-6 md:mb-8">
+          <h1 className="text-[1.6rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[4rem] font-extrabold leading-[1.15] tracking-tight mb-4 md:mb-8">
             Находите{" "}
             <span className="relative inline text-primary">
               <span className="relative z-10">вирусные видео</span>
@@ -297,32 +297,32 @@ export default function Landing() {
             из TikTok и снимайте лучше
           </h1>
 
-          <p className="text-[15px] sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-6 md:mb-12 leading-relaxed">
+          <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-5 md:mb-12 leading-relaxed px-2">
             Узнайте, какие видео взрывают вашу нишу прямо сейчас. AI подскажет формат и напишет сценарий — вам останется только снять.
           </p>
 
-          <div className="mb-6 md:mb-8">
+          <div className="mb-5 md:mb-8">
             <Link to="/auth">
-              <Button className="bg-primary text-primary-foreground rounded-2xl text-base md:text-lg font-bold px-8 md:px-12 h-14 md:h-16 shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.4)] hover:shadow-[0_12px_40px_-6px_hsl(var(--primary)/0.5)] hover:bg-primary/90 transition-all">
-                <Rocket className="mr-2 h-5 w-5 md:h-6 md:w-6" />
+              <Button className="bg-primary text-primary-foreground rounded-2xl text-sm md:text-lg font-bold px-6 md:px-12 h-12 md:h-16 shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.4)] hover:shadow-[0_12px_40px_-6px_hsl(var(--primary)/0.5)] hover:bg-primary/90 transition-all">
+                <Rocket className="mr-2 h-4 w-4 md:h-6 md:w-6" />
                 Попробовать бесплатно
               </Button>
             </Link>
           </div>
 
-          <div className="flex items-center justify-center gap-3 md:gap-8 text-xs md:text-base text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-1.5 whitespace-nowrap">
-              <CircleDot className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
+          <div className="flex items-center justify-center gap-2 md:gap-8 text-[11px] md:text-base text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <CircleDot className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
               Без карты
             </span>
             <span className="text-border">•</span>
-            <span className="flex items-center gap-1.5 whitespace-nowrap">
-              <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <Clock className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
               Доступ сразу
             </span>
             <span className="text-border">•</span>
-            <span className="flex items-center gap-1.5 whitespace-nowrap">
-              <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <Zap className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
               50 запросов/день
             </span>
           </div>
