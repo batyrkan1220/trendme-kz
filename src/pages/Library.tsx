@@ -305,15 +305,15 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
           <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
             {/* Compact preview header */}
             <div className="flex items-center gap-3 p-3 border-b border-border/30">
-              {/* Mini video icon / link */}
+              {/* Mini video preview */}
               <a
                 href={a.video_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 via-muted to-primary/10 flex items-center justify-center hover:scale-105 transition-transform"
+                className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-muted flex items-center justify-center hover:scale-105 transition-transform"
                 title="Открыть видео"
               >
-                <Play className="h-5 w-5 text-primary fill-primary ml-0.5" />
+                <Video className="h-5 w-5 text-muted-foreground" />
               </a>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-snug">
