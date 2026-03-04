@@ -323,9 +323,9 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
         const date = new Date(a.analyzed_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
 
         return (
-          <div key={a.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
+          <div key={a.id} className="group bg-card rounded-xl md:rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
             {/* Compact preview header */}
-            <div className="flex items-center gap-3 p-3 border-b border-border/30">
+            <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-3 border-b border-border/30">
               {/* Mini video preview thumbnail */}
               <a
                 href={a.video_url}
