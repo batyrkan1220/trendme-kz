@@ -166,7 +166,7 @@ export default function Library() {
 
         {/* Analyses tab */}
         {tab === "analyses" && (
-          <AnalysesTab analyses={analyses} expandedAnalysis={expandedAnalysis} toggleExpand={toggleExpand} removeAnalysis={removeAnalysis} copyText={copyText} playingAnalysisId={playingAnalysisId} setPlayingAnalysisId={setPlayingAnalysisId} />
+          <AnalysesTab analyses={analyses} expandedAnalysis={expandedAnalysis} toggleExpand={toggleExpand} removeAnalysis={removeAnalysis} copyText={copyText} />
         )}
 
         {/* Scripts tab */}
