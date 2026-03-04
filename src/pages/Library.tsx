@@ -74,7 +74,7 @@ export default function Library() {
     enabled: !!user,
   });
 
-  // Analyses
+  // Analyses — also fetch cover_url from videos table
   const { data: analyses = [] } = useQuery({
     queryKey: ["user-analyses", user?.id],
     queryFn: async () => {
@@ -83,7 +83,18 @@ export default function Library() {
         .select("*")
         .eq("user_id", user!.id)
         .order("analyzed_at", { ascending: false });
-      return (data || []) as any[];
+      const items = (data || []) as any[];
+      // Try to match cover_url from videos table
+      const videoIds = items.map(a => a.platform_video_id).filter(Boolean);
+      if (videoIds.length > 0) {
+        const { data: vids } = await supabase
+          .from("videos")
+          .select("platform_video_id, cover_url")
+          .in("platform_video_id", videoIds);
+        const coverMap = new Map((vids || []).map(v => [v.platform_video_id, v.cover_url]));
+        items.forEach(a => { a._cover_url = coverMap.get(a.platform_video_id) || null; });
+      }
+      return items;
     },
     enabled: !!user,
   });
