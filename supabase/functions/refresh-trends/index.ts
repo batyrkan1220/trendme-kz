@@ -471,7 +471,7 @@ Deno.serve(async (req: Request) => {
       for (let page = 0; page < PAGES_PER_QUERY; page++) {
         if (Date.now() - startTime > MAX_EXECUTION_MS) break;
 
-        const offset = String(page * COUNT);
+        const offset = String(page * ACTUAL_PAGE_SIZE);
         if (page > 0) await sleep(500);
 
         try {
