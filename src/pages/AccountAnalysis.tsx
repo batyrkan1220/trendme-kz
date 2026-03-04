@@ -42,7 +42,6 @@ export default function AccountAnalysis() {
   const [url, setUrl] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  const [expandedAccId, setExpandedAccId] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(0);
   const HISTORY_PAGE_SIZE = 6;
   const queryClient = useQueryClient();
@@ -199,21 +198,12 @@ export default function AccountAnalysis() {
                         </button>
                       </div>
                       {hasAnalysis ? (
-                        expandedAccId === acc.id ? (
-                          <button
-                            onClick={() => setExpandedAccId(null)}
-                            className="w-full mt-2 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/70 transition-colors flex items-center justify-center gap-1.5"
-                          >
-                            <X className="h-3 w-3" /> Закрыть
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setExpandedAccId(acc.id)}
-                            className="w-full mt-2 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-1.5"
-                          >
-                            <Eye className="h-3 w-3" /> Смотреть анализ
-                          </button>
-                        )
+                        <button
+                          onClick={() => loadSavedAnalysis(acc)}
+                          className="w-full mt-2 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Eye className="h-3 w-3" /> Смотреть анализ
+                        </button>
                       ) : (
                         <button
                           onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
@@ -222,56 +212,6 @@ export default function AccountAnalysis() {
                           <RefreshCw className="h-3 w-3" /> Анализировать
                         </button>
                       )}
-                      {/* Inline expanded analysis */}
-                      {expandedAccId === acc.id && hasAnalysis && (() => {
-                        const a = acc.analysis_json as Record<string, any>;
-                        const vids: TopVideo[] = (a.top_videos || []).slice(0, 6);
-                        return (
-                          <div className="mt-3 space-y-3 animate-fade-in">
-                            <div className="grid grid-cols-3 gap-1.5">
-                              <div className="bg-muted/50 rounded-lg p-2 text-center">
-                                <p className="text-xs font-bold text-foreground">{a.engagement_rate || 0}%</p>
-                                <p className="text-[10px] text-muted-foreground">ER</p>
-                              </div>
-                              <div className="bg-muted/50 rounded-lg p-2 text-center">
-                                <p className="text-xs font-bold text-foreground">{formatNum(a.avg_views || 0)}</p>
-                                <p className="text-[10px] text-muted-foreground">Просм.</p>
-                              </div>
-                              <div className="bg-muted/50 rounded-lg p-2 text-center">
-                                <p className="text-xs font-bold text-foreground">{formatNum(a.avg_likes_per_video || 0)}</p>
-                                <p className="text-[10px] text-muted-foreground">Лайки</p>
-                              </div>
-                            </div>
-                            {vids.length > 0 && (
-                              <div className="space-y-1.5">
-                                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Топ видео</p>
-                                <div className="grid grid-cols-3 gap-1.5">
-                                  {vids.map((v, i) => (
-                                    <a key={v.id || i} href={v.url} target="_blank" rel="noopener noreferrer" className="block">
-                                      <div className="relative aspect-[9/14] rounded-lg overflow-hidden bg-muted">
-                                        {v.cover ? (
-                                          <img src={v.cover} alt="" loading="lazy" className="w-full h-full object-cover" />
-                                        ) : (
-                                          <div className="w-full h-full flex items-center justify-center"><Play className="h-4 w-4 text-muted-foreground/30" /></div>
-                                        )}
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1">
-                                          <span className="text-[9px] text-white font-medium flex items-center gap-0.5"><Eye className="h-2.5 w-2.5" />{formatNum(v.views)}</span>
-                                        </div>
-                                      </div>
-                                    </a>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            <button
-                              onClick={() => loadSavedAnalysis(acc)}
-                              className="w-full py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
-                            >
-                              <BarChart3 className="h-3 w-3" /> Полный анализ
-                            </button>
-                          </div>
-                        );
-                      })()}
                     </div>
                   );})}
 
@@ -617,73 +557,14 @@ export default function AccountAnalysis() {
                     <span className="flex items-center gap-1"><Video className="h-3 w-3" /> {formatNum(Number(acc.total_videos || 0))}</span>
                     {acc.verified && <span className="flex items-center gap-1 text-primary"><Check className="h-3 w-3" /> Верифицирован</span>}
                   </div>
-                  {hasAnalysis ? (
-                    expandedAccId === acc.id ? (
-                      <button
-                        onClick={() => setExpandedAccId(null)}
-                        className="w-full mt-3 py-2 rounded-xl bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/70 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <X className="h-4 w-4" /> Закрыть
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setExpandedAccId(acc.id)}
-                        className="w-full mt-3 py-2 rounded-xl bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Eye className="h-4 w-4" /> Смотреть анализ
-                      </button>
-                    )
-                  ) : null}
-                  {/* Inline expanded analysis */}
-                  {expandedAccId === acc.id && hasAnalysis && (() => {
-                    const a = acc.analysis_json as Record<string, any>;
-                    const vids: TopVideo[] = (a.top_videos || []).slice(0, 6);
-                    return (
-                      <div className="mt-3 space-y-3 animate-fade-in">
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="bg-muted/50 rounded-lg p-2.5 text-center">
-                            <p className="text-sm font-bold text-foreground">{a.engagement_rate || 0}%</p>
-                            <p className="text-[10px] text-muted-foreground">ER</p>
-                          </div>
-                          <div className="bg-muted/50 rounded-lg p-2.5 text-center">
-                            <p className="text-sm font-bold text-foreground">{formatNum(a.avg_views || 0)}</p>
-                            <p className="text-[10px] text-muted-foreground">Ср. просм.</p>
-                          </div>
-                          <div className="bg-muted/50 rounded-lg p-2.5 text-center">
-                            <p className="text-sm font-bold text-foreground">{formatNum(a.avg_likes_per_video || 0)}</p>
-                            <p className="text-[10px] text-muted-foreground">Ср. лайки</p>
-                          </div>
-                        </div>
-                        {vids.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Топ видео</p>
-                            <div className="grid grid-cols-3 gap-2">
-                              {vids.map((v, i) => (
-                                <a key={v.id || i} href={v.url} target="_blank" rel="noopener noreferrer" className="block">
-                                  <div className="relative aspect-[9/14] rounded-lg overflow-hidden bg-muted">
-                                    {v.cover ? (
-                                      <img src={v.cover} alt="" loading="lazy" className="w-full h-full object-cover" />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center"><Play className="h-5 w-5 text-muted-foreground/30" /></div>
-                                    )}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1.5">
-                                      <span className="text-[10px] text-white font-medium flex items-center gap-0.5"><Eye className="h-3 w-3" />{formatNum(v.views)}</span>
-                                    </div>
-                                  </div>
-                                </a>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        <button
-                          onClick={() => loadSavedAnalysis(acc)}
-                          className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                        >
-                          <BarChart3 className="h-4 w-4" /> Полный анализ
-                        </button>
-                      </div>
-                    );
-                  })()}
+                  {hasAnalysis && (
+                    <button
+                      onClick={() => loadSavedAnalysis(acc)}
+                      className="w-full mt-3 py-2 rounded-xl bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" /> Смотреть анализ
+                    </button>
+                  )}
                 </div>
               );})}
             </div>
