@@ -211,23 +211,30 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     toast.success(isKk ? "Сценарий көшірілді!" : "Сценарий скопирован!");
   };
 
-  const saveScript = async () => {
-    if (!user || !scriptContent || isSaving) return;
-    setIsSaving(true);
-    const title = caption?.slice(0, 80) || (isKk ? "Сценарий" : "Сценарий");
-    const { error } = await supabase.from("saved_scripts").insert({
-      user_id: user.id,
-      title,
-      content: scriptRef.current || scriptContent,
-      source_video_url: null,
-    });
-    if (error) {
-      console.error("Save script error:", error);
-      toast.error(isKk ? "Сақтау қатесі: " + error.message : "Ошибка сохранения: " + error.message);
+  const autoSaveScript = async () => {
+    if (!user) return;
+    const content = scriptRef.current;
+    if (!content) return;
+    const title = caption?.slice(0, 80) || "Сценарий";
+
+    if (savedScriptId.current) {
+      // Update existing
+      const { error } = await supabase.from("saved_scripts").update({ content }).eq("id", savedScriptId.current);
+      if (error) console.error("Auto-save update error:", error);
     } else {
-      toast.success(isKk ? "Сценарий Кітапханаға сақталды! 📚" : "Сценарий сохранён в Библиотеку! 📚");
+      // Insert new
+      const { data, error } = await supabase.from("saved_scripts").insert({
+        user_id: user.id,
+        title,
+        content,
+        source_video_url: null,
+      }).select("id").single();
+      if (error) {
+        console.error("Auto-save insert error:", error);
+      } else if (data) {
+        savedScriptId.current = data.id;
+      }
     }
-    setIsSaving(false);
   };
 
   useEffect(() => {
