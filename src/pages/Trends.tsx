@@ -305,7 +305,8 @@ export default function Trends() {
                 return (
                   <div
                     key={video.id}
-                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col"
+                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col cursor-pointer"
+                    onClick={() => navigate("/pricing")}
                   >
                     <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
                       {video.cover_url ? (
@@ -313,23 +314,30 @@ export default function Trends() {
                           src={video.cover_url}
                           alt=""
                           loading="lazy"
-                          className="w-full h-full object-cover blur-[6px] brightness-75"
+                          className="w-full h-full object-cover blur-[5px] brightness-[0.65] scale-105"
                         />
                       ) : (
-                        <div className="w-full h-full bg-muted blur-md" />
+                        <div className="w-full h-full bg-muted/60" />
                       )}
+                      {/* Gradient overlay for depth */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
-                        <div className="h-14 w-14 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center">
-                          <Lock className="h-7 w-7 text-white/80" />
+                        <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
+                          <Lock className="h-5 w-5 text-white" />
                         </div>
-                        <p className="text-white/90 text-sm font-semibold text-center leading-snug">
-                          В демо-режиме доступны только первые {FREE_LIMIT} видео
-                        </p>
+                        <div className="text-center space-y-1">
+                          <p className="text-white text-[13px] font-semibold leading-snug drop-shadow-md">
+                            Доступно на PRO
+                          </p>
+                          <p className="text-white/60 text-[11px]">
+                            Первые {FREE_LIMIT} видео бесплатно
+                          </p>
+                        </div>
                         <button
-                          onClick={() => navigate("/pricing")}
-                          className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                          onClick={(e) => { e.stopPropagation(); navigate("/pricing"); }}
+                          className="mt-1 px-5 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/30"
                         >
-                          Снять ограничения
+                          Открыть доступ
                         </button>
                       </div>
                     </div>
