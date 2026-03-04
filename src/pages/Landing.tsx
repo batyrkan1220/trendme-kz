@@ -471,44 +471,44 @@ export default function Landing() {
       </section>
 
       {/* ═══ Pricing ═══ */}
-      <section id="pricing" className="py-16 md:py-28 px-4 bg-muted/20 border-y border-border/30">
+      <section id="pricing" className="py-10 md:py-28 px-4 bg-muted/20 border-y border-border/30">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12 md:mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Тарифы</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <p className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">Тарифы</p>
+            <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4">
               Выберите свой <span className="text-primary">план</span>
             </h2>
-            <p className="text-muted-foreground text-base md:text-lg">Начните бесплатно. Масштабируйтесь, когда готовы.</p>
+            <p className="text-muted-foreground text-sm md:text-lg">Начните бесплатно. Масштабируйтесь, когда готовы.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {plans.map((plan) => (
-              <div key={plan.name} className={`rounded-2xl p-6 md:p-8 border transition-all hover-lift relative h-full ${
+              <div key={plan.name} className={`rounded-2xl p-5 md:p-8 border transition-all hover-lift relative h-full ${
                 plan.popular
-                  ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.15)] scale-[1.02] md:scale-105"
+                  ? "bg-card border-primary/30 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.15)] scale-[1.01] md:scale-105"
                   : "bg-card border-border/50 card-shadow"
               }`}>
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground bg-primary px-4 py-1 rounded-full shadow-lg">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-[10px] md:text-xs font-bold text-primary-foreground bg-primary px-3 md:px-4 py-1 rounded-full shadow-lg">
                     <Sparkles className="h-3 w-3" /> Популярный
                   </span>
                 )}
-                <div className="text-3xl md:text-4xl mb-2">{plan.emoji}</div>
-                <h3 className="text-xl md:text-2xl font-bold text-foreground">{plan.name}</h3>
-                <div className="mt-3 mb-6">
-                  <span className="text-3xl md:text-4xl font-extrabold text-foreground">{plan.price}</span>
-                  <span className="text-sm md:text-base text-muted-foreground">{plan.period}</span>
+                <div className="text-2xl md:text-4xl mb-1.5 md:mb-2">{plan.emoji}</div>
+                <h3 className="text-lg md:text-2xl font-bold text-foreground">{plan.name}</h3>
+                <div className="mt-2 mb-4 md:mt-3 md:mb-6">
+                  <span className="text-2xl md:text-4xl font-extrabold text-foreground">{plan.price}</span>
+                  <span className="text-xs md:text-base text-muted-foreground">{plan.period}</span>
                 </div>
-                <ul className="space-y-3 mb-7">
+                <ul className="space-y-2 md:space-y-3 mb-5 md:mb-7">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm md:text-base text-muted-foreground">
-                      <Check className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
+                    <li key={f} className="flex items-center gap-2 text-xs md:text-base text-muted-foreground">
+                      <Check className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary shrink-0" />
                       {f}
                     </li>
                   ))}
                 </ul>
                 <Link to="/auth">
-                  <Button className={`w-full rounded-xl h-11 md:h-12 font-semibold text-sm md:text-base ${
+                  <Button className={`w-full rounded-xl h-10 md:h-12 font-semibold text-xs md:text-base ${
                     plan.popular
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
                       : "bg-secondary text-secondary-foreground border border-border hover:bg-muted"
