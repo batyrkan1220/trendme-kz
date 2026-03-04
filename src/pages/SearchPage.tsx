@@ -132,6 +132,29 @@ export default function SearchPage() {
                 <SearchIcon className="h-4 w-4 mr-2" />Искать
               </Button>
             </div>
+
+            {recentQueries && recentQueries.length > 0 && (
+              <div className="w-full mt-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">Недавние запросы</span>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {recentQueries.slice(0, 8).map((q) => (
+                    <button
+                      key={q.id}
+                      onClick={() => {
+                        setQuery(q.query_text);
+                        handleSearchDirect(q.query_text);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-card border border-border/50 text-sm font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-colors card-shadow"
+                    >
+                      {q.query_text}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : isSearching && !searchResults ? (
