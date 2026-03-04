@@ -221,7 +221,7 @@ function FavoritesTab({ favorites, playingId, setPlayingId, removeFav }: any) {
         const timeAgo = getTimeAgo(video.published_at);
 
         return (
-          <div key={fav.id} className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col">
+          <div key={fav.id} className="group bg-card rounded-xl md:rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col">
             <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
               {playingId === video.id ? (
                 <>
