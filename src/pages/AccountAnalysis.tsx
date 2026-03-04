@@ -42,7 +42,7 @@ export default function AccountAnalysis() {
   const [url, setUrl] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  const [expandedAccId, setExpandedAccId] = useState<string | null>(null);
+  const [previewAcc, setPreviewAcc] = useState<any>(null);
   const [historyPage, setHistoryPage] = useState(0);
   const HISTORY_PAGE_SIZE = 6;
   const queryClient = useQueryClient();
