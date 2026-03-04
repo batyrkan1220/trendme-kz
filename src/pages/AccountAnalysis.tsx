@@ -501,7 +501,8 @@ export default function AccountAnalysis() {
               {trackedAccounts.map((acc) => (
                 <div
                   key={acc.id}
-                  className="bg-card rounded-xl border border-border/50 p-4 card-shadow hover-lift transition-all group"
+                  className="bg-card rounded-xl border border-border/50 p-4 card-shadow hover-lift transition-all group cursor-pointer"
+                  onClick={() => loadSavedAnalysis(acc)}
                 >
                   <div className="flex items-center gap-3">
                     {acc.avatar_url ? (
