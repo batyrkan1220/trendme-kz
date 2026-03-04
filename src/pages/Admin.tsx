@@ -749,6 +749,17 @@ function RefreshSection() {
     refetchInterval: 30000,
   });
 
+  const { data: totalVideosAll = 0 } = useQuery({
+    queryKey: ["videos-count-all"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("videos")
+        .select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+    refetchInterval: 30000,
+  });
+
   const { data: logs = [] } = useQuery({
     queryKey: ["refresh-logs"],
     queryFn: async () => {
@@ -949,7 +960,7 @@ function RefreshSection() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="grid grid-cols-4 gap-2 text-center">
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{grandTotal}</p>
                       <p className="text-xs text-muted-foreground">Этот запуск</p>
@@ -957,6 +968,10 @@ function RefreshSection() {
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{totalNiche}</p>
                       <p className="text-xs text-muted-foreground">По категориям</p>
+                    </div>
+                    <div className="bg-muted/40 rounded-md p-2">
+                      <p className="text-lg font-bold text-foreground">{totalVideosAll}</p>
+                      <p className="text-xs text-muted-foreground">Всего в базе</p>
                     </div>
                     <div className="bg-primary/10 rounded-md p-2">
                       <p className="text-lg font-bold text-primary">{totalVideos7d}</p>
