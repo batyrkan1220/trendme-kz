@@ -213,14 +213,15 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     if (!user || !scriptContent || isSaving) return;
     setIsSaving(true);
     const title = caption?.slice(0, 80) || (isKk ? "Сценарий" : "Сценарий");
-    const { error } = await supabase.from("saved_scripts" as any).insert({
+    const { error } = await supabase.from("saved_scripts").insert({
       user_id: user.id,
       title,
       content: scriptRef.current || scriptContent,
       source_video_url: null,
     });
     if (error) {
-      toast.error(isKk ? "Сақтау қатесі" : "Ошибка сохранения");
+      console.error("Save script error:", error);
+      toast.error(isKk ? "Сақтау қатесі: " + error.message : "Ошибка сохранения: " + error.message);
     } else {
       toast.success(isKk ? "Сценарий Кітапханаға сақталды! 📚" : "Сценарий сохранён в Библиотеку! 📚");
     }
