@@ -3,7 +3,7 @@ import {
   UserCircle, Users, Heart, Video, Loader2, Check, Eye, MessageCircle, Share2,
   TrendingUp, BarChart3, Zap, Clock, ExternalLink, Trash2, RefreshCw, Play, Music, X, Sparkles, Star
 } from "lucide-react";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -135,6 +135,17 @@ export default function AccountAnalysis() {
     if (!ok) return;
     analyze(url.trim());
   };
+
+  // Auto-load most recent analysis on page load
+  useEffect(() => {
+    if (!account && !isPending && trackedAccounts.length > 0) {
+      const latest = trackedAccounts[0];
+      const analysis = latest.analysis_json as Record<string, any> | null;
+      if (analysis && analysis.top_videos) {
+        setAccount({ ...latest, ...analysis });
+      }
+    }
+  }, [trackedAccounts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const topVideos: TopVideo[] = account?.top_videos || [];
 
