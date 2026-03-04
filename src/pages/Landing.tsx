@@ -283,7 +283,7 @@ function TrendingShowcase() {
 /* ─── Main ─── */
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden">
+    <main className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Nav */}
       <LandingNav />
 
@@ -611,6 +611,6 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }
