@@ -238,7 +238,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         // 5. Batch upsert + save query in parallel (1 DB call instead of N)
         const [upsertResult, queryResult] = await Promise.all([
-          adminClient.from("videos").upsert(videoRows, { onConflict: "platform_video_id" }).select(),
+          adminClient.from("videos").upsert(videoRows, { onConflict: "platform,platform_video_id" }).select(),
           userClient.from("search_queries").upsert(
             { user_id: userId, query_text: query, last_run_at: now, total_results_saved: videoRows.length },
             { onConflict: "user_id,query_text", ignoreDuplicates: false }
