@@ -385,9 +385,9 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
 
             {/* Expanded content */}
             {isExpanded && (
-              <div className="px-3 pb-3 space-y-3 border-t border-border/30 pt-3">
+              <div className="px-2.5 md:px-4 pb-3 md:pb-4 space-y-2.5 md:space-y-3 border-t border-border/30 pt-2.5 md:pt-3">
                 {summary?.language && (
-                  <div className="flex items-center gap-2 text-xs">
+                  <div className="flex items-center gap-2 text-[11px] md:text-xs">
                     <span className="text-muted-foreground">Язык:</span>
                     <span className="font-medium text-foreground">
                       {summary.language === "Русский" ? "🇷🇺 " : summary.language === "English" ? "🇺🇸 " : ""}
@@ -397,10 +397,10 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 )}
                 {summary?.niches?.length > 0 && (
                   <div>
-                    <p className="text-[11px] text-muted-foreground mb-1">Категории</p>
+                    <p className="text-[10px] md:text-[11px] text-muted-foreground mb-1">Категории</p>
                     <div className="flex flex-wrap gap-1">
                       {summary.niches.map((niche: string, i: number) => (
-                        <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-card border border-border/50 text-foreground">{niche}</span>
+                        <span key={i} className="px-1.5 md:px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-medium bg-card border border-border/50 text-foreground">{niche}</span>
                       ))}
                     </div>
                   </div>
@@ -408,24 +408,24 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 {summary?.summary && (
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-semibold text-foreground">Суть</p>
+                      <p className="text-[11px] md:text-xs font-semibold text-foreground">Суть</p>
                       <button onClick={() => copyText(summary.summary)} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
                         <Copy className="h-3 w-3" />
                       </button>
                     </div>
-                    <div className="bg-muted/30 rounded-xl p-3">
-                      <p className="text-xs text-foreground/80 leading-relaxed">{summary.summary}</p>
+                    <div className="bg-muted/30 rounded-lg md:rounded-xl p-2 md:p-3">
+                      <p className="text-[11px] md:text-xs text-foreground/80 leading-relaxed">{summary.summary}</p>
                     </div>
                   </div>
                 )}
                 {summary?.hooks?.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-foreground mb-1">Хуки</p>
+                    <p className="text-[11px] md:text-xs font-semibold text-foreground mb-1">Хуки</p>
                     <div className="space-y-1">
                       {summary.hooks.map((hook: string, i: number) => (
-                        <div key={i} className="flex items-start gap-1.5 bg-muted/30 rounded-lg p-2">
+                        <div key={i} className="flex items-start gap-1.5 bg-muted/30 rounded-lg p-1.5 md:p-2">
                           <Target className="h-3 w-3 text-primary mt-0.5 shrink-0" />
-                          <p className="text-xs text-foreground/80">{hook}</p>
+                          <p className="text-[11px] md:text-xs text-foreground/80">{hook}</p>
                         </div>
                       ))}
                     </div>
@@ -434,13 +434,13 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
                 {transcript && (
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-semibold text-foreground">Транскрибация</p>
+                      <p className="text-[11px] md:text-xs font-semibold text-foreground">Транскрибация</p>
                       <button onClick={() => copyText(transcript)} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
                         <Copy className="h-3 w-3" />
                       </button>
                     </div>
-                    <div className="bg-muted/30 rounded-xl p-3 max-h-40 overflow-y-auto">
-                      <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
+                    <div className="bg-muted/30 rounded-lg md:rounded-xl p-2 md:p-3 max-h-32 md:max-h-40 overflow-y-auto">
+                      <p className="text-[11px] md:text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
                     </div>
                   </div>
                 )}
