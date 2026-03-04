@@ -584,8 +584,8 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <TrendMeLogo size={36} />
-              <BrandName className="text-lg md:text-xl" />
+              <TrendMeLogo size={28} className="md:w-9 md:h-9" />
+              <BrandName className="text-base md:text-xl" />
             </div>
             <div className="flex items-center gap-8">
               <a href="#features" className="text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
