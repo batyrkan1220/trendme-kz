@@ -44,7 +44,7 @@ function LandingNav() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-[72px] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <img src={logoIcon} alt="TrendMe" className="w-9 h-9 md:w-10 md:h-10 rounded-xl shadow-lg" />
+          <img src={logoIcon} alt="TrendMe" width={40} height={40} loading="eager" decoding="async" className="w-9 h-9 md:w-10 md:h-10 rounded-xl shadow-lg" />
           <BrandName className="text-xl md:text-2xl" />
         </div>
         <div className="hidden md:flex items-center gap-10">
@@ -233,7 +233,7 @@ function TrendingShowcase() {
             <div className={`w-full aspect-video rounded-xl mb-4 overflow-hidden relative transition-all duration-500 ${
               i === active ? "shadow-lg" : ""
             }`}>
-              <img src={v.img} alt={v.title} className="w-full h-full object-cover" />
+              <img src={v.img} alt={v.title} width={512} height={287} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm transition-colors ${
                   i === active ? "bg-primary/80" : "bg-black/30"
@@ -593,7 +593,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <img src={logoIcon} alt="TrendMe" className="w-9 h-9 rounded-lg" />
+              <img src={logoIcon} alt="TrendMe" width={36} height={36} loading="lazy" decoding="async" className="w-9 h-9 rounded-lg" />
               <BrandName className="text-lg md:text-xl" />
             </div>
             <div className="flex items-center gap-8">
