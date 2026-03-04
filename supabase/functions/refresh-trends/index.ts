@@ -85,7 +85,10 @@ function pickRotatedKeywords(
   return result;
 }
 
+const VERSION = "refresh-trends COUNT=30 PAGES=2 sort=3,1 pub=7,30 skip=tooOld";
+
 Deno.serve(async (req: Request) => {
+  console.log("VERSION", VERSION);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -471,6 +474,7 @@ Deno.serve(async (req: Request) => {
         if (page > 0) await sleep(500);
 
         try {
+          console.log("SK params", { query, count: String(COUNT), offset, sortType, publishTime });
           const data = await callSocialKit("/tiktok/search", {
             query,
             count: String(COUNT),
