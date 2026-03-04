@@ -49,7 +49,13 @@ export default function Auth() {
     try {
       if (mode === "login") {
         const { error } = await signIn(email, password);
-        if (error) toast.error("Ошибка входа: " + error.message);
+        if (error) {
+          if (error.message?.includes("Invalid login credentials")) {
+            toast.error("Неверный email или пароль. Проверьте данные и попробуйте снова.");
+          } else {
+            toast.error("Ошибка входа: " + error.message);
+          }
+        }
         else navigate("/dashboard");
       } else {
         const { error } = await signUp(email, password, { name: name.trim(), phone: `${phoneCode}${phone.trim()}` });
