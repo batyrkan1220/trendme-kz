@@ -315,7 +315,7 @@ function AnalysesTab({ analyses, expandedAnalysis, toggleExpand, removeAnalysis,
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4 pb-20 md:pb-0">
       {analyses.map((a: any) => {
         const summary = parseSummary(a.summary_json);
         const transcript = parseTranscript(a.transcript_text);
