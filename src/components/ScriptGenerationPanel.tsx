@@ -92,7 +92,7 @@ async function streamScript({
   onDone();
 }
 
-export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", onBack }: ScriptPanelProps) {
+export function ScriptGenerationPanel({ transcript, summary, caption, language = "ru", videoUrl, coverUrl, onBack }: ScriptPanelProps) {
   const { user } = useAuth();
   const { spend } = useTokens();
   const isKk = language === "kk";
