@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, TrendingUp, Search, Sparkles, Star, Menu,
-  Video, UserCircle
+  Video, UserCircle, FileText
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -15,6 +15,7 @@ const navItems = [
 
 const analysisItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
+  { icon: Sparkles, path: "/ai-script", label: "AI Сценарий" },
   { icon: UserCircle, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 

@@ -26,6 +26,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Tokens = lazy(() => import("./pages/Tokens"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Admin = lazy(() => import("./pages/Admin"));
+const ScriptFromVideo = lazy(() => import("./pages/ScriptFromVideo"));
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ const AppRoutes = () => (
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
         <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
         <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
+        <Route path="/ai-script" element={<ProtectedRoute><ScriptFromVideo /></ProtectedRoute>} />
         <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
         <Route path="/favorites" element={<Navigate to="/library" replace />} />
         <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
