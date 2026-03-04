@@ -327,10 +327,10 @@ export default function Trends() {
                         </div>
                         <div className="text-center space-y-1">
                           <p className="text-white text-[13px] font-semibold leading-snug drop-shadow-md">
-                            Доступно на PRO
+                            В демо-режиме доступны
                           </p>
                           <p className="text-white/60 text-[11px]">
-                            Первые {FREE_LIMIT} видео бесплатно
+                            только первые {FREE_LIMIT} видео
                           </p>
                         </div>
                         <button
