@@ -10,7 +10,7 @@ import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
   Star, ScrollText, LogOut, Flame, ArrowRight, Shield
 } from "lucide-react";
-import logoIcon from "@/assets/logo-icon-cropped.png";
+import { TrendMeLogo } from "@/components/TrendMeLogo";
 
 interface NavItem {
   label: string;
