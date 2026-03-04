@@ -85,7 +85,7 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends COUNT=30 PAGES=2 sort=3,1 pub=7,30 skip=tooOld";
+const VERSION = "refresh-trends COUNT=30 PAGES=3 offset=page*10 sort=3,1 pub=7,30 skip=tooOld";
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
@@ -439,7 +439,8 @@ Deno.serve(async (req: Request) => {
 
     let nicheSaved = 0;
 
-    const PAGES_PER_QUERY = 2;
+    const PAGES_PER_QUERY = 3;
+    const ACTUAL_PAGE_SIZE = 10; // SocialKit returns max 10 per request regardless of count
     const sortTypes = ["3", "1"]; // date, likes
     const publishTimes = ["7", "30"];
 
@@ -470,7 +471,7 @@ Deno.serve(async (req: Request) => {
       for (let page = 0; page < PAGES_PER_QUERY; page++) {
         if (Date.now() - startTime > MAX_EXECUTION_MS) break;
 
-        const offset = String(page * COUNT);
+        const offset = String(page * ACTUAL_PAGE_SIZE);
         if (page > 0) await sleep(500);
 
         try {
