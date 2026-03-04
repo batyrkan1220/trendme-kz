@@ -7,7 +7,7 @@ import {
   Rocket, CircleDot, Heart, MessageCircle, Share2, Play, Menu, X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import logoIcon from "@/assets/logo-icon-cropped.png";
+import { TrendMeLogo } from "@/components/TrendMeLogo";
 import trendImg1 from "@/assets/landing-trend-1.jpg";
 import trendImg2 from "@/assets/landing-trend-2.jpg";
 import trendImg3 from "@/assets/landing-trend-3.jpg";
