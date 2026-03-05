@@ -219,7 +219,7 @@ export default function Trends() {
 
           {/* Period tabs */}
           <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto w-fit">
-            {([3, 7, 30, 0] as const).map((p) => (
+            {([3, 7, 30] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
@@ -229,7 +229,7 @@ export default function Trends() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {p === 0 ? "Все" : `${p}д`}
+                {`${p}д`}
               </button>
             ))}
           </div>
