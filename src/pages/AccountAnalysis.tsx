@@ -104,7 +104,7 @@ export default function AccountAnalysis() {
     },
   });
 
-  const loadSavedAnalysis = useCallback((acc: any) => {
+  const loadSavedAnalysis = useCallback(async (acc: any) => {
     const analysis = acc.analysis_json as Record<string, any> | null;
     if (analysis && analysis.top_videos) {
       setAccount({
@@ -112,11 +112,13 @@ export default function AccountAnalysis() {
         ...analysis,
       });
     } else {
-      // No saved analysis, re-analyze
+      // No saved analysis, re-analyze (costs 1 usage)
+      const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${acc.profile_url}`);
+      if (!ok) return;
       setUrl(acc.profile_url);
       analyze(acc.profile_url);
     }
-  }, [analyze]);
+  }, [analyze, checkAndLog]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -130,7 +132,7 @@ export default function AccountAnalysis() {
   });
 
   const handleAnalyze = async () => {
-    if (!url.trim()) return;
+    if (!url.trim() || isPending) return;
     const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${url.trim()}`);
     if (!ok) return;
     analyze(url.trim());
@@ -206,7 +208,7 @@ export default function AccountAnalysis() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                          onClick={async () => { const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${acc.profile_url}`); if (!ok) return; setUrl(acc.profile_url); analyze(acc.profile_url); }}
                           className="w-full mt-2 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/70 transition-colors flex items-center justify-center gap-1.5"
                         >
                           <RefreshCw className="h-3 w-3" /> Анализировать
@@ -537,7 +539,7 @@ export default function AccountAnalysis() {
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
-                        onClick={(e) => { e.stopPropagation(); setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                        onClick={async (e) => { e.stopPropagation(); const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${acc.profile_url}`); if (!ok) return; setUrl(acc.profile_url); analyze(acc.profile_url); }}
                         title="Обновить"
                       >
                         <RefreshCw className="h-3.5 w-3.5" />
