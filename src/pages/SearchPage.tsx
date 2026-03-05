@@ -35,6 +35,7 @@ export default function SearchPage() {
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { checkAndLog, getRemaining, isFreeTrial } = useSubscription();
 
   const { data: recentQueries } = useQuery({
     queryKey: ["search-queries", user?.id],
