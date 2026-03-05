@@ -70,8 +70,10 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     }
   }, [open, video]);
 
-  const startAnalysis = (lang: "ru" | "kk") => {
+  const startAnalysis = async (lang: "ru" | "kk") => {
     if (!video) return;
+    const ok = await checkAndLog("video_analysis", `Анализ видео: ${video.url}`);
+    if (!ok) return;
     setLanguage(lang);
     setShowLangPicker(false);
     analyze({ v: video, lang });
