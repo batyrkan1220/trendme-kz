@@ -239,7 +239,7 @@ export default function Pricing() {
                         } : undefined}
                         disabled={isActive}
                       >
-                        {isActive ? "Белсенді ✓" : isPopular ? "🔥 3 ай таңдау" : isFree ? "Бастау" : "Таңдау"}
+                        {isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать 3 мес" : isFree ? "Начать" : "Выбрать"}
                       </Button>
                     </div>
                   </div>
