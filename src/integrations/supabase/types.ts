@@ -135,6 +135,7 @@ export type Database = {
           sort_order: number
           tokens_included: number
           updated_at: string
+          usage_limits: Json | null
         }
         Insert: {
           created_at?: string
@@ -149,6 +150,7 @@ export type Database = {
           sort_order?: number
           tokens_included?: number
           updated_at?: string
+          usage_limits?: Json | null
         }
         Update: {
           created_at?: string
@@ -163,6 +165,7 @@ export type Database = {
           sort_order?: number
           tokens_included?: number
           updated_at?: string
+          usage_limits?: Json | null
         }
         Relationships: []
       }
