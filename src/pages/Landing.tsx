@@ -588,10 +588,10 @@ export default function Landing() {
               <BrandName className="text-sm md:text-xl" />
             </div>
             <div className="flex items-center gap-4 md:gap-8 flex-wrap justify-center">
-              <a href="#features" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
-              <a href="#pricing" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
-              <a href="#reviews" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
-              <a href="#faq" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+              <a href="#features" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
+              <a href="#pricing" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
+              <a href="#reviews" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
+              <a href="#faq" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
             </div>
           </div>
           <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border/30 text-center">
