@@ -306,7 +306,7 @@ export default function Trends() {
                   <div
                     key={video.id}
                     className="group bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col cursor-pointer"
-                    onClick={() => navigate("/pricing")}
+                    onClick={() => navigate("/subscription")}
                   >
                     <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
                       {video.cover_url ? (
@@ -329,7 +329,7 @@ export default function Trends() {
                           В демо-режиме доступны<br />только первые {FREE_LIMIT} видео
                         </p>
                         <button
-                          onClick={(e) => { e.stopPropagation(); navigate("/pricing"); }}
+                          onClick={(e) => { e.stopPropagation(); navigate("/subscription"); }}
                           className="mt-1 px-5 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/30"
                         >
                           Открыть доступ
