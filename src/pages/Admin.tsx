@@ -414,54 +414,6 @@ function UsersTab() {
         </Card>
       )}
 
-      {/* Token adjustment dialog */}
-      <Dialog open={!!tokenDialog} onOpenChange={(o) => { if (!o) setTokenDialog(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Coins className="h-5 w-5 text-primary" />
-              Управление токенами
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{tokenDialog?.email}</p>
-            <div>
-              <label className="text-sm font-medium text-foreground">Количество (+ начислить, − списать)</label>
-              <Input
-                type="number"
-                value={tokenAmount}
-                onChange={(e) => setTokenAmount(e.target.value)}
-                placeholder="50"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground">Причина</label>
-              <Input
-                value={tokenNote}
-                onChange={(e) => setTokenNote(e.target.value)}
-                placeholder="Бонус за активность"
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTokenDialog(null)}>Отмена</Button>
-            <Button
-              onClick={() => {
-                const amt = parseInt(tokenAmount);
-                if (!amt || !tokenDialog) return toast.error("Введите количество");
-                tokenMutation.mutate({ user_id: tokenDialog.userId, amount: amt, description: tokenNote });
-              }}
-              disabled={tokenMutation.isPending}
-            >
-              {tokenMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-              Применить
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Subscription assign dialog */}
       <Dialog open={!!subDialog} onOpenChange={(o) => { if (!o) setSubDialog(null); }}>
         <DialogContent>
