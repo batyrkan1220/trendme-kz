@@ -13,6 +13,15 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 
+const isValidTikTokUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url.trim());
+    const hosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com", "vt.tiktok.com", "lite.tiktok.com"];
+    return hosts.some(h => parsed.hostname === h || parsed.hostname.endsWith("." + h));
+  } catch {
+    return false;
+  }
+};
 
 function formatNum(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
