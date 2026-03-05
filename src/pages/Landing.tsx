@@ -568,7 +568,7 @@ export default function Landing() {
               <p className="text-primary-foreground/80 text-sm md:text-xl mb-5 md:mb-8 max-w-lg mx-auto">
                 Бесплатный старт. Без привязки карты. Первые инсайты через 30 секунд.
               </p>
-              <Link to="/auth">
+              <Link to="/auth?mode=register">
                 <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-sm md:text-lg font-bold px-6 md:px-12 h-11 md:h-14 shadow-xl">
                   Создать аккаунт бесплатно
                   <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
