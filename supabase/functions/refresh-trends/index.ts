@@ -522,7 +522,7 @@ Deno.serve(async (req: Request) => {
           const nickname = author.nickname || "";
           const avatarUrl = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
           const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
-          const caption = v.desc || "";
+          const captionText = v.desc || "";
           const duration = videoInfo.duration || null;
 
           const trends = computeTrend(views, likes, comments, publishedAt);
