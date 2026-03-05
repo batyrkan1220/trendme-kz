@@ -714,6 +714,15 @@ Deno.serve(async (req: Request) => {
     console.log(`Chaining to batch ${nextBatch}/${totalBatches}...`);
     await chainNextBatch(nextBatch);
   } else {
+    // Auto-cleanup: remove videos older than MAX_AGE_DAYS
+    const cutoffDate = new Date(Date.now() - MAX_AGE_DAYS * 24 * 3600000).toISOString();
+    const { count: deletedCount } = await adminClient
+      .from("videos")
+      .delete({ count: "exact" })
+      .lt("published_at", cutoffDate);
+    if (deletedCount && deletedCount > 0) {
+      console.log(`🧹 Auto-cleanup: removed ${deletedCount} videos older than ${MAX_AGE_DAYS} days`);
+    }
     console.log(`Refresh COMPLETE (accumulated totalSaved=${totalSaved})`);
     if (logId) {
       await adminClient
