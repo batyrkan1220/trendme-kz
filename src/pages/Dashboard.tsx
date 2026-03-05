@@ -117,7 +117,8 @@ export default function Dashboard() {
         {/* Usage limits widget for trial users */}
         {hasActiveSubscription && isFreeTrial && limits && !subLoading && (
           <div className="mt-5 md:mt-8 rounded-xl md:rounded-2xl border border-border/60 bg-card p-4 md:p-6">
-            <p className="font-bold text-foreground text-[13px] md:text-base mb-3">Ваши лимиты</p>
+            <p className="font-bold text-foreground text-[13px] md:text-base mb-1">Ваши лимиты</p>
+            <p className="text-[11px] md:text-xs text-muted-foreground mb-3">Пробный тариф имеет ограничения. Оформите подписку — и пользуйтесь без лимитов.</p>
             <div className="grid grid-cols-2 gap-2 md:gap-3">
               {([
                 { key: "search" as const, label: "Поиск", limit: limits.search },
