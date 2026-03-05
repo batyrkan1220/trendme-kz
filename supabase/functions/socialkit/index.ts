@@ -705,11 +705,11 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         // Extract user stats
         const username = accountData.unique_id || accountData.uniqueId || usernameFromUrl;
-        const userStats = accountData.stats || {};
-        const followers = userStats.follower_count ?? userStats.followerCount ?? accountData.follower_count ?? accountData.followers ?? 0;
-        const following = userStats.following_count ?? userStats.followingCount ?? accountData.following_count ?? accountData.following ?? 0;
-        const totalLikes = userStats.heart_count ?? userStats.heartCount ?? userStats.total_favorited ?? accountData.total_favorited ?? accountData.totalLikes ?? 0;
-        const totalVideos = userStats.aweme_count ?? userStats.videoCount ?? accountData.aweme_count ?? accountData.totalVideos ?? 0;
+        const userStats = externalStats || accountData.stats || {};
+        const followers = userStats.followerCount ?? userStats.follower_count ?? accountData.follower_count ?? accountData.followers ?? 0;
+        const following = userStats.followingCount ?? userStats.following_count ?? accountData.following_count ?? accountData.following ?? 0;
+        const totalLikes = userStats.heartCount ?? userStats.heart_count ?? userStats.total_favorited ?? accountData.total_favorited ?? accountData.totalLikes ?? 0;
+        const totalVideos = userStats.videoCount ?? userStats.aweme_count ?? accountData.aweme_count ?? accountData.totalVideos ?? 0;
         const avatarUrl = accountData.avatar_thumb?.url_list?.[0] || accountData.avatar_larger?.url_list?.[0] || "";
 
         // Computed metrics
