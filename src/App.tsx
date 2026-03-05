@@ -110,6 +110,10 @@ const AppRoutes = () => (
          <Route path="/pricing" element={<Navigate to="/subscription" replace />} />
          <Route path="/subscription" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/contacts" element={<Contacts />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
