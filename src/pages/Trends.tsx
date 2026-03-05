@@ -84,7 +84,7 @@ const tierConfig: Record<TrendTier, { label: string; icon: any; className: strin
 const PAGE_SIZE = 30;
 
 export default function Trends() {
-  const [period, setPeriod] = useState<3 | 7 | 30 | 0>(7);
+  const [period, setPeriod] = useState<3 | 7 | 30>(7);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [niche, setNiche] = useState("all");
