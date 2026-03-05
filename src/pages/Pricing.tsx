@@ -1,12 +1,13 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Check, Sparkles, Zap, Crown, Gift } from "lucide-react";
+import { Check, Sparkles, Zap, Crown, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const subtitles: Record<string, string> = {
   "Пробный": "Попробуйте бесплатно",
@@ -55,6 +56,26 @@ export default function Pricing() {
   });
 
   const activePlanName = (userSub as any)?.plans?.name;
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+
+  const handlePayment = async (planId: string) => {
+    setLoadingPlanId(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { plan_id: planId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.redirect_url) {
+        window.location.href = data.redirect_url;
+      }
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast.error(err.message || "Ошибка при создании платежа");
+    } finally {
+      setLoadingPlanId(null);
+    }
+  };
 
   // Monthly price for 3-month plan (for display)
   const getMonthlyPrice = (plan: any) => {
@@ -262,9 +283,16 @@ export default function Pricing() {
                             : "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 60%))",
                           color: "white",
                         } : undefined}
-                        disabled={isActive}
+                        disabled={isActive || loadingPlanId === plan.id}
+                        onClick={() => {
+                          if (isPaid && !isActive) {
+                            handlePayment(plan.id);
+                          }
+                        }}
                       >
-                        {isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать 3 мес" : isFree ? "Начать" : "Выбрать"}
+                        {loadingPlanId === plan.id ? (
+                          <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
+                        ) : isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать 3 мес" : isFree ? "Начать" : "Выбрать"}
                       </Button>
                     </div>
                   </div>
