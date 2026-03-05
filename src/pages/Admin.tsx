@@ -565,7 +565,7 @@ function PlatformTab() {
                 </div>
               )}
 
-              {apiUsage.totalCalls === 0 && (
+              {filteredApiUsage.totalCalls === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   API қолдану деректері жинала бастады. Келесі іздеулер мен жаңартулардан кейін деректер пайда болады.
                 </p>
