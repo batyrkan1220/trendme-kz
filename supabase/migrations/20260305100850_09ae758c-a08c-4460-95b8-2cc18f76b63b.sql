@@ -1,0 +1,2 @@
+DELETE FROM activity_log WHERE payload_json::text LIKE '%"profile_url"%' AND type = 'account_analysis';
+DELETE FROM activity_log WHERE payload_json::text LIKE '%"video_url"%' AND type = 'video_analysis' AND payload_json::text NOT LIKE '%description%';

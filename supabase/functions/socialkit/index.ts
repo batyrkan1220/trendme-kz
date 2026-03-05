@@ -390,11 +390,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           }
         }
 
-        // 7. Fire-and-forget activity log
-        userClient.from("activity_log").insert({
-          user_id: userId, type: "search_run",
-          payload_json: { query, hashtags, relatedKeywords, results_count: upsertedVideos.length },
-        }).then(() => {}).catch(() => {});
+        // activity_log is handled client-side via checkAndLog
 
         return json({ videos: upsertedVideos, query: queryRow, hashtags, relatedKeywords });
       }
@@ -632,11 +628,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           .select()
           .single();
 
-        await userClient.from("activity_log").insert({
-          user_id: userId,
-          type: "video_analysis",
-          payload_json: { video_url },
-        });
+        // activity_log is handled client-side via checkAndLog
 
         return json(analysis);
       }
@@ -739,11 +731,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           .select()
           .single();
 
-        await userClient.from("activity_log").insert({
-          user_id: userId,
-          type: "account_analysis",
-          payload_json: { profile_url, username },
-        });
+        // activity_log is handled client-side via checkAndLog
 
         return json({
           ...account,
