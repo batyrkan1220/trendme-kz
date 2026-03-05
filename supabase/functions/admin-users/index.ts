@@ -125,8 +125,8 @@ Deno.serve(async (req) => {
 
     // PLATFORM STATS
     if (req.method === "GET" && action === "platform-stats") {
-      const { count: totalUsers } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1 });
-      
+      const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+
       const { count: totalVideos } = await adminClient
         .from("videos")
         .select("*", { count: "exact", head: true });
@@ -151,28 +151,120 @@ Deno.serve(async (req) => {
         .from("accounts_tracked")
         .select("*", { count: "exact", head: true });
 
-      // Recent activity (last 24h)
-      const dayAgo = new Date(Date.now() - 86400000).toISOString();
-      const { data: recentActivity } = await adminClient
-        .from("activity_log")
-        .select("type")
-        .gte("created_at", dayAgo);
-
-      const activityBreakdown: Record<string, number> = {};
-      for (const a of recentActivity || []) {
-        activityBreakdown[a.type] = (activityBreakdown[a.type] || 0) + 1;
-      }
-
-      // Users who signed in last 7 days
-      const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      // Active users (last 7 days)
       const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       const activeUsers = (allUsers || []).filter(
         (u: any) => u.last_sign_in_at && u.last_sign_in_at > weekAgo
       ).length;
 
+      // Active today
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const activeToday = (allUsers || []).filter(
+        (u: any) => u.last_sign_in_at && u.last_sign_in_at > todayStart.toISOString()
+      ).length;
+
+      // Confirmed vs unconfirmed
+      const confirmedUsers = (allUsers || []).filter((u: any) => u.email_confirmed_at).length;
+      const unconfirmedUsers = (allUsers || []).length - confirmedUsers;
+
+      // Registrations by day (last 30 days)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+      const regByDay: Record<string, number> = {};
+      for (const u of allUsers || []) {
+        const d = new Date(u.created_at);
+        if (d >= thirtyDaysAgo) {
+          const key = d.toISOString().slice(0, 10);
+          regByDay[key] = (regByDay[key] || 0) + 1;
+        }
+      }
+
+      // Activity breakdown (last 24h)
+      const dayAgo = new Date(Date.now() - 86400000).toISOString();
+      const { data: recentActivity } = await adminClient
+        .from("activity_log")
+        .select("type, user_id, created_at")
+        .gte("created_at", dayAgo);
+
+      const activityBreakdown: Record<string, number> = {};
+      const activeUserIds24h = new Set<string>();
+      for (const a of recentActivity || []) {
+        activityBreakdown[a.type] = (activityBreakdown[a.type] || 0) + 1;
+        activeUserIds24h.add(a.user_id);
+      }
+
+      // Activity by day (last 7 days) for chart
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+      const { data: weekActivity } = await adminClient
+        .from("activity_log")
+        .select("type, created_at")
+        .gte("created_at", sevenDaysAgo);
+
+      const activityByDay: Record<string, Record<string, number>> = {};
+      for (const a of weekActivity || []) {
+        const day = new Date(a.created_at).toISOString().slice(0, 10);
+        if (!activityByDay[day]) activityByDay[day] = {};
+        activityByDay[day][a.type] = (activityByDay[day][a.type] || 0) + 1;
+      }
+
+      // Top active users (last 7 days) — by action count
+      const userActionCount: Record<string, number> = {};
+      for (const a of weekActivity || []) {
+        userActionCount[a.user_id] = (userActionCount[a.user_id] || 0) + 1;
+      }
+      const topUserIds = Object.entries(userActionCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+      const topUsers = topUserIds.map(([uid, count]) => {
+        const u = (allUsers || []).find((x: any) => x.id === uid);
+        return { email: u?.email || uid, actions: count };
+      });
+
+      // Subscription stats
+      const { data: allSubs } = await adminClient
+        .from("user_subscriptions")
+        .select("*, plans(name)")
+        .eq("is_active", true);
+
+      const planDistribution: Record<string, number> = {};
+      for (const s of allSubs || []) {
+        const name = (s as any).plans?.name || "Без тарифа";
+        planDistribution[name] = (planDistribution[name] || 0) + 1;
+      }
+
+      // Token stats
+      const { data: allTokens } = await adminClient.from("user_tokens").select("balance, total_earned, total_spent");
+      let totalTokensIssued = 0, totalTokensSpent = 0, totalTokensBalance = 0;
+      for (const t of allTokens || []) {
+        totalTokensIssued += t.total_earned;
+        totalTokensSpent += t.total_spent;
+        totalTokensBalance += t.balance;
+      }
+
+      // Videos by niche
+      const { data: nicheVideos } = await adminClient
+        .from("videos")
+        .select("niche");
+      const videosByNiche: Record<string, number> = {};
+      for (const v of nicheVideos || []) {
+        const n = v.niche || "Без ниши";
+        videosByNiche[n] = (videosByNiche[n] || 0) + 1;
+      }
+
+      // Trend refresh logs (last 5)
+      const { data: recentRefreshes } = await adminClient
+        .from("trend_refresh_logs")
+        .select("*")
+        .order("started_at", { ascending: false })
+        .limit(5);
+
       return new Response(JSON.stringify({
         totalUsers: allUsers?.length || 0,
         activeUsers,
+        activeToday,
+        confirmedUsers,
+        unconfirmedUsers,
         totalVideos,
         totalFavorites,
         totalScripts,
@@ -180,6 +272,16 @@ Deno.serve(async (req) => {
         totalSearches,
         totalAccounts,
         activityBreakdown,
+        activeUsers24h: activeUserIds24h.size,
+        registrationsByDay: regByDay,
+        activityByDay,
+        topUsers,
+        planDistribution,
+        totalTokensIssued,
+        totalTokensSpent,
+        totalTokensBalance,
+        videosByNiche,
+        recentRefreshes,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

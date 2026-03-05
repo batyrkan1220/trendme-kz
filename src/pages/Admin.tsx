@@ -92,7 +92,11 @@ function PlatformTab() {
 
   const statCards = [
     { label: "Пользователи", value: stats?.totalUsers || 0, icon: Users, color: "text-primary" },
+    { label: "Подтверждённые", value: stats?.confirmedUsers || 0, icon: Check, color: "text-green-500" },
+    { label: "Не подтверждённые", value: stats?.unconfirmedUsers || 0, icon: Eye, color: "text-destructive" },
     { label: "Активные (7д)", value: stats?.activeUsers || 0, icon: Activity, color: "text-primary/80" },
+    { label: "Активные (24ч)", value: stats?.activeUsers24h || 0, icon: Zap, color: "text-yellow-500" },
+    { label: "Онлайн сегодня", value: stats?.activeToday || 0, icon: Activity, color: "text-green-500" },
     { label: "Видео в базе", value: stats?.totalVideos || 0, icon: Video, color: "text-primary" },
     { label: "Избранные", value: stats?.totalFavorites || 0, icon: Heart, color: "text-primary/80" },
     { label: "Скрипты", value: stats?.totalScripts || 0, icon: ScrollText, color: "text-primary/70" },
@@ -101,9 +105,17 @@ function PlatformTab() {
     { label: "Отслеживаемые аккаунты", value: stats?.totalAccounts || 0, icon: UserCircle, color: "text-primary" },
   ];
 
+  const activityTypeLabels: Record<string, string> = {
+    search: "🔍 Поиск",
+    video_analysis: "🎬 Анализ видео",
+    profile_analysis: "👤 Анализ профиля",
+    script_generation: "✍️ AI Сценарий",
+  };
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Main stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
         {statCards.map((s) => (
           <Card key={s.label}>
             <CardContent className="pt-4 pb-3 px-4">
@@ -117,17 +129,241 @@ function PlatformTab() {
         ))}
       </div>
 
-      {stats?.activityBreakdown && Object.keys(stats.activityBreakdown).length > 0 && (
+      {/* Token Economy */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Coins className="h-5 w-5 text-yellow-500" />
+            Экономика токенов
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">Выдано всего</p>
+              <p className="text-xl font-bold text-green-500">{(stats?.totalTokensIssued || 0).toLocaleString()}</p>
+            </div>
+            <div className="text-center p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">Потрачено</p>
+              <p className="text-xl font-bold text-destructive">{(stats?.totalTokensSpent || 0).toLocaleString()}</p>
+            </div>
+            <div className="text-center p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">Баланс на руках</p>
+              <p className="text-xl font-bold text-primary">{(stats?.totalTokensBalance || 0).toLocaleString()}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Activity breakdown 24h */}
+        {stats?.activityBreakdown && Object.keys(stats.activityBreakdown).length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Действия за 24 часа</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {Object.entries(stats.activityBreakdown)
+                  .sort((a, b) => (b[1] as number) - (a[1] as number))
+                  .map(([type, count]) => (
+                  <div key={type} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                    <span className="text-sm">{activityTypeLabels[type] || type}</span>
+                    <Badge variant="secondary" className="text-sm font-bold">{count as number}</Badge>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between p-2 bg-primary/10 rounded-lg mt-2">
+                  <span className="text-sm font-medium">Всего действий</span>
+                  <Badge className="text-sm font-bold">
+                    {String(Object.values(stats.activityBreakdown as Record<string, number>).reduce((a, b) => a + b, 0))}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Plan distribution */}
+        {stats?.planDistribution && Object.keys(stats.planDistribution).length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                Распределение по тарифам
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {Object.entries(stats.planDistribution)
+                  .sort((a, b) => (b[1] as number) - (a[1] as number))
+                  .map(([plan, count]) => {
+                    const total = Object.values(stats.planDistribution as Record<string, number>).reduce((a, b) => a + b, 0);
+                    const pct = total > 0 ? Math.round(((count as number) / total) * 100) : 0;
+                    return (
+                      <div key={plan} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>{plan}</span>
+                          <span className="text-muted-foreground">{count as number} ({pct}%)</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Top active users */}
+      {stats?.topUsers && stats.topUsers.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Активность за 24 часа</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Crown className="h-5 w-5 text-yellow-500" />
+              Топ-10 активных пользователей (7 дней)
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(stats.activityBreakdown).map(([type, count]) => (
-                <Badge key={type} variant="secondary" className="text-sm py-1 px-3">
-                  {type}: {count as number}
-                </Badge>
+            <div className="space-y-2">
+              {stats.topUsers.map((u: any, i: number) => (
+                <div key={u.email} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-muted-foreground w-5">#{i + 1}</span>
+                    <span className="text-sm truncate max-w-[200px]">{u.email}</span>
+                  </div>
+                  <Badge variant="secondary">{u.actions} действий</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Videos by niche */}
+        {stats?.videosByNiche && Object.keys(stats.videosByNiche).length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Hash className="h-5 w-5 text-primary" />
+                Видео по нишам
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+                {Object.entries(stats.videosByNiche)
+                  .sort((a, b) => (b[1] as number) - (a[1] as number))
+                  .map(([niche, count]) => (
+                    <div key={niche} className="flex items-center justify-between text-sm p-1.5 hover:bg-muted/30 rounded">
+                      <span className="truncate max-w-[180px]">{niche}</span>
+                      <span className="text-muted-foreground font-medium">{(count as number).toLocaleString()}</span>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Registration history */}
+        {stats?.registrationsByDay && Object.keys(stats.registrationsByDay).length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Регистрации (30 дней)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+                {Object.entries(stats.registrationsByDay)
+                  .sort((a, b) => b[0].localeCompare(a[0]))
+                  .map(([day, count]) => (
+                    <div key={day} className="flex items-center justify-between text-sm p-1.5 hover:bg-muted/30 rounded">
+                      <span>{new Date(day).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}</span>
+                      <Badge variant="outline">{count as number}</Badge>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Activity by day (7 days) */}
+      {stats?.activityByDay && Object.keys(stats.activityByDay).length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Активность по дням (7 дней)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left p-2 text-muted-foreground font-medium">День</th>
+                    {(() => {
+                      const allTypes = new Set<string>();
+                      Object.values(stats.activityByDay as Record<string, Record<string, number>>).forEach(d => Object.keys(d).forEach(t => allTypes.add(t)));
+                      return Array.from(allTypes).map(t => (
+                        <th key={t} className="text-center p-2 text-muted-foreground font-medium text-xs">{activityTypeLabels[t] || t}</th>
+                      ));
+                    })()}
+                    <th className="text-center p-2 text-muted-foreground font-medium">Итого</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(stats.activityByDay as Record<string, Record<string, number>>)
+                    .sort((a, b) => b[0].localeCompare(a[0]))
+                    .map(([day, types]) => {
+                      const allTypes = new Set<string>();
+                      Object.values(stats.activityByDay as Record<string, Record<string, number>>).forEach(d => Object.keys(d).forEach(t => allTypes.add(t)));
+                      const total = Object.values(types).reduce((a, b) => a + b, 0);
+                      return (
+                        <tr key={day} className="border-b border-border/30">
+                          <td className="p-2">{new Date(day).toLocaleDateString("ru-RU", { day: "numeric", month: "short", weekday: "short" })}</td>
+                          {Array.from(allTypes).map(t => (
+                            <td key={t} className="text-center p-2">{types[t] || 0}</td>
+                          ))}
+                          <td className="text-center p-2 font-bold">{total}</td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent trend refreshes */}
+      {stats?.recentRefreshes && stats.recentRefreshes.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 text-primary" />
+              Последние обновления трендов
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {stats.recentRefreshes.map((r: any) => (
+                <div key={r.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg text-sm">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={r.status === "done" ? "default" : r.status === "error" ? "destructive" : "secondary"}>
+                      {r.status}
+                    </Badge>
+                    <span className="text-muted-foreground">
+                      {new Date(r.started_at).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  <span className="font-medium">+{r.total_saved || 0} видео</span>
+                </div>
               ))}
             </div>
           </CardContent>
