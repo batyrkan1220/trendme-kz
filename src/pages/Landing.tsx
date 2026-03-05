@@ -375,9 +375,9 @@ export default function Landing() {
                 <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4 md:mb-5 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.3)]">
                   <step.icon className="h-6 w-6 md:h-8 md:w-8 text-primary-foreground" />
                 </div>
-                <div className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 md:mb-2">Шаг {step.num}</div>
+                <div className="text-xs md:text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 md:mb-2">Шаг {step.num}</div>
                 <h3 className="text-lg md:text-2xl font-bold text-foreground mb-1.5 md:mb-2">{step.title}</h3>
-                <p className="text-xs md:text-base text-muted-foreground leading-relaxed">{step.desc}</p>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{step.desc}</p>
                 {i < steps.length - 1 && (
                   <div className="hidden md:block absolute top-10 -right-5 w-10">
                     <ChevronRight className="h-6 w-6 text-border" />
