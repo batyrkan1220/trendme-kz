@@ -55,19 +55,8 @@ export default function AccountAnalysis() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { checkAndLog } = useSubscription();
-  // Fetch tracked accounts history
-  const { data: trackedAccounts = [] } = useQuery({
-    queryKey: ["accounts-tracked"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("accounts_tracked")
-        .select("*")
-        .order("fetched_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user,
-  });
+
+
 
   // Favorites
   const { data: userFavorites = [] } = useQuery({
