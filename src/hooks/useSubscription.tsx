@@ -75,7 +75,7 @@ export function useSubscription() {
     if (!user) return false;
 
     if (!hasActiveSubscription) {
-      toast.error("Подписка белсенді емес. Тарифті таңдаңыз.");
+      toast.error("Подписка неактивна. Выберите тариф.");
       return false;
     }
 
