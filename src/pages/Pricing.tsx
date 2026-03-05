@@ -12,6 +12,10 @@ const subtitles: Record<string, string> = {
   "3 ай": "Подписка на 3 месяца — скидка 15%",
 };
 
+const displayNames: Record<string, string> = {
+  "Пробный": "Демо режим",
+};
+
 const planIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "Пробный": Gift,
   "1 ай": Zap,
