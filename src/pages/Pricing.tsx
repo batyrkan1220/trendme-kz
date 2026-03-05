@@ -134,7 +134,7 @@ export default function Pricing() {
                       }`}
                       disabled={isActive}
                     >
-                      {isActive ? "Белсенді ✓" : "Таңдау"}
+                      {isActive ? "Активен ✓" : "Выбрать"}
                     </Button>
                   </div>
                 </div>
