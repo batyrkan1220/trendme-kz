@@ -460,8 +460,8 @@ export default function Landing() {
                     {t.avatar}
                   </div>
                   <div>
-                    <div className="text-xs md:text-base font-semibold text-foreground">{t.name}</div>
-                    <div className="text-[10px] md:text-sm text-muted-foreground">{t.role}</div>
+                    <div className="text-sm md:text-base font-semibold text-foreground">{t.name}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">{t.role}</div>
                   </div>
                 </div>
               </div>
