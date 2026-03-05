@@ -106,9 +106,8 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           );
         })}
 
-        {/* Analysis button with popover */}
         <button
-          onClick={() => setShowAnalysis(v => !v)}
+          onClick={() => { drawerOpen && onDrawerClose?.(); setShowAnalysis(v => !v); }}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
             analysisActive || showAnalysis ? "text-primary" : "text-muted-foreground"
@@ -120,6 +119,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
 
         <Link
           to="/ai-script"
+          onClick={() => drawerOpen && onDrawerClose?.()}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
             location.pathname === "/ai-script" ? "text-primary" : "text-muted-foreground"
