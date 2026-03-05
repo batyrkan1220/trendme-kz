@@ -456,12 +456,15 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         video_url = await resolveShortUrl(video_url);
 
         const awemeId = extractAwemeId(video_url);
-        if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
+        console.log("analyze_video: resolved URL =", video_url, "awemeId =", awemeId);
 
         // 1. Fetch post info and comments from EnsembleData in parallel
+        const commentsFetch = awemeId
+          ? callEnsemble("/tt/post/comments", { aweme_id: awemeId })
+          : Promise.resolve(null);
         const [postInfoRes, commentsRes] = await Promise.allSettled([
           callEnsemble("/tt/post/info", { url: video_url }),
-          callEnsemble("/tt/post/comments", { aweme_id: awemeId }),
+          commentsFetch,
         ]);
 
         // Extract post info (stats, description, etc.)
