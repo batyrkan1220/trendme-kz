@@ -13,7 +13,7 @@ function md5(text: string): string {
   return hash.toString("hex");
 }
 
-function generateSignature(scriptName: string, params: Record<string, string>, secretKey: string): Promise<string> {
+function generateSignature(scriptName: string, params: Record<string, string>, secretKey: string): string {
   const sorted = Object.keys(params).sort();
   const values = sorted.map(k => params[k]);
   const sigString = [scriptName, ...values, secretKey].join(";");
