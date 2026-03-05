@@ -150,6 +150,7 @@ function UsersTab() {
   const [subPlanId, setSubPlanId] = useState("");
   const [subDays, setSubDays] = useState("30");
   const [subNote, setSubNote] = useState("");
+  const [userFilter, setUserFilter] = useState<string>("all");
 
   const { data: plans = [] } = useQuery({
     queryKey: ["admin-plans-for-users"],
