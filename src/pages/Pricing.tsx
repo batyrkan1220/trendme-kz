@@ -56,6 +56,26 @@ export default function Pricing() {
   });
 
   const activePlanName = (userSub as any)?.plans?.name;
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+
+  const handlePayment = async (planId: string) => {
+    setLoadingPlanId(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { plan_id: planId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.redirect_url) {
+        window.location.href = data.redirect_url;
+      }
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast.error(err.message || "Ошибка при создании платежа");
+    } finally {
+      setLoadingPlanId(null);
+    }
+  };
 
   // Monthly price for 3-month plan (for display)
   const getMonthlyPrice = (plan: any) => {
