@@ -169,9 +169,9 @@ export default function Pricing() {
 
                       {/* Duration */}
                       <div className={`mt-4 flex items-center gap-2 ${isPopular ? "bg-primary/10 rounded-lg px-3 py-2 -mx-1" : ""}`}>
-                        <span className="text-sm text-muted-foreground">Мерзімі:</span>
+                        <span className="text-sm text-muted-foreground">Срок:</span>
                         <span className={`font-bold text-foreground ${isPopular ? "text-base" : "text-sm"}`}>
-                          {isFree ? "1 ай (сынақ)" : plan.duration_days === 90 ? "3 ай" : "1 ай"}
+                          {isFree ? "1 мес (пробный)" : plan.duration_days === 90 ? "3 мес" : "1 мес"}
                         </span>
                       </div>
 
