@@ -9,7 +9,7 @@ const corsHeaders = {
 const ENSEMBLE_BASE = "https://ensembledata.com/apis";
 
 // Filters
-const MIN_VIEWS = 3000;
+const MIN_VIEWS = 5000;
 const MAX_AGE_DAYS = 7;
 
 // Batching across niches
