@@ -423,7 +423,7 @@ export default function Landing() {
                   </span>
                 </div>
                 <h3 className="text-base md:text-xl font-bold text-foreground mb-1.5 md:mb-2">{f.title}</h3>
-                <p className="text-xs md:text-base text-muted-foreground leading-relaxed">{f.desc}</p>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
