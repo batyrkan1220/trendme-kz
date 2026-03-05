@@ -92,6 +92,33 @@ export type Database = {
         }
         Relationships: []
       }
+      api_usage_log: {
+        Row: {
+          action: string
+          created_at: string
+          credits_used: number
+          function_name: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          credits_used?: number
+          function_name: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          credits_used?: number
+          function_name?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
