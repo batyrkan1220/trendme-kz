@@ -55,14 +55,12 @@ export default function Admin() {
             <TabsTrigger value="platform"><Activity className="h-4 w-4 mr-1" />Платформа</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Пользователи</TabsTrigger>
             <TabsTrigger value="tariffs"><CreditCard className="h-4 w-4 mr-1" />Тарифы</TabsTrigger>
-            <TabsTrigger value="tokens"><Coins className="h-4 w-4 mr-1" />Токены</TabsTrigger>
             <TabsTrigger value="trends"><RefreshCw className="h-4 w-4 mr-1" />Тренды</TabsTrigger>
           </TabsList>
 
           <TabsContent value="platform"><PlatformTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="tariffs"><TariffsTab /></TabsContent>
-          <TabsContent value="tokens"><TokenPricingTab /></TabsContent>
           <TabsContent value="trends"><TrendsManagementTab /></TabsContent>
         </Tabs>
       </div>
@@ -143,9 +141,6 @@ function PlatformTab() {
 function UsersTab() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [tokenDialog, setTokenDialog] = useState<{ userId: string; email: string } | null>(null);
-  const [tokenAmount, setTokenAmount] = useState("");
-  const [tokenNote, setTokenNote] = useState("");
   const [subDialog, setSubDialog] = useState<{ userId: string; email: string } | null>(null);
   const [subPlanId, setSubPlanId] = useState("");
   const [subDays, setSubDays] = useState("30");
@@ -206,32 +201,6 @@ function UsersTab() {
     onError: () => toast.error("Ошибка обновления роли"),
   });
 
-  const tokenMutation = useMutation({
-    mutationFn: async ({ user_id, amount, description }: { user_id: string; amount: number; description: string }) => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=update-tokens`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ user_id, amount, description }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
-      setTokenDialog(null);
-      setTokenAmount("");
-      setTokenNote("");
-      toast.success("Токены обновлены");
-    },
-    onError: () => toast.error("Ошибка обновления токенов"),
-  });
-
   const subMutation = useMutation({
     mutationFn: async ({ user_id, plan_id, duration_days, note }: { user_id: string; plan_id: string; duration_days: number; note: string }) => {
       const res = await fetch(
@@ -255,7 +224,7 @@ function UsersTab() {
       setSubPlanId("");
       setSubDays("30");
       setSubNote("");
-      const msg = data?.tokens_added > 0 ? `Тариф назначен, начислено ${data.tokens_added} ⚡` : "Тариф назначен";
+      const msg = "Тариф назначен";
       toast.success(msg);
     },
     onError: () => toast.error("Ошибка назначения тарифа"),
@@ -353,7 +322,7 @@ function UsersTab() {
                     <th className="text-left p-3 text-muted-foreground font-medium">Email</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Регистрация</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Тариф</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Токены</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Действия</th>
                   </tr>
@@ -362,7 +331,7 @@ function UsersTab() {
                   {filteredUsers.map((u: any) => {
                     const sub = u.subscription;
                     const isExpired = sub && new Date(sub.expires_at) < new Date();
-                    const tokenBalance = u.tokens?.balance ?? "—";
+                    
                     return (
                     <tr key={u.id} className="border-b border-border/50 hover:bg-muted/30">
                       <td className="p-3">
@@ -406,15 +375,6 @@ function UsersTab() {
                         </button>
                       </td>
                       <td className="p-3">
-                        <button
-                          onClick={() => setTokenDialog({ userId: u.id, email: u.email })}
-                          className="flex items-center gap-1.5 hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors"
-                        >
-                          <Zap className="h-3.5 w-3.5 text-primary" />
-                          <span className="font-bold text-foreground">{tokenBalance}</span>
-                        </button>
-                      </td>
-                      <td className="p-3">
                         <div className="flex gap-1">
                           {u.roles.length === 0 && (
                             <span className="text-muted-foreground text-xs">user</span>
@@ -454,54 +414,6 @@ function UsersTab() {
         </Card>
       )}
 
-      {/* Token adjustment dialog */}
-      <Dialog open={!!tokenDialog} onOpenChange={(o) => { if (!o) setTokenDialog(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Coins className="h-5 w-5 text-primary" />
-              Управление токенами
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{tokenDialog?.email}</p>
-            <div>
-              <label className="text-sm font-medium text-foreground">Количество (+ начислить, − списать)</label>
-              <Input
-                type="number"
-                value={tokenAmount}
-                onChange={(e) => setTokenAmount(e.target.value)}
-                placeholder="50"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground">Причина</label>
-              <Input
-                value={tokenNote}
-                onChange={(e) => setTokenNote(e.target.value)}
-                placeholder="Бонус за активность"
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTokenDialog(null)}>Отмена</Button>
-            <Button
-              onClick={() => {
-                const amt = parseInt(tokenAmount);
-                if (!amt || !tokenDialog) return toast.error("Введите количество");
-                tokenMutation.mutate({ user_id: tokenDialog.userId, amount: amt, description: tokenNote });
-              }}
-              disabled={tokenMutation.isPending}
-            >
-              {tokenMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-              Применить
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Subscription assign dialog */}
       <Dialog open={!!subDialog} onOpenChange={(o) => { if (!o) setSubDialog(null); }}>
         <DialogContent>
@@ -520,8 +432,7 @@ function UsersTab() {
                 <SelectContent>
                   {plans.filter((p: any) => p.is_active).map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}
-                      {p.tokens_included > 0 ? ` (+${p.tokens_included} ⚡)` : ""}
+                      {p.name} — {p.price_rub === 0 ? "Тегін" : `${p.price_rub.toLocaleString()} ₸`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -583,158 +494,7 @@ function RoleAssigner({
   );
 }
 
-/* ==================== TOKEN PRICING TAB ==================== */
-function TokenPricingTab() {
-  const queryClient = useQueryClient();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editCost, setEditCost] = useState("");
-  const [editLabel, setEditLabel] = useState("");
-  const [newKey, setNewKey] = useState("");
-  const [newLabel, setNewLabel] = useState("");
-  const [newCost, setNewCost] = useState("1");
 
-  const { data: pricing = [], isLoading } = useQuery({
-    queryKey: ["admin-token-pricing"],
-    queryFn: async () => {
-      const { data } = await supabase.from("token_pricing").select("*").order("action_key");
-      return data || [];
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, cost, label }: { id: string; cost: number; label: string }) => {
-      const { error } = await supabase.from("token_pricing").update({ cost, action_label: label }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-token-pricing"] });
-      queryClient.invalidateQueries({ queryKey: ["token-pricing"] });
-      setEditingId(null);
-      toast.success("Стоимость обновлена");
-    },
-    onError: () => toast.error("Ошибка обновления"),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async ({ action_key, action_label, cost }: { action_key: string; action_label: string; cost: number }) => {
-      const { error } = await supabase.from("token_pricing").insert({ action_key, action_label, cost });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-token-pricing"] });
-      setNewKey(""); setNewLabel(""); setNewCost("1");
-      toast.success("Действие добавлено");
-    },
-    onError: () => toast.error("Ошибка добавления"),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("token_pricing").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-token-pricing"] });
-      toast.success("Действие удалено");
-    },
-  });
-
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Coins className="h-5 w-5 text-primary" /> Стоимость действий (токены)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left p-3 text-muted-foreground font-medium">Ключ</th>
-                  <th className="text-left p-3 text-muted-foreground font-medium">Название</th>
-                  <th className="text-left p-3 text-muted-foreground font-medium">Стоимость</th>
-                  <th className="text-left p-3 text-muted-foreground font-medium">Действия</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pricing.map((p: any) => (
-                  <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30">
-                    <td className="p-3 font-mono text-xs">{p.action_key}</td>
-                    <td className="p-3">
-                      {editingId === p.id ? (
-                        <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="h-8 text-sm w-48" />
-                      ) : (
-                        p.action_label
-                      )}
-                    </td>
-                    <td className="p-3">
-                      {editingId === p.id ? (
-                        <Input type="number" value={editCost} onChange={(e) => setEditCost(e.target.value)} className="h-8 text-sm w-20" />
-                      ) : (
-                        <Badge variant="secondary" className="font-bold">{p.cost} ⚡</Badge>
-                      )}
-                    </td>
-                    <td className="p-3 flex gap-1">
-                      {editingId === p.id ? (
-                        <>
-                          <Button size="sm" variant="default" onClick={() => updateMutation.mutate({ id: p.id, cost: parseInt(editCost), label: editLabel })}>
-                            <Check className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button size="sm" variant="ghost" onClick={() => { setEditingId(p.id); setEditCost(String(p.cost)); setEditLabel(p.action_label); }}>
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteMutation.mutate(p.id)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Add new */}
-          <div className="flex flex-wrap items-end gap-2 pt-4 border-t border-border">
-            <div>
-              <label className="text-xs text-muted-foreground">Ключ</label>
-              <Input value={newKey} onChange={(e) => setNewKey(e.target.value)} placeholder="action_key" className="h-8 text-sm w-36" />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Название</label>
-              <Input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Описание" className="h-8 text-sm w-48" />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Стоимость</label>
-              <Input type="number" value={newCost} onChange={(e) => setNewCost(e.target.value)} className="h-8 text-sm w-20" />
-            </div>
-            <Button
-              size="sm"
-              onClick={() => {
-                if (!newKey || !newLabel) return toast.error("Заполните все поля");
-                createMutation.mutate({ action_key: newKey, action_label: newLabel, cost: parseInt(newCost) || 1 });
-              }}
-              disabled={createMutation.isPending}
-            >
-              <Plus className="h-3 w-3 mr-1" /> Добавить
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
 /* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
 function TrendsManagementTab() {
