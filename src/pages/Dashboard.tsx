@@ -174,23 +174,25 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Subscription banner */}
-        <Link
-          to="/subscription"
-          className="group rounded-2xl border border-primary/20 p-4 md:p-5 flex items-center gap-4 hover:border-primary/40 transition-all duration-200"
-          style={{
-            background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--primary) / 0.02) 100%)",
-          }}
-        >
-          <div className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Lock className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-foreground text-[13px] md:text-sm">Активируйте полный доступ</p>
-            <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5">Все функции без ограничений</p>
-          </div>
-          <ChevronRight className="shrink-0 h-5 w-5 text-primary/60 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+        {/* Subscription banner — only for trial users */}
+        {hasActiveSubscription && isFreeTrial && !subLoading && (
+          <Link
+            to="/subscription"
+            className="group rounded-2xl border border-primary/20 p-4 md:p-5 flex items-center gap-4 hover:border-primary/40 transition-all duration-200"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--primary) / 0.02) 100%)",
+            }}
+          >
+            <div className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Lock className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-foreground text-[13px] md:text-sm">Активируйте полный доступ</p>
+              <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5">Все функции без ограничений</p>
+            </div>
+            <ChevronRight className="shrink-0 h-5 w-5 text-primary/60 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        )}
       </div>
     </AppLayout>
   );
