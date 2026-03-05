@@ -538,7 +538,7 @@ function PlatformTab() {
                         </tr>
                       </thead>
                       <tbody>
-                        {Object.entries(apiUsage.byDay as Record<string, Record<string, number>>)
+                        {Object.entries(filteredApiUsage.byDay as Record<string, Record<string, number>>)
                           .sort((a, b) => b[0].localeCompare(a[0]))
                           .map(([day, actions]) => {
                             const trend = (actions["refresh-trends/keyword_full_search"] || 0);
