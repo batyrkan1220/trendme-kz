@@ -536,7 +536,7 @@ export default function Landing() {
               { q: "Подходит ли для Reels и Shorts?", a: "Сейчас фокус на TikTok, но скоро добавим Instagram Reels и YouTube Shorts." },
             ].map((faq) => (
               <details key={faq.q} className="group rounded-2xl bg-card border border-border/50 card-shadow">
-                <summary className="flex items-center justify-between cursor-pointer p-4 md:p-6 text-xs md:text-base font-semibold text-foreground list-none">
+                <summary className="flex items-center justify-between cursor-pointer p-4 md:p-6 text-sm md:text-base font-semibold text-foreground list-none">
                   {faq.q}
                   <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground transition-transform group-open:rotate-90 shrink-0 ml-2" />
                 </summary>
