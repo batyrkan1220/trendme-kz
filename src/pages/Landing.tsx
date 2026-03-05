@@ -388,7 +388,7 @@ export default function Landing() {
           </div>
 
           <div className="text-center mt-8 md:mt-16">
-            <Link to="/auth">
+            <Link to="/auth?mode=register">
               <Button className="bg-primary text-primary-foreground rounded-xl text-sm md:text-lg font-bold px-6 md:px-10 h-11 md:min-h-[56px] hover:bg-primary/90">
                 Начать сейчас — бесплатно
                 <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
