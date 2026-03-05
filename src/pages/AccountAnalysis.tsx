@@ -53,7 +53,6 @@ export default function AccountAnalysis() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const queryClient = useQueryClient();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { checkAndLog } = useSubscription();
   // Fetch tracked accounts history
