@@ -444,9 +444,10 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
       }
 
       case "analyze_video": {
-        const { video_url } = body;
+        let video_url = body.video_url;
         if (!video_url) return json({ error: "video_url is required" }, 400);
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
+        video_url = await resolveShortUrl(video_url);
 
         const awemeId = extractAwemeId(video_url);
         if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
