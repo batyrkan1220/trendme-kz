@@ -87,11 +87,16 @@ export function useSubscription() {
     }
 
     // Log usage
-    await supabase.from("activity_log").insert({
+    const { error: logError } = await supabase.from("activity_log").insert({
       user_id: user.id,
       type: action,
       payload_json: { description: description || action },
     });
+    if (logError) {
+      console.error("Failed to log usage:", logError);
+      toast.error("Не удалось записать использование");
+      return false;
+    }
 
     // Refresh usage counts immediately
     queryClient.invalidateQueries({ queryKey: ["user-usage-counts"] });
