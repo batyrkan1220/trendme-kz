@@ -34,7 +34,8 @@ export default function SearchPage() {
         .from("search_queries")
         .select("*")
         .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+        .order("last_run_at", { ascending: false })
+        .limit(5);
       return data || [];
     },
     enabled: !!user,
