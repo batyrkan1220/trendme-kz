@@ -506,8 +506,7 @@ Deno.serve(async (req: Request) => {
           const comments = stats.comment_count ?? stats.commentCount ?? stats.comments ?? v.comments ?? 0;
           const shares = stats.share_count ?? stats.shareCount ?? stats.shares ?? v.shares ?? 0;
 
-          const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 1000 : MIN_VIEWS;
-          if (views < minViewsForNiche) { lowViews++; return null; }
+          if (views < MIN_VIEWS) { lowViews++; return null; }
 
           const publishedAtStr = getPublishedAt(v.create_time || v.createTime || 0);
           const publishedAt = new Date(publishedAtStr);
