@@ -104,7 +104,7 @@ export default function AccountAnalysis() {
     },
   });
 
-  const loadSavedAnalysis = useCallback((acc: any) => {
+  const loadSavedAnalysis = useCallback(async (acc: any) => {
     const analysis = acc.analysis_json as Record<string, any> | null;
     if (analysis && analysis.top_videos) {
       setAccount({
@@ -112,11 +112,13 @@ export default function AccountAnalysis() {
         ...analysis,
       });
     } else {
-      // No saved analysis, re-analyze
+      // No saved analysis, re-analyze (costs 1 usage)
+      const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${acc.profile_url}`);
+      if (!ok) return;
       setUrl(acc.profile_url);
       analyze(acc.profile_url);
     }
-  }, [analyze]);
+  }, [analyze, checkAndLog]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
