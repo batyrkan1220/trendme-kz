@@ -141,9 +141,7 @@ function PlatformTab() {
 function UsersTab() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [tokenDialog, setTokenDialog] = useState<{ userId: string; email: string } | null>(null);
-  const [tokenAmount, setTokenAmount] = useState("");
-  const [tokenNote, setTokenNote] = useState("");
+  const [subDialog, setSubDialog] = useState<{ userId: string; email: string } | null>(null);
   const [subDialog, setSubDialog] = useState<{ userId: string; email: string } | null>(null);
   const [subPlanId, setSubPlanId] = useState("");
   const [subDays, setSubDays] = useState("30");
