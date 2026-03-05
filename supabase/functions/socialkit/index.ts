@@ -423,6 +423,9 @@ Deno.serve(async (req: Request) => {
         }
 
         // activity_log is handled client-side via checkAndLog
+        const successfulPages = pageResults.filter(r => r.status === "fulfilled").length;
+        const successfulHashtags = hashtags.length;
+        await logApiUsage("search", successfulPages + successfulHashtags, { query, pages: successfulPages, hashtags: successfulHashtags, results: upsertedVideos?.length || 0 });
 
         return json({ videos: upsertedVideos, query: queryRow, hashtags, relatedKeywords });
       }
