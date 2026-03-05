@@ -795,16 +795,20 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         }
 
         // 4. Filter by publish_time (client-side since SocialKit doesn't support it)
-        const maxAgeDays = publish_time === "30" ? 30 : 7;
-        const cutoff = Date.now() - maxAgeDays * 24 * 3600 * 1000;
-        const filtered = unique.filter(v => {
-          const ct = v.createTime ?? v.create_time;
-          if (typeof ct === "number") {
-            const ms = ct > 1e12 ? ct : ct * 1000;
-            return ms >= cutoff;
-          }
-          return true; // keep if no date info
-        });
+        // "7" = 7 days, "30" = 30 days, "0" or anything else = no filter
+        let filtered = unique;
+        if (publish_time === "7" || publish_time === "30") {
+          const maxAgeDays = publish_time === "30" ? 30 : 7;
+          const cutoff = Date.now() - maxAgeDays * 24 * 3600 * 1000;
+          filtered = unique.filter(v => {
+            const ct = v.createTime ?? v.create_time;
+            if (typeof ct === "number") {
+              const ms = ct > 1e12 ? ct : ct * 1000;
+              return ms >= cutoff;
+            }
+            return true;
+          });
+        }
 
         // 5. Sort: sort_type "3" = by date, "1" = by likes
         filtered.sort((a: any, b: any) => {

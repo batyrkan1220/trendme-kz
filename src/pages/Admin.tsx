@@ -691,7 +691,7 @@ function TrendsManagementTab() {
 function ManualSearchSection() {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
-  const [publishTime, setPublishTime] = useState<"7" | "30">("7");
+  const [publishTime, setPublishTime] = useState<"0" | "7" | "30">("0");
   const [sortType, setSortType] = useState<"3" | "1">("3");
   const [results, setResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -887,15 +887,15 @@ function ManualSearchSection() {
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Период:</span>
               <div className="flex bg-muted rounded-lg p-0.5">
-                {(["7", "30"] as const).map(p => (
+                {([["0", "Все"], ["7", "7д"], ["30", "30д"]] as const).map(([val, label]) => (
                   <button
-                    key={p}
-                    onClick={() => setPublishTime(p)}
+                    key={val}
+                    onClick={() => setPublishTime(val as any)}
                     className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                      publishTime === p ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                      publishTime === val ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    {p}д
+                    {label}
                   </button>
                 ))}
               </div>
