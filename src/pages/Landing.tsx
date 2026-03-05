@@ -484,19 +484,19 @@ export default function Landing() {
 
       {/* ═══ Testimonials ═══ */}
       <section id="reviews" className="py-12 md:py-32 px-4 bg-muted/30 border-y border-border/20">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 md:mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
             <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
-              Реальные <span className="gradient-text">результаты</span>
+              Қазақстандықтар <span className="gradient-text">нәтиже</span> көрсетуде
             </h2>
-            <p className="text-muted-foreground text-sm md:text-lg">Наши пользователи растут быстрее конкурентов</p>
+            <p className="text-muted-foreground text-sm md:text-lg">Біздің қолданушылар конкуренттерден тез өседі</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {testimonials.map((t) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {testimonials.map((t, idx) => (
               <div key={t.name} className="rounded-2xl p-5 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all h-full relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/[0.03] rounded-full blur-2xl group-hover:bg-primary/[0.06] transition-colors" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/[0.03] rounded-full blur-3xl group-hover:bg-primary/[0.08] transition-colors" />
                 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-4">
@@ -509,8 +509,24 @@ export default function Landing() {
                       {t.result}
                     </span>
                   </div>
+                  
                   <p className="text-sm md:text-base text-foreground leading-relaxed mb-5">«{t.text}»</p>
-                  <div className="flex items-center gap-3">
+                  
+                  {/* Metrics row */}
+                  <div className="flex gap-3 mb-5">
+                    {t.followers && (
+                      <div className="text-center px-3 py-1.5 rounded-lg bg-muted/60 border border-border/30">
+                        <div className="text-xs font-bold text-foreground">{t.followers}</div>
+                        <div className="text-[10px] text-muted-foreground">подписчик</div>
+                      </div>
+                    )}
+                    <div className="text-center px-3 py-1.5 rounded-lg bg-muted/60 border border-border/30">
+                      <div className="text-xs font-bold text-foreground">{t.period}</div>
+                      <div className="text-[10px] text-muted-foreground">мерзім</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-4 border-t border-border/30">
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-lg md:text-xl border border-primary/10">
                       {t.avatar}
                     </div>
