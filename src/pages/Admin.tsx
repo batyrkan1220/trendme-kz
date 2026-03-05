@@ -383,6 +383,119 @@ function PlatformTab() {
           </CardContent>
         </Card>
       )}
+
+      {/* EnsembleData API Usage */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Zap className="h-5 w-5 text-yellow-500" />
+            EnsembleData API кредиттер (30 күн)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {apiUsage ? (
+            <div className="space-y-4">
+              {/* Summary */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-3 bg-muted/30 rounded-lg">
+                  <p className="text-xs text-muted-foreground">Жалпы кредит</p>
+                  <p className="text-2xl font-bold text-primary">{(apiUsage.totalCredits || 0).toLocaleString()}</p>
+                </div>
+                <div className="text-center p-3 bg-muted/30 rounded-lg">
+                  <p className="text-xs text-muted-foreground">API шақырулар</p>
+                  <p className="text-2xl font-bold text-foreground">{(apiUsage.totalCalls || 0).toLocaleString()}</p>
+                </div>
+              </div>
+
+              {/* By action breakdown */}
+              {apiUsage.byAction && Object.keys(apiUsage.byAction).length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">Функция бойынша бөлінуі</h4>
+                  {Object.entries(apiUsage.byAction as Record<string, number>)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([key, credits]) => {
+                      const actionLabels: Record<string, string> = {
+                        "refresh-trends/keyword_full_search": "🔄 Тренд жаңарту",
+                        "socialkit/search": "🔍 Пайдаланушы іздеу",
+                        "socialkit/video_stats": "📊 Видео статистика",
+                        "socialkit/analyze_video": "🎬 Видео анализ",
+                        "socialkit/account_stats": "👤 Профиль анализ",
+                        "socialkit/admin_search": "🔎 Админ іздеу",
+                        "ensemble-search/keyword_full_search": "🔍 Ensemble іздеу",
+                      };
+                      const total = apiUsage.totalCredits || 1;
+                      const pct = Math.round((credits / total) * 100);
+                      return (
+                        <div key={key} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>{actionLabels[key] || key}</span>
+                            <span className="text-muted-foreground font-medium">{credits} кредит ({pct}%)</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+
+              {/* By day table */}
+              {apiUsage.byDay && Object.keys(apiUsage.byDay).length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Күн бойынша</h4>
+                  <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border sticky top-0 bg-card">
+                          <th className="text-left p-2 text-muted-foreground font-medium">Күн</th>
+                          <th className="text-center p-2 text-muted-foreground font-medium">🔄 Тренд</th>
+                          <th className="text-center p-2 text-muted-foreground font-medium">🔍 Іздеу</th>
+                          <th className="text-center p-2 text-muted-foreground font-medium">🎬 Анализ</th>
+                          <th className="text-center p-2 text-muted-foreground font-medium">👤 Профиль</th>
+                          <th className="text-center p-2 text-muted-foreground font-medium">📊 Стат.</th>
+                          <th className="text-center p-2 text-muted-foreground font-medium text-primary font-bold">Барлығы</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(apiUsage.byDay as Record<string, Record<string, number>>)
+                          .sort((a, b) => b[0].localeCompare(a[0]))
+                          .map(([day, actions]) => {
+                            const trend = (actions["refresh-trends/keyword_full_search"] || 0);
+                            const search = (actions["socialkit/search"] || 0) + (actions["socialkit/admin_search"] || 0) + (actions["ensemble-search/keyword_full_search"] || 0);
+                            const analyze = (actions["socialkit/analyze_video"] || 0);
+                            const profile = (actions["socialkit/account_stats"] || 0);
+                            const videoStats = (actions["socialkit/video_stats"] || 0);
+                            const total = Object.values(actions).reduce((a, b) => a + b, 0);
+                            return (
+                              <tr key={day} className="border-b border-border/30">
+                                <td className="p-2">{new Date(day).toLocaleDateString("ru-RU", { day: "numeric", month: "short", weekday: "short" })}</td>
+                                <td className="text-center p-2">{trend || "—"}</td>
+                                <td className="text-center p-2">{search || "—"}</td>
+                                <td className="text-center p-2">{analyze || "—"}</td>
+                                <td className="text-center p-2">{profile || "—"}</td>
+                                <td className="text-center p-2">{videoStats || "—"}</td>
+                                <td className="text-center p-2 font-bold">{total}</td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {apiUsage.totalCalls === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  API қолдану деректері жинала бастады. Келесі іздеулер мен жаңартулардан кейін деректер пайда болады.
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">Жүктелуде...</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
