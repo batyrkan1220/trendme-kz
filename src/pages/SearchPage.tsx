@@ -1,7 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import {
-  Search as SearchIcon, Clock, Eye, Heart, MessageCircle, Loader2, Sparkles,
-  Play, X, ExternalLink, Music, Share2, TrendingUp, Flame, Rocket
+  Search as SearchIcon, Clock, Loader2, Sparkles,
 } from "lucide-react";
 import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 
 const fmt = (n: number) => {
