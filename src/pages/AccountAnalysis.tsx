@@ -142,7 +142,7 @@ export default function AccountAnalysis() {
     <AppLayout>
       {!account && !isPending ? (
         /* Centered empty state */
-        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center md:justify-start md:pt-12 p-4 animate-fade-in">
+        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Анализ аккаунта 👤</h1>
             <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на профиль TikTok для анализа</p>
