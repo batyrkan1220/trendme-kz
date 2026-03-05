@@ -153,7 +153,7 @@ export default function Pricing() {
                             {plan.duration_days === 90 && (
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-sm text-muted-foreground">
-                                  {monthlyPrice.toLocaleString("ru-RU")}₸ / ай
+                                  {monthlyPrice.toLocaleString("ru-RU")}₸ / мес
                                 </span>
                                 <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded" style={{ background: "hsl(350 80% 50%)" }}>
                                   -15%
