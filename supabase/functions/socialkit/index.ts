@@ -658,7 +658,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         // Fetch user info and user posts in parallel via EnsembleData
         const [userInfoRes, userPostsRes] = await Promise.allSettled([
           callEnsemble("/tt/user/info", { username: usernameFromUrl }),
-          callEnsemble("/tt/user/posts-from-username", { username: usernameFromUrl, depth: "3", alternative_method: "0" }),
+          callEnsemble("/tt/user/posts", { username: usernameFromUrl, depth: "3", alternative_method: "false" }),
         ]);
 
         // Parse user info
