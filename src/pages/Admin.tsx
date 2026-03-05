@@ -331,7 +331,7 @@ function UsersTab() {
                   {filteredUsers.map((u: any) => {
                     const sub = u.subscription;
                     const isExpired = sub && new Date(sub.expires_at) < new Date();
-                    const tokenBalance = u.tokens?.balance ?? "—";
+                    
                     return (
                     <tr key={u.id} className="border-b border-border/50 hover:bg-muted/30">
                       <td className="p-3">
