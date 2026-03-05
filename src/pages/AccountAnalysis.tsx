@@ -206,7 +206,7 @@ export default function AccountAnalysis() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => { setUrl(acc.profile_url); analyze(acc.profile_url); }}
+                          onClick={async () => { const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${acc.profile_url}`); if (!ok) return; setUrl(acc.profile_url); analyze(acc.profile_url); }}
                           className="w-full mt-2 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/70 transition-colors flex items-center justify-center gap-1.5"
                         >
                           <RefreshCw className="h-3 w-3" /> Анализировать
