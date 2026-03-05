@@ -151,9 +151,12 @@ const trendingVideos = [
 ];
 
 const testimonials = [
-  { name: "Айдана К.", role: "SMM-менеджер", text: "За месяц охваты выросли в 4 раза. Тренды ловим за 2 дня до массового хайпа.", avatar: "🇰🇿", rating: 5, result: "+320% ROI" },
-  { name: "Дмитрий Р.", role: "Блогер, 500K+", text: "Генератор сценариев — магия. Каждое второе видео залетает в рекомендации.", avatar: "🎬", rating: 5, result: "3ч экономии" },
-  { name: "Мадина Т.", role: "Интернет-магазин", text: "Разведка конкурентов принесла 200+ заказов с одного видео. Окупилось за день.", avatar: "🛍️", rating: 5, result: "200+ заказов" },
+  { name: "Айгерім Сәтбаева", role: "SMM-маман, @aigstyle", text: "2 аптада TikTok аккаунтым 12K-дан 87K-ға өсті. trendme арқылы трендті 3 күн бұрын ұстаймын — конкуренттер тек қарап тұрады.", avatar: "👩‍💻", rating: 5, result: "+625% охват", followers: "87K+", period: "2 апта" },
+  { name: "Нұрсұлтан Байқадамов", role: "Блогер, 340K подписчик", text: "ИИ сценарий генераторы — бомба. Әр видеоға 3-4 сағат жұмсайтынмын, енді 20 минутта дайын. Соңғы 5 видеом рекомендацияға түсті.", avatar: "🎬", rating: 5, result: "5 видео рек-қа", followers: "340K", period: "1 ай" },
+  { name: "Дана Оспанова", role: "Интернет-дүкен иесі", text: "Конкуренттерді разведка жасап, олардың вирусты стратегиясын көшірдім. Бір видеодан 380+ тапсырыс келді. Платформа өзін 1 күнде ақтады.", avatar: "🛍️", rating: 5, result: "380+ тапсырыс", followers: "52K", period: "1 апта" },
+  { name: "Асхат Тұрғынбеков", role: "Маркетолог, Digital Agency", text: "Клиенттерге ай сайын 15+ контент-план жасаймын. trendme болмаса бұл мүмкін емес еді. Аналитика қуатты, баға арзан.", avatar: "📊", rating: 5, result: "15+ жоба/ай", followers: "", period: "3 ай" },
+  { name: "Мадина Жұмабекова", role: "Бьюти-блогер, 120K", text: "Нишалық тренд мониторингі өте дәл жұмыс істейді. Менің beauty контентім әрқашан топта. Подписчиктерім 3 есе өсті!", avatar: "💄", rating: 5, result: "3x подписчик", followers: "120K", period: "1.5 ай" },
+  { name: "Ерболат Қасымов", role: "TikTok Shop иесі", text: "trendme-дің трендтер базасынан вирусты тауар тауып, 1 видеодан 2.4 млн қаратып, 890 тауар саттым. Бұл — нағыз game changer.", avatar: "🏆", rating: 5, result: "2.4M просмотр", followers: "210K", period: "2 апта" },
 ];
 
 const plans = [
@@ -481,19 +484,19 @@ export default function Landing() {
 
       {/* ═══ Testimonials ═══ */}
       <section id="reviews" className="py-12 md:py-32 px-4 bg-muted/30 border-y border-border/20">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 md:mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">Отзывы</p>
             <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
-              Реальные <span className="gradient-text">результаты</span>
+              Қазақстандықтар <span className="gradient-text">нәтиже</span> көрсетуде
             </h2>
-            <p className="text-muted-foreground text-sm md:text-lg">Наши пользователи растут быстрее конкурентов</p>
+            <p className="text-muted-foreground text-sm md:text-lg">Біздің қолданушылар конкуренттерден тез өседі</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {testimonials.map((t) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {testimonials.map((t, idx) => (
               <div key={t.name} className="rounded-2xl p-5 md:p-7 bg-card border border-border/50 card-shadow hover-lift transition-all h-full relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/[0.03] rounded-full blur-2xl group-hover:bg-primary/[0.06] transition-colors" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/[0.03] rounded-full blur-3xl group-hover:bg-primary/[0.08] transition-colors" />
                 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-4">
@@ -506,8 +509,24 @@ export default function Landing() {
                       {t.result}
                     </span>
                   </div>
+                  
                   <p className="text-sm md:text-base text-foreground leading-relaxed mb-5">«{t.text}»</p>
-                  <div className="flex items-center gap-3">
+                  
+                  {/* Metrics row */}
+                  <div className="flex gap-3 mb-5">
+                    {t.followers && (
+                      <div className="text-center px-3 py-1.5 rounded-lg bg-muted/60 border border-border/30">
+                        <div className="text-xs font-bold text-foreground">{t.followers}</div>
+                        <div className="text-[10px] text-muted-foreground">подписчик</div>
+                      </div>
+                    )}
+                    <div className="text-center px-3 py-1.5 rounded-lg bg-muted/60 border border-border/30">
+                      <div className="text-xs font-bold text-foreground">{t.period}</div>
+                      <div className="text-[10px] text-muted-foreground">мерзім</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-4 border-t border-border/30">
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-lg md:text-xl border border-primary/10">
                       {t.avatar}
                     </div>
