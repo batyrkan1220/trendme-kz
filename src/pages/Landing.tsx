@@ -157,9 +157,9 @@ const testimonials = [
 ];
 
 const plans = [
-  { name: "Старт", price: "Бесплатно", period: "", features: ["100 запросов/мес", "5 авторов", "Базовый анализ", "Поиск видео"], emoji: "🚀" },
-  { name: "Про", price: "2 990 ₸", period: "/мес", features: ["5 000 запросов/мес", "50 авторов", "ИИ сценарии", "Экспорт", "Приоритетная поддержка"], popular: true, emoji: "⚡" },
-  { name: "Бизнес", price: "9 990 ₸", period: "/мес", features: ["Безлимит запросов", "Безлимит авторов", "API доступ", "Личный менеджер", "Кастомные отчёты"], emoji: "🏆" },
+  { name: "Демо режим", price: "Бесплатно", period: "", subtitle: "С лимитами", features: ["Базовый анализ видео", "Поиск по трендам", "Ограниченные запросы", "5 авторов"], emoji: "🎁" },
+  { name: "1 мес", price: "2 990 ₸", period: "/мес", subtitle: "Ежемесячная подписка", features: ["Безлимитный анализ видео", "Безлимитный анализ профиля", "Безлимитный AI Сценарии", "50 авторов", "Экспорт данных"], popular: true, emoji: "⚡" },
+  { name: "3 мес", price: "7 650 ₸", period: "/3 мес", subtitle: "Скидка 15%", features: ["Всё из тарифа «1 мес»", "Безлимит авторов", "Приоритетная поддержка", "API доступ", "Кастомные отчёты"], emoji: "🏆", badge: "Лучшая цена" },
 ];
 
 const steps = [
@@ -538,17 +538,18 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-start">
             {plans.map((plan) => (
               <div key={plan.name} className={`rounded-2xl p-6 md:p-8 border transition-all hover-lift relative h-full ${
-                plan.popular
+                plan.popular || plan.badge
                   ? "bg-card border-primary/30 shadow-[0_8px_40px_-8px_hsl(var(--primary)/0.18)] md:scale-105 ring-1 ring-primary/10"
                   : "bg-card border-border/50 card-shadow"
               }`}>
-                {plan.popular && (
+                {(plan.popular || plan.badge) && (
                   <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground bg-gradient-to-r from-primary to-primary/80 px-4 py-1.5 rounded-full shadow-lg">
-                    <Sparkles className="h-3 w-3" /> Популярный
+                    <Sparkles className="h-3 w-3" /> {plan.badge || "Популярный"}
                   </span>
                 )}
                 <div className="text-3xl md:text-4xl mb-2">{plan.emoji}</div>
                 <h3 className="text-lg md:text-2xl font-bold text-foreground">{plan.name}</h3>
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{plan.subtitle}</p>
                 <div className="mt-3 mb-5 md:mb-7">
                   <span className="text-2xl md:text-4xl font-extrabold text-foreground">{plan.price}</span>
                   <span className="text-sm md:text-base text-muted-foreground">{plan.period}</span>
