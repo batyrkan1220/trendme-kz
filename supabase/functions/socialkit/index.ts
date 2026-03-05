@@ -950,6 +950,8 @@ Deno.serve(async (req: Request) => {
         });
 
         console.log(`Admin search "${searchQuery}": ${unique.length} unique videos`);
+        const adminSearchCredits = pageResults.filter(r => r.status === "fulfilled").length + hashtags.length;
+        await logApiUsage("admin_search", adminSearchCredits, { query: searchQuery, results: unique.length });
         return json({ videos: unique });
       }
 
