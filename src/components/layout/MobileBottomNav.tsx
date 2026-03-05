@@ -114,7 +114,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             analysisActive || showAnalysis ? "text-primary" : "text-muted-foreground"
           )}
         >
-          <Search className={cn("h-5 w-5", (analysisActive || showAnalysis) && "text-primary")} />
+          <BarChart3 className={cn("h-5 w-5", (analysisActive || showAnalysis) && "text-primary")} />
           <span className="text-[10px] font-medium leading-tight">Анализ</span>
         </button>
 
