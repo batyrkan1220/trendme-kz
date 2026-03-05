@@ -501,7 +501,7 @@ export default function Landing() {
                 </div>
                 <ul className="space-y-2 md:space-y-3 mb-5 md:mb-7">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-xs md:text-base text-muted-foreground">
+                    <li key={f} className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                       <Check className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary shrink-0" />
                       {f}
                     </li>
