@@ -121,42 +121,47 @@ Deno.serve(async (req: Request) => {
       console.log(`First video sample: ${JSON.stringify(rawVideos[0]).substring(0, 1500)}`);
     }
 
-    // Normalize to a consistent format for the frontend
-    const videos = rawVideos.map((v: any) => {
-      const stats = v.stats || {};
+    // Normalize: EnsembleData wraps each video in { aweme_info: {...} }
+    const videos = rawVideos.map((item: any) => {
+      const v = item.aweme_info || item; // unwrap aweme_info
+      const stats = v.statistics || v.stats || {};
       const author = v.author || {};
-      const video = v.video || {};
-      
+      const videoInfo = v.video || {};
+      const avatarUrl = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
+      const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+      const uniqueId = author.unique_id || author.uniqueId || "";
+      const awemeId = v.aweme_id || v.id || "";
+
       return {
-        id: v.id || v.aweme_id || "",
-        video_id: v.id || v.aweme_id || "",
-        aweme_id: v.id || v.aweme_id || "",
+        id: awemeId,
+        video_id: awemeId,
+        aweme_id: awemeId,
         desc: v.desc || "",
         caption: v.desc || "",
-        createTime: v.createTime || v.create_time || 0,
+        createTime: v.create_time || v.createTime || 0,
         stats: {
-          views: stats.playCount ?? stats.play_count ?? 0,
-          likes: stats.diggCount ?? stats.digg_count ?? 0,
-          comments: stats.commentCount ?? stats.comment_count ?? 0,
-          shares: stats.shareCount ?? stats.share_count ?? 0,
+          views: stats.play_count ?? stats.playCount ?? 0,
+          likes: stats.digg_count ?? stats.diggCount ?? 0,
+          comments: stats.comment_count ?? stats.commentCount ?? 0,
+          shares: stats.share_count ?? stats.shareCount ?? 0,
         },
-        views: stats.playCount ?? stats.play_count ?? 0,
-        likes: stats.diggCount ?? stats.digg_count ?? 0,
-        comments: stats.commentCount ?? stats.comment_count ?? 0,
-        shares: stats.shareCount ?? stats.share_count ?? 0,
+        views: stats.play_count ?? stats.playCount ?? 0,
+        likes: stats.digg_count ?? stats.diggCount ?? 0,
+        comments: stats.comment_count ?? stats.commentCount ?? 0,
+        shares: stats.share_count ?? stats.shareCount ?? 0,
         author: {
-          uniqueId: author.uniqueId || author.unique_id || "",
-          unique_id: author.uniqueId || author.unique_id || "",
+          uniqueId,
+          unique_id: uniqueId,
           nickname: author.nickname || "",
-          avatar: author.avatarThumb || author.avatar_thumb || "",
-          avatarThumb: author.avatarThumb || author.avatar_thumb || "",
+          avatar: avatarUrl,
+          avatarThumb: avatarUrl,
         },
         video: {
-          cover: video.cover || video.originCover || "",
-          duration: video.duration || 0,
+          cover: coverUrl,
+          duration: videoInfo.duration || 0,
         },
-        cover_url: video.cover || video.originCover || "",
-        url: `https://www.tiktok.com/@${author.uniqueId || author.unique_id || "user"}/video/${v.id || v.aweme_id || ""}`,
+        cover_url: coverUrl,
+        url: `https://www.tiktok.com/@${uniqueId || "user"}/video/${awemeId}`,
       };
     });
 
