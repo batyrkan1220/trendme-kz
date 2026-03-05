@@ -454,7 +454,7 @@ export default function Landing() {
                     {t.result}
                   </span>
                 </div>
-                <p className="text-xs md:text-base text-foreground leading-relaxed mb-4 md:mb-5">«{t.text}»</p>
+                <p className="text-sm md:text-base text-foreground leading-relaxed mb-4 md:mb-5">«{t.text}»</p>
                 <div className="flex items-center gap-2.5 md:gap-3">
                   <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center text-lg md:text-xl">
                     {t.avatar}
