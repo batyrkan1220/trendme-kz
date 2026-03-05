@@ -120,7 +120,7 @@ export default function Dashboard() {
           </div>
           <Link
             to="/pricing"
-            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-[hsl(350,70%,65%)] hover:bg-[hsl(350,70%,58%)] text-white font-semibold text-sm px-5 py-3 transition-colors w-full sm:w-auto justify-center"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm px-5 py-3 transition-colors w-full sm:w-auto justify-center"
           >
             <Lock className="h-4 w-4" />
             Выбрать тариф
