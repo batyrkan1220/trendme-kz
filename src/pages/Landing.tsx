@@ -507,7 +507,7 @@ export default function Landing() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/auth">
+                <Link to="/auth?mode=register">
                   <Button className={`w-full rounded-xl h-10 md:h-12 font-semibold text-xs md:text-base ${
                     plan.popular
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
