@@ -756,8 +756,6 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
             callSocialKit("/tiktok/search", {
               query: searchQuery,
               count: "30",
-              sort_type,
-              publish_time,
               offset: String(page * PAGE_SIZE),
             })
           ),
@@ -771,7 +769,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         }
         console.log(`Admin keyword search: ${allVideos.length} videos`);
 
-        // 2. Hashtag search in parallel (like regular search does)
+        // 2. Hashtag search in parallel
         const { hashtags = [] } = aiResult.status === "fulfilled" ? aiResult.value as any : { hashtags: [] };
         if (hashtags.length > 0) {
           const hashtagResults = await Promise.allSettled(
@@ -781,9 +779,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           );
           for (const r of hashtagResults) {
             if (r.status === "fulfilled") {
-              const vids = extractVideos(r.value);
-              console.log(`Admin hashtag "${hashtags}" returned ${vids.length} videos`);
-              allVideos.push(...vids);
+              allVideos.push(...extractVideos(r.value));
             }
           }
         }
@@ -798,8 +794,33 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           unique.push(v);
         }
 
-        console.log(`Admin search "${searchQuery}": ${unique.length} unique videos`);
-        return json({ videos: unique });
+        // 4. Filter by publish_time (client-side since SocialKit doesn't support it)
+        const maxAgeDays = publish_time === "30" ? 30 : 7;
+        const cutoff = Date.now() - maxAgeDays * 24 * 3600 * 1000;
+        const filtered = unique.filter(v => {
+          const ct = v.createTime ?? v.create_time;
+          if (typeof ct === "number") {
+            const ms = ct > 1e12 ? ct : ct * 1000;
+            return ms >= cutoff;
+          }
+          return true; // keep if no date info
+        });
+
+        // 5. Sort: sort_type "3" = by date, "1" = by likes
+        filtered.sort((a: any, b: any) => {
+          if (sort_type === "1") {
+            const aLikes = a.stats?.likes ?? a.diggCount ?? a.likes ?? 0;
+            const bLikes = b.stats?.likes ?? b.diggCount ?? b.likes ?? 0;
+            return bLikes - aLikes;
+          }
+          // by date
+          const aTime = a.createTime ?? a.create_time ?? 0;
+          const bTime = b.createTime ?? b.create_time ?? 0;
+          return (typeof bTime === "number" ? bTime : 0) - (typeof aTime === "number" ? aTime : 0);
+        });
+
+        console.log(`Admin search "${searchQuery}": ${filtered.length} filtered (from ${unique.length} unique)`);
+        return json({ videos: filtered });
       }
 
       case "admin_add_video": {
