@@ -19,7 +19,8 @@ export default function Dashboard() {
       .then(({ data }) => setName(data?.name ?? null));
   }, [user]);
 
-  const greeting = name ? `Привет, ${name}` : "Привет";
+  const displayName = name || user?.email?.split("@")[0] || "";
+  const greeting = displayName ? `Привет, ${displayName}` : "Привет";
 
   const actions = [
     {
