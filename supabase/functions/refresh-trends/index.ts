@@ -86,7 +86,7 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends-ensemble v1 maxAge=7 minViews=1000/3000 sort=date,likes period=7,30";
+const VERSION = "refresh-trends-ensemble v2 maxAge=7 minViews=5000 sort=date,likes period=7,30";
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
