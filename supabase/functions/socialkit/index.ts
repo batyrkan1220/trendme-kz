@@ -746,31 +746,49 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         const { query: searchQuery, publish_time = "7", sort_type = "3" } = body;
         if (!searchQuery) return json({ error: "query is required" }, 400);
 
-        const PAGES = 10;
+        // 1. Keyword search (paginated) + AI hashtag generation in parallel
+        const PAGES = 15;
         const PAGE_SIZE = 10;
-        let allVideos: any[] = [];
-        let emptyPages = 0;
 
-        for (let page = 0; page < PAGES; page++) {
-          try {
-            const data = await callSocialKit("/tiktok/search", {
+        const [aiResult, ...pageResults] = await Promise.allSettled([
+          generateHashtagsAndKeywords(searchQuery),
+          ...Array.from({ length: PAGES }, (_, page) =>
+            callSocialKit("/tiktok/search", {
               query: searchQuery,
               count: "30",
               sort_type,
               publish_time,
               offset: String(page * PAGE_SIZE),
-            });
-            const vids = extractVideos(data);
-            allVideos.push(...vids);
-            if (vids.length === 0) { emptyPages++; if (emptyPages >= 2) break; }
-            else { emptyPages = 0; }
-          } catch (e) {
-            console.error(`Admin search page ${page} error:`, e);
-            break;
+            })
+          ),
+        ]);
+
+        let allVideos: any[] = [];
+        for (const r of pageResults) {
+          if (r.status === "fulfilled") {
+            allVideos.push(...extractVideos(r.value));
+          }
+        }
+        console.log(`Admin keyword search: ${allVideos.length} videos`);
+
+        // 2. Hashtag search in parallel (like regular search does)
+        const { hashtags = [] } = aiResult.status === "fulfilled" ? aiResult.value as any : { hashtags: [] };
+        if (hashtags.length > 0) {
+          const hashtagResults = await Promise.allSettled(
+            hashtags.map((tag: string) =>
+              callSocialKit("/tiktok/hashtag-search", { hashtag: tag, limit: "30", cache: "true" })
+            )
+          );
+          for (const r of hashtagResults) {
+            if (r.status === "fulfilled") {
+              const vids = extractVideos(r.value);
+              console.log(`Admin hashtag "${hashtags}" returned ${vids.length} videos`);
+              allVideos.push(...vids);
+            }
           }
         }
 
-        // Deduplicate
+        // 3. Deduplicate
         const seen = new Set<string>();
         const unique: any[] = [];
         for (const v of allVideos) {
