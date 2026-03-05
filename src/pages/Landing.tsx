@@ -542,13 +542,14 @@ export default function Landing() {
                   ? "bg-card border-primary/30 shadow-[0_8px_40px_-8px_hsl(var(--primary)/0.18)] md:scale-105 ring-1 ring-primary/10"
                   : "bg-card border-border/50 card-shadow"
               }`}>
-                {plan.popular && (
+                {(plan.popular || plan.badge) && (
                   <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs font-bold text-primary-foreground bg-gradient-to-r from-primary to-primary/80 px-4 py-1.5 rounded-full shadow-lg">
-                    <Sparkles className="h-3 w-3" /> Популярный
+                    <Sparkles className="h-3 w-3" /> {plan.badge || "Популярный"}
                   </span>
                 )}
                 <div className="text-3xl md:text-4xl mb-2">{plan.emoji}</div>
                 <h3 className="text-lg md:text-2xl font-bold text-foreground">{plan.name}</h3>
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{plan.subtitle}</p>
                 <div className="mt-3 mb-5 md:mb-7">
                   <span className="text-2xl md:text-4xl font-extrabold text-foreground">{plan.price}</span>
                   <span className="text-sm md:text-base text-muted-foreground">{plan.period}</span>
