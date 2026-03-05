@@ -746,9 +746,10 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         const { query: searchQuery, publish_time = "7", sort_type = "3" } = body;
         if (!searchQuery) return json({ error: "query is required" }, 400);
 
-        const PAGES = 5;
+        const PAGES = 10;
         const PAGE_SIZE = 10;
         let allVideos: any[] = [];
+        let emptyPages = 0;
 
         for (let page = 0; page < PAGES; page++) {
           try {
@@ -761,7 +762,8 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
             });
             const vids = extractVideos(data);
             allVideos.push(...vids);
-            if (vids.length < 5) break;
+            if (vids.length === 0) { emptyPages++; if (emptyPages >= 2) break; }
+            else { emptyPages = 0; }
           } catch (e) {
             console.error(`Admin search page ${page} error:`, e);
             break;
