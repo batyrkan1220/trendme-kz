@@ -102,7 +102,7 @@ export default function ScriptFromVideo() {
 
   return (
     <AppLayout>
-      <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+      <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center md:justify-start md:pt-12 p-4 animate-fade-in">
         <div className="w-full max-w-lg flex flex-col items-center gap-6">
           {isPending ? (
             <>
