@@ -654,7 +654,7 @@ export default function Landing() {
                   </Button>
                 </Link>
                 <Link to="/auth">
-                  <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 rounded-xl text-sm md:text-lg font-bold px-8 md:px-14 h-12 md:h-16 transition-all">
+                  <Button variant="outline" className="border-white/40 text-white/90 hover:bg-white/15 hover:text-white rounded-xl text-sm md:text-lg font-bold px-8 md:px-14 h-12 md:h-16 transition-all backdrop-blur-sm">
                     Войти
                   </Button>
                 </Link>
