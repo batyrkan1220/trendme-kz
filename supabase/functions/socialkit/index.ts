@@ -663,10 +663,14 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         // Parse user info
         let accountData: any = {};
+        let externalStats: any = {};
         if (userInfoRes.status === "fulfilled") {
           const raw = userInfoRes.value?.data || userInfoRes.value;
           accountData = raw?.user || raw || {};
+          // EnsembleData returns stats separately at data.stats level
+          externalStats = raw?.stats || {};
           console.log("User info keys:", JSON.stringify(Object.keys(accountData)));
+          console.log("External stats keys:", JSON.stringify(Object.keys(externalStats)));
         } else {
           console.error("User info fetch failed:", userInfoRes.reason);
         }
@@ -701,11 +705,11 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         // Extract user stats
         const username = accountData.unique_id || accountData.uniqueId || usernameFromUrl;
-        const userStats = accountData.stats || {};
-        const followers = userStats.follower_count ?? userStats.followerCount ?? accountData.follower_count ?? accountData.followers ?? 0;
-        const following = userStats.following_count ?? userStats.followingCount ?? accountData.following_count ?? accountData.following ?? 0;
-        const totalLikes = userStats.heart_count ?? userStats.heartCount ?? userStats.total_favorited ?? accountData.total_favorited ?? accountData.totalLikes ?? 0;
-        const totalVideos = userStats.aweme_count ?? userStats.videoCount ?? accountData.aweme_count ?? accountData.totalVideos ?? 0;
+        const userStats = externalStats || accountData.stats || {};
+        const followers = userStats.followerCount ?? userStats.follower_count ?? accountData.follower_count ?? accountData.followers ?? 0;
+        const following = userStats.followingCount ?? userStats.following_count ?? accountData.following_count ?? accountData.following ?? 0;
+        const totalLikes = userStats.heartCount ?? userStats.heart_count ?? userStats.total_favorited ?? accountData.total_favorited ?? accountData.totalLikes ?? 0;
+        const totalVideos = userStats.videoCount ?? userStats.aweme_count ?? accountData.aweme_count ?? accountData.totalVideos ?? 0;
         const avatarUrl = accountData.avatar_thumb?.url_list?.[0] || accountData.avatar_larger?.url_list?.[0] || "";
 
         // Computed metrics
