@@ -1602,6 +1602,8 @@ function StatsSection() {
   const [categoryLimits, setCategoryLimits] = useState<Record<string, number | null>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [selectedNiches, setSelectedNiches] = useState<Set<string>>(new Set());
+  const [bulkLimitValue, setBulkLimitValue] = useState("");
 
   const { data: nicheData, isLoading } = useQuery({
     queryKey: ["admin-niche-stats"],
