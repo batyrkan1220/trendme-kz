@@ -30,7 +30,7 @@ function validateTikTokUsername(username: string): boolean {
 async function resolveShortUrl(url: string): Promise<string> {
   try {
     const parsed = new URL(url);
-    if (parsed.hostname === "vm.tiktok.com" || parsed.hostname === "vt.tiktok.com" || parsed.hostname === "lite.tiktok.com") {
+    if (["vm.tiktok.com", "vt.tiktok.com", "lite.tiktok.com", "m.tiktok.com"].includes(parsed.hostname)) {
       const res = await fetch(url, { method: "HEAD", redirect: "follow" });
       return res.url || url;
     }
