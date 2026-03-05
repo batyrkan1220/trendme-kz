@@ -72,7 +72,7 @@ export default function Pricing() {
                   {isPopular && (
                     <div className="flex justify-center -mb-3 relative z-10">
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-foreground bg-gradient-to-r from-primary via-purple-500 to-pink-400 px-5 py-2 rounded-full shadow-lg">
-                        <Sparkles className="h-3.5 w-3.5" /> Пайдаланушылардың 68% таңдайды
+                        <Sparkles className="h-3.5 w-3.5" /> Выбирают 68% пользователей
                       </span>
                     </div>
                   )}
