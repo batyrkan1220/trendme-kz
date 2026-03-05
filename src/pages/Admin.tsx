@@ -179,32 +179,6 @@ function PlatformTab() {
         ))}
       </div>
 
-      {/* Token Economy */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Coins className="h-5 w-5 text-yellow-500" />
-            Экономика токенов
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center p-3 bg-muted/30 rounded-lg">
-              <p className="text-xs text-muted-foreground">Выдано всего</p>
-              <p className="text-xl font-bold text-green-500">{(stats?.totalTokensIssued || 0).toLocaleString()}</p>
-            </div>
-            <div className="text-center p-3 bg-muted/30 rounded-lg">
-              <p className="text-xs text-muted-foreground">Потрачено</p>
-              <p className="text-xl font-bold text-destructive">{(stats?.totalTokensSpent || 0).toLocaleString()}</p>
-            </div>
-            <div className="text-center p-3 bg-muted/30 rounded-lg">
-              <p className="text-xs text-muted-foreground">Баланс на руках</p>
-              <p className="text-xl font-bold text-primary">{(stats?.totalTokensBalance || 0).toLocaleString()}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="grid md:grid-cols-2 gap-4">
         {/* Activity breakdown 24h */}
         {stats?.activityBreakdown && Object.keys(stats.activityBreakdown).length > 0 && (
