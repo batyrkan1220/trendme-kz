@@ -13,7 +13,7 @@ function validateTikTokUrl(url: string): boolean {
     if (url.length > 500) return false;
     const parsed = new URL(url);
     if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
-    const allowedHosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com"];
+    const allowedHosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com", "vt.tiktok.com", "lite.tiktok.com"];
     return allowedHosts.some(h => parsed.hostname === h || parsed.hostname.endsWith("." + h));
   } catch {
     return false;
@@ -24,6 +24,18 @@ function validateTikTokUsername(username: string): boolean {
   if (!username || username.length > 100) return false;
   const cleaned = username.startsWith("@") ? username.slice(1) : username;
   return /^[a-zA-Z0-9_.]+$/.test(cleaned);
+}
+
+/** Resolve short TikTok URLs (vm.tiktok.com, vt.tiktok.com) to full URLs */
+async function resolveShortUrl(url: string): Promise<string> {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "vm.tiktok.com" || parsed.hostname === "vt.tiktok.com" || parsed.hostname === "lite.tiktok.com") {
+      const res = await fetch(url, { method: "HEAD", redirect: "follow" });
+      return res.url || url;
+    }
+  } catch { /* ignore */ }
+  return url;
 }
 
 /** Extract aweme_id (video ID) from a TikTok URL */
@@ -396,9 +408,10 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
       }
 
       case "video_stats": {
-        const { video_url } = body;
+        let video_url = body.video_url;
         if (!video_url) return json({ error: "video_url is required" }, 400);
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
+        video_url = await resolveShortUrl(video_url);
 
         const awemeId = extractAwemeId(video_url);
         if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
@@ -431,9 +444,10 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
       }
 
       case "analyze_video": {
-        const { video_url } = body;
+        let video_url = body.video_url;
         if (!video_url) return json({ error: "video_url is required" }, 400);
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
+        video_url = await resolveShortUrl(video_url);
 
         const awemeId = extractAwemeId(video_url);
         if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
