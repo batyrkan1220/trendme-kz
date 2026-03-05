@@ -1867,14 +1867,13 @@ function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose:
         <div className="space-y-3">
           <div><label className="text-sm text-muted-foreground">Название</label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm text-muted-foreground">Цена (₽/мес)</label><Input type="number" value={form.price_rub} onChange={(e) => setForm({ ...form, price_rub: e.target.value })} /></div>
-            <div><label className="text-sm text-muted-foreground">Срок (дней)</label><Input type="number" value={form.duration_days} onChange={(e) => setForm({ ...form, duration_days: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Баға (₸)</label><Input type="number" value={form.price_rub} onChange={(e) => setForm({ ...form, price_rub: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Мерзімі (күн)</label><Input type="number" value={form.duration_days} onChange={(e) => setForm({ ...form, duration_days: e.target.value })} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm text-muted-foreground">Макс запросов (-1 = ∞)</label><Input type="number" value={form.max_requests} onChange={(e) => setForm({ ...form, max_requests: e.target.value })} /></div>
-            <div><label className="text-sm text-muted-foreground">Макс авторов (-1 = ∞)</label><Input type="number" value={form.max_tracked_accounts} onChange={(e) => setForm({ ...form, max_tracked_accounts: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Макс сұраулар (-1 = ∞)</label><Input type="number" value={form.max_requests} onChange={(e) => setForm({ ...form, max_requests: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Макс авторлар (-1 = ∞)</label><Input type="number" value={form.max_tracked_accounts} onChange={(e) => setForm({ ...form, max_tracked_accounts: e.target.value })} /></div>
           </div>
-          <div><label className="text-sm text-muted-foreground">⚡ Токенов при покупке</label><Input type="number" value={form.tokens_included} onChange={(e) => setForm({ ...form, tokens_included: e.target.value })} placeholder="0" /></div>
           <div><label className="text-sm text-muted-foreground">Фичи (по одной на строку)</label><textarea className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-20" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} /></div>
           <div className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded" /><span className="text-sm">Активен</span></div>
         </div>
