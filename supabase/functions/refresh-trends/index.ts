@@ -390,10 +390,12 @@ Deno.serve(async (req: Request) => {
   const enforceLimit = async (nicheKey: string, limit: number) => {
     if (!limit || limit <= 0) return;
 
+    const freshCutoff = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
     const { count } = await adminClient
       .from("videos")
       .select("id", { count: "exact", head: true })
-      .eq("niche", nicheKey);
+      .eq("niche", nicheKey)
+      .gte("published_at", freshCutoff);
 
     const currentCount = count || 0;
     if (currentCount <= limit) return;
