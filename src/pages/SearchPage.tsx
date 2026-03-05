@@ -135,7 +135,7 @@ export default function SearchPage() {
                   <span className="text-sm font-medium text-muted-foreground">Недавние запросы</span>
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {recentQueries.slice(0, 8).map((q) => (
+                  {recentQueries.slice(0, 5).map((q) => (
                     <button
                       key={q.id}
                       onClick={() => {
