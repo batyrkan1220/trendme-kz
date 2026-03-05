@@ -24,7 +24,7 @@ interface MobileBottomNavProps {
   drawerOpen?: boolean;
 }
 
-export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
+export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: MobileBottomNavProps) {
   const location = useLocation();
   const [showAnalysis, setShowAnalysis] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
