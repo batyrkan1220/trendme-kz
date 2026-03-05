@@ -250,7 +250,7 @@ function UsersTab() {
     if (pn) planCounts[pn] = (planCounts[pn] || 0) + 1;
   }
 
-  const planOrder = ["Старт", "Про", "Бизнес"];
+  const planOrder = ["Пробный", "1 ай", "3 ай"];
   const allPlanNames = (plans as any[])
     .filter((p: any) => p.is_active)
     .sort((a: any, b: any) => {
@@ -1810,12 +1810,9 @@ function TariffsTab() {
                     <button onClick={() => deletePlan.mutate(plan.id)} className="p-1 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
-                <p className="text-xl font-bold text-foreground">{plan.price_rub === 0 ? "Бесплатно" : `${plan.price_rub.toLocaleString()} ₽/мес`}</p>
+                <p className="text-xl font-bold text-foreground">{plan.price_rub === 0 ? "Тегін" : `${plan.price_rub.toLocaleString()} ₸`}</p>
                 <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Запросов: {plan.max_requests === -1 ? "∞" : plan.max_requests}</p>
-                  <p>Авторов: {plan.max_tracked_accounts === -1 ? "∞" : plan.max_tracked_accounts}</p>
-                  <p>Срок: {plan.duration_days} дн.</p>
-                  {plan.tokens_included > 0 && <p className="text-primary font-medium">⚡ {plan.tokens_included} токенов</p>}
+                  <p>Мерзімі: {plan.duration_days} күн</p>
                 </div>
                 {!plan.is_active && <Badge variant="destructive" className="text-xs">Неактивен</Badge>}
               </div>
@@ -1855,11 +1852,11 @@ function TariffsTab() {
 }
 
 function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose: () => void; onSave: (p: any) => void; saving: boolean }) {
-  const [form, setForm] = useState({ ...plan, tokens_included: plan.tokens_included ?? 0, features: Array.isArray(plan.features) ? plan.features.join("\n") : "" });
+  const [form, setForm] = useState({ ...plan, features: Array.isArray(plan.features) ? plan.features.join("\n") : "" });
   const handleSave = () => {
     onSave({
       ...(plan.id ? { id: plan.id } : {}), name: form.name, price_rub: Number(form.price_rub), duration_days: Number(form.duration_days),
-      max_requests: Number(form.max_requests), max_tracked_accounts: Number(form.max_tracked_accounts), tokens_included: Number(form.tokens_included),
+      max_requests: Number(form.max_requests), max_tracked_accounts: Number(form.max_tracked_accounts),
       features: form.features.split("\n").map((f: string) => f.trim()).filter(Boolean), is_active: form.is_active, sort_order: Number(form.sort_order),
     });
   };
@@ -1870,14 +1867,13 @@ function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose:
         <div className="space-y-3">
           <div><label className="text-sm text-muted-foreground">Название</label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm text-muted-foreground">Цена (₽/мес)</label><Input type="number" value={form.price_rub} onChange={(e) => setForm({ ...form, price_rub: e.target.value })} /></div>
-            <div><label className="text-sm text-muted-foreground">Срок (дней)</label><Input type="number" value={form.duration_days} onChange={(e) => setForm({ ...form, duration_days: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Баға (₸)</label><Input type="number" value={form.price_rub} onChange={(e) => setForm({ ...form, price_rub: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Мерзімі (күн)</label><Input type="number" value={form.duration_days} onChange={(e) => setForm({ ...form, duration_days: e.target.value })} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm text-muted-foreground">Макс запросов (-1 = ∞)</label><Input type="number" value={form.max_requests} onChange={(e) => setForm({ ...form, max_requests: e.target.value })} /></div>
-            <div><label className="text-sm text-muted-foreground">Макс авторов (-1 = ∞)</label><Input type="number" value={form.max_tracked_accounts} onChange={(e) => setForm({ ...form, max_tracked_accounts: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Макс сұраулар (-1 = ∞)</label><Input type="number" value={form.max_requests} onChange={(e) => setForm({ ...form, max_requests: e.target.value })} /></div>
+            <div><label className="text-sm text-muted-foreground">Макс авторлар (-1 = ∞)</label><Input type="number" value={form.max_tracked_accounts} onChange={(e) => setForm({ ...form, max_tracked_accounts: e.target.value })} /></div>
           </div>
-          <div><label className="text-sm text-muted-foreground">⚡ Токенов при покупке</label><Input type="number" value={form.tokens_included} onChange={(e) => setForm({ ...form, tokens_included: e.target.value })} placeholder="0" /></div>
           <div><label className="text-sm text-muted-foreground">Фичи (по одной на строку)</label><textarea className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-20" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} /></div>
           <div className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded" /><span className="text-sm">Активен</span></div>
         </div>
@@ -1905,7 +1901,7 @@ function AssignSubDialog({ plans, onClose, onAssign, saving }: { plans: any[]; o
             <label className="text-sm text-muted-foreground">Тариф</label>
             <Select value={planId} onValueChange={setPlanId}>
               <SelectTrigger><SelectValue placeholder="Выберите тариф" /></SelectTrigger>
-              <SelectContent>{plans.filter((p) => p.is_active).map((p) => (<SelectItem key={p.id} value={p.id}>{p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}</SelectItem>))}</SelectContent>
+              <SelectContent>{plans.filter((p) => p.is_active).map((p) => (<SelectItem key={p.id} value={p.id}>{p.name} — {p.price_rub === 0 ? "Тегін" : `${p.price_rub.toLocaleString()} ₸`}</SelectItem>))}</SelectContent>
             </Select>
           </div>
           <div><label className="text-sm text-muted-foreground">Срок (дней)</label><Input type="number" value={days} onChange={(e) => setDays(e.target.value)} /></div>
