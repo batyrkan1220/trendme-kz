@@ -436,6 +436,13 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           const shares = stats.share_count ?? stats.shares ?? videoData.shareCount ?? videoData.shares ?? 0;
 
           const videoId = videoData.aweme_id || videoData.id || awemeId;
+          const author = videoData.author || {};
+          const videoInfo = videoData.video || {};
+          const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+          const authorUsername = author.unique_id || author.uniqueId || "";
+          const authorAvatar = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
+          const caption = videoData.desc || videoData.caption || "";
+
           const trends = computeTrend(videoData);
           await adminClient
             .from("videos")
@@ -446,7 +453,18 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
             })
             .eq("platform_video_id", String(videoId));
 
-          return json({ views, likes, comments, shares, playCount: views, diggCount: likes, commentCount: comments, shareCount: shares, id: videoId, ...videoData });
+          return json({
+            views, likes, comments, shares,
+            playCount: views, diggCount: likes, commentCount: comments, shareCount: shares,
+            id: videoId, videoId,
+            thumbnailUrl: coverUrl, cover_url: coverUrl, cover: coverUrl,
+            channelName: authorUsername, author_username: authorUsername,
+            author_avatar_url: authorAvatar,
+            caption, desc: caption,
+            author: { uniqueId: authorUsername, avatarThumb: authorAvatar, nickname: author.nickname || "" },
+            video: { cover: coverUrl, duration: videoInfo.duration ? Math.round(videoInfo.duration / 1000) : 0 },
+            duration: videoInfo.duration ? Math.round(videoInfo.duration / 1000) : 0,
+          });
         }
 
         return json(videoData || {});
