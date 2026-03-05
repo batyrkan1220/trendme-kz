@@ -323,7 +323,7 @@ function UsersTab() {
                     <th className="text-left p-3 text-muted-foreground font-medium">Email</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Регистрация</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Тариф</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Токены</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Действия</th>
                   </tr>
