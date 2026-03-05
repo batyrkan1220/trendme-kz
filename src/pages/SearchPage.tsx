@@ -100,7 +100,7 @@ export default function SearchPage() {
     doSearch(q.trim());
   };
 
-  const results = searchResults?.videos || [];
+  const results = [...(searchResults?.videos || [])].sort((a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0));
   const relatedKeywords: string[] = searchResults?.relatedKeywords || [];
 
   return (
