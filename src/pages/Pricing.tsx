@@ -77,7 +77,7 @@ export default function Pricing() {
               const isPopular = plan.sort_order === 3; // 3 ай is best value
               const isActive = activePlanName === plan.name;
               const features = Array.isArray(plan.features) ? plan.features as string[] : [];
-              const isFree = plan.price_rub === 0;
+              const usageLimits = plan.usage_limits as Record<string, number> | null;
               const Icon = planIcons[plan.name] || Zap;
               const monthlyPrice = getMonthlyPrice(plan);
 
