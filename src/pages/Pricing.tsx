@@ -7,9 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const subtitles: Record<string, string> = {
-  "Старт": "Сервисті сынау үшін",
-  "Про": "Блогерлер мен SMM мамандарына",
-  "Бизнес": "Бизнес пен контент-зауытқа",
+  "Старт": "Для пробы сервиса",
+  "Про": "Для блогеров и SMM специалистов",
+  "Бизнес": "Для бизнеса и контент-команд",
 };
 
 
@@ -49,8 +49,8 @@ export default function Pricing() {
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in max-w-5xl mx-auto">
         <div className="text-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифтер</h1>
-          <p className="text-muted-foreground mt-2">Өзіңізге қолайлы тарифті таңдаңыз</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифы</h1>
+          <p className="text-muted-foreground mt-2">Выберите подходящий тариф</p>
         </div>
 
         {isLoading ? (
@@ -72,7 +72,7 @@ export default function Pricing() {
                   {isPopular && (
                     <div className="flex justify-center -mb-3 relative z-10">
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-foreground bg-gradient-to-r from-primary via-purple-500 to-pink-400 px-5 py-2 rounded-full shadow-lg">
-                        <Sparkles className="h-3.5 w-3.5" /> Пайдаланушылардың 68% таңдайды
+                        <Sparkles className="h-3.5 w-3.5" /> Выбирают 68% пользователей
                       </span>
                     </div>
                   )}
@@ -98,15 +98,15 @@ export default function Pricing() {
                       <span className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
                         {plan.price_rub === 0 ? "0₸" : `${plan.price_rub.toLocaleString("ru-RU")}₸`}
                       </span>
-                      <span className="text-sm text-muted-foreground ml-1">айына</span>
+                      <span className="text-sm text-muted-foreground ml-1">в месяц</span>
                     </div>
 
                     {/* Tokens included */}
                     <div className="mt-4 flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Кіреді:</span>
+                      <span className="text-sm text-muted-foreground">Включено:</span>
                       <Flame className="h-4 w-4 text-orange-500 shrink-0" />
                       <span className="font-bold text-foreground text-sm">
-                        {plan.tokens_included.toLocaleString("ru-RU")} токен
+                        {plan.tokens_included.toLocaleString("ru-RU")} токенов
                       </span>
                     </div>
 
@@ -134,7 +134,7 @@ export default function Pricing() {
                       }`}
                       disabled={isActive}
                     >
-                      {isActive ? "Белсенді ✓" : "Таңдау"}
+                      {isActive ? "Активен ✓" : "Выбрать"}
                     </Button>
                   </div>
                 </div>
