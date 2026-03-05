@@ -423,7 +423,10 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         console.log("video_stats: resolved URL =", video_url, "awemeId =", awemeId);
 
         const data = await callEnsemble("/tt/post/info", { url: video_url });
-        const videoData = unwrapVideo(data?.data || data);
+        // EnsembleData may return { "0": { ... } } or { data: { "0": { ... } } }
+        const rawData = data?.data || data;
+        const innerData = rawData?.["0"] || rawData;
+        const videoData = unwrapVideo(innerData);
 
         if (videoData) {
           const stats = videoData.statistics || videoData.stats || {};
