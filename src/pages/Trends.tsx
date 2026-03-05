@@ -374,9 +374,9 @@ export default function Trends() {
                               decoding="async"
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                              <div className="h-12 w-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                                <Play className="h-5 w-5 text-foreground ml-0.5" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:bg-white/90 transition-colors duration-200">
+                                <Play className="h-5 w-5 text-white group-hover:text-foreground ml-0.5 transition-colors duration-200" />
                               </div>
                             </div>
                           </div>
