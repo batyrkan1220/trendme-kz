@@ -76,9 +76,9 @@ const getTier = (views: number): TrendTier | null => {
 };
 
 const tierConfig: Record<TrendTier, { label: string; icon: any; className: string; order: number }> = {
-  strong: { label: "Сильный тренд", icon: Trophy, className: "bg-amber-500/90 text-white", order: 0 },
-  mid: { label: "Средний тренд", icon: Zap, className: "bg-primary/80 text-white", order: 1 },
-  micro: { label: "Микро тренд", icon: Target, className: "bg-accent/80 text-white", order: 2 },
+  strong: { label: "Взлетает 🚀", icon: Trophy, className: "bg-amber-500/90 text-white", order: 0 },
+  mid: { label: "В тренде 🔥", icon: Zap, className: "bg-primary/80 text-white", order: 1 },
+  micro: { label: "Набирает 📈", icon: Target, className: "bg-accent/80 text-white", order: 2 },
 };
 
 const PAGE_SIZE = 30;
