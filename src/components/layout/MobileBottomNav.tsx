@@ -20,6 +20,8 @@ const analysisItems = [
 
 interface MobileBottomNavProps {
   onMenuOpen: () => void;
+  onDrawerClose?: () => void;
+  drawerOpen?: boolean;
 }
 
 export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
