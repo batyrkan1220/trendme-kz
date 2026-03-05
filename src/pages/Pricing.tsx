@@ -80,13 +80,13 @@ export default function Pricing() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[1, 2, 3].map(i => (
               <Skeleton key={i} className="h-[320px] md:h-[420px] rounded-2xl" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-stretch">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-stretch">
             {sortedPlans.map((plan: any) => {
               const isPaid = plan.price_rub > 0;
               const isPopular = plan.sort_order === 3;
