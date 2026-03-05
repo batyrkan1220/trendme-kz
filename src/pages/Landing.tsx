@@ -540,7 +540,7 @@ export default function Landing() {
                   {faq.q}
                   <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground transition-transform group-open:rotate-90 shrink-0 ml-2" />
                 </summary>
-                <div className="px-4 md:px-6 pb-4 md:pb-6 text-xs md:text-base text-muted-foreground leading-relaxed -mt-1">
+                <div className="px-4 md:px-6 pb-4 md:pb-6 text-sm md:text-base text-muted-foreground leading-relaxed -mt-1">
                   {faq.a}
                 </div>
               </details>
