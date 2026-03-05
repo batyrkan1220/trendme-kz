@@ -131,7 +131,7 @@ serve(async (req) => {
     const sorted = Object.keys(responseParams).sort();
     const values = sorted.map(k => responseParams[k]);
     const sigString = ["result_notify", ...values, SECRET_KEY].join(";");
-    const responseSig = await md5(sigString);
+    const responseSig = md5(sigString);
 
     return new Response(
       `<?xml version="1.0" encoding="utf-8"?><response><pg_status>ok</pg_status><pg_description>Payment processed</pg_description><pg_salt>${responseSalt}</pg_salt><pg_sig>${responseSig}</pg_sig></response>`,
