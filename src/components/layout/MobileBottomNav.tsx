@@ -59,6 +59,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         background: "hsl(var(--background))",
         borderTop: "1px solid hsl(var(--border))",
         boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
+        pointerEvents: "auto",
       }}
     >
       {/* Analysis popover */}
