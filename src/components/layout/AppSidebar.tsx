@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import {
   LayoutDashboard, TrendingUp, Search,
-  Video, UserCircle, Star, ScrollText, Sparkles,
+  Video, UserCircle, Heart, ScrollText, Sparkles,
   ArrowRight, Shield,
   LogOut, ChevronLeft, ChevronRight, CreditCard
 } from "lucide-react";
@@ -31,7 +31,7 @@ const aiVideoItems: NavItem[] = [
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Избранные", icon: Star, path: "/library", iconColor: "text-amber-500" },
+  { label: "Избранные", icon: Heart, path: "/library", iconColor: "text-rose-500" },
   { label: "Подписка", icon: CreditCard, path: "/subscription", iconColor: "text-primary" },
 ];
 

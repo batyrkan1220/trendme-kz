@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sheet";
 import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
-  Star, ScrollText, LogOut, Shield, Sparkles, CreditCard
+  Heart, ScrollText, LogOut, Shield, Sparkles, CreditCard
 } from "lucide-react";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
 
@@ -31,7 +31,7 @@ const toolItems: NavItem[] = [
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Избранные", icon: Star, path: "/library", iconColor: "text-amber-500" },
+  { label: "Избранные", icon: Heart, path: "/library", iconColor: "text-rose-500" },
   { label: "Подписка", icon: CreditCard, path: "/subscription", iconColor: "text-primary" },
 ];
 
