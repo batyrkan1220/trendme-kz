@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useTokens } from "@/hooks/useTokens";
 import { ScriptGenerationPanel } from "@/components/ScriptGenerationPanel";
 
 const fmt = (n: number) => {
