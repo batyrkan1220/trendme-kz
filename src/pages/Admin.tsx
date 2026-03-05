@@ -432,8 +432,7 @@ function UsersTab() {
                 <SelectContent>
                   {plans.filter((p: any) => p.is_active).map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}
-                      {p.tokens_included > 0 ? ` (+${p.tokens_included} ⚡)` : ""}
+                      {p.name} — {p.price_rub === 0 ? "Тегін" : `${p.price_rub.toLocaleString()} ₸`}
                     </SelectItem>
                   ))}
                 </SelectContent>
