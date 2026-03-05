@@ -98,7 +98,7 @@ export default function Pricing() {
                       <span className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
                         {plan.price_rub === 0 ? "0₸" : `${plan.price_rub.toLocaleString("ru-RU")}₸`}
                       </span>
-                      <span className="text-sm text-muted-foreground ml-1">айына</span>
+                      <span className="text-sm text-muted-foreground ml-1">в месяц</span>
                     </div>
 
                     {/* Tokens included */}
