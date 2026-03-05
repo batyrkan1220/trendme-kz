@@ -64,18 +64,26 @@ Deno.serve(async (req) => {
       // Get all token balances
       const { data: allTokens } = await adminClient.from("user_tokens").select("*");
 
+      // Get all profiles (name, phone)
+      const { data: allProfiles } = await adminClient.from("profiles").select("user_id, name, phone");
+
       const enriched = users
         .filter((u: any) => !search || u.email?.toLowerCase().includes(search.toLowerCase()))
-        .map((u: any) => ({
-          id: u.id,
-          email: u.email,
-          created_at: u.created_at,
-          last_sign_in_at: u.last_sign_in_at,
-          email_confirmed_at: u.email_confirmed_at || null,
-          roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
-          subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
-          tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
-        }));
+        .map((u: any) => {
+          const profile = (allProfiles || []).find((p: any) => p.user_id === u.id);
+          return {
+            id: u.id,
+            email: u.email,
+            created_at: u.created_at,
+            last_sign_in_at: u.last_sign_in_at,
+            email_confirmed_at: u.email_confirmed_at || null,
+            name: profile?.name || null,
+            phone: profile?.phone || null,
+            roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
+            subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
+            tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
+          };
+        });
 
       return new Response(JSON.stringify({ users: enriched, total: users.length }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
