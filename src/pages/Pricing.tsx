@@ -49,8 +49,8 @@ export default function Pricing() {
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in max-w-5xl mx-auto">
         <div className="text-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифтер</h1>
-          <p className="text-muted-foreground mt-2">Өзіңізге қолайлы тарифті таңдаңыз</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифы</h1>
+          <p className="text-muted-foreground mt-2">Выберите подходящий тариф</p>
         </div>
 
         {isLoading ? (
