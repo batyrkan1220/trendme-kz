@@ -663,10 +663,14 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         // Parse user info
         let accountData: any = {};
+        let externalStats: any = {};
         if (userInfoRes.status === "fulfilled") {
           const raw = userInfoRes.value?.data || userInfoRes.value;
           accountData = raw?.user || raw || {};
+          // EnsembleData returns stats separately at data.stats level
+          externalStats = raw?.stats || {};
           console.log("User info keys:", JSON.stringify(Object.keys(accountData)));
+          console.log("External stats keys:", JSON.stringify(Object.keys(externalStats)));
         } else {
           console.error("User info fetch failed:", userInfoRes.reason);
         }
