@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ interface UsageLimits {
 
 export function useSubscription() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Get active subscription with plan details
   const { data: subscription, isLoading: subLoading } = useQuery({
@@ -91,6 +92,9 @@ export function useSubscription() {
       type: action,
       payload_json: { description: description || action },
     });
+
+    // Refresh usage counts immediately
+    queryClient.invalidateQueries({ queryKey: ["user-usage-counts"] });
 
     return true;
   };
