@@ -115,19 +115,12 @@ export default function Pricing() {
 
                     {/* Features list */}
                     <ul className="space-y-3 flex-1">
-                      {features.map((f: string) => {
-                        const isGift = isGiftFeature(f);
-                        return (
+                      {features.map((f: string) => (
                           <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
-                            {isGift ? (
-                              <Gift className="h-4 w-4 text-pink-500 shrink-0 mt-0.5" />
-                            ) : (
                               <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                            )}
                             <span>{f}</span>
                           </li>
-                        );
-                      })}
+                        ))}
                     </ul>
 
                     {/* CTA Button */}
