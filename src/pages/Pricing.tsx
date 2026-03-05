@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Check, Sparkles, Flame, Gift } from "lucide-react";
+import { Check, Sparkles, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,9 +12,6 @@ const subtitles: Record<string, string> = {
   "Бизнес": "Бизнес пен контент-зауытқа",
 };
 
-function isGiftFeature(feature: string): boolean {
-  return feature.includes("профиль анализі");
-}
 
 export default function Pricing() {
   const { user } = useAuth();
@@ -118,19 +115,12 @@ export default function Pricing() {
 
                     {/* Features list */}
                     <ul className="space-y-3 flex-1">
-                      {features.map((f: string) => {
-                        const isGift = isGiftFeature(f);
-                        return (
+                      {features.map((f: string) => (
                           <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
-                            {isGift ? (
-                              <Gift className="h-4 w-4 text-pink-500 shrink-0 mt-0.5" />
-                            ) : (
                               <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                            )}
                             <span>{f}</span>
                           </li>
-                        );
-                      })}
+                        ))}
                     </ul>
 
                     {/* CTA Button */}
