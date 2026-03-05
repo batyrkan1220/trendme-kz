@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
           email: u.email,
           created_at: u.created_at,
           last_sign_in_at: u.last_sign_in_at,
+          email_confirmed_at: u.email_confirmed_at || null,
           roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
           subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
           tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
