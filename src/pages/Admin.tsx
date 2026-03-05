@@ -1779,12 +1779,12 @@ function RecategorizeSection() {
 
           <Button
             onClick={startRecategorize}
-            disabled={isRunning}
+            disabled={isRunning || isStarting}
             size="lg"
             className="w-full gap-3 h-14 text-base"
           >
-            {isRunning ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
-            {isRunning ? "⏳ Рекатегоризация жүріп жатыр..." : "🔄 AI рекатегоризацияны бастау"}
+            {(isRunning || isStarting) ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+            {(isRunning || isStarting) ? "⏳ Рекатегоризация жүріп жатыр..." : "🔄 AI рекатегоризацияны бастау"}
           </Button>
 
           {isRunning && runningLog && (
