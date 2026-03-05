@@ -63,23 +63,31 @@ export default function Pricing() {
     return plan.price_rub;
   };
 
+  // On mobile, show paid plans first (1 ай first)
+  const sortedPlans = useMemo(() => {
+    if (!isMobile) return plans;
+    const paid = plans.filter((p: any) => p.price_rub > 0).sort((a: any, b: any) => a.sort_order - b.sort_order);
+    const free = plans.filter((p: any) => p.price_rub === 0);
+    return [...paid, ...free];
+  }, [plans, isMobile]);
+
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in max-w-4xl mx-auto">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Подписка</h1>
-          <p className="text-muted-foreground">Выберите подходящий тариф</p>
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 animate-fade-in max-w-4xl mx-auto pb-28 md:pb-8">
+        <div className="text-center space-y-1 md:space-y-2">
+          <h1 className="text-xl md:text-3xl font-bold text-foreground">Подписка</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Выберите подходящий тариф</p>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-[420px] rounded-2xl" />
+              <Skeleton key={i} className="h-[320px] md:h-[420px] rounded-2xl" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-            {plans.map((plan: any) => {
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-stretch">
+            {sortedPlans.map((plan: any) => {
               const isPaid = plan.price_rub > 0;
               const isPopular = plan.sort_order === 3;
               const isActive = activePlanName === plan.name;
