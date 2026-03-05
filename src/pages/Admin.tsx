@@ -1122,7 +1122,7 @@ function RefreshSection() {
       {logs.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2"><BookOpen className="h-5 w-5" />Журнал обновлений</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2"><ScrollText className="h-5 w-5" />Журнал обновлений</CardTitle>
             {totalVideos7d > 0 && (
               <p className="text-sm text-muted-foreground">📹 Добавлено видео за 7 дней: <span className="font-semibold text-foreground">{totalVideos7d}</span></p>
             )}
