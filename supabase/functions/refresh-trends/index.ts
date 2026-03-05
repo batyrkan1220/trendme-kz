@@ -490,7 +490,7 @@ Deno.serve(async (req: Request) => {
           console.log(`  First video keys: ${JSON.stringify(sampleKeys)}`);
         }
 
-        let noId = 0, lowViews = 0, tooOld = 0, inBatchDup = 0;
+        let noId = 0, lowViews = 0, tooOld = 0, inBatchDup = 0, nonCyrillic = 0;
 
         const rowsRaw = rawVideos.map((item: any) => {
           // Unwrap aweme_info wrapper
