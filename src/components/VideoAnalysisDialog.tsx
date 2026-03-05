@@ -41,6 +41,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [language, setLanguage] = useState<"ru" | "kk">("ru");
   const [showLangPicker, setShowLangPicker] = useState(false);
   const lastAnalyzedUrl = useRef<string | null>(null);
+  const { checkAndLog } = useSubscription();
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {
