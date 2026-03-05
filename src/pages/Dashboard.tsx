@@ -62,7 +62,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="px-3 md:px-8 lg:px-12 md:pt-8 lg:pt-10 max-w-3xl mx-auto w-full animate-fade-in pb-32 md:pb-12 overflow-x-hidden min-h-[calc(100dvh-4rem)] flex flex-col justify-center md:justify-start">
+      <div className="px-3 md:px-8 lg:px-12 max-w-3xl mx-auto w-full animate-fade-in pb-32 md:pb-12 overflow-x-hidden min-h-[calc(100dvh-4rem)] flex flex-col justify-center">
         {/* Greeting */}
         <div className="text-center mb-5 md:mb-10">
           <p className="text-muted-foreground text-xs md:text-sm mb-0.5">👋 {greeting}</p>
