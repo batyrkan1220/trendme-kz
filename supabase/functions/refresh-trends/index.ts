@@ -10,7 +10,7 @@ const SOCIALKIT_BASE = "https://api.socialkit.dev";
 
 // Filters
 const MIN_VIEWS = 3000;
-const MAX_AGE_DAYS = 90;
+const MAX_AGE_DAYS = 7;
 
 // Batching across niches
 const BATCH_SIZE = 1;
