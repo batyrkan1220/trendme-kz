@@ -282,12 +282,14 @@ function UsersTab() {
   }
 
   const planOrder = ["Старт", "Про", "Бизнес"];
-  const uniquePlanNames = [...new Set(allUsers.map((u: any) => u.subscription?.plans?.name).filter(Boolean))]
-    .sort((a, b) => {
-      const ia = planOrder.indexOf(a as string);
-      const ib = planOrder.indexOf(b as string);
+  const allPlanNames = (plans as any[])
+    .filter((p: any) => p.is_active)
+    .sort((a: any, b: any) => {
+      const ia = planOrder.indexOf(a.name);
+      const ib = planOrder.indexOf(b.name);
       return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-    }) as string[];
+    })
+    .map((p: any) => p.name) as string[];
 
   return (
     <div className="space-y-4">
@@ -308,7 +310,7 @@ function UsersTab() {
         >
           Все ({allUsers.length})
         </Button>
-        {uniquePlanNames.map((pn) => (
+        {allPlanNames.map((pn) => (
           <Button
             key={pn}
             size="sm"
