@@ -440,6 +440,7 @@ Deno.serve(async (req: Request) => {
         console.log("video_stats: resolved URL =", video_url, "awemeId =", awemeId);
 
         const data = await callEnsemble("/tt/post/info", { url: video_url });
+        await logApiUsage("video_stats", 1, { video_url });
         // EnsembleData may return { "0": { ... } } or { data: { "0": { ... } } }
         const rawData = data?.data || data;
         const innerData = rawData?.["0"] || rawData;
