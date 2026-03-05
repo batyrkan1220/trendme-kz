@@ -4,26 +4,26 @@ import { Link } from "react-router-dom";
 const Privacy = () => (
   <main className="min-h-screen bg-background text-foreground px-4 py-10 max-w-3xl mx-auto">
     <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8">
-      <ArrowLeft className="h-4 w-4" /> Басты бет
+      <ArrowLeft className="h-4 w-4" /> На главную
     </Link>
     <h1 className="text-2xl font-bold mb-6">Политика конфиденциальности</h1>
     <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
-      <p><strong className="text-foreground">1. Жиналатын деректер</strong></p>
-      <p>Біз тіркелу кезінде электрондық пошта мекенжайыңызды, атыңызды және нишаңызды жинаймыз. Сондай-ақ, сервисті пайдалану статистикасы жиналады.</p>
+      <p><strong className="text-foreground">1. Собираемые данные</strong></p>
+      <p>При регистрации мы собираем ваш адрес электронной почты, имя и нишу. Также собирается статистика использования Сервиса.</p>
 
-      <p><strong className="text-foreground">2. Деректерді пайдалану</strong></p>
-      <p>Деректеріңіз сервисті жақсарту, жеке ұсыныстар беру және техникалық қолдау көрсету мақсатында пайдаланылады. Біз деректерді үшінші тараптарға сатпаймыз.</p>
+      <p><strong className="text-foreground">2. Использование данных</strong></p>
+      <p>Ваши данные используются для улучшения Сервиса, предоставления персональных рекомендаций и оказания технической поддержки. Мы не продаём данные третьим лицам.</p>
 
-      <p><strong className="text-foreground">3. Деректерді сақтау</strong></p>
-      <p>Деректер қауіпсіз серверлерде сақталады. Аккаунт жойылған кезде барлық жеке деректер 30 күн ішінде толық жойылады.</p>
+      <p><strong className="text-foreground">3. Хранение данных</strong></p>
+      <p>Данные хранятся на защищённых серверах. При удалении аккаунта все персональные данные полностью удаляются в течение 30 дней.</p>
 
-      <p><strong className="text-foreground">4. Cookie файлдары</strong></p>
-      <p>Сервис авторизация және аналитика мақсатында cookie файлдарын пайдаланады.</p>
+      <p><strong className="text-foreground">4. Файлы cookie</strong></p>
+      <p>Сервис использует файлы cookie для авторизации и аналитики.</p>
 
-      <p><strong className="text-foreground">5. Пайдаланушы құқықтары</strong></p>
-      <p>Сіз кез келген уақытта деректеріңізге қол жеткізуді, түзетуді немесе жоюды сұрай аласыз. Бұл үшін support@trendme.kz мекенжайына жазыңыз.</p>
+      <p><strong className="text-foreground">5. Права пользователя</strong></p>
+      <p>Вы можете в любое время запросить доступ к своим данным, их исправление или удаление. Для этого напишите на support@trendme.kz.</p>
 
-      <p className="text-xs text-muted-foreground/60 pt-4">Соңғы жаңарту: 2026 жыл, наурыз</p>
+      <p className="text-xs text-muted-foreground/60 pt-4">Последнее обновление: март 2026 года</p>
     </div>
   </main>
 );
