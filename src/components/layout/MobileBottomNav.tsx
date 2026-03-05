@@ -94,6 +94,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             <Link
               key={item.path}
               to={item.path}
+              onClick={() => drawerOpen && onDrawerClose?.()}
               className={cn(
                 "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
                 active ? "text-primary" : "text-muted-foreground"
