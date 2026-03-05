@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search, TrendingUp, Video, Sparkles, UserCircle, Lock, ArrowRight } from "lucide-react";
+import { Search, TrendingUp, Video, Sparkles, UserCircle, Lock, ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,45 +12,40 @@ const actions = [
     title: "Поиск по слову",
     description: "Найдите вирусные видео по ключевым словам",
     path: "/search",
-    gradient: "from-blue-500/20 to-blue-600/5",
-    iconBg: "bg-blue-500/15",
-    iconColor: "text-blue-500",
+    iconBg: "bg-blue-500",
+    emoji: "🔍",
   },
   {
     icon: TrendingUp,
     title: "Тренды",
     description: "Проверьте найденные видео в радаре",
     path: "/trends",
-    gradient: "from-orange-500/20 to-orange-600/5",
-    iconBg: "bg-orange-500/15",
-    iconColor: "text-orange-500",
+    iconBg: "bg-orange-500",
+    emoji: "📈",
   },
   {
     icon: Video,
     title: "Анализ видео",
     description: "Разберите любое видео по полочкам с AI",
     path: "/video-analysis",
-    gradient: "from-purple-500/20 to-purple-600/5",
-    iconBg: "bg-purple-500/15",
-    iconColor: "text-purple-500",
+    iconBg: "bg-purple-500",
+    emoji: "🎬",
   },
   {
     icon: Sparkles,
     title: "AI Сценарий",
     description: "Создайте вирусный сценарий на основе тренда",
     path: "/ai-script",
-    gradient: "from-violet-500/20 to-violet-600/5",
-    iconBg: "bg-violet-500/15",
-    iconColor: "text-violet-500",
+    iconBg: "bg-violet-500",
+    emoji: "✨",
   },
   {
     icon: UserCircle,
     title: "Анализ профиля",
     description: "Изучите стратегию любого автора",
     path: "/account-analysis",
-    gradient: "from-emerald-500/20 to-emerald-600/5",
-    iconBg: "bg-emerald-500/15",
-    iconColor: "text-emerald-500",
+    iconBg: "bg-emerald-500",
+    emoji: "👤",
   },
 ];
 
@@ -70,67 +65,54 @@ export default function Dashboard() {
   }, [user]);
 
   const displayName = name || user?.email?.split("@")[0] || "";
-  const greeting = displayName ? `Привет, ${displayName}` : "Привет";
+  const greeting = displayName ? `Привет, ${displayName} 👋` : "Привет 👋";
 
   return (
     <AppLayout>
-      <div className="px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full animate-fade-in pb-32 md:pb-12 overflow-x-hidden min-h-[calc(100dvh-4rem)] flex flex-col justify-center">
+      <div className="px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full animate-fade-in pb-32 md:pb-12 overflow-x-hidden min-h-[calc(100dvh-4rem)] flex flex-col justify-center gap-6 md:gap-8">
+        
         {/* Greeting */}
-        <div className="text-center mb-6 md:mb-10">
-          <p className="text-muted-foreground text-xs md:text-sm mb-1">👋 {greeting}</p>
-          <h1 className="text-lg md:text-2xl font-bold text-foreground">
-            Найдем вирусные видео?)
+        <div className="text-center">
+          <h1 className="text-xl md:text-3xl font-bold text-foreground mb-1">
+            {greeting}
           </h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Что будем делать сегодня?
+          </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="space-y-3 md:space-y-4">
-          {/* Row 1: Поиск + Тренды */}
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
-            {actions.slice(0, 2).map((action) => (
-              <Link
-                key={action.path}
-                to={action.path}
-                className="group relative flex flex-col items-center text-center gap-2.5 p-4 md:p-7 rounded-2xl border border-border/40 bg-card active:scale-[0.97] hover:border-primary/30 hover:shadow-xl transition-all duration-300 overflow-hidden"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                <div className={`relative h-10 w-10 md:h-12 md:w-12 rounded-xl ${action.iconBg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                  <action.icon className={`h-5 w-5 md:h-6 md:w-6 ${action.iconColor}`} />
-                </div>
-                <div className="relative">
-                  <p className="font-semibold text-[13px] md:text-base text-foreground">{action.title}</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 leading-snug">{action.description}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Row 2: Анализ видео + AI Сценарий + Анализ профиля */}
-          <div className="grid grid-cols-3 gap-2.5 md:gap-4">
-            {actions.slice(2).map((action) => (
-              <Link
-                key={action.path}
-                to={action.path}
-                className="group relative flex flex-col items-center text-center gap-2 p-3 md:p-6 rounded-2xl border border-border/40 bg-card active:scale-[0.97] hover:border-primary/30 hover:shadow-xl transition-all duration-300 overflow-hidden"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                <div className={`relative h-9 w-9 md:h-11 md:w-11 rounded-xl ${action.iconBg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                  <action.icon className={`h-4 w-4 md:h-5 md:w-5 ${action.iconColor}`} />
-                </div>
-                <div className="relative">
-                  <p className="font-semibold text-[11px] md:text-sm text-foreground leading-tight">{action.title}</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 leading-snug hidden md:block">{action.description}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+        {/* Quick Actions — List style */}
+        <div className="rounded-2xl border border-border/50 bg-card overflow-hidden divide-y divide-border/40">
+          {actions.map((action) => (
+            <Link
+              key={action.path}
+              to={action.path}
+              className="group flex items-center gap-3.5 md:gap-4 px-4 py-3.5 md:px-5 md:py-4 hover:bg-muted/50 active:bg-muted/70 transition-colors duration-150"
+            >
+              <div className={`shrink-0 h-10 w-10 md:h-11 md:w-11 rounded-xl ${action.iconBg} flex items-center justify-center shadow-sm`}>
+                <action.icon className="h-5 w-5 md:h-5.5 md:w-5.5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm md:text-base text-foreground">{action.title}</p>
+                <p className="text-[11px] md:text-xs text-muted-foreground leading-snug truncate">{action.description}</p>
+              </div>
+              <ChevronRight className="shrink-0 h-4 w-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200" />
+            </Link>
+          ))}
         </div>
 
         {/* Usage limits widget for trial users */}
         {hasActiveSubscription && isFreeTrial && limits && !subLoading && (
-          <div className="mt-6 md:mt-8 rounded-2xl border border-border/40 bg-card p-4 md:p-6">
-            <p className="font-bold text-foreground text-[13px] md:text-base mb-1">Ваши лимиты</p>
-            <p className="text-[11px] md:text-xs text-muted-foreground mb-3">Пробный тариф имеет ограничения. Оформите подписку — и пользуйтесь без лимитов.</p>
+          <div className="rounded-2xl border border-border/50 bg-card p-4 md:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-foreground text-sm md:text-base">Ваши лимиты</p>
+              <Link
+                to="/subscription"
+                className="inline-flex items-center gap-1 text-[11px] md:text-xs font-medium text-primary hover:underline"
+              >
+                Улучшить <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
             <div className="grid grid-cols-2 gap-2.5 md:gap-3">
               {([
                 { key: "search" as const, label: "Поиск", limit: limits.search },
@@ -141,53 +123,52 @@ export default function Dashboard() {
                 const remaining = getRemaining(item.key);
                 const total = item.limit!;
                 const used = total - (remaining ?? 0);
+                const pct = total > 0 ? ((remaining ?? 0) / total) * 100 : 0;
                 return (
-                  <div key={item.key} className="rounded-xl bg-muted/50 p-2.5 md:p-3">
-                    <div className="flex items-center justify-between mb-1.5">
+                  <div key={item.key} className="rounded-xl bg-muted/40 p-3">
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-[11px] md:text-xs font-medium text-muted-foreground">{item.label}</span>
-                      <span className="text-[11px] md:text-xs font-bold text-foreground">{remaining}/{total}</span>
+                      <span className={`text-[11px] md:text-xs font-bold ${remaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
+                        {remaining}/{total}
+                      </span>
                     </div>
-                    <div className="flex gap-1">
-                      {Array.from({ length: total }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-2 flex-1 rounded-full transition-all duration-300"
-                          style={{
-                            background: i < used
-                              ? "hsl(var(--destructive))"
-                              : "hsl(142 71% 45%)",
-                            opacity: i < used ? 0.7 : 1,
-                          }}
-                        />
-                      ))}
+                    <div className="h-1.5 w-full rounded-full bg-border/60 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${pct}%`,
+                          background: pct > 40
+                            ? "hsl(142 71% 45%)"
+                            : pct > 0
+                              ? "hsl(38 92% 50%)"
+                              : "hsl(var(--destructive))",
+                        }}
+                      />
                     </div>
                   </div>
                 );
               })}
             </div>
-            <Link
-              to="/subscription"
-              className="mt-3 inline-flex items-center gap-1.5 text-[11px] md:text-xs font-medium text-primary hover:underline"
-            >
-              Улучшить тариф <ArrowRight className="h-3 w-3" />
-            </Link>
           </div>
         )}
 
         {/* Subscription banner */}
-        <div className="mt-6 md:mt-10 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-          <div>
-            <p className="font-bold text-foreground text-[13px] md:text-base">Вы находитесь в демо-режиме</p>
-            <p className="text-[11px] md:text-sm text-muted-foreground mt-0.5">Чтобы открыть все функции активируйте тариф</p>
+        <Link
+          to="/subscription"
+          className="group rounded-2xl border border-primary/20 p-4 md:p-5 flex items-center gap-4 hover:border-primary/40 transition-all duration-200"
+          style={{
+            background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--primary) / 0.02) 100%)",
+          }}
+        >
+          <div className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Lock className="h-5 w-5 text-primary" />
           </div>
-          <Link
-            to="/subscription"
-            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[13px] md:text-sm px-4 py-2.5 md:px-5 md:py-3 transition-colors w-full sm:w-auto justify-center"
-          >
-            <Lock className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            Выбрать тариф
-          </Link>
-        </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-foreground text-[13px] md:text-sm">Активируйте полный доступ</p>
+            <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5">Все функции без ограничений</p>
+          </div>
+          <ChevronRight className="shrink-0 h-5 w-5 text-primary/60 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
       </div>
     </AppLayout>
   );
