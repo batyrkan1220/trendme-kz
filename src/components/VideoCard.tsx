@@ -129,14 +129,29 @@ export function VideoCard({
       <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
         {playingId === video.id ? (
           <>
-            <iframe
-              src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-              className="w-full h-full border-0"
-              allow="autoplay; encrypted-media; fullscreen"
-              allowFullScreen
-            />
+            {loadingPlay ? (
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              </div>
+            ) : playUrl ? (
+              <video
+                ref={videoRef}
+                src={playUrl}
+                className="w-full h-full object-contain bg-black"
+                controls
+                autoPlay
+                playsInline
+              />
+            ) : (
+              <iframe
+                src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                className="w-full h-full border-0"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+              />
+            )}
             <button
-              onClick={() => onPlay(null)}
+              onClick={() => { onPlay(null); setPlayUrl(null); }}
               className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
               aria-label="Закрыть видео"
             >
