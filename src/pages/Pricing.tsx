@@ -178,19 +178,6 @@ export default function Pricing() {
                       {/* Divider */}
                       <div className={`border-t my-4 ${isPopular ? "border-primary/20" : "border-border/40"}`} />
 
-                      {/* Usage limits for trial */}
-                      {usageLimits && (
-                        <div className="space-y-1.5 mb-4">
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Лимиттер:</p>
-                          <div className="grid grid-cols-2 gap-1.5">
-                            {usageLimits.search != null && <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2.5 py-1.5">🔍 Іздеу: <strong>{usageLimits.search}</strong></div>}
-                            {usageLimits.video_analysis != null && <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2.5 py-1.5">🎬 Анализ: <strong>{usageLimits.video_analysis}</strong></div>}
-                            {usageLimits.account_analysis != null && <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2.5 py-1.5">👤 Профиль: <strong>{usageLimits.account_analysis}</strong></div>}
-                            {usageLimits.ai_script != null && <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2.5 py-1.5">✨ Сценарий: <strong>{usageLimits.ai_script}</strong></div>}
-                          </div>
-                        </div>
-                      )}
-
                       {/* Unlimited badge for paid plans */}
                       {!usageLimits && !isFree && (
                         <div className="mb-4 text-sm font-semibold text-primary flex items-center gap-1.5">
@@ -200,6 +187,35 @@ export default function Pricing() {
 
                       {/* Features list */}
                       <ul className="space-y-3 flex-1">
+                        {/* Show usage limits as list items for trial */}
+                        {usageLimits && (
+                          <>
+                            {usageLimits.search != null && (
+                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
+                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                                <span>🔍 Іздеу — <strong>{usageLimits.search}</strong> рет</span>
+                              </li>
+                            )}
+                            {usageLimits.video_analysis != null && (
+                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
+                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                                <span>🎬 Видео анализ — <strong>{usageLimits.video_analysis}</strong> рет</span>
+                              </li>
+                            )}
+                            {usageLimits.account_analysis != null && (
+                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
+                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                                <span>👤 Профиль анализ — <strong>{usageLimits.account_analysis}</strong> рет</span>
+                              </li>
+                            )}
+                            {usageLimits.ai_script != null && (
+                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
+                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                                <span>✨ AI Сценарий — <strong>{usageLimits.ai_script}</strong> рет</span>
+                              </li>
+                            )}
+                          </>
+                        )}
                         {features.map((f: string) => (
                           <li key={f} className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
                             <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
