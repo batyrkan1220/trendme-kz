@@ -691,7 +691,7 @@ function TrendsManagementTab() {
 function ManualSearchSection() {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
-  const [publishTime, setPublishTime] = useState<"7" | "30">("7");
+  const [publishTime, setPublishTime] = useState<"0" | "7" | "30">("0");
   const [sortType, setSortType] = useState<"3" | "1">("3");
   const [results, setResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
