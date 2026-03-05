@@ -1693,6 +1693,7 @@ function StatsSection() {
 
 function RecategorizeSection() {
   const queryClient = useQueryClient();
+  const [isStarting, setIsStarting] = useState(false);
 
   const { data: totalVideos } = useQuery({
     queryKey: ["total-videos-count"],
@@ -1714,7 +1715,12 @@ function RecategorizeSection() {
   const isRunning = logs.some((l: any) => l.status === "running");
   const runningLog = logs.find((l: any) => l.status === "running");
 
+  // Reset isStarting when server confirms running
+  if (isRunning && isStarting) setIsStarting(false);
+
   const startRecategorize = async () => {
+    if (isStarting || isRunning) return;
+    setIsStarting(true);
     toast.info("🔄 Рекатегоризация іске қосылды...");
     try {
       const session = (await supabase.auth.getSession()).data.session;
@@ -1730,6 +1736,7 @@ function RecategorizeSection() {
       queryClient.invalidateQueries({ queryKey: ["recat-logs"] });
     } catch (e: any) {
       toast.error(e.message || "Ошибка");
+      setIsStarting(false);
     }
     setTimeout(() => queryClient.invalidateQueries({ queryKey: ["recat-logs"] }), 2000);
   };
@@ -1772,12 +1779,12 @@ function RecategorizeSection() {
 
           <Button
             onClick={startRecategorize}
-            disabled={isRunning}
+            disabled={isRunning || isStarting}
             size="lg"
             className="w-full gap-3 h-14 text-base"
           >
-            {isRunning ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
-            {isRunning ? "⏳ Рекатегоризация жүріп жатыр..." : "🔄 AI рекатегоризацияны бастау"}
+            {(isRunning || isStarting) ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+            {(isRunning || isStarting) ? "⏳ Рекатегоризация жүріп жатыр..." : "🔄 AI рекатегоризацияны бастау"}
           </Button>
 
           {isRunning && runningLog && (
