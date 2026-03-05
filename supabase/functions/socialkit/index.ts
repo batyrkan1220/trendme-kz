@@ -13,7 +13,7 @@ function validateTikTokUrl(url: string): boolean {
     if (url.length > 500) return false;
     const parsed = new URL(url);
     if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
-    const allowedHosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com"];
+    const allowedHosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com", "vt.tiktok.com", "lite.tiktok.com"];
     return allowedHosts.some(h => parsed.hostname === h || parsed.hostname.endsWith("." + h));
   } catch {
     return false;
