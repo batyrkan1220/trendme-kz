@@ -73,6 +73,14 @@ export default function VideoAnalysis() {
       toast.error("Используйте только ссылку на TikTok (например: https://www.tiktok.com/@user/video/...)");
       return;
     }
+    // Check if it's a profile URL instead of a video URL
+    const trimmed = url.trim();
+    const hasVideoPath = /\/video\/\d+/.test(trimmed) || /\/photo\/\d+/.test(trimmed) || /\/v\/\d+/.test(trimmed) || /vm\.tiktok\.com/.test(trimmed) || /vt\.tiktok\.com/.test(trimmed);
+    const isProfileUrl = /@[\w.]+\/?(\?|$)/.test(trimmed) && !hasVideoPath;
+    if (isProfileUrl) {
+      toast.error("Бұл профиль сілтемесі 👤\nВидео сілтемесін жіберіңіз (мысалы: https://www.tiktok.com/@user/video/123...)", { duration: 5000 });
+      return;
+    }
     const ok = await checkAndLog("video_analysis", `Анализ видео: ${url.trim()}`);
     if (!ok) return;
     setLanguage(lang);
