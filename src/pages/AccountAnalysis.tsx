@@ -142,6 +142,10 @@ export default function AccountAnalysis() {
 
   const handleAnalyze = async () => {
     if (!url.trim() || isPending) return;
+    if (!isValidTikTokUrl(url.trim())) {
+      toast.error("Тек TikTok сілтемесін қолданыңыз (мысалы: https://www.tiktok.com/@username)");
+      return;
+    }
     const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${url.trim()}`);
     if (!ok) return;
     analyze(url.trim());

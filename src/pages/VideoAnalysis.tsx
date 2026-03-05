@@ -68,6 +68,10 @@ export default function VideoAnalysis() {
 
   const handleAnalyze = async (lang: "ru" | "kk") => {
     if (!url.trim()) return;
+    if (!isValidTikTokUrl(url.trim())) {
+      toast.error("Тек TikTok сілтемесін қолданыңыз (мысалы: https://www.tiktok.com/@user/video/...)");
+      return;
+    }
     const ok = await checkAndLog("video_analysis", `Анализ видео: ${url.trim()}`);
     if (!ok) return;
     setLanguage(lang);
