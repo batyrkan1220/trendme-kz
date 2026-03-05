@@ -98,6 +98,8 @@ Deno.serve(async (req: Request) => {
     } catch (e) {
       console.error("Failed to log API usage:", e);
     }
+
+    if (!res.ok) {
       const errText = await res.text();
       console.error(`EnsembleData error ${res.status}: ${errText}`);
       return json({ error: `EnsembleData API error: ${res.status}` }, 502);
