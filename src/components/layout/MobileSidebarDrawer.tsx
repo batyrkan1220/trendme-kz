@@ -33,6 +33,7 @@ const toolItems: NavItem[] = [
 const ideaItems: NavItem[] = [
   { label: "Избранные", icon: Star, path: "/library", iconColor: "text-amber-500" },
   { label: "Журнал", icon: ScrollText, path: "/journal", iconColor: "text-sky-500" },
+  { label: "Подписка", icon: CreditCard, path: "/pricing", iconColor: "text-primary" },
 ];
 
 interface Props {
