@@ -1852,7 +1852,7 @@ function TariffsTab() {
 }
 
 function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose: () => void; onSave: (p: any) => void; saving: boolean }) {
-  const [form, setForm] = useState({ ...plan, tokens_included: plan.tokens_included ?? 0, features: Array.isArray(plan.features) ? plan.features.join("\n") : "" });
+  const [form, setForm] = useState({ ...plan, features: Array.isArray(plan.features) ? plan.features.join("\n") : "" });
   const handleSave = () => {
     onSave({
       ...(plan.id ? { id: plan.id } : {}), name: form.name, price_rub: Number(form.price_rub), duration_days: Number(form.duration_days),
