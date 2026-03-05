@@ -692,6 +692,8 @@ Deno.serve(async (req: Request) => {
           .single();
 
         // activity_log is handled client-side via checkAndLog
+        const analyzeCredits = (postInfoRes.status === "fulfilled" ? 1 : 0) + (commentsRes.status === "fulfilled" && awemeId ? 1 : 0);
+        await logApiUsage("analyze_video", analyzeCredits, { video_url });
 
         return json(analysis);
       }
