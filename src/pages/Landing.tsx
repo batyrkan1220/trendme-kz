@@ -680,7 +680,7 @@ export default function Landing() {
               <Link to="/contacts" className="hover:text-foreground transition-colors">Контакты</Link>
             </div>
             <div className="space-y-1">
-              <p>© 2026 TrendMe</p>
+              <p>© 2026 trendme</p>
               <p>ИП Батырхан · БИН 970528301753</p>
               <p>г. Шымкент, ул. Кунаева 59, БЦ "Астана", офис 501</p>
             </div>
