@@ -20,9 +20,11 @@ const analysisItems = [
 
 interface MobileBottomNavProps {
   onMenuOpen: () => void;
+  onDrawerClose?: () => void;
+  drawerOpen?: boolean;
 }
 
-export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
+export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: MobileBottomNavProps) {
   const location = useLocation();
   const [showAnalysis, setShowAnalysis] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -92,6 +94,7 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
             <Link
               key={item.path}
               to={item.path}
+              onClick={() => drawerOpen && onDrawerClose?.()}
               className={cn(
                 "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
                 active ? "text-primary" : "text-muted-foreground"
@@ -103,9 +106,8 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
           );
         })}
 
-        {/* Analysis button with popover */}
         <button
-          onClick={() => setShowAnalysis(v => !v)}
+          onClick={() => { drawerOpen && onDrawerClose?.(); setShowAnalysis(v => !v); }}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
             analysisActive || showAnalysis ? "text-primary" : "text-muted-foreground"
@@ -117,6 +119,7 @@ export function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
 
         <Link
           to="/ai-script"
+          onClick={() => drawerOpen && onDrawerClose?.()}
           className={cn(
             "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
             location.pathname === "/ai-script" ? "text-primary" : "text-muted-foreground"
