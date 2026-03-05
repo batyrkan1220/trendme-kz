@@ -1712,7 +1712,59 @@ function StatsSection() {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Bulk limit controls */}
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/50">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs h-7"
+            onClick={() => {
+              const allNicheKeys = nicheStats.filter(s => s.niche !== "uncategorized").map(s => s.niche);
+              if (selectedNiches.size === allNicheKeys.length) {
+                setSelectedNiches(new Set());
+              } else {
+                setSelectedNiches(new Set(allNicheKeys));
+              }
+            }}
+          >
+            {selectedNiches.size === nicheStats.filter(s => s.niche !== "uncategorized").length && selectedNiches.size > 0 ? "Снять все" : "Выбрать все"}
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {selectedNiches.size > 0 ? `Выбрано: ${selectedNiches.size}` : "Выберите категории"}
+          </span>
+          <div className="flex items-center gap-1.5 ml-auto">
+            <Input
+              type="number"
+              className="w-20 h-7 text-xs text-center"
+              placeholder="Лимит"
+              value={bulkLimitValue}
+              onChange={(e) => setBulkLimitValue(e.target.value)}
+            />
+            <Button
+              size="sm"
+              variant="default"
+              className="h-7 text-xs gap-1"
+              disabled={selectedNiches.size === 0 || !bulkLimitValue}
+              onClick={() => {
+                const val = Number(bulkLimitValue);
+                setCategoryLimits(prev => {
+                  const updated = { ...prev };
+                  selectedNiches.forEach(n => { updated[n] = val || null; });
+                  return updated;
+                });
+                setHasChanges(true);
+                toast.success(`Лимит ${val || "∞"} установлен для ${selectedNiches.size} категорий`);
+                setSelectedNiches(new Set());
+                setBulkLimitValue("");
+              }}
+            >
+              <Edit2 className="h-3 w-3" />Применить
+            </Button>
+          </div>
+        </div>
+
         <div className="flex items-center gap-3 px-2 text-xs text-muted-foreground">
+          <span className="w-6" />
           <span className="w-28">Категория</span>
           <span className="flex-1" />
           <span className="w-20 text-right">Всего</span>
@@ -1722,6 +1774,19 @@ function StatsSection() {
         <div className="space-y-1 max-h-[500px] overflow-y-auto">
           {nicheStats.filter(s => s.niche !== "uncategorized").map((s) => (
             <div key={s.niche} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/30">
+              <input
+                type="checkbox"
+                checked={selectedNiches.has(s.niche)}
+                onChange={() => {
+                  setSelectedNiches(prev => {
+                    const next = new Set(prev);
+                    if (next.has(s.niche)) next.delete(s.niche);
+                    else next.add(s.niche);
+                    return next;
+                  });
+                }}
+                className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+              />
               <span className="text-sm font-medium w-28 truncate">{s.niche}</span>
               <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
                 <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${Math.min(100, (s.total / (nicheStats[0]?.total || 1)) * 100)}%` }} />
