@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface VideoData {
   id: string;
@@ -40,6 +41,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [language, setLanguage] = useState<"ru" | "kk">("ru");
   const [showLangPicker, setShowLangPicker] = useState(false);
   const lastAnalyzedUrl = useRef<string | null>(null);
+  const { checkAndLog } = useSubscription();
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {
@@ -68,8 +70,10 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     }
   }, [open, video]);
 
-  const startAnalysis = (lang: "ru" | "kk") => {
+  const startAnalysis = async (lang: "ru" | "kk") => {
     if (!video) return;
+    const ok = await checkAndLog("video_analysis", `Анализ видео: ${video.url}`);
+    if (!ok) return;
     setLanguage(lang);
     setShowLangPicker(false);
     analyze({ v: video, lang });
@@ -336,7 +340,11 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
                 {/* Generate Scenario Button */}
                 <button
-                  onClick={() => setShowScript(true)}
+                  onClick={async () => {
+                    const ok = await checkAndLog("ai_script", `AI Сценарий из трендов: ${video.url}`);
+                    if (!ok) return;
+                    setShowScript(true);
+                  }}
                   className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                 >
                   <Sparkles className="h-5 w-5" />
