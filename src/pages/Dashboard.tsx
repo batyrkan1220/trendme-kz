@@ -135,14 +135,19 @@ export default function Dashboard() {
                       <span className="text-[11px] md:text-xs font-medium text-muted-foreground">{item.label}</span>
                       <span className="text-[11px] md:text-xs font-bold text-foreground">{remaining}/{total}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-border overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-300"
-                        style={{
-                          width: `${pct}%`,
-                          background: pct >= 80 ? "hsl(var(--destructive))" : "hsl(var(--primary))",
-                        }}
-                      />
+                    <div className="flex gap-1">
+                      {Array.from({ length: total }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-2 flex-1 rounded-full transition-all duration-300"
+                          style={{
+                            background: i < used
+                              ? "hsl(var(--destructive))"
+                              : "hsl(142 71% 45%)",
+                            opacity: i < used ? 0.7 : 1,
+                          }}
+                        />
+                      ))}
                     </div>
                   </div>
                 );
