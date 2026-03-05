@@ -2,13 +2,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { useTokens } from "@/hooks/useTokens";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
-  Star, ScrollText, LogOut, Flame, ArrowRight, Shield, Sparkles
+  Star, ScrollText, LogOut, ArrowRight, Shield, Sparkles, CreditCard
 } from "lucide-react";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
 
@@ -46,8 +45,6 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
-  const { balance, totalEarned } = useTokens();
-  const tokenPercent = totalEarned > 0 ? Math.min(100, (balance / totalEarned) * 100) : 0;
 
   const handleLogout = async () => {
     await signOut();
@@ -82,15 +79,12 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
     </div>
   );
 
-  const initials = user?.email?.charAt(0).toUpperCase() || "U";
-
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col" style={{ maxHeight: '100dvh' }}>
         <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5 shrink-0">
           <TrendMeLogo size={28} />
           <SheetTitle className="font-bold text-base tracking-tight text-foreground">trendme</SheetTitle>
-          
         </SheetHeader>
 
         <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
@@ -101,32 +95,16 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
         </nav>
 
         <div className="border-t border-border/50 p-3 space-y-2 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px)+80px)]">
-          {/* Token widget - matches desktop */}
-          <div className="rounded-xl p-3 space-y-2 bg-muted/40">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Flame className="h-4 w-4 text-orange-500" />
-                <span className="text-sm font-semibold text-foreground">Осталось токенов:</span>
-              </div>
-              <span className="text-sm font-bold text-foreground">{balance}</span>
-            </div>
-            <div className="h-2 w-full rounded-full overflow-hidden bg-muted">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${tokenPercent}%`,
-                  background: "linear-gradient(90deg, hsl(220 80% 55%), hsl(258 80% 58%))"
-                }}
-              />
-            </div>
-            <Link
-              to="/pricing"
-              onClick={onClose}
-              className="flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary transition-colors"
-            >
-              Открыть тарифы <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
+          {/* Subscription link */}
+          <Link
+            to="/pricing"
+            onClick={onClose}
+            className="flex items-center gap-2 rounded-xl p-3 bg-muted/40 hover:bg-muted/60 transition-colors"
+          >
+            <CreditCard className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm font-semibold text-foreground flex-1">Тарифтер</span>
+            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+          </Link>
 
           <button
             onClick={handleLogout}

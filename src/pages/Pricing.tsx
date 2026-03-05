@@ -1,23 +1,25 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Check, Sparkles, Flame, Zap } from "lucide-react";
+import { Check, Sparkles, Zap, Crown, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
 
 const subtitles: Record<string, string> = {
-  "Старт": "Для пробы сервиса",
-  "Про": "Для блогеров и SMM специалистов",
-  "Бизнес": "Для бизнеса и контент-команд",
+  "Пробный": "Тегін сынап көріңіз",
+  "1 ай": "Айлық жазылым",
+  "3 ай": "3 айлық жазылым — 15% скидка",
 };
 
-const YEARLY_DISCOUNT = 0.2; // 20%
+const planIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  "Пробный": Gift,
+  "1 ай": Zap,
+  "3 ай": Crown,
+};
 
 export default function Pricing() {
   const { user } = useAuth();
-  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
 
   const { data: plans = [], isLoading } = useQuery({
     queryKey: ["plans-public"],
@@ -48,84 +50,50 @@ export default function Pricing() {
 
   const activePlanName = (userSub as any)?.plans?.name;
 
-  const getPrice = (basePrice: number) => {
-    if (basePrice === 0) return 0;
-    if (billing === "yearly") return Math.round(basePrice * (1 - YEARLY_DISCOUNT));
-    return basePrice;
+  // Monthly price for 3-month plan (for display)
+  const getMonthlyPrice = (plan: any) => {
+    if (plan.price_rub === 0) return 0;
+    if (plan.duration_days === 90) return Math.round(plan.price_rub / 3);
+    return plan.price_rub;
   };
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in max-w-5xl mx-auto">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифы</h1>
-          <p className="text-muted-foreground">Выберите подходящий тариф</p>
-
-          {/* Billing toggle */}
-          <div className="flex justify-center">
-            <div className="relative inline-flex items-center bg-muted rounded-full p-1">
-              {/* Yearly with badge */}
-              <button
-                onClick={() => setBilling("yearly")}
-                className={`relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  billing === "yearly"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Ежегодно
-                {/* Discount badge */}
-                <span
-                  className="absolute -top-3 -right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-md text-white"
-                  style={{ background: "hsl(350 80% 50%)" }}
-                >
-                  -20%
-                </span>
-              </button>
-
-              {/* Monthly */}
-              <button
-                onClick={() => setBilling("monthly")}
-                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  billing === "monthly"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Ежемесячно
-              </button>
-            </div>
-          </div>
+      <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in max-w-4xl mx-auto">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифтер</h1>
+          <p className="text-muted-foreground">Өзіңізге сәйкес тарифті таңдаңыз</p>
         </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-[480px] rounded-2xl" />
+              <Skeleton key={i} className="h-[420px] rounded-2xl" />
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
             {plans.map((plan: any) => {
-              const isPopular = plan.sort_order === 2;
+              const isPopular = plan.sort_order === 3; // 3 ай is best value
               const isActive = activePlanName === plan.name;
               const features = Array.isArray(plan.features) ? plan.features as string[] : [];
-              const price = getPrice(plan.price_rub);
               const isFree = plan.price_rub === 0;
+              const Icon = planIcons[plan.name] || Zap;
+              const monthlyPrice = getMonthlyPrice(plan);
 
               return (
                 <div key={plan.id} className="relative flex flex-col">
-                  {/* Popular badge floating above */}
+                  {/* Popular badge */}
                   {isPopular && (
                     <div className="flex justify-center mb-3 relative z-10">
                       <span
-                        className="inline-flex items-center gap-1.5 text-xs font-bold px-5 py-2 rounded-full shadow-lg animate-pulse"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold px-5 py-2 rounded-full shadow-lg"
                         style={{
                           background: "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))",
                           color: "white",
                         }}
                       >
-                        <Sparkles className="h-3.5 w-3.5" /> Выбирают 68% пользователей
+                        <Sparkles className="h-3.5 w-3.5" /> Ең тиімді
                       </span>
                     </div>
                   )}
@@ -141,7 +109,7 @@ export default function Pricing() {
                       boxShadow: "0 0 40px -10px hsl(var(--primary) / 0.3), 0 20px 50px -15px hsl(var(--primary) / 0.15)",
                     } : undefined}
                   >
-                    {/* Gradient border for Про */}
+                    {/* Gradient border for popular */}
                     {isPopular && (
                       <div
                         className="absolute -inset-[2px] rounded-2xl pointer-events-none"
@@ -159,10 +127,10 @@ export default function Pricing() {
                     <div className="relative z-10 flex flex-col flex-1">
                       {/* Plan name */}
                       <div className="flex items-center gap-2">
+                        <Icon className={`h-5 w-5 ${isPopular ? "text-primary" : "text-muted-foreground"}`} />
                         <h3 className={`font-bold text-foreground ${isPopular ? "text-2xl" : "text-xl"}`}>
                           {plan.name}
                         </h3>
-                        {isPopular && <Zap className="h-5 w-5 text-primary" />}
                       </div>
                       <p className={`font-medium text-primary mt-0.5 italic ${isPopular ? "text-sm" : "text-xs"}`}>
                         {subtitles[plan.name] || ""}
@@ -170,31 +138,39 @@ export default function Pricing() {
 
                       {/* Price */}
                       <div className="mt-5">
-                        <div className="flex items-baseline gap-1">
-                          <span className={`font-extrabold text-foreground tracking-tight ${isPopular ? "text-5xl md:text-6xl" : "text-4xl md:text-5xl"}`}>
-                            {isFree ? "0₸" : `${price.toLocaleString("ru-RU")}₸`}
-                          </span>
-                          <span className="text-sm text-muted-foreground ml-1">в месяц</span>
-                        </div>
-                        {/* Show original price when yearly */}
-                        {!isFree && billing === "yearly" && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm text-muted-foreground line-through">
-                              {plan.price_rub.toLocaleString("ru-RU")}₸
-                            </span>
-                            <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded" style={{ background: "hsl(350 80% 50%)" }}>
-                              -20%
-                            </span>
+                        {isFree ? (
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-4xl md:text-5xl font-extrabold text-foreground">Тегін</span>
                           </div>
+                        ) : (
+                          <>
+                            <div className="flex items-baseline gap-1">
+                              <span className={`font-extrabold text-foreground tracking-tight ${isPopular ? "text-5xl md:text-6xl" : "text-4xl md:text-5xl"}`}>
+                                {plan.price_rub.toLocaleString("ru-RU")}₸
+                              </span>
+                            </div>
+                            {plan.duration_days === 90 && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-muted-foreground">
+                                  {monthlyPrice.toLocaleString("ru-RU")}₸ / ай
+                                </span>
+                                <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded" style={{ background: "hsl(350 80% 50%)" }}>
+                                  -15%
+                                </span>
+                              </div>
+                            )}
+                            {plan.duration_days === 30 && !isFree && (
+                              <span className="text-sm text-muted-foreground">/ ай</span>
+                            )}
+                          </>
                         )}
                       </div>
 
-                      {/* Tokens included */}
+                      {/* Duration */}
                       <div className={`mt-4 flex items-center gap-2 ${isPopular ? "bg-primary/10 rounded-lg px-3 py-2 -mx-1" : ""}`}>
-                        <span className="text-sm text-muted-foreground">Включено:</span>
-                        <Flame className="h-4 w-4 text-orange-500 shrink-0" />
+                        <span className="text-sm text-muted-foreground">Мерзімі:</span>
                         <span className={`font-bold text-foreground ${isPopular ? "text-base" : "text-sm"}`}>
-                          {plan.tokens_included.toLocaleString("ru-RU")} токенов
+                          {isFree ? "1 ай (сынақ)" : plan.duration_days === 90 ? "3 ай" : "1 ай"}
                         </span>
                       </div>
 
@@ -226,7 +202,7 @@ export default function Pricing() {
                         } : undefined}
                         disabled={isActive}
                       >
-                        {isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать Про" : "Выбрать"}
+                        {isActive ? "Белсенді ✓" : isPopular ? "🔥 3 ай таңдау" : isFree ? "Бастау" : "Таңдау"}
                       </Button>
                     </div>
                   </div>
