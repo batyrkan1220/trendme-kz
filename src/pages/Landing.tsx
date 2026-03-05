@@ -179,7 +179,7 @@ function AnimatedStat({ value, label }: { value: string; label: string }) {
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold text-foreground tracking-tight">
+      <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground tracking-tight">
         {target ? current : value.replace(/[\d,.]+/, "")}{suffix}
       </div>
       <div className="text-xs md:text-base text-muted-foreground mt-1 md:mt-2">{label}</div>
