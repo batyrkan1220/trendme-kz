@@ -141,11 +141,9 @@ export default function Dashboard() {
                         className="h-full rounded-full transition-all duration-500"
                         style={{
                           width: `${pct}%`,
-                          background: pct > 40
+                          background: pct > 0
                             ? "hsl(142 71% 45%)"
-                            : pct > 0
-                              ? "hsl(38 92% 50%)"
-                              : "hsl(var(--destructive))",
+                            : "hsl(var(--destructive))",
                         }}
                       />
                     </div>
