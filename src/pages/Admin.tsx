@@ -12,9 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  RefreshCw, Settings, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
-  Users, Activity, Video, Search, BookOpen, Heart, UserCircle, ScrollText,
-  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye, MessageCircle,
+  RefreshCw, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
+  Users, Activity, Video, Search, Heart, UserCircle, ScrollText,
+  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -863,16 +863,14 @@ function RoleAssigner({
 
 /* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
 function TrendsManagementTab() {
-  const [section, setSection] = useState<"refresh" | "manual" | "keywords" | "settings" | "stats" | "recat">("refresh");
+  const [section, setSection] = useState<"refresh" | "keywords" | "stats" | "recat">("refresh");
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         {[
           { key: "refresh" as const, label: "Обновление", icon: Play },
-          { key: "manual" as const, label: "Ручной поиск", icon: Search },
           { key: "keywords" as const, label: "Запросы", icon: Hash },
-          { key: "settings" as const, label: "Настройки", icon: Settings },
           { key: "stats" as const, label: "По категориям", icon: BarChart3 },
           { key: "recat" as const, label: "Рекатегоризация", icon: Sparkles },
         ].map(({ key, label, icon: Icon }) => (
@@ -882,338 +880,15 @@ function TrendsManagementTab() {
         ))}
       </div>
       {section === "refresh" && <RefreshSection />}
-      {section === "manual" && <ManualSearchSection />}
       {section === "keywords" && <KeywordsSection />}
-      {section === "settings" && <SettingsSection />}
       {section === "stats" && <StatsSection />}
       {section === "recat" && <RecategorizeSection />}
     </div>
   );
 }
 
-/* ==================== MANUAL SEARCH SECTION ==================== */
-function ManualSearchSection() {
-  const queryClient = useQueryClient();
-  const [query, setQuery] = useState("");
-  const [publishTime, setPublishTime] = useState<"0" | "7" | "30">("0");
-  const [sortType, setSortType] = useState<"3" | "1">("3");
-  const [results, setResults] = useState<any[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [adding, setAdding] = useState<Set<string>>(new Set());
-  const [added, setAdded] = useState<Set<string>>(new Set());
-  const [selectedNiche, setSelectedNiche] = useState("travel");
 
-  const NICHES = [
-    "animals","art","auto","beauty","books","business","cinema","comedy","dance","diy",
-    "education","entertainment","family","fashion","fitness","food","gaming","lifestyle",
-    "marketing","medicine","music","news","podcast","psychology","realestate","religion",
-    "shopping","sports","tech","travel"
-  ];
 
-  const fmt = (n: number) => {
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-    if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
-    return String(n);
-  };
-
-  const getPublishedAt = (video: any): string => {
-    const ct = video.createTime ?? video.create_time;
-    if (typeof ct === "number") {
-      const sec = ct > 1e12 ? Math.floor(ct / 1000) : ct;
-      return new Date(sec * 1000).toISOString();
-    }
-    if (video.created_at) return new Date(video.created_at).toISOString();
-    if (video.published_at) return new Date(video.published_at).toISOString();
-    return new Date().toISOString();
-  };
-
-  const getTimeAgo = (isoDate: string) => {
-    const h = Math.floor((Date.now() - new Date(isoDate).getTime()) / 3600000);
-    if (h < 1) return "только что";
-    if (h < 24) return `${h}ч назад`;
-    const d = Math.floor(h / 24);
-    if (d < 30) return `${d}д назад`;
-    return `${Math.floor(d / 30)} мес.`;
-  };
-
-  const doSearch = async () => {
-    if (!query.trim()) return;
-    setSearching(true);
-    setResults([]);
-    setAdded(new Set());
-    try {
-      // Use EnsembleData edge function for manual search
-      const session = (await supabase.auth.getSession()).data.session;
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ensemble-search`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            query: query.trim(),
-            period: publishTime,
-            sorting: sortType,
-          }),
-        }
-      );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Error ${res.status}`);
-      }
-      const data = await res.json();
-      setResults(data.videos || []);
-      if ((data.videos || []).length === 0) {
-        toast.info("Видео не найдены по этому запросу");
-      }
-    } catch (e: any) {
-      toast.error(e.message || "Ошибка поиска");
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const addToTrends = async (video: any) => {
-    const videoId = video.id || video.video_id || video.aweme_id;
-    if (!videoId) return;
-    setAdding(prev => new Set(prev).add(String(videoId)));
-    try {
-      const stats = video.stats || {};
-      const publishedAt = getPublishedAt(video);
-      const hoursSince = Math.max(1, (Date.now() - new Date(publishedAt).getTime()) / 3600000);
-      const views = stats.views ?? video.views ?? video.playCount ?? 0;
-      const likes = stats.likes ?? video.likes ?? video.diggCount ?? 0;
-      const comments = stats.comments ?? video.comments ?? video.commentCount ?? 0;
-      const shares = stats.shares ?? video.shares ?? video.shareCount ?? 0;
-      const vViews = views / hoursSince;
-      const vLikes = likes / hoursSince;
-      const vComments = comments / hoursSince;
-      const engagementRate = views > 0 ? (likes + comments) / views : 0;
-      const trendScore = 0.4 * vViews + 0.3 * vLikes + 0.2 * vComments + 0.1 * engagementRate * 10000;
-      const username = video.author?.uniqueId || video.author?.unique_id || video.author_username || "";
-
-      const row = {
-        platform: "tiktok",
-        platform_video_id: String(videoId),
-        url: video.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
-        caption: video.desc || video.caption || video.title || "",
-        cover_url: video.video?.cover || video.cover_url || video.cover || video.originCover || "",
-        author_username: username,
-        author_display_name: video.author?.nickname || video.author_display_name || "",
-        author_avatar_url: video.author?.avatar || video.author?.avatarThumb || video.author_avatar_url || "",
-        views,
-        likes,
-        comments,
-        shares,
-        duration_sec: video.video?.duration ?? video.duration_sec ?? video.duration ?? null,
-        fetched_at: new Date().toISOString(),
-        region: "world",
-        niche: selectedNiche,
-        categories: [selectedNiche],
-        velocity_views: vViews,
-        velocity_likes: vLikes,
-        velocity_comments: vComments,
-        trend_score: trendScore,
-        published_at: publishedAt,
-      };
-
-      // Use admin endpoint to upsert (videos table doesn't allow direct inserts via RLS)
-      const session = (await supabase.auth.getSession()).data.session;
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/socialkit`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "admin_add_video", video: row }),
-        }
-      );
-      if (!res.ok) throw new Error("Ошибка добавления");
-      setAdded(prev => new Set(prev).add(String(videoId)));
-      toast.success("Видео добавлено в тренды");
-      queryClient.invalidateQueries({ queryKey: ["admin-niche-stats"] });
-    } catch (e: any) {
-      toast.error(e.message || "Ошибка");
-    } finally {
-      setAdding(prev => { const s = new Set(prev); s.delete(String(videoId)); return s; });
-    }
-  };
-
-  const addAll = async () => {
-    const toAdd = results.filter(v => {
-      const vid = String(v.id || v.video_id || v.aweme_id || "");
-      return vid && !added.has(vid);
-    });
-    if (toAdd.length === 0) return;
-    toast.info(`Добавляю ${toAdd.length} видео...`);
-    let count = 0;
-    for (const v of toAdd) {
-      await addToTrends(v);
-      count++;
-    }
-    toast.success(`Добавлено ${count} видео`);
-  };
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Search className="h-5 w-5 text-primary" />
-            Ручной поиск видео
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Search input */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              placeholder="Введите запрос..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && doSearch()}
-              className="flex-1"
-            />
-            <Button onClick={doSearch} disabled={searching} className="gap-2">
-              {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-              Искать
-            </Button>
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Период:</span>
-              <div className="flex bg-muted rounded-lg p-0.5">
-                {([["0", "Все"], ["7", "7д"], ["30", "30д"]] as const).map(([val, label]) => (
-                  <button
-                    key={val}
-                    onClick={() => setPublishTime(val as any)}
-                    className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                      publishTime === val ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Сортировка:</span>
-              <div className="flex bg-muted rounded-lg p-0.5">
-                {([{ key: "3", label: "По дате" }, { key: "1", label: "По лайкам" }] as const).map(s => (
-                  <button
-                    key={s.key}
-                    onClick={() => setSortType(s.key as "3" | "1")}
-                    className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                      sortType === s.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Категория:</span>
-              <Select value={selectedNiche} onValueChange={setSelectedNiche}>
-                <SelectTrigger className="w-40 h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {NICHES.map(n => (
-                    <SelectItem key={n} value={n} className="text-xs">{n}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Results */}
-          {results.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-foreground">
-                  {results.length} видео найдено
-                </span>
-                <Button size="sm" variant="default" onClick={addAll} className="gap-1.5">
-                  <Plus className="h-3.5 w-3.5" />
-                  Добавить все ({results.length - added.size})
-                </Button>
-              </div>
-
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {results.map((video: any, i: number) => {
-                  const videoId = String(video.id || video.video_id || video.aweme_id || i);
-                  const stats = video.stats || {};
-                  const views = stats.views ?? video.views ?? video.playCount ?? 0;
-                  const likes = stats.likes ?? video.likes ?? video.diggCount ?? 0;
-                  const comments = stats.comments ?? video.comments ?? video.commentCount ?? 0;
-                  const publishedAt = getPublishedAt(video);
-                  const timeAgo = getTimeAgo(publishedAt);
-                  const caption = video.desc || video.caption || video.title || "";
-                  const username = video.author?.uniqueId || video.author?.unique_id || "";
-                  const coverUrl = video.video?.cover || video.cover_url || video.cover || "";
-                  const isAdded = added.has(videoId);
-                  const isAdding = adding.has(videoId);
-
-                  return (
-                    <div key={videoId} className={`flex items-center gap-3 p-2 rounded-lg border transition-colors ${isAdded ? "bg-primary/5 border-primary/30" : "border-border/50 hover:bg-muted/30"}`}>
-                      {/* Thumbnail */}
-                      {coverUrl ? (
-                        <img src={coverUrl} alt="" className="w-16 h-24 rounded-lg object-cover flex-shrink-0" loading="lazy" />
-                      ) : (
-                        <div className="w-16 h-24 rounded-lg bg-muted flex-shrink-0" />
-                      )}
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <p className="text-xs font-medium text-foreground line-clamp-2">{caption || "Без описания"}</p>
-                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                          {username && <span>@{username}</span>}
-                          <span>{timeAgo}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[11px]">
-                          <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" />{fmt(views)}</span>
-                          <span className="flex items-center gap-0.5"><Heart className="h-3 w-3" />{fmt(likes)}</span>
-                          <span className="flex items-center gap-0.5"><MessageCircle className="h-3 w-3" />{fmt(comments)}</span>
-                        </div>
-                      </div>
-
-                      {/* Add button */}
-                      <Button
-                        size="sm"
-                        variant={isAdded ? "secondary" : "default"}
-                        disabled={isAdded || isAdding}
-                        onClick={() => addToTrends(video)}
-                        className="gap-1 shrink-0 h-8"
-                      >
-                        {isAdding ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : isAdded ? (
-                          <><Check className="h-3.5 w-3.5" />Добавлено</>
-                        ) : (
-                          <><Plus className="h-3.5 w-3.5" />Добавить</>
-                        )}
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
 function RefreshSection() {
   const queryClient = useQueryClient();
@@ -1447,7 +1122,7 @@ function RefreshSection() {
       {logs.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2"><BookOpen className="h-5 w-5" />Журнал обновлений</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2"><ScrollText className="h-5 w-5" />Журнал обновлений</CardTitle>
             {totalVideos7d > 0 && (
               <p className="text-sm text-muted-foreground">📹 Добавлено видео за 7 дней: <span className="font-semibold text-foreground">{totalVideos7d}</span></p>
             )}
@@ -1744,62 +1419,8 @@ function KeywordsSection() {
   );
 }
 
-function SettingsSection() {
-  const queryClient = useQueryClient();
-  const { data: thresholds, isLoading } = useQuery({
-    queryKey: ["trend-settings", "thresholds"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "thresholds").single();
-      return (data?.value as any) || {};
-    },
-  });
-  const [localThresholds, setLocalThresholds] = useState<any>(null);
-  const current = localThresholds || thresholds || {};
-  const saveMutation = useMutation({
-    mutationFn: async (updated: any) => {
-      const { error } = await supabase.from("trend_settings").update({ value: updated, updated_at: new Date().toISOString() }).eq("key", "thresholds");
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Настройки сохранены"); setLocalThresholds(null); },
-    onError: () => toast.error("Ошибка сохранения"),
-  });
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-  const updateField = (path: string, value: number) => {
-    const updated = { ...current };
-    const keys = path.split(".");
-    let obj = updated;
-    for (let i = 0; i < keys.length - 1; i++) { obj[keys[i]] = { ...obj[keys[i]] }; obj = obj[keys[i]]; }
-    obj[keys[keys.length - 1]] = value;
-    setLocalThresholds(updated);
-  };
-  return (
-    <div className="space-y-4 max-w-lg">
-      <Card>
-        <CardHeader><CardTitle className="text-lg">Пороги и лимиты</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-           <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
-           <SettingRow label="Запросов на категорию" value={current.queries_per_niche ?? 8} onChange={(v) => updateField("queries_per_niche", v)} />
-           <SettingRow label="Запросов на слабую категорию" value={current.weak_queries_per_niche ?? 12} onChange={(v) => updateField("weak_queries_per_niche", v)} />
-           <SettingRow label="Видео на запрос (макс)" value={current.videos_per_query ?? 30} onChange={(v) => updateField("videos_per_query", v)} />
-          {localThresholds && (
-            <Button onClick={() => saveMutation.mutate(localThresholds)} disabled={saveMutation.isPending} className="w-full">
-              <Save className="h-4 w-4 mr-2" />Сохранить настройки
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
-function SettingRow({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-sm text-foreground">{label}</span>
-      <Input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-24 text-center" />
-    </div>
-  );
-}
+
 
 function StatsSection() {
   const queryClient = useQueryClient();
