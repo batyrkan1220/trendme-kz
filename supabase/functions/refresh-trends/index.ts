@@ -531,7 +531,7 @@ Deno.serve(async (req: Request) => {
             platform: "tiktok",
             platform_video_id: String(awemeId),
             url: `https://www.tiktok.com/@${uniqueId || "user"}/video/${awemeId}`,
-            caption,
+            caption: captionText,
             cover_url: coverUrl,
             author_username: uniqueId,
             author_display_name: nickname,
