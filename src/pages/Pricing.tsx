@@ -103,9 +103,9 @@ export default function Pricing() {
                     {/* Price */}
                     <div className="mt-4 flex items-baseline gap-1.5">
                       <span className="text-4xl font-extrabold text-foreground">
-                        {plan.price_rub === 0 ? "0₽" : `${plan.price_rub.toLocaleString("ru-RU")}₽`}
+                        {plan.price_rub === 0 ? "0₸" : `${plan.price_rub.toLocaleString("ru-RU")}₸`}
                       </span>
-                      <span className="text-sm text-muted-foreground">в месяц</span>
+                      <span className="text-sm text-muted-foreground">айына</span>
                     </div>
 
                     {/* Tokens included */}
