@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useMemo } from "react";
 
 const subtitles: Record<string, string> = {
   "Пробный": "Попробуйте бесплатно",
