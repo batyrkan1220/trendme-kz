@@ -75,6 +75,10 @@ export default function Admin() {
 
 /* ==================== PLATFORM TAB ==================== */
 function PlatformTab() {
+  const [apiDays, setApiDays] = useState<number>(30);
+  const [apiDateFrom, setApiDateFrom] = useState<Date | undefined>(undefined);
+  const [apiDateTo, setApiDateTo] = useState<Date | undefined>(undefined);
+
   const fetchHeaders = async () => ({
     Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
     apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -94,10 +98,10 @@ function PlatformTab() {
   });
 
   const { data: apiUsage } = useQuery({
-    queryKey: ["admin-api-usage"],
+    queryKey: ["admin-api-usage", apiDays],
     queryFn: async () => {
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=api-usage&days=30`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=api-usage&days=${apiDays}`,
         { headers: await fetchHeaders() }
       );
       if (!res.ok) throw new Error("Failed to fetch API usage");
@@ -105,6 +109,33 @@ function PlatformTab() {
     },
     refetchInterval: 60000,
   });
+
+  // Filter apiUsage.byDay by date range
+  const filteredApiUsage = useMemo(() => {
+    if (!apiUsage) return null;
+    if (!apiDateFrom && !apiDateTo) return apiUsage;
+
+    const fromStr = apiDateFrom ? format(apiDateFrom, "yyyy-MM-dd") : "0000-00-00";
+    const toStr = apiDateTo ? format(apiDateTo, "yyyy-MM-dd") : "9999-99-99";
+
+    const filteredByDay: Record<string, Record<string, number>> = {};
+    const filteredByAction: Record<string, number> = {};
+    let filteredTotal = 0;
+    let filteredCalls = 0;
+
+    for (const [day, actions] of Object.entries(apiUsage.byDay || {} as Record<string, Record<string, number>>)) {
+      if (day >= fromStr && day <= toStr) {
+        filteredByDay[day] = actions as Record<string, number>;
+        for (const [key, val] of Object.entries(actions as Record<string, number>)) {
+          filteredByAction[key] = (filteredByAction[key] || 0) + val;
+          filteredTotal += val;
+          filteredCalls++;
+        }
+      }
+    }
+
+    return { byDay: filteredByDay, byAction: filteredByAction, totalCredits: filteredTotal, totalCalls: filteredCalls };
+  }, [apiUsage, apiDateFrom, apiDateTo]);
 
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
 
