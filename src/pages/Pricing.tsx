@@ -103,10 +103,10 @@ export default function Pricing() {
 
                     {/* Tokens included */}
                     <div className="mt-4 flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Кіреді:</span>
+                      <span className="text-sm text-muted-foreground">Включено:</span>
                       <Flame className="h-4 w-4 text-orange-500 shrink-0" />
                       <span className="font-bold text-foreground text-sm">
-                        {plan.tokens_included.toLocaleString("ru-RU")} токен
+                        {plan.tokens_included.toLocaleString("ru-RU")} токенов
                       </span>
                     </div>
 
