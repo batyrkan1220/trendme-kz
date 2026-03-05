@@ -646,12 +646,19 @@ export default function Landing() {
                 <br className="hidden md:block" />
                 Первые инсайты через 30 секунд.
               </p>
-              <Link to="/auth?mode=register">
-                <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-sm md:text-lg font-bold px-8 md:px-14 h-12 md:h-16 shadow-xl hover:shadow-2xl transition-all">
-                  Создать аккаунт бесплатно
-                  <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <Link to="/auth?mode=register">
+                  <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-sm md:text-lg font-bold px-8 md:px-14 h-12 md:h-16 shadow-xl hover:shadow-2xl transition-all">
+                    Создать аккаунт бесплатно
+                    <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 rounded-xl text-sm md:text-lg font-bold px-8 md:px-14 h-12 md:h-16 transition-all">
+                    Войти
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
