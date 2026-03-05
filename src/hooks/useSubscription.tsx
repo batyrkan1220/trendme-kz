@@ -93,6 +93,9 @@ export function useSubscription() {
       payload_json: { description: description || action },
     });
 
+    // Refresh usage counts immediately
+    queryClient.invalidateQueries({ queryKey: ["user-usage-counts"] });
+
     return true;
   };
 
