@@ -86,7 +86,7 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends COUNT=30 PAGES=5 offset=page*10 sort=3,1 pub=7,30 maxAge=90 minViews=1000/3000";
+const VERSION = "refresh-trends COUNT=30 PAGES=5 offset=page*10 sort=3,1 pub=7,30 maxAge=7 minViews=1000/3000 noEarlyExit";
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
@@ -572,11 +572,8 @@ Deno.serve(async (req: Request) => {
             `  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, inBatchDup=${inBatchDup})`,
           );
 
-          const tooOldRatio = videos.length ? (tooOld / videos.length) : 1;
-          if (page === 0 && tooOldRatio >= 0.7) {
-            console.log(`  ⏭ "${query}": tooOldRatio=${tooOldRatio.toFixed(2)} skip remaining pages`);
-            break;
-          }
+          // No early exit on tooOldRatio — SocialKit date filter is unreliable,
+          // fresh videos may appear on later pages
 
           if (videoRows.length === 0) {
             if (videos.length < 5) {
