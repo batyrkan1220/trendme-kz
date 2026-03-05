@@ -272,136 +272,49 @@ export default function AccountAnalysis() {
                   <BarChart3 className="h-5 w-5 text-primary" /> Топ видео по просмотрам
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
-                  {topVideos.map((v, i) => (
-                    <div
-                      key={v.id || i}
-                      className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col"
-                    >
-                      {/* Video area */}
-                      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
-                        {playingId === v.id ? (
-                          <>
-                            <iframe
-                              src={`https://www.tiktok.com/player/v1/${v.id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                              className="w-full h-full border-0"
-                              allow="autoplay; encrypted-media; fullscreen"
-                              allowFullScreen
-                            />
-                            <button
-                              onClick={() => setPlayingId(null)}
-                              className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            {v.cover ? (
-                              <img src={v.cover} alt="" loading="lazy" className="w-full h-full object-cover cursor-pointer" onClick={() => setPlayingId(v.id)} />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center cursor-pointer bg-muted" onClick={() => setPlayingId(v.id)}>
-                                <Play className="h-12 w-12 text-muted-foreground/30" />
-                              </div>
-                            )}
-
-                            {/* Rank badge */}
-                            <div className="absolute top-2.5 left-2.5 z-10">
-                              <div className="h-7 w-7 rounded-full gradient-hero flex items-center justify-center text-xs font-bold text-primary-foreground shadow-lg">
-                                {i + 1}
-                              </div>
-                            </div>
-
-                            {/* Fav + Open */}
-                            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); toggleFav(v.id); }}
-                                className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                              >
-                                <Heart className={`h-3.5 w-3.5 transition-all ${userFavorites.includes(v.id) ? "text-primary fill-primary" : "text-foreground"}`} />
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); window.open(v.url, '_blank'); }}
-                                className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                              >
-                                <ExternalLink className="h-3.5 w-3.5 text-foreground" />
-                              </button>
-                            </div>
-
-                            {/* Play button center */}
-                            <div
-                              className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                              onClick={() => setPlayingId(v.id)}
-                            >
-                              <div className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
-                                <Play className="h-7 w-7 text-white fill-white ml-0.5" />
-                              </div>
-                            </div>
-
-                            {/* Duration */}
-                            {v.duration > 0 && (
-                              <div className="absolute bottom-2.5 left-2.5 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
-                                {Math.floor(v.duration / 60)}:{String(v.duration % 60).padStart(2, "0")}
-                              </div>
-                            )}
-
-                            {/* Bottom gradient */}
-                            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                          </>
-                        )}
-                      </div>
-
-                      {/* Stats bar */}
-                      <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
-                        <span className="flex flex-col items-center gap-0.5">
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-[11px] font-bold text-foreground">{formatNum(v.views)}</span>
-                        </span>
-                        <span className="flex flex-col items-center gap-0.5">
-                          <Heart className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-[11px] font-bold text-foreground">{formatNum(v.likes)}</span>
-                        </span>
-                        <span className="flex flex-col items-center gap-0.5">
-                          <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-[11px] font-bold text-foreground">{formatNum(v.comments)}</span>
-                        </span>
-                      </div>
-
-                      {/* Caption */}
-                      <div className="px-3 pt-1.5 pb-1">
-                        <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">{v.desc || "Без описания"}</p>
-                      </div>
-
-                      {/* Date */}
-                      {v.createTime > 0 && (
-                        <div className="px-3 pb-1">
-                          <span className="text-[11px] text-muted-foreground">{getTimeAgo(v.createTime)}</span>
-                        </div>
-                      )}
-
-                      {/* Analyze button */}
-                      <div className="px-3 pb-3 mt-auto">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setAnalysisVideo({
-                              id: v.id,
-                              url: v.url,
-                              cover_url: v.cover,
-                              platform_video_id: v.id,
-                              views: v.views,
-                              likes: v.likes,
-                              comments: v.comments,
-                              shares: v.shares,
-                              caption: v.desc,
-                            });
-                          }}
-                          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-                        >
-                          Анализ видео
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                  {topVideos.map((v) => {
+                    const cardData: VideoCardData = {
+                      id: v.id,
+                      platform_video_id: v.id,
+                      url: v.url,
+                      cover_url: v.cover,
+                      caption: v.desc,
+                      author_username: account?.username,
+                      author_avatar_url: account?.avatar_url,
+                      views: v.views,
+                      likes: v.likes,
+                      comments: v.comments,
+                      shares: v.shares,
+                      published_at: null,
+                      createTime: v.createTime,
+                      duration: v.duration,
+                    };
+                    return (
+                      <VideoCard
+                        key={v.id}
+                        video={cardData}
+                        playingId={playingId}
+                        onPlay={setPlayingId}
+                        isFavorite={userFavorites.includes(v.id)}
+                        onToggleFav={toggleFav}
+                        onAnalyze={(vid) => {
+                          setAnalysisVideo({
+                            id: vid.id,
+                            url: vid.url,
+                            cover_url: vid.cover_url || vid.cover,
+                            platform_video_id: vid.id,
+                            views: vid.views,
+                            likes: vid.likes,
+                            comments: vid.comments,
+                            shares: vid.shares,
+                            caption: vid.caption || vid.desc,
+                          });
+                        }}
+                        showTier={true}
+                        showAuthor={false}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}
