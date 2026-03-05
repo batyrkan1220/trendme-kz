@@ -161,7 +161,6 @@ Deno.serve(async (req: Request) => {
       name: query.trim(),
       period,
       sorting,
-      country: "us",
       match_exactly: "false",
       token: ensembleToken,
     });
