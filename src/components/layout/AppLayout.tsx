@@ -10,7 +10,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full">
+    <div className="relative flex min-h-[100dvh] w-full overflow-x-hidden">
       {!isMobile && (
         <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       )}
