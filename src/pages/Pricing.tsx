@@ -1,12 +1,13 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Check, Sparkles, Zap, Crown, Gift } from "lucide-react";
+import { Check, Sparkles, Zap, Crown, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const subtitles: Record<string, string> = {
   "Пробный": "Попробуйте бесплатно",
