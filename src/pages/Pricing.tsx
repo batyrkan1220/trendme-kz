@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
 
 const subtitles: Record<string, string> = {
   "Старт": "Для пробы сервиса",
@@ -12,8 +13,11 @@ const subtitles: Record<string, string> = {
   "Бизнес": "Для бизнеса и контент-команд",
 };
 
+const YEARLY_DISCOUNT = 0.2; // 20%
+
 export default function Pricing() {
   const { user } = useAuth();
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
 
   const { data: plans = [], isLoading } = useQuery({
     queryKey: ["plans-public"],
@@ -44,12 +48,54 @@ export default function Pricing() {
 
   const activePlanName = (userSub as any)?.plans?.name;
 
+  const getPrice = (basePrice: number) => {
+    if (basePrice === 0) return 0;
+    if (billing === "yearly") return Math.round(basePrice * (1 - YEARLY_DISCOUNT));
+    return basePrice;
+  };
+
   return (
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in max-w-5xl mx-auto">
-        <div className="text-center">
+        <div className="text-center space-y-4">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифы</h1>
-          <p className="text-muted-foreground mt-2">Выберите подходящий тариф</p>
+          <p className="text-muted-foreground">Выберите подходящий тариф</p>
+
+          {/* Billing toggle */}
+          <div className="flex justify-center">
+            <div className="relative inline-flex items-center bg-muted rounded-full p-1">
+              {/* Yearly with badge */}
+              <button
+                onClick={() => setBilling("yearly")}
+                className={`relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  billing === "yearly"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Ежегодно
+                {/* Discount badge */}
+                <span
+                  className="absolute -top-3 -right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-md text-white"
+                  style={{ background: "hsl(350 80% 50%)" }}
+                >
+                  -20%
+                </span>
+              </button>
+
+              {/* Monthly */}
+              <button
+                onClick={() => setBilling("monthly")}
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  billing === "monthly"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Ежемесячно
+              </button>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (
@@ -64,6 +110,8 @@ export default function Pricing() {
               const isPopular = plan.sort_order === 2;
               const isActive = activePlanName === plan.name;
               const features = Array.isArray(plan.features) ? plan.features as string[] : [];
+              const price = getPrice(plan.price_rub);
+              const isFree = plan.price_rub === 0;
 
               return (
                 <div key={plan.id} className="relative flex flex-col">
@@ -93,19 +141,7 @@ export default function Pricing() {
                       boxShadow: "0 0 40px -10px hsl(var(--primary) / 0.3), 0 20px 50px -15px hsl(var(--primary) / 0.15)",
                     } : undefined}
                   >
-                    {/* Glowing ring for Про */}
-                    {isPopular && (
-                      <div
-                        className="absolute inset-0 rounded-2xl pointer-events-none"
-                        style={{
-                          background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(280 80% 55% / 0.1), hsl(330 80% 60% / 0.1))",
-                          border: "2px solid transparent",
-                          backgroundClip: "padding-box",
-                          mask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)",
-                          WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)",
-                        }}
-                      />
-                    )}
+                    {/* Gradient border for Про */}
                     {isPopular && (
                       <div
                         className="absolute -inset-[2px] rounded-2xl pointer-events-none"
@@ -133,11 +169,24 @@ export default function Pricing() {
                       </p>
 
                       {/* Price */}
-                      <div className="mt-5 flex items-baseline gap-1">
-                        <span className={`font-extrabold text-foreground tracking-tight ${isPopular ? "text-5xl md:text-6xl" : "text-4xl md:text-5xl"}`}>
-                          {plan.price_rub === 0 ? "0₸" : `${plan.price_rub.toLocaleString("ru-RU")}₸`}
-                        </span>
-                        <span className="text-sm text-muted-foreground ml-1">в месяц</span>
+                      <div className="mt-5">
+                        <div className="flex items-baseline gap-1">
+                          <span className={`font-extrabold text-foreground tracking-tight ${isPopular ? "text-5xl md:text-6xl" : "text-4xl md:text-5xl"}`}>
+                            {isFree ? "0₸" : `${price.toLocaleString("ru-RU")}₸`}
+                          </span>
+                          <span className="text-sm text-muted-foreground ml-1">в месяц</span>
+                        </div>
+                        {/* Show original price when yearly */}
+                        {!isFree && billing === "yearly" && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-sm text-muted-foreground line-through">
+                              {plan.price_rub.toLocaleString("ru-RU")}₸
+                            </span>
+                            <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded" style={{ background: "hsl(350 80% 50%)" }}>
+                              -20%
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Tokens included */}
