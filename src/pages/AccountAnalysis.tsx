@@ -3,6 +3,7 @@ import {
   UserCircle, Users, Heart, Video, Loader2, Check, Eye, MessageCircle, Share2,
   TrendingUp, BarChart3, Zap, ExternalLink, Play, Music, X, Sparkles, Star
 } from "lucide-react";
+import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { useState, useCallback, useMemo } from "react";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { Input } from "@/components/ui/input";
