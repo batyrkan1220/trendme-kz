@@ -302,7 +302,7 @@ export default function Landing() {
           </p>
 
           <div className="mb-5 md:mb-8">
-            <Link to="/auth">
+            <Link to="/auth?mode=register">
               <Button className="bg-primary text-primary-foreground rounded-2xl text-sm md:text-lg font-bold px-6 md:px-12 h-12 md:h-16 shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.4)] hover:shadow-[0_12px_40px_-6px_hsl(var(--primary)/0.5)] hover:bg-primary/90 transition-all">
                 <Rocket className="mr-2 h-4 w-4 md:h-6 md:w-6" />
                 Попробовать бесплатно
