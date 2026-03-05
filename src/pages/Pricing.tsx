@@ -283,9 +283,16 @@ export default function Pricing() {
                             : "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 60%))",
                           color: "white",
                         } : undefined}
-                        disabled={isActive}
+                        disabled={isActive || loadingPlanId === plan.id}
+                        onClick={() => {
+                          if (isPaid && !isActive) {
+                            handlePayment(plan.id);
+                          }
+                        }}
                       >
-                        {isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать 3 мес" : isFree ? "Начать" : "Выбрать"}
+                        {loadingPlanId === plan.id ? (
+                          <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
+                        ) : isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать 3 мес" : isFree ? "Начать" : "Выбрать"}
                       </Button>
                     </div>
                   </div>
