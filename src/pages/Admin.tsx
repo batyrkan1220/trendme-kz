@@ -521,7 +521,7 @@ function PlatformTab() {
               )}
 
               {/* By day table */}
-              {apiUsage.byDay && Object.keys(apiUsage.byDay).length > 0 && (
+              {filteredApiUsage.byDay && Object.keys(filteredApiUsage.byDay).length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Күн бойынша</h4>
                   <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
