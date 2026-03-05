@@ -556,7 +556,7 @@ export default function Landing() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.12),transparent_60%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.06),transparent_50%)]" />
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-1.5 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-xs md:text-base font-semibold px-3 md:px-4 py-1 md:py-1.5 rounded-full mb-4 md:mb-6">
+              <div className="inline-flex items-center gap-1.5 bg-primary-foreground/15 backdrop-blur-sm text-primary-foreground text-sm md:text-base font-semibold px-3 md:px-4 py-1 md:py-1.5 rounded-full mb-4 md:mb-6">
                 <Flame className="h-3.5 w-3.5 md:h-5 md:w-5" />
                 Присоединяйтесь к 2 500+ авторам
               </div>
