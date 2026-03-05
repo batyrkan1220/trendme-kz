@@ -10,8 +10,8 @@ import { useMemo } from "react";
 
 const subtitles: Record<string, string> = {
   "Пробный": "Попробуйте бесплатно",
-  "1 ай": "Ежемесячная подписка",
-  "3 ай": "Подписка на 3 месяца — скидка 15%",
+  "1 мес": "Ежемесячная подписка",
+  "3 мес": "Подписка на 3 месяца — скидка 15%",
 };
 
 const displayNames: Record<string, string> = {
@@ -20,8 +20,8 @@ const displayNames: Record<string, string> = {
 
 const planIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "Пробный": Gift,
-  "1 ай": Zap,
-  "3 ай": Crown,
+  "1 мес": Zap,
+  "3 мес": Crown,
 };
 
 export default function Pricing() {
