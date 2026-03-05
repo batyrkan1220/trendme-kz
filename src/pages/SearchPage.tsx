@@ -241,188 +241,36 @@ export default function SearchPage() {
 
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
               {results.map((video: any, i: number) => {
-                const timeAgo = getTimeAgo(video.published_at);
-                const score = video.trend_score || 0;
-                const velViews = video.velocity_views || 0;
-                const isRocket = score > 500;
-                const isFire = score > 100;
+                const cardData: VideoCardData = {
+                  id: video.id,
+                  platform_video_id: video.platform_video_id,
+                  url: video.url,
+                  cover_url: video.cover_url,
+                  caption: video.caption,
+                  author_username: video.author_username,
+                  author_avatar_url: video.author_avatar_url,
+                  views: Number(video.views) || 0,
+                  likes: Number(video.likes) || 0,
+                  comments: Number(video.comments) || 0,
+                  shares: Number(video.shares) || 0,
+                  velocity_views: Number(video.velocity_views) || 0,
+                  published_at: video.published_at,
+                  duration: Number(video.duration_sec) || 0,
+                };
 
                 return (
-                  <div
+                  <VideoCard
                     key={video.id || i}
-                    className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col"
-                    style={{ animationDelay: `${i * 0.03}s` }}
-                  >
-                    {/* Video area */}
-                    <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
-                      {playingId === (video.id || video.platform_video_id) ? (
-                        <>
-                          <iframe
-                            src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                            className="w-full h-full border-0"
-                            allow="autoplay; encrypted-media; fullscreen"
-                            allowFullScreen
-                          />
-                          <button
-                            onClick={() => setPlayingId(null)}
-                            className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {video.cover_url ? (
-                            <img
-                              src={video.cover_url}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              className="w-full h-full object-cover cursor-pointer"
-                              onClick={() => setPlayingId(video.id || video.platform_video_id)}
-                            />
-                          ) : (
-                            <div
-                              className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
-                              onClick={() => setPlayingId(video.id || video.platform_video_id)}
-                            >
-                              <Play className="h-12 w-12 text-muted-foreground/30" />
-                            </div>
-                          )}
-
-                          {/* TikTok header bar */}
-                          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2.5 z-10 pointer-events-none">
-                            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm">
-                              <Music className="h-3 w-3 text-foreground" />
-                              <span className="text-[11px] font-bold text-foreground">Tik-Tok</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); toggleFav(video.id); }}
-                                className="pointer-events-auto w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                              >
-                                <Heart
-                                  className={`h-4 w-4 transition-all ${
-                                    userFavorites.includes(video.id)
-                                      ? "text-primary fill-primary"
-                                      : "text-primary"
-                                  }`}
-                                />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Trend indicators */}
-                          {isFire && (
-                            <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
-                              {isRocket ? (
-                                <div className="flex items-center gap-1 bg-orange-500/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg animate-[pulse_1.5s_ease-in-out_infinite]">
-                                  <Rocket className="h-3.5 w-3.5 text-white" />
-                                  <span className="text-[10px] font-bold text-white">Взлетает!</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 bg-red-500/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg">
-                                  <Flame className="h-3.5 w-3.5 text-white" />
-                                  <span className="text-[10px] font-bold text-white">В тренде</span>
-                                </div>
-                              )}
-                              {velViews > 10 && (
-                                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
-                                  <TrendingUp className="h-3 w-3 text-white" />
-                                  <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Open in TikTok */}
-                          <button
-                            onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
-                            className="absolute top-12 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5 text-foreground" />
-                          </button>
-
-                          {/* Play button center */}
-                          <div
-                            className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200"
-                            onClick={() => setPlayingId(video.id || video.platform_video_id)}
-                          >
-                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center">
-                              <Play className="h-6 w-6 md:h-7 md:w-7 text-white fill-white ml-0.5" />
-                            </div>
-                          </div>
-
-                          {/* Bottom gradient */}
-                          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                        </>
-                      )}
-                    </div>
-
-                  {/* Stats bar */}
-                  <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
-                    <span className="flex flex-col items-center gap-0.5">
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.views))}</span>
-                    </span>
-                    <span className="flex flex-col items-center gap-0.5">
-                      <Heart className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.likes))}</span>
-                    </span>
-                    <span className="flex flex-col items-center gap-0.5">
-                      <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span>
-                    </span>
-                    <span className="flex flex-col items-center gap-0.5">
-                      <Share2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.shares || 0))}</span>
-                    </span>
-                  </div>
-
-                    {/* Author row */}
-                    <div className="px-3 pt-3 flex items-center gap-2">
-                      {video.author_avatar_url ? (
-                        <img
-                          src={video.author_avatar_url}
-                          alt=""
-                          loading="lazy"
-                          className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
-                      )}
-                      <span className="text-sm font-semibold text-foreground truncate">
-                        @{video.author_username}
-                      </span>
-                    </div>
-
-                    {/* Caption */}
-                    <div className="px-3 pt-1.5 pb-1">
-                      <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">
-                        {video.caption || "Без описания"}
-                      </p>
-                    </div>
-
-                    {/* Time ago */}
-                    {timeAgo && (
-                      <div className="px-3 pb-2">
-                        <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
-                      </div>
-                    )}
-
-                    {/* Analyze button */}
-                    <div className="px-3 pb-3 mt-auto">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAnalysisVideo(video);
-                        }}
-                        className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-                      >
-                        Анализ видео
-                      </button>
-                    </div>
-                  </div>
+                    video={cardData}
+                    playingId={playingId}
+                    onPlay={setPlayingId}
+                    isFavorite={userFavorites.includes(video.id)}
+                    onToggleFav={toggleFav}
+                    onAnalyze={(v) => setAnalysisVideo(video)}
+                    showTier={true}
+                    showAuthor={true}
+                    showAnalyzeButton={true}
+                  />
                 );
               })}
             </div>
