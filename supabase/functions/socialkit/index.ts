@@ -733,6 +733,80 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         return json({ categorized: totalCategorized });
       }
 
+      case "admin_search": {
+        // Admin-only: raw SocialKit search with filters
+        const { data: roleCheck } = await adminClient
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (!roleCheck) return json({ error: "Admin access required" }, 403);
+
+        const { query: searchQuery, publish_time = "7", sort_type = "3" } = body;
+        if (!searchQuery) return json({ error: "query is required" }, 400);
+
+        const PAGES = 5;
+        const PAGE_SIZE = 10;
+        let allVideos: any[] = [];
+
+        for (let page = 0; page < PAGES; page++) {
+          try {
+            const data = await callSocialKit("/tiktok/search", {
+              query: searchQuery,
+              count: "30",
+              sort_type,
+              publish_time,
+              offset: String(page * PAGE_SIZE),
+            });
+            const vids = extractVideos(data);
+            allVideos.push(...vids);
+            if (vids.length < 5) break;
+          } catch (e) {
+            console.error(`Admin search page ${page} error:`, e);
+            break;
+          }
+        }
+
+        // Deduplicate
+        const seen = new Set<string>();
+        const unique: any[] = [];
+        for (const v of allVideos) {
+          const vid = String(v.id || v.video_id || v.aweme_id || "");
+          if (!vid || seen.has(vid)) continue;
+          seen.add(vid);
+          unique.push(v);
+        }
+
+        console.log(`Admin search "${searchQuery}": ${unique.length} unique videos`);
+        return json({ videos: unique });
+      }
+
+      case "admin_add_video": {
+        // Admin-only: add single video to trends DB
+        const { data: roleCheck2 } = await adminClient
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (!roleCheck2) return json({ error: "Admin access required" }, 403);
+
+        const { video: videoRow } = body;
+        if (!videoRow || !videoRow.platform_video_id) return json({ error: "video data required" }, 400);
+
+        const { error: upsertErr } = await adminClient
+          .from("videos")
+          .upsert(videoRow, { onConflict: "platform,platform_video_id" });
+
+        if (upsertErr) {
+          console.error("Admin add video error:", upsertErr);
+          return json({ error: upsertErr.message }, 500);
+        }
+
+        return json({ success: true });
+      }
+
       default:
         return json({ error: `Unknown action: ${action}` }, 400);
     }
