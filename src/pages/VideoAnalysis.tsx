@@ -78,7 +78,7 @@ export default function VideoAnalysis() {
     const hasVideoPath = /\/video\/\d+/.test(trimmed) || /\/photo\/\d+/.test(trimmed) || /\/v\/\d+/.test(trimmed) || /vm\.tiktok\.com/.test(trimmed) || /vt\.tiktok\.com/.test(trimmed);
     const isProfileUrl = /@[\w.]+\/?(\?|$)/.test(trimmed) && !hasVideoPath;
     if (isProfileUrl) {
-      toast.error("Бұл профиль сілтемесі 👤\nВидео сілтемесін жіберіңіз (мысалы: https://www.tiktok.com/@user/video/123...)", { duration: 5000 });
+      toast.error("Это ссылка на профиль 👤\nВставьте ссылку на видео (например: https://www.tiktok.com/@user/video/123...)", { duration: 5000 });
       return;
     }
     const ok = await checkAndLog("video_analysis", `Анализ видео: ${url.trim()}`);
