@@ -49,8 +49,6 @@ export default function ScriptFromVideo() {
 
   const handleAnalyze = async (lang: "ru" | "kk") => {
     if (!url.trim()) return;
-    const ok = await spend("video_analysis", `AI Сценарий: ${url.trim()}`);
-    if (!ok) return;
     setLanguage(lang);
     analyze({ videoUrl: url.trim(), lang });
   };

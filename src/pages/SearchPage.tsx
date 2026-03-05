@@ -100,8 +100,6 @@ export default function SearchPage() {
 
   const handleSearchDirect = async (q: string) => {
     if (!q.trim()) return;
-    const ok = await spend("search", `Поиск: ${q.trim()}`);
-    if (!ok) return;
     doSearch(q.trim());
   };
 
