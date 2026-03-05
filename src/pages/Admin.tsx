@@ -70,17 +70,17 @@ export default function Admin() {
 
 /* ==================== PLATFORM TAB ==================== */
 function PlatformTab() {
+  const fetchHeaders = async () => ({
+    Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+  });
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ["admin-platform-stats"],
     queryFn: async () => {
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=platform-stats`,
-        {
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
+        { headers: await fetchHeaders() }
       );
       if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
@@ -88,7 +88,21 @@ function PlatformTab() {
     refetchInterval: 60000,
   });
 
+  const { data: apiUsage } = useQuery({
+    queryKey: ["admin-api-usage"],
+    queryFn: async () => {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=api-usage&days=30`,
+        { headers: await fetchHeaders() }
+      );
+      if (!res.ok) throw new Error("Failed to fetch API usage");
+      return res.json();
+    },
+    refetchInterval: 60000,
+  });
+
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+
 
   const statCards = [
     { label: "Пользователи", value: stats?.totalUsers || 0, icon: Users, color: "text-primary" },
