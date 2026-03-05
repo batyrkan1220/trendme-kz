@@ -310,7 +310,7 @@ export default function Landing() {
             </Link>
           </div>
 
-          <div className="flex items-center justify-center gap-2 md:gap-8 text-[11px] md:text-base text-muted-foreground flex-wrap">
+          <div className="flex items-center justify-center gap-3 md:gap-8 text-xs md:text-base text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1 whitespace-nowrap">
               <CircleDot className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
               Без карты
