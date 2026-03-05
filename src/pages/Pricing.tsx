@@ -12,9 +12,6 @@ const subtitles: Record<string, string> = {
   "Бизнес": "Бизнес пен контент-зауытқа",
 };
 
-function isGiftFeature(feature: string): boolean {
-  return feature.includes("профиль анализі");
-}
 
 export default function Pricing() {
   const { user } = useAuth();
