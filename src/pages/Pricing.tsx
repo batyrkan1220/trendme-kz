@@ -13,8 +13,7 @@ const subtitles: Record<string, string> = {
 };
 
 function isGiftFeature(feature: string): boolean {
-  return feature.includes("аккаунт") || feature.includes("кілт") || 
-         feature.includes("Разведка") || feature.includes("Контент-радар");
+  return feature.includes("профиль анализі");
 }
 
 export default function Pricing() {
