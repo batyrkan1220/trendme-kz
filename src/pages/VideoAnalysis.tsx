@@ -21,6 +21,16 @@ const extractVideoId = (url: string): string => {
   return match ? match[1] : "";
 };
 
+const isValidTikTokUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url.trim());
+    const hosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com", "vt.tiktok.com", "lite.tiktok.com"];
+    return hosts.some(h => parsed.hostname === h || parsed.hostname.endsWith("." + h));
+  } catch {
+    return false;
+  }
+};
+
 export default function VideoAnalysis() {
   const [url, setUrl] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
