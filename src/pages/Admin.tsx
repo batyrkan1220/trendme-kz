@@ -491,7 +491,7 @@ function PlatformTab() {
               {filteredApiUsage.byAction && Object.keys(filteredApiUsage.byAction).length > 0 && (
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-muted-foreground">Функция бойынша бөлінуі</h4>
-                  {Object.entries(apiUsage.byAction as Record<string, number>)
+                  {Object.entries(filteredApiUsage.byAction as Record<string, number>)
                     .sort((a, b) => b[1] - a[1])
                     .map(([key, credits]) => {
                       const actionLabels: Record<string, string> = {
