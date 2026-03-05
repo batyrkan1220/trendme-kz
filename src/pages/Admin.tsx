@@ -310,7 +310,7 @@ function UsersTab() {
         >
           Все ({allUsers.length})
         </Button>
-        {uniquePlanNames.map((pn) => (
+        {allPlanNames.map((pn) => (
           <Button
             key={pn}
             size="sm"
