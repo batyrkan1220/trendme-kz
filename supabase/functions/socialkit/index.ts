@@ -30,7 +30,7 @@ function validateTikTokUsername(username: string): boolean {
 async function resolveShortUrl(url: string): Promise<string> {
   try {
     const parsed = new URL(url);
-    if (parsed.hostname === "vm.tiktok.com" || parsed.hostname === "vt.tiktok.com" || parsed.hostname === "lite.tiktok.com") {
+    if (["vm.tiktok.com", "vt.tiktok.com", "lite.tiktok.com", "m.tiktok.com"].includes(parsed.hostname)) {
       const res = await fetch(url, { method: "HEAD", redirect: "follow" });
       return res.url || url;
     }
@@ -41,8 +41,14 @@ async function resolveShortUrl(url: string): Promise<string> {
 /** Extract aweme_id (video ID) from a TikTok URL */
 function extractAwemeId(url: string): string | null {
   // https://www.tiktok.com/@user/video/1234567890
-  const match = url.match(/\/video\/(\d+)/);
-  return match ? match[1] : null;
+  const videoMatch = url.match(/\/video\/(\d+)/);
+  if (videoMatch) return videoMatch[1];
+  // https://www.tiktok.com/@user/photo/1234567890
+  const photoMatch = url.match(/\/photo\/(\d+)/);
+  if (photoMatch) return photoMatch[1];
+  // Fallback: any long digit sequence in the URL (aweme_id is typically 19 digits)
+  const digitMatch = url.match(/(\d{15,})/);
+  return digitMatch ? digitMatch[1] : null;
 }
 
 /** Extract username from a TikTok profile URL */
@@ -414,7 +420,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         video_url = await resolveShortUrl(video_url);
 
         const awemeId = extractAwemeId(video_url);
-        if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
+        console.log("video_stats: resolved URL =", video_url, "awemeId =", awemeId);
 
         const data = await callEnsemble("/tt/post/info", { url: video_url });
         const videoData = unwrapVideo(data?.data || data);
@@ -450,12 +456,15 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         video_url = await resolveShortUrl(video_url);
 
         const awemeId = extractAwemeId(video_url);
-        if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
+        console.log("analyze_video: resolved URL =", video_url, "awemeId =", awemeId);
 
         // 1. Fetch post info and comments from EnsembleData in parallel
+        const commentsFetch = awemeId
+          ? callEnsemble("/tt/post/comments", { aweme_id: awemeId })
+          : Promise.resolve(null);
         const [postInfoRes, commentsRes] = await Promise.allSettled([
           callEnsemble("/tt/post/info", { url: video_url }),
-          callEnsemble("/tt/post/comments", { aweme_id: awemeId }),
+          commentsFetch,
         ]);
 
         // Extract post info (stats, description, etc.)
