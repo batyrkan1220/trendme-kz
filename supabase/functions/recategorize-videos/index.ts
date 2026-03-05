@@ -40,18 +40,25 @@ Deno.serve(async (req: Request) => {
     // Parse params
     let offset = 0;
     let limit = 200;
+    let onlyOther = false;
     try {
       const body = await req.json();
       if (typeof body?.offset === "number") offset = body.offset;
       if (typeof body?.limit === "number") limit = body.limit;
+      if (body?.only_other === true) onlyOther = true;
     } catch {}
 
     // Fetch videos
-    const { data: videos, error: fetchErr } = await adminClient
+    let q = adminClient
       .from("videos")
       .select("id, caption, niche, categories, author_username")
-      .order("created_at", { ascending: true })
-      .range(offset, offset + limit - 1);
+      .order("created_at", { ascending: true });
+
+    if (onlyOther) {
+      q = q.eq("niche", "other");
+    }
+
+    const { data: videos, error: fetchErr } = await q.range(offset, offset + limit - 1);
 
     if (fetchErr) throw new Error(`Fetch error: ${fetchErr.message}`);
     if (!videos || videos.length === 0) {
@@ -127,9 +134,15 @@ No explanation, no markdown, just JSON.`
             continue;
           }
 
+          const updateData: any = { categories: validCats };
+          // If niche is 'other' or not in active categories, set to primary category
+          if (!video.niche || video.niche === 'other' || !ACTIVE_CATEGORIES.includes(video.niche)) {
+            updateData.niche = validCats[0];
+          }
+
           const { error: upErr } = await adminClient
             .from("videos")
-            .update({ categories: validCats })
+            .update(updateData)
             .eq("id", video.id);
 
           if (upErr) {
@@ -157,7 +170,7 @@ No explanation, no markdown, just JSON.`
             Authorization: `Bearer ${serviceRoleKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ offset: nextOffset, limit }),
+          body: JSON.stringify({ offset: nextOffset, limit, only_other: onlyOther }),
         });
       } catch (e) {
         console.error("Chain failed:", e);
