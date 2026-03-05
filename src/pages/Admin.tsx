@@ -250,7 +250,7 @@ function UsersTab() {
     if (pn) planCounts[pn] = (planCounts[pn] || 0) + 1;
   }
 
-  const planOrder = ["Старт", "Про", "Бизнес"];
+  const planOrder = ["Пробный", "1 ай", "3 ай"];
   const allPlanNames = (plans as any[])
     .filter((p: any) => p.is_active)
     .sort((a: any, b: any) => {
