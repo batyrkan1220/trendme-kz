@@ -141,7 +141,7 @@ export default function Pricing() {
                       <div className="mt-5">
                         {isFree ? (
                           <div className="flex items-baseline gap-1">
-                            <span className="text-4xl md:text-5xl font-extrabold text-foreground">Тегін</span>
+                            <span className="text-4xl md:text-5xl font-extrabold text-foreground">Бесплатно</span>
                           </div>
                         ) : (
                           <>
