@@ -161,7 +161,7 @@ export function VideoCard({
         ) : (
           <>
             {coverUrl ? (
-              <div className="relative w-full h-full cursor-pointer" onClick={() => onPlay(video.id)}>
+              <div className="relative w-full h-full cursor-pointer" onClick={handlePlay}>
                 <img
                   src={coverUrl}
                   alt=""
