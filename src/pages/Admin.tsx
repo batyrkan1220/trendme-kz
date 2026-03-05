@@ -1691,10 +1691,8 @@ function StatsSection() {
 }
 
 function RecategorizeSection() {
-  const [isRunning, setIsRunning] = useState(false);
-  const [result, setResult] = useState<{ updated: number; processed: number; hasMore: boolean } | null>(null);
+  const queryClient = useQueryClient();
 
-  // Get total video count
   const { data: totalVideos } = useQuery({
     queryKey: ["total-videos-count"],
     queryFn: async () => {
@@ -1703,13 +1701,23 @@ function RecategorizeSection() {
     },
   });
 
+  const { data: logs = [] } = useQuery({
+    queryKey: ["recat-logs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("recat_logs").select("*").order("started_at", { ascending: false }).limit(10);
+      return data || [];
+    },
+    refetchInterval: 3000,
+  });
+
+  const isRunning = logs.some((l: any) => l.status === "running");
+  const runningLog = logs.find((l: any) => l.status === "running");
+
   const startRecategorize = async () => {
-    setIsRunning(true);
-    setResult(null);
-    
+    toast.info("🔄 Рекатегоризация іске қосылды...");
     try {
       const session = (await supabase.auth.getSession()).data.session;
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-videos`, {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-videos`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -1718,26 +1726,28 @@ function RecategorizeSection() {
         },
         body: JSON.stringify({ offset: 0, limit: 200 }),
       });
-
-      if (!res.ok) throw new Error("Ошибка запуска");
-      const data = await res.json();
-      setResult({ 
-        updated: data.updated || 0, 
-        processed: data.processed || 0, 
-        hasMore: data.hasMore || false 
-      });
-      
-      if (data.hasMore) {
-        toast.success(`🚀 Бірінші батч: ${data.updated} жаңартылды, ${data.processed} өңделді. Қалғаны серверде фонда жалғасады!`);
-      } else {
-        toast.success(`✅ Аяқталды: ${data.updated} видео жаңартылды`);
-      }
+      queryClient.invalidateQueries({ queryKey: ["recat-logs"] });
     } catch (e: any) {
-      toast.error(e.message || "Ошибка рекатегоризации");
-    } finally {
-      setIsRunning(false);
+      toast.error(e.message || "Ошибка");
     }
+    setTimeout(() => queryClient.invalidateQueries({ queryKey: ["recat-logs"] }), 2000);
   };
+
+  const stopRecategorize = async () => {
+    if (!runningLog) return;
+    const { error } = await supabase.from("recat_logs").update({
+      status: "stopped",
+      error_message: "Остановлено вручную администратором",
+      finished_at: new Date().toISOString(),
+    }).eq("id", runningLog.id);
+    if (error) { toast.error("Не удалось остановить"); return; }
+    toast.success("Рекатегоризация остановлена");
+    queryClient.invalidateQueries({ queryKey: ["recat-logs"] });
+  };
+
+  const progressPercent = runningLog && runningLog.total_videos > 0
+    ? Math.round((runningLog.total_processed / runningLog.total_videos) * 100)
+    : 0;
 
   return (
     <div className="space-y-4">
@@ -1758,9 +1768,9 @@ function RecategorizeSection() {
               <p>📊 Жалпы видеолар: <strong>{totalVideos}</strong></p>
             </div>
           )}
-          
-          <Button 
-            onClick={startRecategorize} 
+
+          <Button
+            onClick={startRecategorize}
             disabled={isRunning}
             size="lg"
             className="w-full gap-3 h-14 text-base"
@@ -1769,13 +1779,29 @@ function RecategorizeSection() {
             {isRunning ? "⏳ Рекатегоризация жүріп жатыр..." : "🔄 AI рекатегоризацияны бастау"}
           </Button>
 
-          {result && (
-            <div className="bg-muted/40 rounded-md p-3 text-sm space-y-1">
-              <p>✅ Жаңартылды: <strong>{result.updated}</strong></p>
-              <p>📦 Өңделді (1-ші батч): <strong>{result.processed}</strong></p>
-              {result.hasMore && (
-                <p className="text-primary font-medium">🔄 Қалғаны серверде фонда жалғасуда...</p>
-              )}
+          {isRunning && runningLog && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Серверде жұмыс жасауда...</span>
+                </div>
+                <Button variant="destructive" size="sm" className="gap-1.5 shrink-0" onClick={stopRecategorize}>
+                  <X className="h-4 w-4" />Тоқтату
+                </Button>
+              </div>
+              <div className="bg-muted/40 rounded-md p-3 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Прогресс</span>
+                  <span className="font-bold">{progressPercent}%</span>
+                </div>
+                <Progress value={progressPercent} className="h-2" />
+                <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                  <div>Өңделді: <span className="font-semibold text-foreground">{runningLog.total_processed}</span></div>
+                  <div>Жаңартылды: <span className="font-semibold text-foreground">{runningLog.total_updated}</span></div>
+                  <div>Өзгерген жоқ: <span className="font-semibold text-foreground">{runningLog.total_unchanged}</span></div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1784,6 +1810,54 @@ function RecategorizeSection() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Logs */}
+      {logs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ScrollText className="h-5 w-5" /> Журнал рекатегоризации
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
+            {logs.map((log: any) => {
+              const startedAt = new Date(log.started_at);
+              const finishedAt = log.finished_at ? new Date(log.finished_at) : null;
+              const durationMs = finishedAt ? finishedAt.getTime() - startedAt.getTime() : null;
+              const durationStr = durationMs != null
+                ? durationMs < 60000
+                  ? `${Math.round(durationMs / 1000)}с`
+                  : `${Math.floor(durationMs / 60000)}м ${Math.round((durationMs % 60000) / 1000)}с`
+                : "—";
+
+              return (
+                <div key={log.id} className="bg-muted/30 rounded-lg p-3 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {log.status === "running" && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />}
+                      {log.status === "done" && <span className="text-primary">✅</span>}
+                      {log.status === "stopped" && <span className="text-destructive">⛔</span>}
+                      {log.status === "error" && <span className="text-destructive">❌</span>}
+                      <span className="text-xs text-muted-foreground">
+                        {startedAt.toLocaleString("ru-RU")}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">⏱ {durationStr}</span>
+                  </div>
+                  <div className="flex gap-4 text-xs">
+                    <span>Өңделді: <strong>{log.total_processed}</strong></span>
+                    <span>Жаңартылды: <strong>{log.total_updated}</strong></span>
+                    <span>Өзгерген жоқ: <strong>{log.total_unchanged}</strong></span>
+                  </div>
+                  {log.error_message && (
+                    <p className="text-xs text-destructive">{log.error_message}</p>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
