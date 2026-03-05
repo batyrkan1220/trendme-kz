@@ -559,7 +559,7 @@ Deno.serve(async (req: Request) => {
         const videoRows = [...map.values()];
 
         console.log(
-          `  📊 "${query}": ${rawVideos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, inBatchDup=${inBatchDup})`,
+          `  📊 "${query}": ${rawVideos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, nonCyrillic=${nonCyrillic}, inBatchDup=${inBatchDup})`,
         );
 
         if (videoRows.length === 0) continue;
