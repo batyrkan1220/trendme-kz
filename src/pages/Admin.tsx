@@ -1856,7 +1856,7 @@ function PlanEditDialog({ plan, onClose, onSave, saving }: { plan: any; onClose:
   const handleSave = () => {
     onSave({
       ...(plan.id ? { id: plan.id } : {}), name: form.name, price_rub: Number(form.price_rub), duration_days: Number(form.duration_days),
-      max_requests: Number(form.max_requests), max_tracked_accounts: Number(form.max_tracked_accounts), tokens_included: Number(form.tokens_included),
+      max_requests: Number(form.max_requests), max_tracked_accounts: Number(form.max_tracked_accounts),
       features: form.features.split("\n").map((f: string) => f.trim()).filter(Boolean), is_active: form.is_active, sort_order: Number(form.sort_order),
     });
   };
