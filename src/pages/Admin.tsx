@@ -1901,7 +1901,7 @@ function AssignSubDialog({ plans, onClose, onAssign, saving }: { plans: any[]; o
             <label className="text-sm text-muted-foreground">Тариф</label>
             <Select value={planId} onValueChange={setPlanId}>
               <SelectTrigger><SelectValue placeholder="Выберите тариф" /></SelectTrigger>
-              <SelectContent>{plans.filter((p) => p.is_active).map((p) => (<SelectItem key={p.id} value={p.id}>{p.name} — {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub} ₽`}</SelectItem>))}</SelectContent>
+              <SelectContent>{plans.filter((p) => p.is_active).map((p) => (<SelectItem key={p.id} value={p.id}>{p.name} — {p.price_rub === 0 ? "Тегін" : `${p.price_rub.toLocaleString()} ₸`}</SelectItem>))}</SelectContent>
             </Select>
           </div>
           <div><label className="text-sm text-muted-foreground">Срок (дней)</label><Input type="number" value={days} onChange={(e) => setDays(e.target.value)} /></div>
