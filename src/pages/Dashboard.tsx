@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search, TrendingUp, Lock } from "lucide-react";
+import { Search, TrendingUp, Lock, Video, Sparkles, UserCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,27 @@ export default function Dashboard() {
       description: "Проверьте найденные видео в радаре",
       path: "/trends",
       iconColor: "text-orange-500",
+    },
+    {
+      icon: Video,
+      title: "Анализ видео",
+      description: "Разберите любое видео по полочкам с AI",
+      path: "/video-analysis",
+      iconColor: "text-purple-500",
+    },
+    {
+      icon: Sparkles,
+      title: "AI Сценарий",
+      description: "Создайте вирусный сценарий на основе тренда",
+      path: "/ai-script",
+      iconColor: "text-violet-500",
+    },
+    {
+      icon: UserCircle,
+      title: "Анализ профиля",
+      description: "Изучите стратегию любого автора",
+      path: "/account-analysis",
+      iconColor: "text-green-500",
     },
   ];
 
