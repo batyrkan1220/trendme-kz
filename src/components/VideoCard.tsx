@@ -85,6 +85,36 @@ export function VideoCard({
   showAuthor = true,
   showAnalyzeButton = true,
 }: VideoCardProps) {
+  const [playUrl, setPlayUrl] = useState<string | null>(null);
+  const [loadingPlay, setLoadingPlay] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlay = async () => {
+    if (playingId === video.id) {
+      onPlay(null);
+      setPlayUrl(null);
+      return;
+    }
+    onPlay(video.id);
+    setLoadingPlay(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("socialkit", {
+        body: { action: "get_play_url", video_url: video.url },
+      });
+      if (error || !data?.play_url) {
+        console.error("Failed to get play URL:", error || data?.error);
+        setPlayUrl(null);
+      } else {
+        setPlayUrl(data.play_url);
+      }
+    } catch (e) {
+      console.error("Play URL fetch error:", e);
+      setPlayUrl(null);
+    } finally {
+      setLoadingPlay(false);
+    }
+  };
+
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
   const velViews = video.velocity_views || 0;
