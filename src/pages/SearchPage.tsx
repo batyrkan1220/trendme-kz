@@ -97,11 +97,15 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     if (!query.trim()) return;
+    const ok = await checkAndLog("search", `Поиск: ${query.trim()}`);
+    if (!ok) return;
     doSearch(query.trim());
   };
 
   const handleSearchDirect = async (q: string) => {
     if (!q.trim()) return;
+    const ok = await checkAndLog("search", `Поиск: ${q.trim()}`);
+    if (!ok) return;
     doSearch(q.trim());
   };
 

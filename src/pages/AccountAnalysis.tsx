@@ -131,6 +131,8 @@ export default function AccountAnalysis() {
 
   const handleAnalyze = async () => {
     if (!url.trim()) return;
+    const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${url.trim()}`);
+    if (!ok) return;
     analyze(url.trim());
   };
 
