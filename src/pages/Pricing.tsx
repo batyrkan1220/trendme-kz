@@ -65,7 +65,7 @@ export default function Pricing() {
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in max-w-4xl mx-auto">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифы</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Подписка</h1>
           <p className="text-muted-foreground">Выберите подходящий тариф</p>
         </div>
 
