@@ -14,7 +14,7 @@ const ACTIVE_CATEGORIES = [
   "tech", "travel"
 ];
 
-const BATCH_SIZE = 50; // videos per AI call
+const BATCH_SIZE = 50;
 const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 Deno.serve(async (req: Request) => {
@@ -27,7 +27,6 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
-    // Auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -37,16 +36,47 @@ Deno.serve(async (req: Request) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Parse params
     let offset = 0;
     let limit = 200;
     let onlyOther = false;
+    let logId: string | null = null;
     try {
       const body = await req.json();
       if (typeof body?.offset === "number") offset = body.offset;
       if (typeof body?.limit === "number") limit = body.limit;
       if (body?.only_other === true) onlyOther = true;
+      if (body?.log_id) logId = body.log_id;
     } catch {}
+
+    // Count total videos for progress tracking
+    let totalVideos = 0;
+    if (!logId) {
+      // First call — create log entry
+      let countQuery = adminClient.from("videos").select("id", { count: "exact", head: true });
+      if (onlyOther) countQuery = countQuery.eq("niche", "other");
+      const { count } = await countQuery;
+      totalVideos = count || 0;
+
+      const { data: logData, error: logErr } = await adminClient.from("recat_logs").insert({
+        status: "running",
+        total_videos: totalVideos,
+        current_offset: 0,
+      }).select("id").single();
+
+      if (logErr) console.error("Failed to create log:", logErr.message);
+      else logId = logData.id;
+    }
+
+    // Check if stopped
+    if (logId) {
+      const { data: currentLog } = await adminClient.from("recat_logs").select("status").eq("id", logId).single();
+      if (currentLog && currentLog.status !== "running") {
+        console.log(`Recategorization ${logId} was stopped. Aborting.`);
+        return new Response(JSON.stringify({ stopped: true, logId }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     // Fetch videos
     let q = adminClient
@@ -54,15 +84,21 @@ Deno.serve(async (req: Request) => {
       .select("id, caption, niche, categories, author_username")
       .order("created_at", { ascending: true });
 
-    if (onlyOther) {
-      q = q.eq("niche", "other");
-    }
+    if (onlyOther) q = q.eq("niche", "other");
 
     const { data: videos, error: fetchErr } = await q.range(offset, offset + limit - 1);
 
     if (fetchErr) throw new Error(`Fetch error: ${fetchErr.message}`);
     if (!videos || videos.length === 0) {
-      return new Response(JSON.stringify({ done: true, message: "No more videos", offset }), {
+      // Done — mark log as done
+      if (logId) {
+        await adminClient.from("recat_logs").update({
+          status: "done",
+          finished_at: new Date().toISOString(),
+          current_offset: offset,
+        }).eq("id", logId);
+      }
+      return new Response(JSON.stringify({ done: true, message: "No more videos", offset, logId }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -72,8 +108,18 @@ Deno.serve(async (req: Request) => {
     let updated = 0;
     let unchanged = 0;
 
-    // Process in batches
     for (let i = 0; i < videos.length; i += BATCH_SIZE) {
+      // Check stop signal every batch
+      if (logId) {
+        const { data: check } = await adminClient.from("recat_logs").select("status").eq("id", logId).single();
+        if (check && check.status !== "running") {
+          console.log(`Stopped mid-batch at offset ${offset}, batch ${i}`);
+          return new Response(JSON.stringify({ stopped: true, offset, processed: i, updated, unchanged, logId }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       const batch = videos.slice(i, i + BATCH_SIZE);
 
       const videoList = batch.map((v, idx) => {
@@ -116,13 +162,10 @@ No explanation, no markdown, just JSON.`
           const video = batch[idx];
           if (!video) continue;
 
-          // Filter to only valid categories
           const validCats = cats.filter(c => ACTIVE_CATEGORIES.includes(c));
-          // Always include original niche
           if (video.niche && !validCats.includes(video.niche)) {
             validCats.unshift(video.niche);
           }
-
           if (validCats.length === 0) continue;
 
           const currentCats = video.categories || [];
@@ -135,7 +178,6 @@ No explanation, no markdown, just JSON.`
           }
 
           const updateData: any = { categories: validCats };
-          // If niche is 'other' or not in active categories, set to primary category
           if (!video.niche || video.niche === 'other' || !ACTIVE_CATEGORIES.includes(video.niche)) {
             updateData.niche = validCats[0];
           }
@@ -154,10 +196,35 @@ No explanation, no markdown, just JSON.`
       } catch (e) {
         console.error(`Parse error for batch at ${i}:`, e.message);
       }
+
+      // Update progress in log after each batch
+      if (logId) {
+        await adminClient.from("recat_logs").update({
+          current_offset: offset + i + batch.length,
+          total_processed: offset + i + batch.length,
+          total_updated: updated,
+          total_unchanged: unchanged,
+        }).eq("id", logId);
+      }
     }
 
     const hasMore = videos.length === limit;
     console.log(`Done: ${updated} updated, ${unchanged} unchanged, hasMore=${hasMore}`);
+
+    // Update log
+    if (logId) {
+      const updatePayload: any = {
+        current_offset: offset + videos.length,
+        total_processed: offset + videos.length,
+        total_updated: updated,
+        total_unchanged: unchanged,
+      };
+      if (!hasMore) {
+        updatePayload.status = "done";
+        updatePayload.finished_at = new Date().toISOString();
+      }
+      await adminClient.from("recat_logs").update(updatePayload).eq("id", logId);
+    }
 
     // Self-chain if more videos
     if (hasMore) {
@@ -170,7 +237,7 @@ No explanation, no markdown, just JSON.`
             Authorization: `Bearer ${serviceRoleKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ offset: nextOffset, limit, only_other: onlyOther }),
+          body: JSON.stringify({ offset: nextOffset, limit, only_other: onlyOther, log_id: logId }),
         });
       } catch (e) {
         console.error("Chain failed:", e);
@@ -178,7 +245,7 @@ No explanation, no markdown, just JSON.`
     }
 
     return new Response(JSON.stringify({
-      success: true, offset, processed: videos.length, updated, unchanged, hasMore
+      success: true, offset, processed: videos.length, updated, unchanged, hasMore, logId
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
