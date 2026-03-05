@@ -595,7 +595,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border/30 text-center">
-            <p className="text-xs md:text-[15px] text-muted-foreground">
+            <p className="text-sm md:text-[15px] text-muted-foreground">
               © 2026 trendme. Все права защищены.
             </p>
           </div>
