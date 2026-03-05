@@ -240,12 +240,12 @@ Deno.serve(async (req: Request) => {
             messages: [
               {
                 role: "system",
-                content: `Given a TikTok search query, generate:
-1. "hashtags": 3-5 TikTok hashtags (without #) in the query language + English equivalents
-2. "related_keywords": 8-12 related single-word search terms that users might also search for. These should be associated words, synonyms, brands, actions related to the query. Mix languages (query language + English).
+                content: `Дан поисковый запрос для TikTok. Сгенерируй:
+1. "hashtags": 3-5 хэштегов TikTok (без #) ТОЛЬКО на русском и казахском языках. НЕ добавляй английские слова.
+2. "related_keywords": 8-12 связанных поисковых слов ТОЛЬКО на русском и казахском языках. НЕ переводи на английский. Это должны быть синонимы, бренды, действия, связанные с запросом.
 
-Return ONLY valid JSON: {"hashtags":["..."],"related_keywords":["..."]}
-Example for "пылесос": {"hashtags":["пылесос","vacuum","уборка","cleaning","cleantok"],"related_keywords":["моющий","dyson","xiaomi","робот","уборка","clean","обзор","лайфхак","квартира","порядок"]}`
+Верни ТОЛЬКО валидный JSON: {"hashtags":["..."],"related_keywords":["..."]}
+Пример для "пылесос": {"hashtags":["пылесос","уборка","чистота","клининг","пылесосим"],"related_keywords":["моющий","дайсон","сяоми","робот","уборка","обзор","лайфхак","квартира","порядок","чистка","генуборка","быт"]}`
               },
               { role: "user", content: query }
             ],
