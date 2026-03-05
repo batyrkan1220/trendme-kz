@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SOCIALKIT_BASE = "https://api.socialkit.dev";
+const ENSEMBLE_BASE = "https://ensembledata.com/apis";
 
 function validateTikTokUrl(url: string): boolean {
   try {
@@ -26,6 +26,18 @@ function validateTikTokUsername(username: string): boolean {
   return /^[a-zA-Z0-9_.]+$/.test(cleaned);
 }
 
+/** Extract aweme_id (video ID) from a TikTok URL */
+function extractAwemeId(url: string): string | null {
+  // https://www.tiktok.com/@user/video/1234567890
+  const match = url.match(/\/video\/(\d+)/);
+  return match ? match[1] : null;
+}
+
+/** Extract username from a TikTok profile URL */
+function extractUsername(url: string): string {
+  const match = url.match(/@([a-zA-Z0-9_.]+)/);
+  return match ? match[1] : url.split("@").pop()?.split("?")[0]?.split("/")[0] || "";
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -44,7 +56,14 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY")!;
+    const ensembleToken = Deno.env.get("ENSEMBLE_DATA_TOKEN")!;
+
+    if (!ensembleToken) {
+      return new Response(JSON.stringify({ error: "ENSEMBLE_DATA_TOKEN not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -70,37 +89,43 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
-    const callSocialKit = async (path: string, params: Record<string, string>) => {
-      const url = new URL(`${SOCIALKIT_BASE}${path}`);
+    /** Call EnsembleData API */
+    const callEnsemble = async (path: string, params: Record<string, string>) => {
+      const url = new URL(`${ENSEMBLE_BASE}${path}`);
+      params.token = ensembleToken;
       Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-      console.log(`SocialKit call: ${path}`, url.toString());
-      const res = await fetch(url.toString(), {
-        headers: { "x-access-key": socialKitKey },
-      });
+      console.log(`EnsembleData call: ${path}`, Object.keys(params).filter(k => k !== 'token').map(k => `${k}=${params[k]}`).join(', '));
+      const res = await fetch(url.toString());
       if (!res.ok) {
         const text = await res.text();
-        console.error(`SocialKit error ${res.status} for ${path}:`, text);
-        throw new Error(`SocialKit error ${res.status}: ${text}`);
+        console.error(`EnsembleData error ${res.status} for ${path}:`, text);
+        throw new Error(`EnsembleData error ${res.status}: ${text}`);
       }
       const data = await res.json();
-      console.log(`SocialKit ${path} response keys:`, JSON.stringify(Object.keys(data)));
+      console.log(`EnsembleData ${path} response keys:`, JSON.stringify(Object.keys(data)));
       return data;
     };
 
     const getPublishedAt = (video: any): string => {
-      if (video.createTime) return new Date(video.createTime * 1000).toISOString();
+      const ct = video.create_time || video.createTime || video.create_time;
+      if (ct) {
+        const ms = typeof ct === "number" ? (ct > 1e12 ? ct : ct * 1000) : 0;
+        if (ms > 0) return new Date(ms).toISOString();
+      }
       if (video.created_at) return new Date(video.created_at).toISOString();
-      if (video.create_time) return new Date(video.create_time * 1000).toISOString();
       return new Date().toISOString();
     };
 
     const computeTrend = (video: any) => {
-      const stats = video.stats || {};
+      const stats = video.statistics || video.stats || {};
       const publishedAt = new Date(getPublishedAt(video));
       const hoursSince = Math.max(1, (Date.now() - publishedAt.getTime()) / 3600000);
-      const vViews = (stats.views || video.views || video.playCount || 0) / hoursSince;
-      const vLikes = (stats.likes || video.likes || video.diggCount || 0) / hoursSince;
-      const vComments = (stats.comments || video.comments || video.commentCount || 0) / hoursSince;
+      const views = stats.play_count ?? stats.views ?? video.views ?? video.playCount ?? 0;
+      const likes = stats.digg_count ?? stats.likes ?? video.likes ?? video.diggCount ?? 0;
+      const comments = stats.comment_count ?? stats.comments ?? video.comments ?? video.commentCount ?? 0;
+      const vViews = views / hoursSince;
+      const vLikes = likes / hoursSince;
+      const vComments = comments / hoursSince;
       return {
         velocity_views: vViews,
         velocity_likes: vLikes,
@@ -110,19 +135,78 @@ Deno.serve(async (req: Request) => {
       };
     };
 
-    // Helper: extract videos from various response formats
+    /** Extract videos from EnsembleData response structures */
     const extractVideos = (data: any): any[] => {
       if (Array.isArray(data)) return data;
-      if (Array.isArray(data?.data?.results)) return data.data.results;
+      // Keyword search: data.data is array of { type, aweme_info }
+      if (data?.data?.data && Array.isArray(data.data.data)) return data.data.data;
       if (Array.isArray(data?.data)) return data.data;
+      // Hashtag search: data.data.posts
+      if (data?.data?.posts && Array.isArray(data.data.posts)) return data.data.posts;
+      if (Array.isArray(data?.data?.aweme_list)) return data.data.aweme_list;
+      if (Array.isArray(data?.data?.videos)) return data.data.videos;
       if (Array.isArray(data?.items)) return data.items;
       if (Array.isArray(data?.videos)) return data.videos;
-      if (Array.isArray(data?.result)) return data.result;
-      console.log("SocialKit unexpected response:", JSON.stringify(data).slice(0, 500));
+      console.log("EnsembleData unexpected response:", JSON.stringify(data).slice(0, 500));
       return [];
     };
 
-    // Helper: generate hashtags + related keywords from query using AI
+    /** Unwrap aweme_info wrapper from EnsembleData keyword search results */
+    const unwrapVideo = (item: any): any => {
+      return item.aweme_info || item.itemInfos || item;
+    };
+
+    /** Normalize a video object from EnsembleData to our standard format */
+    const normalizeVideo = (raw: any) => {
+      const v = unwrapVideo(raw);
+      const stats = v.statistics || v.stats || {};
+      const author = v.author || {};
+      const videoInfo = v.video || {};
+
+      const awemeId = v.aweme_id || v.id || "";
+      const uniqueId = author.unique_id || author.uniqueId || author.search_user_name || "";
+      const avatarUrl = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
+      const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+      const desc = v.desc || v.caption || v.title || "";
+
+      return {
+        id: awemeId,
+        aweme_id: awemeId,
+        platform_video_id: String(awemeId),
+        desc,
+        caption: desc,
+        createTime: v.create_time || v.createTime || 0,
+        views: stats.play_count ?? stats.views ?? v.views ?? v.playCount ?? 0,
+        likes: stats.digg_count ?? stats.likes ?? v.likes ?? v.diggCount ?? 0,
+        comments: stats.comment_count ?? stats.comments ?? v.comments ?? v.commentCount ?? 0,
+        shares: stats.share_count ?? stats.shares ?? v.shares ?? v.shareCount ?? 0,
+        stats: {
+          views: stats.play_count ?? stats.views ?? v.views ?? v.playCount ?? 0,
+          likes: stats.digg_count ?? stats.likes ?? v.likes ?? v.diggCount ?? 0,
+          comments: stats.comment_count ?? stats.comments ?? v.comments ?? v.commentCount ?? 0,
+          shares: stats.share_count ?? stats.shares ?? v.shares ?? v.shareCount ?? 0,
+        },
+        author: {
+          uniqueId,
+          unique_id: uniqueId,
+          nickname: author.nickname || "",
+          avatar: avatarUrl,
+          avatarThumb: avatarUrl,
+        },
+        author_username: uniqueId,
+        author_display_name: author.nickname || "",
+        author_avatar_url: avatarUrl,
+        video: {
+          cover: coverUrl,
+          duration: videoInfo.duration ? Math.round(videoInfo.duration / 1000) : 0,
+        },
+        cover_url: coverUrl,
+        duration: videoInfo.duration ? Math.round(videoInfo.duration / 1000) : 0,
+        url: `https://www.tiktok.com/@${uniqueId || "user"}/video/${awemeId}`,
+      };
+    };
+
+    /** Generate hashtags + related keywords from query using AI */
     const generateHashtagsAndKeywords = async (query: string): Promise<{ hashtags: string[], relatedKeywords: string[] }> => {
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
       if (!LOVABLE_API_KEY) return { hashtags: [], relatedKeywords: [] };
@@ -171,65 +255,79 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         const { query, limit = 20, region = "world" } = body;
         if (!query) return json({ error: "query is required" }, 400);
 
-        // 1. Generate hashtags + do keyword search in parallel
-        const [keywordData, aiResult] = await Promise.all([
-          callSocialKit("/tiktok/search", { query, limit: String(limit), cache: "true" }),
+        // 1. Keyword search + AI hashtag generation in parallel
+        const PAGES = 5;
+        const [aiResult, ...pageResults] = await Promise.allSettled([
           generateHashtagsAndKeywords(query),
+          ...Array.from({ length: PAGES }, (_, page) =>
+            callEnsemble("/tt/keyword/search", {
+              name: query,
+              cursor: String(page * 20),
+              period: "7",
+              sorting: "0",
+              country: "",
+              match_exactly: "false",
+              get_author_stats: "false",
+            })
+          ),
         ]);
-        const { hashtags, relatedKeywords } = aiResult;
 
-        let allVideos: any[] = extractVideos(keywordData);
-        console.log(`Keyword search returned ${allVideos.length} videos`);
+        const { hashtags = [], relatedKeywords = [] } = (aiResult as any).status === "fulfilled" ? (aiResult as any).value : {};
+
+        let allRawVideos: any[] = [];
+        for (const r of pageResults) {
+          if (r.status === "fulfilled") {
+            allRawVideos.push(...extractVideos(r.value));
+          }
+        }
+        console.log(`Keyword search returned ${allRawVideos.length} videos`);
 
         // 2. Search by hashtags in parallel
         if (hashtags.length > 0) {
-          const hashtagLimit = Math.min(30, Math.ceil(Number(limit) / hashtags.length));
           const hashtagResults = await Promise.allSettled(
-            hashtags.map(tag =>
-              callSocialKit("/tiktok/hashtag-search", { hashtag: tag, limit: String(hashtagLimit), cache: "true" })
+            hashtags.map((tag: string) =>
+              callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" })
             )
           );
           for (const result of hashtagResults) {
             if (result.status === "fulfilled") {
               const vids = extractVideos(result.value);
               console.log(`Hashtag search returned ${vids.length} videos`);
-              allVideos.push(...vids);
+              allRawVideos.push(...vids);
             }
           }
         }
 
-        // 3. Deduplicate
+        // 3. Normalize + Deduplicate
         const seen = new Set<string>();
         const uniqueVideos: any[] = [];
-        for (const v of allVideos) {
-          const vid = String(v.id || v.video_id || v.aweme_id || "");
-          if (!vid || seen.has(vid)) continue;
-          seen.add(vid);
+        for (const raw of allRawVideos) {
+          const v = normalizeVideo(raw);
+          if (!v.aweme_id || seen.has(v.aweme_id)) continue;
+          seen.add(v.aweme_id);
           uniqueVideos.push(v);
         }
         console.log(`Total unique videos after dedup: ${uniqueVideos.length}`);
 
-        // 4. Prepare all video rows at once (no sequential loop)
+        // 4. Prepare video rows for DB
         const now = new Date().toISOString();
         const videoRows = uniqueVideos.map(v => {
-          const videoId = v.id || v.video_id || v.aweme_id;
-          if (!videoId) return null;
+          if (!v.aweme_id) return null;
           const trends = computeTrend(v);
-          const stats = v.stats || {};
           return {
             platform: "tiktok",
-            platform_video_id: String(videoId),
-            url: v.url || `https://www.tiktok.com/@${v.author?.uniqueId || "user"}/video/${videoId}`,
-            caption: v.desc || v.caption || v.title || "",
-            cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-            author_username: v.author?.uniqueId || v.author?.unique_id || v.author_username || "",
-            author_display_name: v.author?.nickname || v.author_display_name || "",
-            author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
-            views: stats.views || v.views || v.playCount || 0,
-            likes: stats.likes || v.likes || v.diggCount || 0,
-            comments: stats.comments || v.comments || v.commentCount || 0,
-            shares: stats.shares || v.shares || v.shareCount || 0,
-            duration_sec: v.video?.duration || v.duration_sec || v.duration || null,
+            platform_video_id: String(v.aweme_id),
+            url: v.url,
+            caption: v.caption || "",
+            cover_url: v.cover_url || "",
+            author_username: v.author_username || "",
+            author_display_name: v.author_display_name || "",
+            author_avatar_url: v.author_avatar_url || "",
+            views: v.views || 0,
+            likes: v.likes || 0,
+            comments: v.comments || 0,
+            shares: v.shares || 0,
+            duration_sec: v.duration || null,
             fetched_at: now,
             source_query_id: null,
             region: region || "world",
@@ -237,7 +335,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           };
         }).filter(Boolean);
 
-        // 5. Batch upsert + save query in parallel (1 DB call instead of N)
+        // 5. Batch upsert + save query in parallel
         const [upsertResult, queryResult] = await Promise.all([
           adminClient.from("videos").upsert(videoRows, { onConflict: "platform,platform_video_id" }).select(),
           userClient.from("search_queries").upsert(
@@ -256,7 +354,6 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           if (LOVABLE_API_KEY) {
             (async () => {
               try {
-                // Batch categorize in chunks of 30
                 const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other"];
                 for (let i = 0; i < uncategorized.length; i += 30) {
                   const batch = uncategorized.slice(i, i + 30);
@@ -307,28 +404,34 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         if (!video_url) return json({ error: "video_url is required" }, 400);
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
-        const data = await callSocialKit("/tiktok/stats", { url: video_url });
-        const videoData = data.data || data;
+        const awemeId = extractAwemeId(video_url);
+        if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
+
+        const data = await callEnsemble("/tt/post/info", { id: awemeId });
+        const videoData = unwrapVideo(data?.data || data);
 
         if (videoData) {
-          const videoId = videoData.id || videoData.video_id || videoData.aweme_id;
-          if (videoId) {
-            const trends = computeTrend(videoData);
-            await adminClient
-              .from("videos")
-              .update({
-                views: videoData.playCount || videoData.views || 0,
-                likes: videoData.diggCount || videoData.likes || 0,
-                comments: videoData.commentCount || videoData.comments || 0,
-                shares: videoData.shareCount || videoData.shares || 0,
-                fetched_at: new Date().toISOString(),
-                ...trends,
-              })
-              .eq("platform_video_id", String(videoId));
-          }
+          const stats = videoData.statistics || videoData.stats || {};
+          const views = stats.play_count ?? stats.views ?? videoData.playCount ?? videoData.views ?? 0;
+          const likes = stats.digg_count ?? stats.likes ?? videoData.diggCount ?? videoData.likes ?? 0;
+          const comments = stats.comment_count ?? stats.comments ?? videoData.commentCount ?? videoData.comments ?? 0;
+          const shares = stats.share_count ?? stats.shares ?? videoData.shareCount ?? videoData.shares ?? 0;
+
+          const videoId = videoData.aweme_id || videoData.id || awemeId;
+          const trends = computeTrend(videoData);
+          await adminClient
+            .from("videos")
+            .update({
+              views, likes, comments, shares,
+              fetched_at: new Date().toISOString(),
+              ...trends,
+            })
+            .eq("platform_video_id", String(videoId));
+
+          return json({ views, likes, comments, shares, playCount: views, diggCount: likes, commentCount: comments, shareCount: shares, id: videoId, ...videoData });
         }
 
-        return json(videoData);
+        return json(videoData || {});
       }
 
       case "analyze_video": {
@@ -336,83 +439,65 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         if (!video_url) return json({ error: "video_url is required" }, 400);
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
-        // 1. Fetch transcript, summarize, stats, comments from SocialKit in parallel
-        const [transcriptRes, summarizeRes, statsRes, commentsRes] = await Promise.allSettled([
-          callSocialKit("/tiktok/transcript", { url: video_url }),
-          callSocialKit("/tiktok/summarize", { url: video_url }),
-          callSocialKit("/tiktok/stats", { url: video_url }),
-          callSocialKit("/tiktok/comments", { url: video_url }),
+        const awemeId = extractAwemeId(video_url);
+        if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
+
+        // 1. Fetch post info and comments from EnsembleData in parallel
+        const [postInfoRes, commentsRes] = await Promise.allSettled([
+          callEnsemble("/tt/post/info", { id: awemeId }),
+          callEnsemble("/tt/post/comments", { aweme_id: awemeId }),
         ]);
 
-        // Extract transcript text
-        let transcriptText = "";
-        if (transcriptRes.status === "fulfilled") {
-          const tData = transcriptRes.value?.data || transcriptRes.value;
-          transcriptText = tData?.transcript || tData?.text || "";
-          if (!transcriptText && tData?.segments && Array.isArray(tData.segments)) {
-            transcriptText = tData.segments.map((s: any) => s.text || s.content || "").join(" ");
-          }
-          if (!transcriptText && typeof tData === "string") {
-            transcriptText = tData;
-          }
-          console.log("Transcript extracted, length:", transcriptText.length);
-        } else {
-          console.error("Transcript fetch failed:", transcriptRes.reason);
-        }
-
-        // Extract SocialKit AI summary
-        let skSummary = "";
-        if (summarizeRes.status === "fulfilled") {
-          const sData = summarizeRes.value?.data || summarizeRes.value;
-          skSummary = sData?.summary || sData?.text || "";
-          if (typeof sData === "string") skSummary = sData;
-          console.log("SocialKit summary extracted, length:", skSummary.length);
-        } else {
-          console.error("Summarize fetch failed:", summarizeRes.reason);
-        }
-
-        // Extract stats
+        // Extract post info (stats, description, etc.)
         let statsData: any = null;
-        if (statsRes.status === "fulfilled") {
-          statsData = statsRes.value?.data || statsRes.value;
-          console.log("Stats keys:", JSON.stringify(Object.keys(statsData || {})));
+        let transcriptText = "";
+        if (postInfoRes.status === "fulfilled") {
+          const raw = postInfoRes.value?.data || postInfoRes.value;
+          statsData = unwrapVideo(raw);
+          console.log("Post info keys:", JSON.stringify(Object.keys(statsData || {})));
+        } else {
+          console.error("Post info fetch failed:", postInfoRes.reason);
         }
 
-        // Extract comments (get top comment texts for AI context)
+        // Extract comments
         let commentsData: any = null;
         let topCommentsText = "";
         if (commentsRes.status === "fulfilled") {
-          commentsData = commentsRes.value?.data || commentsRes.value;
-          // Extract top comments text for AI context
-          const commentsList = Array.isArray(commentsData) ? commentsData : commentsData?.comments || [];
+          const cData = commentsRes.value?.data || commentsRes.value;
+          const commentsList = Array.isArray(cData) ? cData : cData?.comments || [];
+          commentsData = commentsList;
           if (Array.isArray(commentsList)) {
             topCommentsText = commentsList.slice(0, 10).map((c: any) => c.text || c.comment || c.content || "").filter(Boolean).join("\n");
           }
-          console.log("Comments fetched, top comments:", topCommentsText.length);
+          console.log("Comments fetched, top comments length:", topCommentsText.length);
+        } else {
+          console.error("Comments fetch failed:", commentsRes.reason);
         }
 
         // 2. Use Lovable AI to generate structured analysis
-        // Run even without transcript — use description, summary, stats, comments
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
         const caption = body.caption || "";
         const analysisLang = body.language === "kk" ? "kk" : "ru";
-        const videoTitle = statsData?.title || statsData?.description || caption || "";
-        const videoDescription = statsData?.description || caption || "";
-        const videoDuration = statsData?.duration || "";
+
+        const videoStats = statsData?.statistics || statsData?.stats || {};
+        const videoTitle = statsData?.desc || caption || "";
+        const videoDuration = statsData?.video?.duration ? Math.round(statsData.video.duration / 1000) : "";
 
         // Build context for AI from all available data
         const contextParts: string[] = [];
         if (videoTitle) contextParts.push(`Название/описание: ${videoTitle}`);
         if (videoDuration) contextParts.push(`Длительность: ${videoDuration} сек`);
         if (statsData) {
-          contextParts.push(`Статистика: ${statsData.views || 0} просмотров, ${statsData.likes || 0} лайков, ${statsData.comments || 0} комментариев, ${statsData.shares || 0} репостов`);
+          const v = videoStats.play_count ?? videoStats.views ?? 0;
+          const l = videoStats.digg_count ?? videoStats.likes ?? 0;
+          const c = videoStats.comment_count ?? videoStats.comments ?? 0;
+          const s = videoStats.share_count ?? videoStats.shares ?? 0;
+          contextParts.push(`Статистика: ${v} просмотров, ${l} лайков, ${c} комментариев, ${s} репостов`);
         }
-        if (skSummary) contextParts.push(`AI-резюме от SocialKit: ${skSummary}`);
-        if (transcriptText) contextParts.push(`Транскрипт:\n${transcriptText.slice(0, 8000)}`);
         if (topCommentsText) contextParts.push(`Топ комментарии:\n${topCommentsText.slice(0, 2000)}`);
 
-        const hasContent = contextParts.length > 1; // At least URL + something
+        const hasContent = contextParts.length > 1;
 
         if (LOVABLE_API_KEY && hasContent) {
           try {
@@ -428,12 +513,12 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
                   {
                     role: "system",
                     content: analysisLang === "kk"
-                      ? `Сен — TikTok вирустық контентін талдау бойынша сарапшысыз. Бейнені барлық қолжетімді ақпарат негізінде (сипаттама, статистика, транскрипт бар болса, пікірлер) талдап, құрылымдалған талдау бер.
+                      ? `Сен — TikTok вирустық контентін талдау бойынша сарапшысыз. Бейнені барлық қолжетімді ақпарат негізінде (сипаттама, статистика, пікірлер) талдап, құрылымдалған талдау бер.
 
-МАҢЫЗДЫ: ТІЛДІ ҚАЗАҚША ЖАУАП БЕР. ТІЛЬДІ video_analysis функциясын шақырумен ғана жауап бер, қосымша мәтінсіз. Транскрипт қолжетімсіз болса, сипаттама, статистика және пікірлер бойынша талда.`
-                      : `Ты — эксперт по анализу вирусного контента в TikTok. Проанализируй видео на основе всей доступной информации (описание, статистика, транскрипт если есть, комментарии) и верни структурированный анализ.
+МАҢЫЗДЫ: ТІЛДІ ҚАЗАҚША ЖАУАП БЕР. Тек video_analysis функциясын шақыр, қосымша мәтінсіз.`
+                      : `Ты — эксперт по анализу вирусного контента в TikTok. Проанализируй видео на основе всей доступной информации (описание, статистика, комментарии) и верни структурированный анализ.
 
-ВАЖНО: Отвечай ТОЛЬКО вызовом функции video_analysis, без лишнего текста. Если транскрипт недоступен, анализируй по описанию, статистике и комментариям.`
+ВАЖНО: Отвечай ТОЛЬКО вызовом функции video_analysis, без лишнего текста.`
                   },
                   {
                     role: "user",
@@ -456,12 +541,12 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
                           tags: {
                             type: "array",
                             items: { type: "string" },
-                            description: "2-4 формата/типа контента, например: Говорящая голова 🗣, Обзор товара / Распаковка 📦, Сравнение (Versus) 🆚, Сторителлинг 📖, Лайфхак 💡, Юмор 😂, Туториал 📚"
+                            description: "2-4 формата/типа контента"
                           },
                           niches: {
                             type: "array",
                             items: { type: "string" },
-                            description: "2-4 ниши с эмодзи, например: 💼 Лайфстайл, 🏠 Дом, Уют и Ремонт, 🧠 Новости нейросетей"
+                            description: "2-4 ниши с эмодзи"
                           },
                           summary: { type: "string", description: "Суть видео — подробное описание в 2-4 предложениях" },
                           structure: {
@@ -469,22 +554,22 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
                             items: {
                               type: "object",
                               properties: {
-                                time: { type: "string", description: "Временной диапазон, например: 0-3 сек, 3-152 сек, Конец видео" },
-                                title: { type: "string", description: "Название сегмента" },
-                                description: { type: "string", description: "Описание что происходит в этом сегменте" }
+                                time: { type: "string" },
+                                title: { type: "string" },
+                                description: { type: "string" }
                               },
                               required: ["time", "title", "description"]
                             },
                             description: "3-5 сегментов структуры видео с таймкодами"
                           },
-                          hook_phrase: { type: "string", description: "Первая фраза-хук которая цепляет внимание" },
-                          visual_hook: { type: "string", description: "Описание визуального хука — что видит зритель в первые секунды" },
-                          text_hook: { type: "string", description: "Текст на экране в первые секунды (если есть)" },
+                          hook_phrase: { type: "string", description: "Первая фраза-хук" },
+                          visual_hook: { type: "string", description: "Описание визуального хука" },
+                          text_hook: { type: "string", description: "Текст на экране в первые секунды" },
                           funnel: {
                             type: "object",
                             properties: {
-                              direction: { type: "string", description: "Куда ведет видео — например: 🔴 Без призыва (Работа на охват), В профиль, На ссылку в био, В комментарии" },
-                              goal: { type: "string", description: "Цель видео — охват, продажи, подписки и т.д." }
+                              direction: { type: "string" },
+                              goal: { type: "string" }
                             },
                             required: ["direction", "goal"]
                           }
@@ -508,8 +593,6 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
                 } catch (e) {
                   console.error("Failed to parse AI response:", e);
                 }
-              } else {
-                console.error("No tool call in AI response:", JSON.stringify(aiData).slice(0, 500));
               }
             } else {
               const errText = await aiResponse.text();
@@ -518,18 +601,16 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           } catch (e) {
             console.error("AI analysis error:", e);
           }
-        } else {
-          console.log("Skipping AI analysis: LOVABLE_API_KEY:", !!LOVABLE_API_KEY, "hasContent:", hasContent);
         }
 
-        // 3. Combine everything into summary_json
+        // 3. Combine everything
         const summaryJson = {
           ...(aiAnalysis || {}),
           stats: statsData ? {
-            views: statsData.playCount || statsData.views || 0,
-            likes: statsData.diggCount || statsData.likes || 0,
-            comments: statsData.commentCount || statsData.comments || 0,
-            shares: statsData.shareCount || statsData.shares || 0,
+            views: videoStats.play_count ?? videoStats.views ?? 0,
+            likes: videoStats.digg_count ?? videoStats.likes ?? 0,
+            comments: videoStats.comment_count ?? videoStats.comments ?? 0,
+            shares: videoStats.share_count ?? videoStats.shares ?? 0,
           } : null,
         };
 
@@ -565,67 +646,61 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         if (!profile_url) return json({ error: "profile_url is required" }, 400);
         if (!validateTikTokUrl(profile_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
-        // Fetch channel stats and search for user's videos in parallel
-        const usernameFromUrl = profile_url.split("@").pop()?.split("?")[0]?.split("/")[0] || "";
+        const usernameFromUrl = extractUsername(profile_url);
+        if (!usernameFromUrl) return json({ error: "Could not extract username from URL" }, 400);
 
-        const [channelRes, searchRes] = await Promise.allSettled([
-          callSocialKit("/tiktok/channel-stats", { url: profile_url }),
-          callSocialKit("/tiktok/search", { query: `@${usernameFromUrl}`, count: "30" }),
+        // Fetch user info and user posts in parallel via EnsembleData
+        const [userInfoRes, userPostsRes] = await Promise.allSettled([
+          callEnsemble("/tt/user/info-from-username", { username: usernameFromUrl }),
+          callEnsemble("/tt/user/posts-from-username", { username: usernameFromUrl, depth: "3" }),
         ]);
 
-        const channelData = channelRes.status === "fulfilled" ? channelRes.value : {};
-        const accountData = channelData?.data || channelData || {};
-        console.log("Channel stats raw data:", JSON.stringify(accountData).slice(0, 1000));
-
-        // Parse top videos from search results
-        let topVideos: any[] = [];
-        if (searchRes.status === "fulfilled") {
-          const sData = searchRes.value;
-          const rawVideos = Array.isArray(sData) ? sData
-            : Array.isArray(sData?.data?.results) ? sData.data.results
-            : Array.isArray(sData?.data) ? sData.data
-            : Array.isArray(sData?.items) ? sData.items
-            : Array.isArray(sData?.videos) ? sData.videos
-            : Array.isArray(sData?.result) ? sData.result
-            : [];
-          console.log("Search returned", rawVideos.length, "videos");
-
-          // Filter to only this user's videos and map
-          topVideos = rawVideos
-            .filter((v: any) => {
-              const authorId = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
-              return !authorId || authorId.toLowerCase() === usernameFromUrl.toLowerCase();
-            })
-            .map((v: any) => {
-              const stats = v.stats || {};
-              return {
-                id: v.id || v.video_id || v.aweme_id,
-                desc: v.desc || v.caption || v.title || "",
-                cover: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-                url: v.url || `https://www.tiktok.com/@${usernameFromUrl}/video/${v.id || v.video_id}`,
-                views: stats.views || v.playCount || v.views || 0,
-                likes: stats.likes || v.diggCount || v.likes || 0,
-                comments: stats.comments || v.commentCount || v.comments || 0,
-                shares: stats.shares || v.shareCount || v.shares || 0,
-                duration: v.video?.duration || v.duration || 0,
-                createTime: v.createTime || v.create_time || 0,
-              };
-            });
-          topVideos.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
+        // Parse user info
+        let accountData: any = {};
+        if (userInfoRes.status === "fulfilled") {
+          const raw = userInfoRes.value?.data || userInfoRes.value;
+          accountData = raw?.user || raw || {};
+          console.log("User info keys:", JSON.stringify(Object.keys(accountData)));
         } else {
-          console.error("Search failed:", searchRes.reason);
+          console.error("User info fetch failed:", userInfoRes.reason);
         }
 
-        // Extract username from response or URL
-        const username =
-          accountData.username || accountData.uniqueId || accountData.unique_id || usernameFromUrl;
+        // Parse user posts
+        let topVideos: any[] = [];
+        if (userPostsRes.status === "fulfilled") {
+          const postsRaw = userPostsRes.value?.data || userPostsRes.value;
+          const rawPosts = Array.isArray(postsRaw) ? postsRaw : postsRaw?.aweme_list || postsRaw?.posts || [];
+          console.log("User posts returned", rawPosts.length, "posts");
 
-        // Map fields according to SocialKit response format
-        const followers = accountData.followers || accountData.followerCount || 0;
-        const totalLikes = accountData.totalLikes || accountData.likes || accountData.heartCount || accountData.total_likes || 0;
-        const totalVideos = accountData.totalVideos || accountData.videoCount || accountData.total_videos || 0;
+          topVideos = rawPosts.map((raw: any) => {
+            const v = unwrapVideo(raw);
+            const stats = v.statistics || v.stats || {};
+            return {
+              id: v.aweme_id || v.id,
+              desc: v.desc || "",
+              cover: v.video?.cover?.url_list?.[0] || "",
+              url: `https://www.tiktok.com/@${usernameFromUrl}/video/${v.aweme_id || v.id}`,
+              views: stats.play_count ?? stats.views ?? v.playCount ?? 0,
+              likes: stats.digg_count ?? stats.likes ?? v.diggCount ?? 0,
+              comments: stats.comment_count ?? stats.comments ?? v.commentCount ?? 0,
+              shares: stats.share_count ?? stats.shares ?? v.shareCount ?? 0,
+              duration: v.video?.duration ? Math.round(v.video.duration / 1000) : 0,
+              createTime: v.create_time || v.createTime || 0,
+            };
+          });
+          topVideos.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
+        } else {
+          console.error("User posts fetch failed:", userPostsRes.reason);
+        }
 
-        const following = accountData.following || accountData.followingCount || 0;
+        // Extract user stats
+        const username = accountData.unique_id || accountData.uniqueId || usernameFromUrl;
+        const userStats = accountData.stats || {};
+        const followers = userStats.follower_count ?? userStats.followerCount ?? accountData.follower_count ?? accountData.followers ?? 0;
+        const following = userStats.following_count ?? userStats.followingCount ?? accountData.following_count ?? accountData.following ?? 0;
+        const totalLikes = userStats.heart_count ?? userStats.heartCount ?? userStats.total_favorited ?? accountData.total_favorited ?? accountData.totalLikes ?? 0;
+        const totalVideos = userStats.aweme_count ?? userStats.videoCount ?? accountData.aweme_count ?? accountData.totalVideos ?? 0;
+        const avatarUrl = accountData.avatar_thumb?.url_list?.[0] || accountData.avatar_larger?.url_list?.[0] || "";
 
         // Computed metrics
         const avgLikesPerVideo = totalVideos > 0 ? Math.round(totalLikes / totalVideos) : 0;
@@ -648,14 +723,14 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
               user_id: userId,
               profile_url,
               username,
-              avatar_url: accountData.avatar || accountData.avatarThumb || accountData.avatar_url || "",
+              avatar_url: avatarUrl,
               followers,
               following,
               total_likes: totalLikes,
               total_videos: totalVideos,
-              verified: accountData.verified || false,
+              verified: accountData.verification_type === 1 || accountData.verified || false,
               bio: accountData.signature || accountData.bio || "",
-              bio_link: accountData.bioLink || accountData.bio_link || null,
+              bio_link: accountData.bio_link?.link || accountData.bioLink || null,
               fetched_at: new Date().toISOString(),
               analysis_json: analysisPayload,
             },
@@ -681,9 +756,8 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
         if (!LOVABLE_API_KEY) return json({ error: "AI not configured" }, 500);
 
-        // Get uncategorized videos in batches
         const batchSize = 30;
-        const maxBatches = 10; // ~300 videos per call, run multiple times
+        const maxBatches = 10;
         let totalCategorized = 0;
 
         for (let b = 0; b < maxBatches; b++) {
@@ -734,7 +808,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
       }
 
       case "admin_search": {
-        // Admin-only: raw SocialKit search with filters
+        // Admin-only: EnsembleData search with filters
         const { data: roleCheck } = await adminClient
           .from("user_roles")
           .select("role")
@@ -746,85 +820,78 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         const { query: searchQuery, publish_time = "7", sort_type = "3" } = body;
         if (!searchQuery) return json({ error: "query is required" }, 400);
 
+        // Map sort_type: "3" = by date (sorting=2), "1" = by likes (sorting=1), "0" = relevance (sorting=0)
+        let edSorting = "0";
+        if (sort_type === "3" || sort_type === "2") edSorting = "2";
+        else if (sort_type === "1") edSorting = "1";
+
+        // Map publish_time to EnsembleData period
+        let edPeriod = publish_time;
+        if (!["0", "1", "7", "30", "90", "180"].includes(edPeriod)) edPeriod = "7";
+
         // 1. Keyword search (paginated) + AI hashtag generation in parallel
         const PAGES = 15;
-        const PAGE_SIZE = 10;
-
         const [aiResult, ...pageResults] = await Promise.allSettled([
           generateHashtagsAndKeywords(searchQuery),
           ...Array.from({ length: PAGES }, (_, page) =>
-            callSocialKit("/tiktok/search", {
-              query: searchQuery,
-              count: "30",
-              offset: String(page * PAGE_SIZE),
+            callEnsemble("/tt/keyword/search", {
+              name: searchQuery,
+              cursor: String(page * 20),
+              period: edPeriod,
+              sorting: edSorting,
+              country: "",
+              match_exactly: "false",
+              get_author_stats: "false",
             })
           ),
         ]);
 
-        let allVideos: any[] = [];
+        let allRawVideos: any[] = [];
         for (const r of pageResults) {
           if (r.status === "fulfilled") {
-            allVideos.push(...extractVideos(r.value));
+            allRawVideos.push(...extractVideos(r.value));
           }
         }
-        console.log(`Admin keyword search: ${allVideos.length} videos`);
+        console.log(`Admin keyword search: ${allRawVideos.length} videos`);
 
         // 2. Hashtag search in parallel
-        const { hashtags = [] } = aiResult.status === "fulfilled" ? aiResult.value as any : { hashtags: [] };
+        const { hashtags = [] } = (aiResult as any).status === "fulfilled" ? (aiResult as any).value : {};
         if (hashtags.length > 0) {
           const hashtagResults = await Promise.allSettled(
             hashtags.map((tag: string) =>
-              callSocialKit("/tiktok/hashtag-search", { hashtag: tag, limit: "30", cache: "true" })
+              callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" })
             )
           );
           for (const r of hashtagResults) {
             if (r.status === "fulfilled") {
-              allVideos.push(...extractVideos(r.value));
+              allRawVideos.push(...extractVideos(r.value));
             }
           }
         }
 
-        // 3. Deduplicate
+        // 3. Normalize + Deduplicate
         const seen = new Set<string>();
         const unique: any[] = [];
-        for (const v of allVideos) {
-          const vid = String(v.id || v.video_id || v.aweme_id || "");
-          if (!vid || seen.has(vid)) continue;
-          seen.add(vid);
+        for (const raw of allRawVideos) {
+          const v = normalizeVideo(raw);
+          if (!v.aweme_id || seen.has(v.aweme_id)) continue;
+          seen.add(v.aweme_id);
           unique.push(v);
         }
 
-        // 4. Filter by publish_time (client-side since SocialKit doesn't support it)
-        // "7" = 7 days, "30" = 30 days, "0" or anything else = no filter
-        let filtered = unique;
-        if (publish_time === "7" || publish_time === "30") {
-          const maxAgeDays = publish_time === "30" ? 30 : 7;
-          const cutoff = Date.now() - maxAgeDays * 24 * 3600 * 1000;
-          filtered = unique.filter(v => {
-            const ct = v.createTime ?? v.create_time;
-            if (typeof ct === "number") {
-              const ms = ct > 1e12 ? ct : ct * 1000;
-              return ms >= cutoff;
-            }
-            return true;
-          });
-        }
-
-        // 5. Sort: sort_type "3" = by date, "1" = by likes
-        filtered.sort((a: any, b: any) => {
+        // 4. Sort
+        unique.sort((a: any, b: any) => {
           if (sort_type === "1") {
-            const aLikes = a.stats?.likes ?? a.diggCount ?? a.likes ?? 0;
-            const bLikes = b.stats?.likes ?? b.diggCount ?? b.likes ?? 0;
-            return bLikes - aLikes;
+            return (b.likes || 0) - (a.likes || 0);
           }
           // by date
-          const aTime = a.createTime ?? a.create_time ?? 0;
-          const bTime = b.createTime ?? b.create_time ?? 0;
+          const aTime = a.createTime || 0;
+          const bTime = b.createTime || 0;
           return (typeof bTime === "number" ? bTime : 0) - (typeof aTime === "number" ? aTime : 0);
         });
 
-        console.log(`Admin search "${searchQuery}": ${filtered.length} filtered (from ${unique.length} unique)`);
-        return json({ videos: filtered });
+        console.log(`Admin search "${searchQuery}": ${unique.length} unique videos`);
+        return json({ videos: unique });
       }
 
       case "admin_add_video": {
