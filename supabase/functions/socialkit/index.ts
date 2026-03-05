@@ -632,11 +632,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           .select()
           .single();
 
-        await userClient.from("activity_log").insert({
-          user_id: userId,
-          type: "video_analysis",
-          payload_json: { video_url },
-        });
+        // activity_log is handled client-side via checkAndLog
 
         return json(analysis);
       }
