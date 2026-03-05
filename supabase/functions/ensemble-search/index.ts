@@ -94,10 +94,27 @@ Deno.serve(async (req: Request) => {
 
     const data = await res.json();
 
-    // EnsembleData returns { data: [...], ... } with video items
-    // Each item has: id, desc, createTime, stats { diggCount, playCount, commentCount, shareCount },
-    // author { uniqueId, nickname, avatarThumb }, video { cover, duration }
-    const rawVideos = data?.data || [];
+    // Debug: log response structure
+    const topKeys = Object.keys(data || {});
+    console.log(`EnsembleData response keys: ${JSON.stringify(topKeys)}`);
+    if (data?.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+      console.log(`data.data keys: ${JSON.stringify(Object.keys(data.data))}`);
+      if (data.data.videos) {
+        console.log(`data.data.videos length: ${data.data.videos.length}`);
+      }
+    }
+
+    // EnsembleData full-search may return data in different structures
+    let rawVideos: any[] = [];
+    if (Array.isArray(data?.data)) {
+      rawVideos = data.data;
+    } else if (data?.data?.videos && Array.isArray(data.data.videos)) {
+      rawVideos = data.data.videos;
+    } else if (data?.data?.aweme_list && Array.isArray(data.data.aweme_list)) {
+      rawVideos = data.data.aweme_list;
+    } else if (Array.isArray(data)) {
+      rawVideos = data;
+    }
     console.log(`EnsembleData returned ${rawVideos.length} videos`);
 
     // Normalize to a consistent format for the frontend
