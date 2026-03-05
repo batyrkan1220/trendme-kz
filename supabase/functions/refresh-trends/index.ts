@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SOCIALKIT_BASE = "https://api.socialkit.dev";
+const ENSEMBLE_BASE = "https://ensembledata.com/apis";
 
 // Filters
 const MIN_VIEWS = 3000;
@@ -86,7 +86,7 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends COUNT=30 PAGES=5 offset=page*10 sort=3,1 pub=7,30 maxAge=7 minViews=1000/3000 noEarlyExit";
+const VERSION = "refresh-trends-ensemble v1 maxAge=7 minViews=1000/3000 sort=date,likes period=7,30";
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
@@ -94,7 +94,14 @@ Deno.serve(async (req: Request) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY")!;
+  const ensembleToken = Deno.env.get("ENSEMBLE_DATA_TOKEN");
+
+  if (!ensembleToken) {
+    return new Response(JSON.stringify({ error: "ENSEMBLE_DATA_TOKEN not configured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   // =========================
   // Auth
@@ -144,56 +151,67 @@ Deno.serve(async (req: Request) => {
   // =========================
   // Helpers
   // =========================
-  const callSocialKit = async (
-    path: string,
-    params: Record<string, string>,
+  const callEnsembleData = async (
+    query: string,
+    period: string,
+    sorting: string,
     retries = 3,
-  ): Promise<any> => {
-    const url = new URL(`${SOCIALKIT_BASE}${path}`);
-    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  ): Promise<any[]> => {
+    const params = new URLSearchParams({
+      name: query.trim(),
+      period,
+      sorting,
+      country: "us",
+      match_exactly: "false",
+      token: ensembleToken,
+    });
+
+    const url = `${ENSEMBLE_BASE}/tt/keyword/full-search?${params.toString()}`;
 
     for (let attempt = 0; attempt < retries; attempt++) {
-      const res = await fetch(url.toString(), {
-        headers: { "x-access-key": socialKitKey },
-      });
+      const res = await fetch(url);
 
-      if (res.ok) return res.json();
+      if (res.ok) {
+        const data = await res.json();
+        // Extract videos from response
+        let rawVideos: any[] = [];
+        if (Array.isArray(data?.data)) {
+          rawVideos = data.data;
+        } else if (data?.data?.videos && Array.isArray(data.data.videos)) {
+          rawVideos = data.data.videos;
+        } else if (data?.data?.aweme_list && Array.isArray(data.data.aweme_list)) {
+          rawVideos = data.data.aweme_list;
+        } else if (Array.isArray(data)) {
+          rawVideos = data;
+        }
+        return rawVideos;
+      }
 
       const text = await res.text();
-
       const retryable = res.status === 429 || (res.status >= 500 && res.status <= 599);
       if (retryable && attempt < retries - 1) {
         const waitSec = Math.min(30, 6 * (attempt + 1));
-        console.log(`SocialKit retryable error ${res.status} on ${path}. Wait ${waitSec}s (attempt ${attempt + 1}/${retries})`);
+        console.log(`EnsembleData retryable error ${res.status}. Wait ${waitSec}s (attempt ${attempt + 1}/${retries})`);
         await sleep(waitSec * 1000);
         continue;
       }
 
-      throw new Error(`SocialKit error ${res.status}: ${text}`);
+      throw new Error(`EnsembleData error ${res.status}: ${text}`);
     }
 
-    throw new Error(`SocialKit failed after ${retries} retries`);
+    throw new Error(`EnsembleData failed after ${retries} retries`);
   };
 
-  const getPublishedAt = (video: any): string => {
-    const ct = video.createTime ?? video.create_time;
-    if (typeof ct === "number") {
-      const sec = ct > 1e12 ? Math.floor(ct / 1000) : ct;
+  const getPublishedAt = (createTime: number): string => {
+    if (typeof createTime === "number" && createTime > 0) {
+      const sec = createTime > 1e12 ? Math.floor(createTime / 1000) : createTime;
       return new Date(sec * 1000).toISOString();
     }
-    if (video.created_at) return new Date(video.created_at).toISOString();
-    if (video.published_at) return new Date(video.published_at).toISOString();
     return new Date().toISOString();
   };
 
-  const computeTrend = (video: any) => {
-    const stats = video.stats || {};
-    const publishedAt = new Date(getPublishedAt(video));
+  const computeTrend = (views: number, likes: number, comments: number, publishedAt: Date) => {
     const hoursSince = Math.max(1, (Date.now() - publishedAt.getTime()) / 3600000);
-
-    const views = stats.views ?? video.views ?? video.playCount ?? 0;
-    const likes = stats.likes ?? video.likes ?? video.diggCount ?? 0;
-    const comments = stats.comments ?? video.comments ?? video.commentCount ?? 0;
 
     const vViews = views / hoursSince;
     const vLikes = likes / hoursSince;
@@ -206,18 +224,7 @@ Deno.serve(async (req: Request) => {
       velocity_likes: vLikes,
       velocity_comments: vComments,
       trend_score: 0.4 * vViews + 0.3 * vLikes + 0.2 * vComments + 0.1 * engagementRate * 10000,
-      published_at: publishedAt.toISOString(),
     };
-  };
-
-  const extractVideos = (data: any): any[] => {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data?.data?.results)) return data.data.results;
-    if (Array.isArray(data?.data)) return data.data;
-    if (Array.isArray(data?.items)) return data.items;
-    if (Array.isArray(data?.videos)) return data.videos;
-    if (Array.isArray(data?.result)) return data.result;
-    return [];
   };
 
   // =========================
@@ -340,7 +347,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Create log entry on first batch only (BEFORE keyword selection so logId is available as seed)
+  // Create log entry on first batch only
   if (!logId) {
     await adminClient
       .from("trend_refresh_logs")
@@ -367,8 +374,6 @@ Deno.serve(async (req: Request) => {
     logId = logEntry?.id || null;
   }
 
-  // Per-niche cursor rotation (seed is stable per niche, cursor advances each run)
-
   const chainNextBatch = async (nextBatch: number) => {
     try {
       await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
@@ -385,7 +390,7 @@ Deno.serve(async (req: Request) => {
   };
 
   // =========================
-  // Enforce category limit (trim weakest if over)
+  // Enforce category limit
   // =========================
   const enforceLimit = async (nicheKey: string, limit: number) => {
     if (!limit || limit <= 0) return;
@@ -418,7 +423,7 @@ Deno.serve(async (req: Request) => {
   };
 
   // =========================
-  // Process one niche (with seeded keyword rotation)
+  // Process one niche (EnsembleData — one call per keyword, no pagination needed)
   // =========================
   const processNiche = async (nicheKey: string) => {
     const limit = categoryLimits[nicheKey] || 0;
@@ -426,7 +431,7 @@ Deno.serve(async (req: Request) => {
     const qCount = WEAK_NICHES.has(nicheKey) ? weakQueriesPerNiche : queriesPerNiche;
     const allKeywords = NICHE_QUERIES[nicheKey] || [];
 
-    // Per-niche cursor: read current rotation index
+    // Per-niche cursor
     const { data: cursorRow } = await adminClient
       .from("trend_niche_cursors")
       .select("cursor")
@@ -434,24 +439,19 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     const nicheRotationIndex = cursorRow?.cursor ?? 0;
-    const nicheSeed = nicheKey; // stable seed per niche — shuffle order never changes
+    const nicheSeed = nicheKey;
 
     const selectedKeywords = pickRotatedKeywords(nicheKey, allKeywords, qCount, nicheSeed, nicheRotationIndex);
-
-    // Store for debug logging
     keywordsUsedPerNiche[nicheKey] = selectedKeywords;
 
     console.log(`  🔑 ${nicheKey}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (cursor=${nicheRotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
 
     let nicheSaved = 0;
 
-    const PAGES_PER_QUERY = 5;
-    const ACTUAL_PAGE_SIZE = 10; // SocialKit returns max 10 per request regardless of count
-    const sortTypes = ["3", "1"]; // date, likes
-    // Prioritize fresh content: 75% queries use publish_time=7, 25% use publish_time=30
-    const publishTimes = ["7", "7", "7", "30"];
-
-    const COUNT = 30;
+    // EnsembleData sorting: "2" = date, "1" = likes
+    const sortTypes = ["2", "1"];
+    // Prioritize fresh content: 75% queries use period=7, 25% use period=30
+    const periods = ["7", "7", "7", "30"];
 
     for (let qi = 0; qi < selectedKeywords.length; qi++) {
       if (Date.now() - startTime > MAX_EXECUTION_MS) break;
@@ -472,144 +472,121 @@ Deno.serve(async (req: Request) => {
       }
 
       const query = selectedKeywords[qi];
-      const sortType = sortTypes[qi % sortTypes.length];
-      const publishTime = publishTimes[qi % publishTimes.length];
+      const sorting = sortTypes[qi % sortTypes.length];
+      const period = periods[qi % periods.length];
 
-      if (qi > 0) await sleep(800);
+      if (qi > 0) await sleep(1500); // Rate limit between queries
 
-      for (let page = 0; page < PAGES_PER_QUERY; page++) {
-        if (Date.now() - startTime > MAX_EXECUTION_MS) break;
+      try {
+        console.log(`ED params: query="${query}", period=${period}, sorting=${sorting}`);
+        const rawVideos = await callEnsembleData(query, period, sorting);
+        console.log(`  ED returned ${rawVideos.length} raw videos for "${query}"`);
 
-        const offset = String(page * ACTUAL_PAGE_SIZE);
-        if (page > 0) await sleep(500);
+        if (rawVideos.length === 0) continue;
 
-        try {
-          console.log("SK params", { query, count: String(COUNT), offset, sortType, publishTime });
-          const data = await callSocialKit("/tiktok/search", {
-            query,
-            count: String(COUNT),
-            sort_type: sortType,
-            publish_time: publishTime,
-            offset,
-          });
-
-          const videos = extractVideos(data);
-
-          // DEBUG: log first raw video object from SocialKit
-          if (videos.length > 0 && qi === 0 && page === 0) {
-            console.log(`RAW_SOCIALKIT_SAMPLE: ${JSON.stringify(videos[0]).slice(0, 3000)}`);
-          }
-
-          const ages: number[] = [];
-          for (const v of videos) {
-            const d = new Date(getPublishedAt(v));
-            const ageDays = (Date.now() - d.getTime()) / 86400000;
-            if (Number.isFinite(ageDays)) ages.push(ageDays);
-          }
-          if (ages.length) {
-            const min = Math.min(...ages), max = Math.max(...ages);
-            console.log(`  AGE days: min=${min.toFixed(1)} max=${max.toFixed(1)} sample=${ages.slice(0, 5).map(a => a.toFixed(1)).join(",")}`);
-          }
-
-          let noId = 0, lowViews = 0, tooOld = 0, inBatchDup = 0;
-
-          const rowsRaw = videos.map((v) => {
-            const videoId = v.id || v.video_id || v.aweme_id;
-            if (!videoId) { noId++; return null; }
-
-            const trends = computeTrend(v);
-
-            const stats = v.stats || {};
-            const views = stats.views ?? v.views ?? v.playCount ?? 0;
-            const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 1000 : MIN_VIEWS;
-            if (views < minViewsForNiche) { lowViews++; return null; }
-
-            const publishedAt = new Date(getPublishedAt(v));
-            if (publishedAt < maxAgeCutoff) { tooOld++; return null; }
-
-            const caption = v.desc || v.caption || v.title || "";
-            const username = v.author?.uniqueId || v.author?.unique_id || v.author_username || "";
-
-            return {
-              platform: "tiktok",
-              platform_video_id: String(videoId),
-
-              url: v.url || `https://www.tiktok.com/@${username || "user"}/video/${videoId}`,
-              caption,
-
-              cover_url: v.video?.cover || v.cover_url || v.cover || v.originCover || "",
-
-              author_username: username,
-              author_display_name: v.author?.nickname || v.author_display_name || "",
-              author_avatar_url: v.author?.avatar || v.author?.avatarThumb || v.author_avatar_url || "",
-
-              views,
-              likes: stats.likes ?? v.likes ?? v.diggCount ?? 0,
-              comments: stats.comments ?? v.comments ?? v.commentCount ?? 0,
-              shares: stats.shares ?? v.shares ?? v.shareCount ?? 0,
-
-              duration_sec: v.video?.duration ?? v.duration_sec ?? v.duration ?? null,
-
-              fetched_at: nowIso,
-              region: "world",
-
-              niche: nicheKey,
-              categories: [nicheKey],
-
-              ...trends,
-            };
-          }).filter(Boolean) as any[];
-
-          // Local dedupe
-          const map = new Map<string, any>();
-          for (const r of rowsRaw) {
-            if (map.has(r.platform_video_id)) inBatchDup++;
-            map.set(r.platform_video_id, r);
-          }
-          const videoRows = [...map.values()];
-
-          console.log(
-            `  📊 "${query}" p${page}: ${videos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, inBatchDup=${inBatchDup})`,
-          );
-
-          // No early exit on tooOldRatio — SocialKit date filter is unreliable,
-          // fresh videos may appear on later pages
-
-          if (videoRows.length === 0) {
-            if (videos.length < 5) {
-              console.log(`  ⏭ "${query}": no more results, skipping remaining pages`);
-              break;
-            }
-            continue;
-          }
-
-          // Check which are new
-          const platformIds = videoRows.map((v: any) => v.platform_video_id);
-
-          const { data: existing } = await adminClient
-            .from("videos")
-            .select("platform_video_id")
-            .eq("platform", "tiktok")
-            .in("platform_video_id", platformIds);
-
-          const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
-          const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
-
-          console.log(`  💾 "${query}" p${page}: ${newCount} new / ${existingIds.size} dupes`);
-
-          const { error: upsertErr } = await adminClient
-            .from("videos")
-            .upsert(videoRows, { onConflict: "platform,platform_video_id" });
-
-          if (upsertErr) {
-            console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
-          } else {
-            nicheSaved += newCount;
-          }
-
-        } catch (err) {
-          console.error(`Niche ${nicheKey} query "${query}" p${page} failed:`, (err as Error).message);
+        // Log first video sample on first query
+        if (qi === 0 && rawVideos.length > 0) {
+          const sample = rawVideos[0];
+          const sampleKeys = Object.keys(sample);
+          console.log(`  First video keys: ${JSON.stringify(sampleKeys)}`);
         }
+
+        let noId = 0, lowViews = 0, tooOld = 0, inBatchDup = 0;
+
+        const rowsRaw = rawVideos.map((item: any) => {
+          // Unwrap aweme_info wrapper
+          const v = item.aweme_info || item;
+
+          const awemeId = v.aweme_id || v.id || "";
+          if (!awemeId) { noId++; return null; }
+
+          const stats = v.statistics || v.stats || {};
+          const views = stats.play_count ?? stats.playCount ?? stats.views ?? v.views ?? 0;
+          const likes = stats.digg_count ?? stats.diggCount ?? stats.likes ?? v.likes ?? 0;
+          const comments = stats.comment_count ?? stats.commentCount ?? stats.comments ?? v.comments ?? 0;
+          const shares = stats.share_count ?? stats.shareCount ?? stats.shares ?? v.shares ?? 0;
+
+          const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 1000 : MIN_VIEWS;
+          if (views < minViewsForNiche) { lowViews++; return null; }
+
+          const publishedAtStr = getPublishedAt(v.create_time || v.createTime || 0);
+          const publishedAt = new Date(publishedAtStr);
+          if (publishedAt < maxAgeCutoff) { tooOld++; return null; }
+
+          const author = v.author || {};
+          const videoInfo = v.video || {};
+          const uniqueId = author.unique_id || author.uniqueId || "";
+          const nickname = author.nickname || "";
+          const avatarUrl = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
+          const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+          const caption = v.desc || "";
+          const duration = videoInfo.duration || null;
+
+          const trends = computeTrend(views, likes, comments, publishedAt);
+
+          return {
+            platform: "tiktok",
+            platform_video_id: String(awemeId),
+            url: `https://www.tiktok.com/@${uniqueId || "user"}/video/${awemeId}`,
+            caption,
+            cover_url: coverUrl,
+            author_username: uniqueId,
+            author_display_name: nickname,
+            author_avatar_url: avatarUrl,
+            views,
+            likes,
+            comments,
+            shares,
+            duration_sec: duration,
+            fetched_at: nowIso,
+            region: "world",
+            niche: nicheKey,
+            categories: [nicheKey],
+            published_at: publishedAtStr,
+            ...trends,
+          };
+        }).filter(Boolean) as any[];
+
+        // Local dedupe
+        const map = new Map<string, any>();
+        for (const r of rowsRaw) {
+          if (map.has(r.platform_video_id)) inBatchDup++;
+          map.set(r.platform_video_id, r);
+        }
+        const videoRows = [...map.values()];
+
+        console.log(
+          `  📊 "${query}": ${rawVideos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, inBatchDup=${inBatchDup})`,
+        );
+
+        if (videoRows.length === 0) continue;
+
+        // Check which are new
+        const platformIds = videoRows.map((v: any) => v.platform_video_id);
+
+        const { data: existing } = await adminClient
+          .from("videos")
+          .select("platform_video_id")
+          .eq("platform", "tiktok")
+          .in("platform_video_id", platformIds);
+
+        const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
+        const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
+
+        console.log(`  💾 "${query}": ${newCount} new / ${existingIds.size} dupes`);
+
+        const { error: upsertErr } = await adminClient
+          .from("videos")
+          .upsert(videoRows, { onConflict: "platform,platform_video_id" });
+
+        if (upsertErr) {
+          console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
+        } else {
+          nicheSaved += newCount;
+        }
+
+      } catch (err) {
+        console.error(`Niche ${nicheKey} query "${query}" failed:`, (err as Error).message);
       }
     }
 
@@ -684,7 +661,7 @@ Deno.serve(async (req: Request) => {
     await sleep(1000);
   }
 
-  // Update log with rotation debug info
+  // Update log
   if (logId) {
     await adminClient
       .from("trend_refresh_logs")
@@ -734,13 +711,13 @@ Deno.serve(async (req: Request) => {
           status: "done",
           total_saved: totalSaved,
           general_saved: 0,
-            niche_stats: {
-              ...nicheStats,
-              _rotation: {
-                mode: "per_niche_cursor",
-                keywords_used: keywordsUsedPerNiche,
-              },
+          niche_stats: {
+            ...nicheStats,
+            _rotation: {
+              mode: "per_niche_cursor",
+              keywords_used: keywordsUsedPerNiche,
             },
+          },
           finished_at: new Date().toISOString(),
         })
         .eq("id", logId);
