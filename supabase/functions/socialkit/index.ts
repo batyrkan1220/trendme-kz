@@ -403,7 +403,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         const awemeId = extractAwemeId(video_url);
         if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
 
-        const data = await callEnsemble("/tt/post/info", { id: awemeId });
+        const data = await callEnsemble("/tt/post/info", { url: video_url });
         const videoData = unwrapVideo(data?.data || data);
 
         if (videoData) {
@@ -440,7 +440,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         // 1. Fetch post info and comments from EnsembleData in parallel
         const [postInfoRes, commentsRes] = await Promise.allSettled([
-          callEnsemble("/tt/post/info", { id: awemeId }),
+          callEnsemble("/tt/post/info", { url: video_url }),
           callEnsemble("/tt/post/comments", { aweme_id: awemeId }),
         ]);
 
