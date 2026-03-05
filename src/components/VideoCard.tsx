@@ -1,7 +1,9 @@
+import { useState, useRef } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp
+  Trophy, Zap, Target, TrendingUp, Loader2
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
