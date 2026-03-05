@@ -116,6 +116,10 @@ Deno.serve(async (req: Request) => {
       rawVideos = data;
     }
     console.log(`EnsembleData returned ${rawVideos.length} videos`);
+    if (rawVideos.length > 0) {
+      console.log(`First video keys: ${JSON.stringify(Object.keys(rawVideos[0]))}`);
+      console.log(`First video sample: ${JSON.stringify(rawVideos[0]).substring(0, 1500)}`);
+    }
 
     // Normalize to a consistent format for the frontend
     const videos = rawVideos.map((v: any) => {
