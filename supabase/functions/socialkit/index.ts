@@ -801,6 +801,8 @@ Deno.serve(async (req: Request) => {
           .single();
 
         // activity_log is handled client-side via checkAndLog
+        const accountCredits = (userInfoRes.status === "fulfilled" ? 1 : 0) + (userPostsRes.status === "fulfilled" ? 1 : 0);
+        await logApiUsage("account_stats", accountCredits, { profile_url, username });
 
         return json({
           ...account,
