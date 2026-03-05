@@ -7,9 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const subtitles: Record<string, string> = {
-  "Пробный": "Тегін сынап көріңіз",
-  "1 ай": "Айлық жазылым",
-  "3 ай": "3 айлық жазылым — 15% скидка",
+  "Пробный": "Попробуйте бесплатно",
+  "1 ай": "Ежемесячная подписка",
+  "3 ай": "Подписка на 3 месяца — скидка 15%",
 };
 
 const planIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -61,8 +61,8 @@ export default function Pricing() {
     <AppLayout>
       <div className="p-4 md:p-6 lg:p-8 space-y-8 animate-fade-in max-w-4xl mx-auto">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифтер</h1>
-          <p className="text-muted-foreground">Өзіңізге сәйкес тарифті таңдаңыз</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тарифы</h1>
+          <p className="text-muted-foreground">Выберите подходящий тариф</p>
         </div>
 
         {isLoading ? (
@@ -94,7 +94,7 @@ export default function Pricing() {
                           color: "white",
                         }}
                       >
-                        <Sparkles className="h-3.5 w-3.5" /> Ең тиімді
+                        <Sparkles className="h-3.5 w-3.5" /> Лучшая цена
                       </span>
                     </div>
                   )}
@@ -141,7 +141,7 @@ export default function Pricing() {
                       <div className="mt-5">
                         {isFree ? (
                           <div className="flex items-baseline gap-1">
-                            <span className="text-4xl md:text-5xl font-extrabold text-foreground">Тегін</span>
+                            <span className="text-4xl md:text-5xl font-extrabold text-foreground">Бесплатно</span>
                           </div>
                         ) : (
                           <>
@@ -153,7 +153,7 @@ export default function Pricing() {
                             {plan.duration_days === 90 && (
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-sm text-muted-foreground">
-                                  {monthlyPrice.toLocaleString("ru-RU")}₸ / ай
+                                  {monthlyPrice.toLocaleString("ru-RU")}₸ / мес
                                 </span>
                                 <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded" style={{ background: "hsl(350 80% 50%)" }}>
                                   -15%
@@ -161,7 +161,7 @@ export default function Pricing() {
                               </div>
                             )}
                             {plan.duration_days === 30 && !isFree && (
-                              <span className="text-sm text-muted-foreground">/ ай</span>
+                              <span className="text-sm text-muted-foreground">/ мес</span>
                             )}
                           </>
                         )}
@@ -169,9 +169,9 @@ export default function Pricing() {
 
                       {/* Duration */}
                       <div className={`mt-4 flex items-center gap-2 ${isPopular ? "bg-primary/10 rounded-lg px-3 py-2 -mx-1" : ""}`}>
-                        <span className="text-sm text-muted-foreground">Мерзімі:</span>
+                        <span className="text-sm text-muted-foreground">Срок:</span>
                         <span className={`font-bold text-foreground ${isPopular ? "text-base" : "text-sm"}`}>
-                          {isFree ? "1 ай (сынақ)" : plan.duration_days === 90 ? "3 ай" : "1 ай"}
+                          {isFree ? "1 мес (пробный)" : plan.duration_days === 90 ? "3 мес" : "1 мес"}
                         </span>
                       </div>
 
@@ -181,7 +181,7 @@ export default function Pricing() {
                       {/* Unlimited badge for paid plans */}
                       {!usageLimits && !isFree && (
                         <div className="mb-4 text-sm font-semibold text-primary flex items-center gap-1.5">
-                          ♾️ Барлық функциялар шексіз
+                          ♾️ Все функции безлимитно
                         </div>
                       )}
 
@@ -193,25 +193,25 @@ export default function Pricing() {
                             {usageLimits.search != null && (
                               <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
                                 <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
-                                <span>Іздеу — <strong>{usageLimits.search}</strong> рет</span>
+                                <span>Поиск — <strong>{usageLimits.search}</strong> раз</span>
                               </li>
                             )}
                             {usageLimits.video_analysis != null && (
                               <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
                                 <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
-                                <span>Видео анализ — <strong>{usageLimits.video_analysis}</strong> рет</span>
+                                <span>Анализ видео — <strong>{usageLimits.video_analysis}</strong> раз</span>
                               </li>
                             )}
                             {usageLimits.account_analysis != null && (
                               <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
                                 <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
-                                <span>Профиль анализ — <strong>{usageLimits.account_analysis}</strong> рет</span>
+                                <span>Анализ профиля — <strong>{usageLimits.account_analysis}</strong> раз</span>
                               </li>
                             )}
                             {usageLimits.ai_script != null && (
                               <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
                                 <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
-                                <span>AI Сценарий — <strong>{usageLimits.ai_script}</strong> рет</span>
+                                <span>AI Сценарий — <strong>{usageLimits.ai_script}</strong> раз</span>
                               </li>
                             )}
                           </>
@@ -239,7 +239,7 @@ export default function Pricing() {
                         } : undefined}
                         disabled={isActive}
                       >
-                        {isActive ? "Белсенді ✓" : isPopular ? "🔥 3 ай таңдау" : isFree ? "Бастау" : "Таңдау"}
+                        {isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать 3 мес" : isFree ? "Начать" : "Выбрать"}
                       </Button>
                     </div>
                   </div>

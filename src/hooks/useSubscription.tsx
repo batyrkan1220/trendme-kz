@@ -75,13 +75,13 @@ export function useSubscription() {
     if (!user) return false;
 
     if (!hasActiveSubscription) {
-      toast.error("Подписка белсенді емес. Тарифті таңдаңыз.");
+      toast.error("Подписка неактивна. Выберите тариф.");
       return false;
     }
 
     if (!canUse(action)) {
       const limit = limits?.[action] || 0;
-      toast.error(`Лимит бітті (${limit}/${limit}). Тарифті жаңартыңыз.`);
+      toast.error(`Лимит исчерпан (${limit}/${limit}). Обновите тариф.`);
       return false;
     }
 
