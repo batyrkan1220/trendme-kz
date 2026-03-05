@@ -178,7 +178,7 @@ export function VideoCard({
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
-                onClick={() => onPlay(video.id)}
+                onClick={handlePlay}
               >
                 <Play className="h-12 w-12 text-muted-foreground/30" />
               </div>
