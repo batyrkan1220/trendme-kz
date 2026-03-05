@@ -390,11 +390,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
           }
         }
 
-        // 7. Fire-and-forget activity log
-        userClient.from("activity_log").insert({
-          user_id: userId, type: "search_run",
-          payload_json: { query, hashtags, relatedKeywords, results_count: upsertedVideos.length },
-        }).then(() => {}).catch(() => {});
+        // activity_log is handled client-side via checkAndLog
 
         return json({ videos: upsertedVideos, query: queryRow, hashtags, relatedKeywords });
       }
