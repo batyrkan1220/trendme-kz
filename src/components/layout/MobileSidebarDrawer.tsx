@@ -31,7 +31,7 @@ const toolItems: NavItem[] = [
 ];
 
 const ideaItems: NavItem[] = [
-  { label: "Избранные", icon: Star, path: "/library", iconColor: "text-amber-500" },
+  { label: "Избранные", icon: Heart, path: "/library", iconColor: "text-rose-500" },
   { label: "Подписка", icon: CreditCard, path: "/subscription", iconColor: "text-primary" },
 ];
 
