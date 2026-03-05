@@ -503,7 +503,7 @@ function PlatformTab() {
                         "socialkit/admin_search": "🔎 Админ іздеу",
                         "ensemble-search/keyword_full_search": "🔍 Ensemble іздеу",
                       };
-                      const total = apiUsage.totalCredits || 1;
+                      const total = filteredApiUsage.totalCredits || 1;
                       const pct = Math.round((credits / total) * 100);
                       return (
                         <div key={key} className="space-y-1">
