@@ -863,16 +863,14 @@ function RoleAssigner({
 
 /* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
 function TrendsManagementTab() {
-  const [section, setSection] = useState<"refresh" | "manual" | "keywords" | "settings" | "stats" | "recat">("refresh");
+  const [section, setSection] = useState<"refresh" | "keywords" | "stats" | "recat">("refresh");
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         {[
           { key: "refresh" as const, label: "Обновление", icon: Play },
-          { key: "manual" as const, label: "Ручной поиск", icon: Search },
           { key: "keywords" as const, label: "Запросы", icon: Hash },
-          { key: "settings" as const, label: "Настройки", icon: Settings },
           { key: "stats" as const, label: "По категориям", icon: BarChart3 },
           { key: "recat" as const, label: "Рекатегоризация", icon: Sparkles },
         ].map(({ key, label, icon: Icon }) => (
@@ -882,9 +880,7 @@ function TrendsManagementTab() {
         ))}
       </div>
       {section === "refresh" && <RefreshSection />}
-      {section === "manual" && <ManualSearchSection />}
       {section === "keywords" && <KeywordsSection />}
-      {section === "settings" && <SettingsSection />}
       {section === "stats" && <StatsSection />}
       {section === "recat" && <RecategorizeSection />}
     </div>
