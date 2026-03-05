@@ -1,0 +1,1 @@
+DELETE FROM videos WHERE published_at < now() - interval '90 days';
