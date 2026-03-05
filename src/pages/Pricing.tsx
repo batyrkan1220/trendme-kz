@@ -211,7 +211,7 @@ export default function Pricing() {
                             {usageLimits.ai_script != null && (
                               <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
                                 <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
-                                <span>AI Сценарий — <strong>{usageLimits.ai_script}</strong> рет</span>
+                                <span>AI Сценарий — <strong>{usageLimits.ai_script}</strong> раз</span>
                               </li>
                             )}
                           </>
