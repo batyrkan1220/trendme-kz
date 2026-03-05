@@ -104,15 +104,19 @@ export default function Dashboard() {
         {/* Usage limits widget for trial users */}
         {hasActiveSubscription && isFreeTrial && limits && !subLoading && (
           <div className="rounded-2xl border border-border/50 bg-card p-4 md:p-6">
-            <div className="flex items-center justify-between mb-3">
-              <p className="font-bold text-foreground text-sm md:text-base">Ваши лимиты</p>
+            <div className="flex items-center justify-between mb-1">
+              <div>
+                <p className="font-bold text-foreground text-sm md:text-base">Ваши лимиты</p>
+                <p className="text-[11px] md:text-xs text-muted-foreground">Тариф: Демо режим</p>
+              </div>
               <Link
                 to="/subscription"
-                className="inline-flex items-center gap-1 text-[11px] md:text-xs font-medium text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-[11px] md:text-xs font-semibold text-primary hover:underline bg-primary/10 rounded-lg px-2.5 py-1.5"
               >
                 Улучшить <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
+            <div className="border-t border-border/40 my-3" />
             <div className="grid grid-cols-2 gap-2.5 md:gap-3">
               {([
                 { key: "search" as const, label: "Поиск", limit: limits.search },
