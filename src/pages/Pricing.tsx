@@ -26,7 +26,7 @@ const planIcons: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export default function Pricing() {
   const { user } = useAuth();
-
+  const isMobile = useIsMobile();
   const { data: plans = [], isLoading } = useQuery({
     queryKey: ["plans-public"],
     queryFn: async () => {
