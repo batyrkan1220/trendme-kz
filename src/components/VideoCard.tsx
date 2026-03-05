@@ -66,9 +66,10 @@ interface VideoCardProps {
   onPlay: (id: string | null) => void;
   isFavorite: boolean;
   onToggleFav: (id: string) => void;
-  onAnalyze: (video: VideoCardData) => void;
+  onAnalyze?: (video: VideoCardData) => void;
   showTier?: boolean;
   showAuthor?: boolean;
+  showAnalyzeButton?: boolean;
 }
 
 export function VideoCard({
