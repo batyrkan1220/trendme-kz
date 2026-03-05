@@ -98,6 +98,20 @@ Deno.serve(async (req: Request) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+    // API usage logging
+    const logApiUsage = async (action: string, credits: number, metadata: Record<string, any> = {}) => {
+      try {
+        await adminClient.from("api_usage_log").insert({
+          function_name: "socialkit",
+          action,
+          credits_used: credits,
+          metadata,
+        });
+      } catch (e) {
+        console.error("Failed to log API usage:", e);
+      }
+    };
+
     const body = await req.json();
     const { action } = body;
 
