@@ -118,8 +118,8 @@ export default function Pricing() {
                   <div
                     className={`rounded-2xl border transition-all flex flex-col flex-1 ${
                       isPaid
-                        ? "p-8 shadow-xl border-transparent relative overflow-hidden"
-                        : "p-7 bg-card border-border/60 shadow-sm hover:shadow-md"
+                        ? "p-5 md:p-8 shadow-xl border-transparent relative overflow-hidden"
+                        : "p-5 md:p-7 bg-card border-border/60 shadow-sm hover:shadow-md"
                     }`}
                     style={isPaid ? {
                       background: isPopular
