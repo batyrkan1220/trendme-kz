@@ -37,6 +37,27 @@ export default function Dashboard() {
       path: "/trends",
       iconColor: "text-orange-500",
     },
+    {
+      icon: Video,
+      title: "Анализ видео",
+      description: "Разберите любое видео по полочкам с AI",
+      path: "/video-analysis",
+      iconColor: "text-purple-500",
+    },
+    {
+      icon: Sparkles,
+      title: "AI Сценарий",
+      description: "Создайте вирусный сценарий на основе тренда",
+      path: "/ai-script",
+      iconColor: "text-violet-500",
+    },
+    {
+      icon: UserCircle,
+      title: "Анализ профиля",
+      description: "Изучите стратегию любого автора",
+      path: "/account-analysis",
+      iconColor: "text-green-500",
+    },
   ];
 
   return (
