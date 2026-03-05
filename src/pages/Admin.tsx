@@ -142,7 +142,6 @@ function UsersTab() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [subDialog, setSubDialog] = useState<{ userId: string; email: string } | null>(null);
-  const [subDialog, setSubDialog] = useState<{ userId: string; email: string } | null>(null);
   const [subPlanId, setSubPlanId] = useState("");
   const [subDays, setSubDays] = useState("30");
   const [subNote, setSubNote] = useState("");
