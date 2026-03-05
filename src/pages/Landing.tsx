@@ -330,7 +330,7 @@ export default function Landing() {
       </section>
 
       {/* ═══ Stats (animated counters kept) ═══ */}
-      <section className="py-4 md:py-20 px-4">
+      <section className="py-8 md:py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-12">
             {stats.map((s) => (
