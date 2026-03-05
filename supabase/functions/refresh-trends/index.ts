@@ -446,7 +446,8 @@ Deno.serve(async (req: Request) => {
     const PAGES_PER_QUERY = 5;
     const ACTUAL_PAGE_SIZE = 10; // SocialKit returns max 10 per request regardless of count
     const sortTypes = ["3", "1"]; // date, likes
-    const publishTimes = ["7", "30"];
+    // Prioritize fresh content: 75% queries use publish_time=7, 25% use publish_time=30
+    const publishTimes = ["7", "7", "7", "30"];
 
     const COUNT = 30;
 
