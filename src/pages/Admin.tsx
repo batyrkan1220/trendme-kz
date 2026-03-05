@@ -738,10 +738,10 @@ function ManualSearchSection() {
     setResults([]);
     setAdded(new Set());
     try {
-      // Use socialkit edge function with raw SocialKit search params
+      // Use EnsembleData edge function for manual search
       const session = (await supabase.auth.getSession()).data.session;
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/socialkit`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ensemble-search`,
         {
           method: "POST",
           headers: {
@@ -750,10 +750,9 @@ function ManualSearchSection() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            action: "admin_search",
             query: query.trim(),
-            publish_time: publishTime,
-            sort_type: sortType,
+            period: publishTime,
+            sorting: sortType,
           }),
         }
       );
