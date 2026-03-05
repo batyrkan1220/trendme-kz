@@ -1740,62 +1740,8 @@ function KeywordsSection() {
   );
 }
 
-function SettingsSection() {
-  const queryClient = useQueryClient();
-  const { data: thresholds, isLoading } = useQuery({
-    queryKey: ["trend-settings", "thresholds"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "thresholds").single();
-      return (data?.value as any) || {};
-    },
-  });
-  const [localThresholds, setLocalThresholds] = useState<any>(null);
-  const current = localThresholds || thresholds || {};
-  const saveMutation = useMutation({
-    mutationFn: async (updated: any) => {
-      const { error } = await supabase.from("trend_settings").update({ value: updated, updated_at: new Date().toISOString() }).eq("key", "thresholds");
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Настройки сохранены"); setLocalThresholds(null); },
-    onError: () => toast.error("Ошибка сохранения"),
-  });
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-  const updateField = (path: string, value: number) => {
-    const updated = { ...current };
-    const keys = path.split(".");
-    let obj = updated;
-    for (let i = 0; i < keys.length - 1; i++) { obj[keys[i]] = { ...obj[keys[i]] }; obj = obj[keys[i]]; }
-    obj[keys[keys.length - 1]] = value;
-    setLocalThresholds(updated);
-  };
-  return (
-    <div className="space-y-4 max-w-lg">
-      <Card>
-        <CardHeader><CardTitle className="text-lg">Пороги и лимиты</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-           <SettingRow label="Порог слабой категории (видео за 7 дней)" value={current.weak_niche_threshold ?? 20} onChange={(v) => updateField("weak_niche_threshold", v)} />
-           <SettingRow label="Запросов на категорию" value={current.queries_per_niche ?? 8} onChange={(v) => updateField("queries_per_niche", v)} />
-           <SettingRow label="Запросов на слабую категорию" value={current.weak_queries_per_niche ?? 12} onChange={(v) => updateField("weak_queries_per_niche", v)} />
-           <SettingRow label="Видео на запрос (макс)" value={current.videos_per_query ?? 30} onChange={(v) => updateField("videos_per_query", v)} />
-          {localThresholds && (
-            <Button onClick={() => saveMutation.mutate(localThresholds)} disabled={saveMutation.isPending} className="w-full">
-              <Save className="h-4 w-4 mr-2" />Сохранить настройки
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
-function SettingRow({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-sm text-foreground">{label}</span>
-      <Input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-24 text-center" />
-    </div>
-  );
-}
+
 
 function StatsSection() {
   const queryClient = useQueryClient();
