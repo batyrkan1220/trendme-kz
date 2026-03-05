@@ -440,7 +440,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
 
         // 1. Fetch post info and comments from EnsembleData in parallel
         const [postInfoRes, commentsRes] = await Promise.allSettled([
-          callEnsemble("/tt/post/info", { id: awemeId }),
+          callEnsemble("/tt/post/info", { url: video_url }),
           callEnsemble("/tt/post/comments", { aweme_id: awemeId }),
         ]);
 
