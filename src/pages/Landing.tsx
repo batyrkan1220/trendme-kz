@@ -363,7 +363,7 @@ export default function Landing() {
       <section id="how" className="py-10 md:py-28 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
-            <p className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">Как это работает</p>
+            <p className="text-sm md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">Как это работает</p>
             <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4">
               Три шага к <span className="text-primary">вирусному контенту</span>
             </h2>
