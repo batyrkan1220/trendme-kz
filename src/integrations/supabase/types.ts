@@ -232,6 +232,48 @@ export type Database = {
         }
         Relationships: []
       }
+      recat_logs: {
+        Row: {
+          current_offset: number
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          started_at: string
+          status: string
+          total_processed: number
+          total_unchanged: number
+          total_updated: number
+          total_videos: number
+          triggered_by: string | null
+        }
+        Insert: {
+          current_offset?: number
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          total_processed?: number
+          total_unchanged?: number
+          total_updated?: number
+          total_videos?: number
+          triggered_by?: string | null
+        }
+        Update: {
+          current_offset?: number
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          total_processed?: number
+          total_unchanged?: number
+          total_updated?: number
+          total_videos?: number
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       saved_scripts: {
         Row: {
           content: string
