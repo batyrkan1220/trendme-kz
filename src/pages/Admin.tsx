@@ -483,7 +483,7 @@ function PlatformTab() {
                 </div>
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
                   <p className="text-xs text-muted-foreground">API шақырулар</p>
-                  <p className="text-2xl font-bold text-foreground">{(apiUsage.totalCalls || 0).toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-foreground">{(filteredApiUsage.totalCalls || 0).toLocaleString()}</p>
                 </div>
               </div>
 
