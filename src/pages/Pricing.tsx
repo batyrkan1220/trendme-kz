@@ -187,6 +187,35 @@ export default function Pricing() {
 
                       {/* Features list */}
                       <ul className="space-y-3 flex-1">
+                        {/* Show usage limits as list items for trial */}
+                        {usageLimits && (
+                          <>
+                            {usageLimits.search != null && (
+                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
+                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                                <span>🔍 Іздеу — <strong>{usageLimits.search}</strong> рет</span>
+                              </li>
+                            )}
+                            {usageLimits.video_analysis != null && (
+                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
+                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                                <span>🎬 Видео анализ — <strong>{usageLimits.video_analysis}</strong> рет</span>
+                              </li>
+                            )}
+                            {usageLimits.account_analysis != null && (
+                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
+                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                                <span>👤 Профиль анализ — <strong>{usageLimits.account_analysis}</strong> рет</span>
+                              </li>
+                            )}
+                            {usageLimits.ai_script != null && (
+                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
+                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                                <span>✨ AI Сценарий — <strong>{usageLimits.ai_script}</strong> рет</span>
+                              </li>
+                            )}
+                          </>
+                        )}
                         {features.map((f: string) => (
                           <li key={f} className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
                             <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
