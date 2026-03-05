@@ -268,32 +268,30 @@ export default function Pricing() {
                         ))}
                       </ul>
 
-                      {/* CTA Button */}
-                      <Button
-                        className={`w-full mt-6 rounded-xl font-semibold text-base h-12 transition-all duration-200 ${
-                          isActive
-                            ? "bg-muted text-muted-foreground border border-border cursor-default hover:bg-muted"
-                            : isPaid
-                              ? "shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] border-0"
-                              : "bg-card text-foreground border border-border hover:bg-muted"
-                        }`}
-                        style={!isActive && isPaid ? {
-                          background: isPopular
-                            ? "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))"
-                            : "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 60%))",
-                          color: "white",
-                        } : undefined}
-                        disabled={isActive || loadingPlanId === plan.id}
-                        onClick={() => {
-                          if (isPaid && !isActive) {
-                            handlePayment(plan.id);
-                          }
-                        }}
-                      >
-                        {loadingPlanId === plan.id ? (
-                          <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
-                        ) : isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать 3 мес" : isFree ? "Начать" : "Выбрать"}
-                      </Button>
+                      {/* CTA Button — only for paid plans */}
+                      {isPaid && (
+                        <Button
+                          className={`w-full mt-6 rounded-xl font-semibold text-base h-12 transition-all duration-200 ${
+                            isActive
+                              ? "bg-muted text-muted-foreground border border-border cursor-default hover:bg-muted"
+                              : "shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] border-0"
+                          }`}
+                          style={!isActive ? {
+                            background: isPopular
+                              ? "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))"
+                              : "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 60%))",
+                            color: "white",
+                          } : undefined}
+                          disabled={isActive || loadingPlanId === plan.id}
+                          onClick={() => {
+                            if (!isActive) handlePayment(plan.id);
+                          }}
+                        >
+                          {loadingPlanId === plan.id ? (
+                            <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
+                          ) : isActive ? "Активен ✓" : isPopular ? "🔥 Выбрать 3 мес" : "Выбрать"}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
