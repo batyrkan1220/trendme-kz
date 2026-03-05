@@ -81,7 +81,7 @@ export function useSubscription() {
 
     if (!canUse(action)) {
       const limit = limits?.[action] || 0;
-      toast.error(`Лимит бітті (${limit}/${limit}). Тарифті жаңартыңыз.`);
+      toast.error(`Лимит исчерпан (${limit}/${limit}). Обновите тариф.`);
       return false;
     }
 
