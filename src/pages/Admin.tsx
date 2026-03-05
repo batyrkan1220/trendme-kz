@@ -359,7 +359,14 @@ function UsersTab() {
                     <tr key={u.id} className="border-b border-border/50 hover:bg-muted/30">
                       <td className="p-3">
                         <div>
-                          <p className="font-medium">{u.email}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-medium">{u.email}</p>
+                            {!u.email_confirmed_at && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive text-destructive">
+                                не подтв.
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             Вход: {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU") : "—"}
                           </p>
