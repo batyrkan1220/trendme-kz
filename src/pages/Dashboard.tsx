@@ -62,7 +62,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="px-3 py-4 md:p-8 lg:p-12 max-w-3xl mx-auto w-full animate-fade-in pb-32 md:pb-12 overflow-x-hidden">
+      <div className="px-3 pt-10 md:p-8 lg:p-12 md:pt-16 max-w-3xl mx-auto w-full animate-fade-in pb-32 md:pb-12 overflow-x-hidden">
         {/* Greeting */}
         <div className="text-center mb-5 md:mb-10">
           <p className="text-muted-foreground text-xs md:text-sm mb-0.5">👋 {greeting}</p>
