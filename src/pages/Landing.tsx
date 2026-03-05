@@ -418,7 +418,7 @@ export default function Landing() {
                   <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_-2px_hsl(var(--primary)/0.25)]">
                     <f.icon className="h-4 w-4 md:h-6 md:w-6 text-primary-foreground" />
                   </div>
-                  <span className="text-[10px] md:text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 md:px-2.5 md:py-1 rounded-md">
+                  <span className="text-xs md:text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 md:px-2.5 md:py-1 rounded-md">
                     {f.metric}
                   </span>
                 </div>
