@@ -175,7 +175,7 @@ function PlatformTab() {
                 <div className="flex items-center justify-between p-2 bg-primary/10 rounded-lg mt-2">
                   <span className="text-sm font-medium">Всего действий</span>
                   <Badge className="text-sm font-bold">
-                    {Object.values(stats.activityBreakdown).reduce((a: number, b: any) => a + (Number(b) || 0), 0)}
+                    {String(Object.values(stats.activityBreakdown as Record<string, number>).reduce((a, b) => a + b, 0))}
                   </Badge>
                 </div>
               </div>
