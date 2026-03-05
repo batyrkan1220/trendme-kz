@@ -251,17 +251,19 @@ export function VideoCard({
       )}
 
       {/* Analyze button */}
-      <div className="px-3 pb-3 mt-auto">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onAnalyze(video);
-          }}
-          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          Анализ видео
-        </button>
-      </div>
+      {showAnalyzeButton && onAnalyze && (
+        <div className="px-3 pb-3 mt-auto">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAnalyze(video);
+            }}
+            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Анализ видео
+          </button>
+        </div>
+      )}
     </div>
   );
 }
