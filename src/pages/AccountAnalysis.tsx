@@ -47,6 +47,7 @@ export default function AccountAnalysis() {
   const HISTORY_PAGE_SIZE = 6;
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { checkAndLog } = useSubscription();
   // Fetch tracked accounts history
   const { data: trackedAccounts = [] } = useQuery({
     queryKey: ["accounts-tracked"],
