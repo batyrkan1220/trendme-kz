@@ -83,7 +83,7 @@ serve(async (req) => {
     };
 
     // Generate signature
-    const sig = await generateSignature("init_payment.php", params, SECRET_KEY);
+    const sig = generateSignature("init_payment.php", params, SECRET_KEY);
     params.pg_sig = sig;
 
     // Send to Freedom Pay
