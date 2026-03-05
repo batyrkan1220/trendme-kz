@@ -281,7 +281,13 @@ function UsersTab() {
     if (pn) planCounts[pn] = (planCounts[pn] || 0) + 1;
   }
 
-  const uniquePlanNames = [...new Set(allUsers.map((u: any) => u.subscription?.plans?.name).filter(Boolean))] as string[];
+  const planOrder = ["Старт", "Про", "Бизнес"];
+  const uniquePlanNames = [...new Set(allUsers.map((u: any) => u.subscription?.plans?.name).filter(Boolean))]
+    .sort((a, b) => {
+      const ia = planOrder.indexOf(a as string);
+      const ib = planOrder.indexOf(b as string);
+      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+    }) as string[];
 
   return (
     <div className="space-y-4">
