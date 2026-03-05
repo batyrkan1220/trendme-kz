@@ -78,6 +78,7 @@ export default function Pricing() {
               const isActive = activePlanName === plan.name;
               const features = Array.isArray(plan.features) ? plan.features as string[] : [];
               const usageLimits = plan.usage_limits as Record<string, number> | null;
+              const isFree = plan.price_rub === 0;
               const Icon = planIcons[plan.name] || Zap;
               const monthlyPrice = getMonthlyPrice(plan);
 
