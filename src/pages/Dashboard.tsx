@@ -120,9 +120,9 @@ export default function Dashboard() {
             <p className="font-bold text-foreground text-[13px] md:text-base mb-3">Ваши лимиты</p>
             <div className="grid grid-cols-2 gap-2 md:gap-3">
               {([
-                { key: "search" as const, label: "Іздеу", limit: limits.search },
-                { key: "video_analysis" as const, label: "Видео анализ", limit: limits.video_analysis },
-                { key: "account_analysis" as const, label: "Профиль анализ", limit: limits.account_analysis },
+                { key: "search" as const, label: "Поиск", limit: limits.search },
+                { key: "video_analysis" as const, label: "Анализ видео", limit: limits.video_analysis },
+                { key: "account_analysis" as const, label: "Анализ профиля", limit: limits.account_analysis },
                 { key: "ai_script" as const, label: "AI Сценарий", limit: limits.ai_script },
               ]).filter(i => i.limit != null).map(item => {
                 const remaining = getRemaining(item.key);
