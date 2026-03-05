@@ -493,6 +493,7 @@ Deno.serve(async (req: Request) => {
       try {
         console.log(`ED params: query="${query}", period=${period}, sorting=${sorting}`);
         const rawVideos = await callEnsembleData(query, period, sorting);
+        await logApiUsage("keyword_full_search", 1, { niche: nicheKey, query, period, sorting, results: rawVideos.length });
         console.log(`  ED returned ${rawVideos.length} raw videos for "${query}"`);
 
         if (rawVideos.length === 0) continue;
