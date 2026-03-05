@@ -3,7 +3,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   RefreshCw, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
   Users, Activity, Video, Search, Heart, UserCircle, ScrollText,
@@ -70,6 +75,10 @@ export default function Admin() {
 
 /* ==================== PLATFORM TAB ==================== */
 function PlatformTab() {
+  const [apiDays, setApiDays] = useState<number>(30);
+  const [apiDateFrom, setApiDateFrom] = useState<Date | undefined>(undefined);
+  const [apiDateTo, setApiDateTo] = useState<Date | undefined>(undefined);
+
   const fetchHeaders = async () => ({
     Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
     apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -89,10 +98,10 @@ function PlatformTab() {
   });
 
   const { data: apiUsage } = useQuery({
-    queryKey: ["admin-api-usage"],
+    queryKey: ["admin-api-usage", apiDays],
     queryFn: async () => {
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=api-usage&days=30`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=api-usage&days=${apiDays}`,
         { headers: await fetchHeaders() }
       );
       if (!res.ok) throw new Error("Failed to fetch API usage");
@@ -100,6 +109,33 @@ function PlatformTab() {
     },
     refetchInterval: 60000,
   });
+
+  // Filter apiUsage.byDay by date range
+  const filteredApiUsage = useMemo(() => {
+    if (!apiUsage) return null;
+    if (!apiDateFrom && !apiDateTo) return apiUsage;
+
+    const fromStr = apiDateFrom ? format(apiDateFrom, "yyyy-MM-dd") : "0000-00-00";
+    const toStr = apiDateTo ? format(apiDateTo, "yyyy-MM-dd") : "9999-99-99";
+
+    const filteredByDay: Record<string, Record<string, number>> = {};
+    const filteredByAction: Record<string, number> = {};
+    let filteredTotal = 0;
+    let filteredCalls = 0;
+
+    for (const [day, actions] of Object.entries(apiUsage.byDay || {} as Record<string, Record<string, number>>)) {
+      if (day >= fromStr && day <= toStr) {
+        filteredByDay[day] = actions as Record<string, number>;
+        for (const [key, val] of Object.entries(actions as Record<string, number>)) {
+          filteredByAction[key] = (filteredByAction[key] || 0) + val;
+          filteredTotal += val;
+          filteredCalls++;
+        }
+      }
+    }
+
+    return { byDay: filteredByDay, byAction: filteredByAction, totalCredits: filteredTotal, totalCalls: filteredCalls };
+  }, [apiUsage, apiDateFrom, apiDateTo]);
 
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
 
@@ -389,29 +425,73 @@ function PlatformTab() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Zap className="h-5 w-5 text-yellow-500" />
-            EnsembleData API кредиттер (30 күн)
+            EnsembleData API кредиттер
           </CardTitle>
+          {/* Date filters */}
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            {[7, 14, 30, 90].map(d => (
+              <Button
+                key={d}
+                size="sm"
+                variant={apiDays === d && !apiDateFrom && !apiDateTo ? "default" : "outline"}
+                className="h-7 text-xs"
+                onClick={() => { setApiDays(d); setApiDateFrom(undefined); setApiDateTo(undefined); }}
+              >
+                {d} күн
+              </Button>
+            ))}
+            <div className="flex items-center gap-1.5 ml-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-1", !apiDateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3 w-3" />
+                    {apiDateFrom ? format(apiDateFrom, "dd.MM.yy") : "Бастап"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={apiDateFrom} onSelect={setApiDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">—</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-1", !apiDateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3 w-3" />
+                    {apiDateTo ? format(apiDateTo, "dd.MM.yy") : "Дейін"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={apiDateTo} onSelect={setApiDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              {(apiDateFrom || apiDateTo) && (
+                <Button size="sm" variant="ghost" className="h-7 text-xs px-1.5" onClick={() => { setApiDateFrom(undefined); setApiDateTo(undefined); }}>
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {apiUsage ? (
+          {filteredApiUsage ? (
             <div className="space-y-4">
               {/* Summary */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
                   <p className="text-xs text-muted-foreground">Жалпы кредит</p>
-                  <p className="text-2xl font-bold text-primary">{(apiUsage.totalCredits || 0).toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-primary">{(filteredApiUsage.totalCredits || 0).toLocaleString()}</p>
                 </div>
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
                   <p className="text-xs text-muted-foreground">API шақырулар</p>
-                  <p className="text-2xl font-bold text-foreground">{(apiUsage.totalCalls || 0).toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-foreground">{(filteredApiUsage.totalCalls || 0).toLocaleString()}</p>
                 </div>
               </div>
 
               {/* By action breakdown */}
-              {apiUsage.byAction && Object.keys(apiUsage.byAction).length > 0 && (
+              {filteredApiUsage.byAction && Object.keys(filteredApiUsage.byAction).length > 0 && (
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-muted-foreground">Функция бойынша бөлінуі</h4>
-                  {Object.entries(apiUsage.byAction as Record<string, number>)
+                  {Object.entries(filteredApiUsage.byAction as Record<string, number>)
                     .sort((a, b) => b[1] - a[1])
                     .map(([key, credits]) => {
                       const actionLabels: Record<string, string> = {
@@ -423,7 +503,7 @@ function PlatformTab() {
                         "socialkit/admin_search": "🔎 Админ іздеу",
                         "ensemble-search/keyword_full_search": "🔍 Ensemble іздеу",
                       };
-                      const total = apiUsage.totalCredits || 1;
+                      const total = filteredApiUsage.totalCredits || 1;
                       const pct = Math.round((credits / total) * 100);
                       return (
                         <div key={key} className="space-y-1">
@@ -441,7 +521,7 @@ function PlatformTab() {
               )}
 
               {/* By day table */}
-              {apiUsage.byDay && Object.keys(apiUsage.byDay).length > 0 && (
+              {filteredApiUsage.byDay && Object.keys(filteredApiUsage.byDay).length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">Күн бойынша</h4>
                   <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
@@ -458,7 +538,7 @@ function PlatformTab() {
                         </tr>
                       </thead>
                       <tbody>
-                        {Object.entries(apiUsage.byDay as Record<string, Record<string, number>>)
+                        {Object.entries(filteredApiUsage.byDay as Record<string, Record<string, number>>)
                           .sort((a, b) => b[0].localeCompare(a[0]))
                           .map(([day, actions]) => {
                             const trend = (actions["refresh-trends/keyword_full_search"] || 0);
@@ -485,7 +565,7 @@ function PlatformTab() {
                 </div>
               )}
 
-              {apiUsage.totalCalls === 0 && (
+              {filteredApiUsage.totalCalls === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   API қолдану деректері жинала бастады. Келесі іздеулер мен жаңартулардан кейін деректер пайда болады.
                 </p>
