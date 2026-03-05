@@ -11,7 +11,7 @@ import { useMemo } from "react";
 const subtitles: Record<string, string> = {
   "Пробный": "Попробуйте бесплатно",
   "1 мес": "Ежемесячная подписка",
-  "3 мес": "Подписка на 3 месяца — скидка 15%",
+  "3 мес": "Скидка 15%",
 };
 
 const displayNames: Record<string, string> = {
