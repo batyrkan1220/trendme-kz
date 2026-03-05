@@ -507,6 +507,11 @@ Deno.serve(async (req: Request) => {
 
           if (views < MIN_VIEWS) { lowViews++; return null; }
 
+          // Filter: only keep videos with Cyrillic text in caption (Russian/Kazakh content)
+          const caption = v.desc || "";
+          const hasCyrillic = /[а-яА-ЯёЁәіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
+          if (!hasCyrillic) { tooOld++; return null; }
+
           const publishedAtStr = getPublishedAt(v.create_time || v.createTime || 0);
           const publishedAt = new Date(publishedAtStr);
           if (publishedAt < maxAgeCutoff) { tooOld++; return null; }
