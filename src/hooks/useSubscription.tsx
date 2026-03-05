@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import React from "react";
 
 type ActionKey = "search" | "video_analysis" | "account_analysis" | "ai_script";
 
@@ -72,17 +73,38 @@ export function useSubscription() {
     return remaining > 0;
   };
 
+  const ACTION_LABELS: Record<ActionKey, string> = {
+    search: "Поиск",
+    video_analysis: "Анализ видео",
+    account_analysis: "Анализ аккаунта",
+    ai_script: "AI Сценарий",
+  };
+
   const checkAndLog = async (action: ActionKey, description?: string): Promise<boolean> => {
     if (!user) return false;
 
     if (!hasActiveSubscription) {
-      toast.error("Подписка неактивна. Выберите тариф.");
+      toast.error("Подписка неактивна", {
+        description: "Выберите тариф для продолжения",
+        action: {
+          label: "Выбрать тариф",
+          onClick: () => window.location.href = "/subscription",
+        },
+      });
       return false;
     }
 
     if (!canUse(action)) {
       const limit = limits?.[action] || 0;
-      toast.error(`Лимит исчерпан (${limit}/${limit}). Обновите тариф.`);
+      const used = usageCounts[action] || 0;
+      const label = ACTION_LABELS[action];
+      toast.error(`${label}: лимит исчерпан (${used}/${limit})`, {
+        description: "Для безлимитного использования выберите тариф",
+        action: {
+          label: "Выбрать тариф",
+          onClick: () => window.location.href = "/subscription",
+        },
+      });
       return false;
     }
 
