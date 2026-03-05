@@ -278,7 +278,7 @@ export default function Landing() {
       <LandingNav />
 
       {/* ═══ Hero ═══ */}
-      <section className="pt-20 pb-6 md:pt-44 md:pb-20 px-4 relative">
+      <section className="pt-24 pb-10 md:pt-44 md:pb-20 px-4 relative">
         <div className="absolute top-0 left-0 right-0 h-[500px] md:h-[700px] bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[600px] md:w-[900px] h-[300px] md:h-[500px] bg-primary/[0.06] rounded-full blur-[140px] pointer-events-none" />
 
