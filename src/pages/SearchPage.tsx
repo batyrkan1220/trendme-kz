@@ -7,6 +7,7 @@ import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ export default function SearchPage() {
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { checkAndLog, getRemaining, isFreeTrial } = useSubscription();
 
   const { data: recentQueries } = useQuery({
     queryKey: ["search-queries", user?.id],
@@ -95,11 +97,15 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     if (!query.trim()) return;
+    const ok = await checkAndLog("search", `Поиск: ${query.trim()}`);
+    if (!ok) return;
     doSearch(query.trim());
   };
 
   const handleSearchDirect = async (q: string) => {
     if (!q.trim()) return;
+    const ok = await checkAndLog("search", `Поиск: ${q.trim()}`);
+    if (!ok) return;
     doSearch(q.trim());
   };
 

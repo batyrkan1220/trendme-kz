@@ -77,6 +77,7 @@ export default function Pricing() {
               const isPopular = plan.sort_order === 3; // 3 ай is best value
               const isActive = activePlanName === plan.name;
               const features = Array.isArray(plan.features) ? plan.features as string[] : [];
+              const usageLimits = plan.usage_limits as Record<string, number> | null;
               const isFree = plan.price_rub === 0;
               const Icon = planIcons[plan.name] || Zap;
               const monthlyPrice = getMonthlyPrice(plan);
@@ -176,6 +177,26 @@ export default function Pricing() {
 
                       {/* Divider */}
                       <div className={`border-t my-4 ${isPopular ? "border-primary/20" : "border-border/40"}`} />
+
+                      {/* Usage limits for trial */}
+                      {usageLimits && (
+                        <div className="space-y-1.5 mb-4">
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Лимиттер:</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {usageLimits.search != null && <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2.5 py-1.5">🔍 Іздеу: <strong>{usageLimits.search}</strong></div>}
+                            {usageLimits.video_analysis != null && <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2.5 py-1.5">🎬 Анализ: <strong>{usageLimits.video_analysis}</strong></div>}
+                            {usageLimits.account_analysis != null && <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2.5 py-1.5">👤 Профиль: <strong>{usageLimits.account_analysis}</strong></div>}
+                            {usageLimits.ai_script != null && <div className="text-sm text-foreground bg-muted/50 rounded-lg px-2.5 py-1.5">✨ Сценарий: <strong>{usageLimits.ai_script}</strong></div>}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Unlimited badge for paid plans */}
+                      {!usageLimits && !isFree && (
+                        <div className="mb-4 text-sm font-semibold text-primary flex items-center gap-1.5">
+                          ♾️ Барлық функциялар шексіз
+                        </div>
+                      )}
 
                       {/* Features list */}
                       <ul className="space-y-3 flex-1">
