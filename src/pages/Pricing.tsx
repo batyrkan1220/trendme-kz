@@ -100,11 +100,11 @@ export default function Pricing() {
 
               return (
                 <div key={plan.id} className="relative flex flex-col">
-                  {/* Popular badge */}
-                  {isPopular && (
-                    <div className="flex justify-center mb-3 relative z-10">
+                  {/* Popular badge - positioned above card */}
+                  <div className="flex justify-center h-8 mb-1">
+                    {isPopular && (
                       <span
-                        className="inline-flex items-center gap-1.5 text-xs font-bold px-5 py-2 rounded-full shadow-lg"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold px-5 py-1.5 rounded-full shadow-lg"
                         style={{
                           background: "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))",
                           color: "white",
@@ -112,8 +112,8 @@ export default function Pricing() {
                       >
                         <Sparkles className="h-3.5 w-3.5" /> Лучшая цена
                       </span>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   <div
                     className={`rounded-2xl border transition-all flex flex-col flex-1 ${
