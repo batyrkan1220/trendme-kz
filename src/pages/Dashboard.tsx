@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search, TrendingUp } from "lucide-react";
+import { Search, TrendingUp, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +67,21 @@ export default function Dashboard() {
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* Demo banner */}
+        <div className="mt-8 md:mt-12 flex items-center justify-between gap-4 rounded-2xl bg-muted/50 p-5 md:p-6">
+          <div>
+            <p className="font-bold text-foreground text-sm md:text-base">Вы находитесь в демо-режиме</p>
+            <p className="text-xs md:text-sm text-muted-foreground mt-0.5">Чтобы открыть все функции активируйте тариф</p>
+          </div>
+          <Link
+            to="/pricing"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-[hsl(350,70%,65%)] hover:bg-[hsl(350,70%,58%)] text-white font-semibold text-sm px-5 py-3 transition-colors"
+          >
+            <Lock className="h-4 w-4" />
+            Выбрать тариф
+          </Link>
         </div>
       </div>
     </AppLayout>
