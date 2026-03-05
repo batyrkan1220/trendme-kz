@@ -375,15 +375,6 @@ function UsersTab() {
                         </button>
                       </td>
                       <td className="p-3">
-                        <button
-                          onClick={() => setTokenDialog({ userId: u.id, email: u.email })}
-                          className="flex items-center gap-1.5 hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors"
-                        >
-                          <Zap className="h-3.5 w-3.5 text-primary" />
-                          <span className="font-bold text-foreground">{tokenBalance}</span>
-                        </button>
-                      </td>
-                      <td className="p-3">
                         <div className="flex gap-1">
                           {u.roles.length === 0 && (
                             <span className="text-muted-foreground text-xs">user</span>
