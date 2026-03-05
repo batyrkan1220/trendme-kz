@@ -7,9 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const subtitles: Record<string, string> = {
-  "Старт": "Сервисті сынау үшін",
-  "Про": "Блогерлер мен SMM мамандарына",
-  "Бизнес": "Бизнес пен контент-зауытқа",
+  "Старт": "Для пробы сервиса",
+  "Про": "Для блогеров и SMM специалистов",
+  "Бизнес": "Для бизнеса и контент-команд",
 };
 
 
