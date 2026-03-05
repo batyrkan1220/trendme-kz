@@ -2,8 +2,8 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, TrendingUp, Search, Sparkles, Star, Menu,
-  Video, UserCircle, FileText
+  LayoutDashboard, TrendingUp, Search, Sparkles, BarChart3, Menu,
+  Video, UserCircle
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -114,7 +114,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             analysisActive || showAnalysis ? "text-primary" : "text-muted-foreground"
           )}
         >
-          <Search className={cn("h-5 w-5", (analysisActive || showAnalysis) && "text-primary")} />
+          <BarChart3 className={cn("h-5 w-5", (analysisActive || showAnalysis) && "text-primary")} />
           <span className="text-[10px] font-medium leading-tight">Анализ</span>
         </button>
 
