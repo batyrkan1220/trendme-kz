@@ -26,6 +26,18 @@ function validateTikTokUsername(username: string): boolean {
   return /^[a-zA-Z0-9_.]+$/.test(cleaned);
 }
 
+/** Resolve short TikTok URLs (vm.tiktok.com, vt.tiktok.com) to full URLs */
+async function resolveShortUrl(url: string): Promise<string> {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "vm.tiktok.com" || parsed.hostname === "vt.tiktok.com" || parsed.hostname === "lite.tiktok.com") {
+      const res = await fetch(url, { method: "HEAD", redirect: "follow" });
+      return res.url || url;
+    }
+  } catch { /* ignore */ }
+  return url;
+}
+
 /** Extract aweme_id (video ID) from a TikTok URL */
 function extractAwemeId(url: string): string | null {
   // https://www.tiktok.com/@user/video/1234567890
