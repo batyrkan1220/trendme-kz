@@ -55,14 +55,12 @@ export default function Admin() {
             <TabsTrigger value="platform"><Activity className="h-4 w-4 mr-1" />Платформа</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Пользователи</TabsTrigger>
             <TabsTrigger value="tariffs"><CreditCard className="h-4 w-4 mr-1" />Тарифы</TabsTrigger>
-            <TabsTrigger value="tokens"><Coins className="h-4 w-4 mr-1" />Токены</TabsTrigger>
             <TabsTrigger value="trends"><RefreshCw className="h-4 w-4 mr-1" />Тренды</TabsTrigger>
           </TabsList>
 
           <TabsContent value="platform"><PlatformTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="tariffs"><TariffsTab /></TabsContent>
-          <TabsContent value="tokens"><TokenPricingTab /></TabsContent>
           <TabsContent value="trends"><TrendsManagementTab /></TabsContent>
         </Tabs>
       </div>
