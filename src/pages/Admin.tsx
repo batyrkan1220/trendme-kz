@@ -1810,12 +1810,9 @@ function TariffsTab() {
                     <button onClick={() => deletePlan.mutate(plan.id)} className="p-1 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
-                <p className="text-xl font-bold text-foreground">{plan.price_rub === 0 ? "Бесплатно" : `${plan.price_rub.toLocaleString()} ₽/мес`}</p>
+                <p className="text-xl font-bold text-foreground">{plan.price_rub === 0 ? "Тегін" : `${plan.price_rub.toLocaleString()} ₸`}</p>
                 <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Запросов: {plan.max_requests === -1 ? "∞" : plan.max_requests}</p>
-                  <p>Авторов: {plan.max_tracked_accounts === -1 ? "∞" : plan.max_tracked_accounts}</p>
-                  <p>Срок: {plan.duration_days} дн.</p>
-                  {plan.tokens_included > 0 && <p className="text-primary font-medium">⚡ {plan.tokens_included} токенов</p>}
+                  <p>Мерзімі: {plan.duration_days} күн</p>
                 </div>
                 {!plan.is_active && <Badge variant="destructive" className="text-xs">Неактивен</Badge>}
               </div>
