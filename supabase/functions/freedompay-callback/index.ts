@@ -1,20 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-async function md5(text: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  const hashBuffer = await crypto.subtle.digest("MD5", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+function md5(text: string): string {
+  const hash = createHash("md5");
+  hash.update(text);
+  return hash.toString("hex");
 }
 
-function verifySignature(scriptName: string, params: Record<string, string>, secretKey: string): Promise<boolean> {
+function verifySignature(scriptName: string, params: Record<string, string>, secretKey: string): boolean {
   const receivedSig = params.pg_sig;
   const paramsWithoutSig = { ...params };
   delete paramsWithoutSig.pg_sig;
@@ -22,7 +21,7 @@ function verifySignature(scriptName: string, params: Record<string, string>, sec
   const sorted = Object.keys(paramsWithoutSig).sort();
   const values = sorted.map(k => paramsWithoutSig[k]);
   const sigString = [scriptName, ...values, secretKey].join(";");
-  return md5(sigString).then(calculated => calculated === receivedSig);
+  return md5(sigString) === receivedSig;
 }
 
 serve(async (req) => {
