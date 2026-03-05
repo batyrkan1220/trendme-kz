@@ -81,6 +81,7 @@ export function VideoCard({
   onAnalyze,
   showTier = true,
   showAuthor = true,
+  showAnalyzeButton = true,
 }: VideoCardProps) {
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
