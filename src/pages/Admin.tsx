@@ -373,9 +373,11 @@ function UsersTab() {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            Вход: {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU") : "—"}
-                          </p>
+                          {u.name && <p className="text-xs text-foreground/80">{u.name}</p>}
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {u.phone && <span>📞 {u.phone}</span>}
+                            <span>Вход: {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU") : "—"}</span>
+                          </div>
                         </div>
                       </td>
                       <td className="p-3 text-muted-foreground text-xs">
