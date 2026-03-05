@@ -14,6 +14,7 @@ interface UsageLimits {
 
 export function useSubscription() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Get active subscription with plan details
   const { data: subscription, isLoading: subLoading } = useQuery({
