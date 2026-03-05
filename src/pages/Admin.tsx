@@ -12,9 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  RefreshCw, Settings, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
-  Users, Activity, Video, Search, BookOpen, Heart, UserCircle, ScrollText,
-  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye, MessageCircle,
+  RefreshCw, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
+  Users, Activity, Video, Search, Heart, UserCircle, ScrollText,
+  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
