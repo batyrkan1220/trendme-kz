@@ -27,6 +27,10 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Admin = lazy(() => import("./pages/Admin"));
 const ScriptFromVideo = lazy(() => import("./pages/ScriptFromVideo"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Payment = lazy(() => import("./pages/Payment"));
+const Contacts = lazy(() => import("./pages/Contacts"));
 
 const queryClient = new QueryClient();
 
@@ -106,6 +110,10 @@ const AppRoutes = () => (
          <Route path="/pricing" element={<Navigate to="/subscription" replace />} />
          <Route path="/subscription" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/contacts" element={<Contacts />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

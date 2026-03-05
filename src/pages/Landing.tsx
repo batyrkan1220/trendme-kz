@@ -672,10 +672,18 @@ export default function Landing() {
               <a href="#faq" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-border/30 flex flex-col items-center gap-2 text-sm text-muted-foreground text-center">
-            <p>© 2026 TrendMe</p>
-            <p>ИП Батырхан · БИН 970528301753</p>
-            <p>г. Шымкент, ул. Кунаева 59, БЦ "Астана", офис 501</p>
+          <div className="mt-8 pt-8 border-t border-border/30 flex flex-col items-center gap-4 text-sm text-muted-foreground text-center">
+            <div className="flex items-center gap-4 md:gap-6 flex-wrap justify-center">
+              <Link to="/terms" className="hover:text-foreground transition-colors">Пользовательское соглашение</Link>
+              <Link to="/privacy" className="hover:text-foreground transition-colors">Политика конфиденциальности</Link>
+              <Link to="/payment" className="hover:text-foreground transition-colors">Оплата и возврат</Link>
+              <Link to="/contacts" className="hover:text-foreground transition-colors">Контакты</Link>
+            </div>
+            <div className="space-y-1">
+              <p>© 2026 TrendMe</p>
+              <p>ИП Батырхан · БИН 970528301753</p>
+              <p>г. Шымкент, ул. Кунаева 59, БЦ "Астана", офис 501</p>
+            </div>
           </div>
         </div>
       </footer>
