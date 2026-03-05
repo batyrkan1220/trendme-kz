@@ -475,7 +475,8 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         let transcriptText = "";
         if (postInfoRes.status === "fulfilled") {
           const raw = postInfoRes.value?.data || postInfoRes.value;
-          statsData = unwrapVideo(raw);
+          const inner = raw?.["0"] || raw;
+          statsData = unwrapVideo(inner);
           console.log("Post info keys:", JSON.stringify(Object.keys(statsData || {})));
         } else {
           console.error("Post info fetch failed:", postInfoRes.reason);
