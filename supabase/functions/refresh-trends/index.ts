@@ -9,7 +9,7 @@ const corsHeaders = {
 const ENSEMBLE_BASE = "https://ensembledata.com/apis";
 
 // Filters
-const MIN_VIEWS = 3000;
+const MIN_VIEWS = 5000;
 const MAX_AGE_DAYS = 7;
 
 // Batching across niches
@@ -86,7 +86,7 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends-ensemble v1 maxAge=7 minViews=1000/3000 sort=date,likes period=7,30";
+const VERSION = "refresh-trends-ensemble v2 maxAge=7 minViews=5000 sort=date,likes period=7,30";
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
@@ -506,8 +506,7 @@ Deno.serve(async (req: Request) => {
           const comments = stats.comment_count ?? stats.commentCount ?? stats.comments ?? v.comments ?? 0;
           const shares = stats.share_count ?? stats.shareCount ?? stats.shares ?? v.shares ?? 0;
 
-          const minViewsForNiche = WEAK_NICHES.has(nicheKey) ? 1000 : MIN_VIEWS;
-          if (views < minViewsForNiche) { lowViews++; return null; }
+          if (views < MIN_VIEWS) { lowViews++; return null; }
 
           const publishedAtStr = getPublishedAt(v.create_time || v.createTime || 0);
           const publishedAt = new Date(publishedAtStr);
