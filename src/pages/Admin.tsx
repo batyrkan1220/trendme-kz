@@ -261,7 +261,27 @@ function UsersTab() {
     onError: () => toast.error("Ошибка назначения тарифа"),
   });
 
-  const users = data?.users || [];
+  const allUsers = data?.users || [];
+  
+  const filteredUsers = allUsers.filter((u: any) => {
+    if (userFilter === "all") return true;
+    if (userFilter === "unconfirmed") return !u.email_confirmed_at;
+    if (userFilter === "no_plan") return !u.subscription;
+    // Filter by plan name
+    const planName = u.subscription?.plans?.name?.toLowerCase() || "";
+    return planName === userFilter.toLowerCase();
+  });
+
+  // Count badges
+  const planCounts: Record<string, number> = {};
+  const unconfirmedCount = allUsers.filter((u: any) => !u.email_confirmed_at).length;
+  const noPlanCount = allUsers.filter((u: any) => !u.subscription).length;
+  for (const u of allUsers) {
+    const pn = (u as any).subscription?.plans?.name;
+    if (pn) planCounts[pn] = (planCounts[pn] || 0) + 1;
+  }
+
+  const uniquePlanNames = [...new Set(allUsers.map((u: any) => u.subscription?.plans?.name).filter(Boolean))] as string[];
 
   return (
     <div className="space-y-4">
@@ -271,6 +291,47 @@ function UsersTab() {
         onChange={(e) => setSearch(e.target.value)}
         className="max-w-sm"
       />
+
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-1.5">
+        <Button
+          size="sm"
+          variant={userFilter === "all" ? "default" : "outline"}
+          onClick={() => setUserFilter("all")}
+          className="h-8 text-xs"
+        >
+          Все ({allUsers.length})
+        </Button>
+        {uniquePlanNames.map((pn) => (
+          <Button
+            key={pn}
+            size="sm"
+            variant={userFilter === pn ? "default" : "outline"}
+            onClick={() => setUserFilter(pn)}
+            className="h-8 text-xs"
+          >
+            <CreditCard className="h-3 w-3 mr-1" />
+            {pn} ({planCounts[pn] || 0})
+          </Button>
+        ))}
+        <Button
+          size="sm"
+          variant={userFilter === "no_plan" ? "default" : "outline"}
+          onClick={() => setUserFilter("no_plan")}
+          className="h-8 text-xs"
+        >
+          Без тарифа ({noPlanCount})
+        </Button>
+        <Button
+          size="sm"
+          variant={userFilter === "unconfirmed" ? "destructive" : "outline"}
+          onClick={() => setUserFilter("unconfirmed")}
+          className="h-8 text-xs"
+        >
+          <Eye className="h-3 w-3 mr-1" />
+          Не подтверждённые ({unconfirmedCount})
+        </Button>
+      </div>
 
       {isLoading ? (
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />
