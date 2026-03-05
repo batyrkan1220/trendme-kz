@@ -94,7 +94,7 @@ export default function Pricing() {
                           color: "white",
                         }}
                       >
-                        <Sparkles className="h-3.5 w-3.5" /> Ең тиімді
+                        <Sparkles className="h-3.5 w-3.5" /> Лучшая цена
                       </span>
                     </div>
                   )}
