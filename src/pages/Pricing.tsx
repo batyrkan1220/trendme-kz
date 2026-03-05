@@ -161,7 +161,7 @@ export default function Pricing() {
                               </div>
                             )}
                             {plan.duration_days === 30 && !isFree && (
-                              <span className="text-sm text-muted-foreground">/ ай</span>
+                              <span className="text-sm text-muted-foreground">/ мес</span>
                             )}
                           </>
                         )}
