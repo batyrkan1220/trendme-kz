@@ -81,22 +81,42 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Quick Actions — List style */}
-        <div className="rounded-2xl border border-border/50 bg-card overflow-hidden divide-y divide-border/40">
+        {/* Quick Actions — Mobile: list, Desktop: grid */}
+        {/* Mobile list */}
+        <div className="md:hidden rounded-2xl border border-border/50 bg-card overflow-hidden divide-y divide-border/40">
           {actions.map((action) => (
             <Link
               key={action.path}
               to={action.path}
-              className="group flex items-center gap-3.5 md:gap-4 px-4 py-3.5 md:px-5 md:py-4 hover:bg-muted/50 active:bg-muted/70 transition-colors duration-150"
+              className="group flex items-center gap-3.5 px-4 py-3.5 hover:bg-muted/50 active:bg-muted/70 transition-colors duration-150"
             >
-              <div className={`shrink-0 h-10 w-10 md:h-11 md:w-11 rounded-xl ${action.iconBg} flex items-center justify-center shadow-sm`}>
-                <action.icon className="h-5 w-5 md:h-5.5 md:w-5.5 text-white" />
+              <div className={`shrink-0 h-10 w-10 rounded-xl ${action.iconBg} flex items-center justify-center shadow-sm`}>
+                <action.icon className="h-5 w-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm md:text-base text-foreground">{action.title}</p>
-                <p className="text-[11px] md:text-xs text-muted-foreground leading-snug truncate">{action.description}</p>
+                <p className="font-semibold text-sm text-foreground">{action.title}</p>
+                <p className="text-[11px] text-muted-foreground leading-snug truncate">{action.description}</p>
               </div>
-              <ChevronRight className="shrink-0 h-4 w-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200" />
+              <ChevronRight className="shrink-0 h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+            </Link>
+          ))}
+        </div>
+
+        {/* Desktop grid */}
+        <div className="hidden md:grid grid-cols-3 gap-4">
+          {actions.map((action) => (
+            <Link
+              key={action.path}
+              to={action.path}
+              className="group relative flex flex-col items-center text-center gap-3 p-6 rounded-2xl border border-border/40 bg-card hover:border-primary/30 hover:shadow-xl active:scale-[0.98] transition-all duration-300 overflow-hidden"
+            >
+              <div className={`h-12 w-12 rounded-xl ${action.iconBg} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300`}>
+                <action.icon className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-base text-foreground">{action.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{action.description}</p>
+              </div>
             </Link>
           ))}
         </div>
