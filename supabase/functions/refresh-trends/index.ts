@@ -390,10 +390,12 @@ Deno.serve(async (req: Request) => {
   const enforceLimit = async (nicheKey: string, limit: number) => {
     if (!limit || limit <= 0) return;
 
+    const freshCutoff = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
     const { count } = await adminClient
       .from("videos")
       .select("id", { count: "exact", head: true })
-      .eq("niche", nicheKey);
+      .eq("niche", nicheKey)
+      .gte("published_at", freshCutoff);
 
     const currentCount = count || 0;
     if (currentCount <= limit) return;
@@ -456,13 +458,15 @@ Deno.serve(async (req: Request) => {
 
       // Re-check limit before each query
       if (limit && limit > 0) {
+        const freshCutoff7 = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
         const { count: midCount } = await adminClient
           .from("videos")
           .select("id", { count: "exact", head: true })
-          .eq("niche", nicheKey);
+          .eq("niche", nicheKey)
+          .gte("published_at", freshCutoff7);
 
         if ((midCount || 0) >= limit) {
-          console.log(`⏭ ${nicheKey}: reached limit (${midCount}/${limit}), stopping`);
+          console.log(`⏭ ${nicheKey}: reached 7d limit (${midCount}/${limit}), stopping`);
           break;
         }
       }
@@ -647,13 +651,15 @@ Deno.serve(async (req: Request) => {
   for (const nicheKey of nicheKeys) {
     const limit = categoryLimits[nicheKey];
     if (limit && limit > 0) {
+      const freshCutoff7 = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
       const { count } = await adminClient
         .from("videos")
         .select("id", { count: "exact", head: true })
-        .eq("niche", nicheKey);
+        .eq("niche", nicheKey)
+        .gte("published_at", freshCutoff7);
 
       if ((count || 0) >= limit) {
-        console.log(`⏭ ${nicheKey}: already at limit (${count}/${limit}), skipping`);
+        console.log(`⏭ ${nicheKey}: already at 7d limit (${count}/${limit}), skipping`);
         nicheStats[nicheKey] = 0;
         continue;
       }
