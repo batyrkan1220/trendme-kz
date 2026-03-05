@@ -48,7 +48,7 @@ serve(async (req) => {
     console.log("Freedom Pay callback params:", JSON.stringify(params));
 
     // Verify signature
-    const isValid = await verifySignature("result_notify", params, SECRET_KEY);
+    const isValid = verifySignature("result_notify", params, SECRET_KEY);
     if (!isValid) {
       console.error("Invalid signature in callback");
       return new Response(
