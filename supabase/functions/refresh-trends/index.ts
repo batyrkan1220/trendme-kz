@@ -86,7 +86,7 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends-ensemble v2 maxAge=7 minViews=5000 sort=date,likes period=7,30";
+const VERSION = "refresh-trends-ensemble v3 maxAge=7 minViews=5000 cyrillicOnly noCountry";
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
@@ -161,7 +161,6 @@ Deno.serve(async (req: Request) => {
       name: query.trim(),
       period,
       sorting,
-      country: "us",
       match_exactly: "false",
       token: ensembleToken,
     });
@@ -491,7 +490,7 @@ Deno.serve(async (req: Request) => {
           console.log(`  First video keys: ${JSON.stringify(sampleKeys)}`);
         }
 
-        let noId = 0, lowViews = 0, tooOld = 0, inBatchDup = 0;
+        let noId = 0, lowViews = 0, tooOld = 0, inBatchDup = 0, nonCyrillic = 0;
 
         const rowsRaw = rawVideos.map((item: any) => {
           // Unwrap aweme_info wrapper
@@ -508,6 +507,11 @@ Deno.serve(async (req: Request) => {
 
           if (views < MIN_VIEWS) { lowViews++; return null; }
 
+          // Filter: only keep videos with Cyrillic text in caption (Russian/Kazakh content)
+          const caption = v.desc || "";
+          const hasCyrillic = /[а-яА-ЯёЁәіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
+          if (!hasCyrillic) { nonCyrillic++; return null; }
+
           const publishedAtStr = getPublishedAt(v.create_time || v.createTime || 0);
           const publishedAt = new Date(publishedAtStr);
           if (publishedAt < maxAgeCutoff) { tooOld++; return null; }
@@ -518,7 +522,7 @@ Deno.serve(async (req: Request) => {
           const nickname = author.nickname || "";
           const avatarUrl = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
           const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
-          const caption = v.desc || "";
+          const captionText = v.desc || "";
           const duration = videoInfo.duration || null;
 
           const trends = computeTrend(views, likes, comments, publishedAt);
@@ -527,7 +531,7 @@ Deno.serve(async (req: Request) => {
             platform: "tiktok",
             platform_video_id: String(awemeId),
             url: `https://www.tiktok.com/@${uniqueId || "user"}/video/${awemeId}`,
-            caption,
+            caption: captionText,
             cover_url: coverUrl,
             author_username: uniqueId,
             author_display_name: nickname,
@@ -555,7 +559,7 @@ Deno.serve(async (req: Request) => {
         const videoRows = [...map.values()];
 
         console.log(
-          `  📊 "${query}": ${rawVideos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, inBatchDup=${inBatchDup})`,
+          `  📊 "${query}": ${rawVideos.length} raw → ${videoRows.length} valid (noId=${noId}, lowViews=${lowViews}, tooOld=${tooOld}, nonCyrillic=${nonCyrillic}, inBatchDup=${inBatchDup})`,
         );
 
         if (videoRows.length === 0) continue;
