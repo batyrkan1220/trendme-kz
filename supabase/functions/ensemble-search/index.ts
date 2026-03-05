@@ -86,7 +86,18 @@ Deno.serve(async (req: Request) => {
     const url = `${ENSEMBLE_BASE}/tt/keyword/full-search?${params.toString()}`;
     const res = await fetch(url);
 
-    if (!res.ok) {
+    // Log API usage
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    try {
+      await adminClient.from("api_usage_log").insert({
+        function_name: "ensemble-search",
+        action: "keyword_full_search",
+        credits_used: 1,
+        metadata: { query: query.trim(), period: edPeriod, sorting: edSorting },
+      });
+    } catch (e) {
+      console.error("Failed to log API usage:", e);
+    }
       const errText = await res.text();
       console.error(`EnsembleData error ${res.status}: ${errText}`);
       return json({ error: `EnsembleData API error: ${res.status}` }, 502);
