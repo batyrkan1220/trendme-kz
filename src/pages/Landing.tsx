@@ -288,7 +288,7 @@ export default function Landing() {
             TikTok Official Partner
           </div>
 
-          <h1 className="text-[1.6rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[4rem] font-extrabold leading-[1.15] tracking-tight mb-4 md:mb-8">
+          <h1 className="text-[1.75rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[4rem] font-extrabold leading-[1.15] tracking-tight mb-5 md:mb-8">
             Находите{" "}
             <span className="relative inline text-primary">
               <span className="relative z-10">вирусные видео</span>
