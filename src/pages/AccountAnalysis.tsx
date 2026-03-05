@@ -111,32 +111,7 @@ export default function AccountAnalysis() {
     },
   });
 
-  const loadSavedAnalysis = useCallback(async (acc: any) => {
-    const analysis = acc.analysis_json as Record<string, any> | null;
-    if (analysis && analysis.top_videos) {
-      setAccount({
-        ...acc,
-        ...analysis,
-      });
-    } else {
-      // No saved analysis, re-analyze (costs 1 usage)
-      const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${acc.profile_url}`);
-      if (!ok) return;
-      setUrl(acc.profile_url);
-      analyze(acc.profile_url);
-    }
-  }, [analyze, checkAndLog]);
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("accounts_tracked").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts-tracked"] });
-      toast.success("Аккаунт удалён из истории");
-    },
-  });
 
   const handleAnalyze = async () => {
     if (!url.trim() || isPending) return;
