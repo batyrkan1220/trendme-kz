@@ -205,7 +205,7 @@ export default function Pricing() {
                             {usageLimits.account_analysis != null && (
                               <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
                                 <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
-                                <span>👤 Профиль анализ — <strong>{usageLimits.account_analysis}</strong> рет</span>
+                                <span>Профиль анализ — <strong>{usageLimits.account_analysis}</strong> рет</span>
                               </li>
                             )}
                             {usageLimits.ai_script != null && (
