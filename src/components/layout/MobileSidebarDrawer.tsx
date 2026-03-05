@@ -96,17 +96,6 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
         </nav>
 
         <div className="border-t border-border/50 p-3 space-y-2 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px)+80px)]">
-          {/* Subscription link */}
-          <Link
-            to="/pricing"
-            onClick={onClose}
-            className="flex items-center gap-2 rounded-xl p-3 bg-muted/40 hover:bg-muted/60 transition-colors"
-          >
-            <CreditCard className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-sm font-semibold text-foreground flex-1">Тарифтер</span>
-            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-          </Link>
-
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
