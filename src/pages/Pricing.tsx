@@ -7,9 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const subtitles: Record<string, string> = {
-  "Пробный": "Тегін сынап көріңіз",
-  "1 ай": "Айлық жазылым",
-  "3 ай": "3 айлық жазылым — 15% скидка",
+  "Пробный": "Попробуйте бесплатно",
+  "1 ай": "Ежемесячная подписка",
+  "3 ай": "Подписка на 3 месяца — скидка 15%",
 };
 
 const planIcons: Record<string, React.ComponentType<{ className?: string }>> = {
