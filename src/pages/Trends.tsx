@@ -306,7 +306,7 @@ export default function Trends() {
                   <div
                     key={video.id}
                     className="group bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col cursor-pointer"
-                    onClick={() => navigate("/pricing")}
+                    onClick={() => navigate("/subscription")}
                   >
                     <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
                       {video.cover_url ? (
