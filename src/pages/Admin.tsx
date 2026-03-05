@@ -225,7 +225,7 @@ function UsersTab() {
       setSubPlanId("");
       setSubDays("30");
       setSubNote("");
-      const msg = data?.tokens_added > 0 ? `Тариф назначен, начислено ${data.tokens_added} ⚡` : "Тариф назначен";
+      const msg = "Тариф назначен";
       toast.success(msg);
     },
     onError: () => toast.error("Ошибка назначения тарифа"),
