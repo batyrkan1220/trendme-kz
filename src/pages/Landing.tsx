@@ -344,7 +344,7 @@ export default function Landing() {
       <section className="py-8 md:py-24 px-4 bg-muted/20 border-y border-border/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6 md:mb-14">
-            <div className="inline-flex items-center gap-1.5 text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">
+            <div className="inline-flex items-center gap-1.5 text-sm md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">
               <Flame className="h-3.5 w-3.5 md:h-4 md:w-4" />
               Прямо сейчас в тренде
             </div>
