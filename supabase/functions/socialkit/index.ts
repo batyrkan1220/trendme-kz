@@ -41,8 +41,14 @@ async function resolveShortUrl(url: string): Promise<string> {
 /** Extract aweme_id (video ID) from a TikTok URL */
 function extractAwemeId(url: string): string | null {
   // https://www.tiktok.com/@user/video/1234567890
-  const match = url.match(/\/video\/(\d+)/);
-  return match ? match[1] : null;
+  const videoMatch = url.match(/\/video\/(\d+)/);
+  if (videoMatch) return videoMatch[1];
+  // https://www.tiktok.com/@user/photo/1234567890
+  const photoMatch = url.match(/\/photo\/(\d+)/);
+  if (photoMatch) return photoMatch[1];
+  // Fallback: any long digit sequence in the URL (aweme_id is typically 19 digits)
+  const digitMatch = url.match(/(\d{15,})/);
+  return digitMatch ? digitMatch[1] : null;
 }
 
 /** Extract username from a TikTok profile URL */
