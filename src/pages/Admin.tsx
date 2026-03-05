@@ -425,17 +425,61 @@ function PlatformTab() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Zap className="h-5 w-5 text-yellow-500" />
-            EnsembleData API кредиттер (30 күн)
+            EnsembleData API кредиттер
           </CardTitle>
+          {/* Date filters */}
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            {[7, 14, 30, 90].map(d => (
+              <Button
+                key={d}
+                size="sm"
+                variant={apiDays === d && !apiDateFrom && !apiDateTo ? "default" : "outline"}
+                className="h-7 text-xs"
+                onClick={() => { setApiDays(d); setApiDateFrom(undefined); setApiDateTo(undefined); }}
+              >
+                {d} күн
+              </Button>
+            ))}
+            <div className="flex items-center gap-1.5 ml-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-1", !apiDateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3 w-3" />
+                    {apiDateFrom ? format(apiDateFrom, "dd.MM.yy") : "Бастап"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={apiDateFrom} onSelect={setApiDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">—</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-1", !apiDateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3 w-3" />
+                    {apiDateTo ? format(apiDateTo, "dd.MM.yy") : "Дейін"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={apiDateTo} onSelect={setApiDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              {(apiDateFrom || apiDateTo) && (
+                <Button size="sm" variant="ghost" className="h-7 text-xs px-1.5" onClick={() => { setApiDateFrom(undefined); setApiDateTo(undefined); }}>
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {apiUsage ? (
+          {filteredApiUsage ? (
             <div className="space-y-4">
               {/* Summary */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
                   <p className="text-xs text-muted-foreground">Жалпы кредит</p>
-                  <p className="text-2xl font-bold text-primary">{(apiUsage.totalCredits || 0).toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-primary">{(filteredApiUsage.totalCredits || 0).toLocaleString()}</p>
                 </div>
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
                   <p className="text-xs text-muted-foreground">API шақырулар</p>
