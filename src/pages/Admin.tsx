@@ -236,16 +236,18 @@ function UsersTab() {
     if (userFilter === "all") return true;
     if (userFilter === "unconfirmed") return !u.email_confirmed_at;
     if (userFilter === "no_plan") return !u.subscription;
-    // Filter by plan name
+    // Filter by plan name — exclude unconfirmed users from plan filters
+    if (!u.email_confirmed_at) return false;
     const planName = u.subscription?.plans?.name?.toLowerCase() || "";
     return planName === userFilter.toLowerCase();
   });
 
-  // Count badges
+  // Count badges — exclude unconfirmed from plan counts
   const planCounts: Record<string, number> = {};
   const unconfirmedCount = allUsers.filter((u: any) => !u.email_confirmed_at).length;
   const noPlanCount = allUsers.filter((u: any) => !u.subscription).length;
   for (const u of allUsers) {
+    if (!u.email_confirmed_at) continue; // don't count unconfirmed in plan filters
     const pn = (u as any).subscription?.plans?.name;
     if (pn) planCounts[pn] = (planCounts[pn] || 0) + 1;
   }
