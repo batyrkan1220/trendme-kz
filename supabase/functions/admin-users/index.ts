@@ -461,6 +461,37 @@ Deno.serve(async (req) => {
       });
     }
 
+    // API USAGE STATS
+    if (req.method === "GET" && action === "api-usage") {
+      const days = parseInt(url.searchParams.get("days") || "30");
+      const since = new Date(Date.now() - days * 86400000).toISOString();
+
+      const { data: usageLogs } = await adminClient
+        .from("api_usage_log")
+        .select("function_name, action, credits_used, created_at")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false });
+
+      // Aggregate by day and action
+      const byDay: Record<string, Record<string, number>> = {};
+      const byAction: Record<string, number> = {};
+      let totalCredits = 0;
+
+      for (const log of usageLogs || []) {
+        const day = new Date(log.created_at).toISOString().slice(0, 10);
+        const key = `${log.function_name}/${log.action}`;
+        
+        if (!byDay[day]) byDay[day] = {};
+        byDay[day][key] = (byDay[day][key] || 0) + log.credits_used;
+        byAction[key] = (byAction[key] || 0) + log.credits_used;
+        totalCredits += log.credits_used;
+      }
+
+      return new Response(JSON.stringify({ byDay, byAction, totalCredits, totalCalls: usageLogs?.length || 0 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     throw new Error("Unknown action");
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), {

@@ -148,6 +148,20 @@ Deno.serve(async (req: Request) => {
   const nowIso = new Date().toISOString();
   const maxAgeCutoff = new Date(Date.now() - MAX_AGE_DAYS * 24 * 3600000);
 
+  // API usage logging
+  const logApiUsage = async (action: string, credits: number, metadata: Record<string, any> = {}) => {
+    try {
+      await adminClient.from("api_usage_log").insert({
+        function_name: "refresh-trends",
+        action,
+        credits_used: credits,
+        metadata,
+      });
+    } catch (e) {
+      console.error("Failed to log API usage:", e);
+    }
+  };
+
   // =========================
   // Helpers
   // =========================
@@ -479,6 +493,7 @@ Deno.serve(async (req: Request) => {
       try {
         console.log(`ED params: query="${query}", period=${period}, sorting=${sorting}`);
         const rawVideos = await callEnsembleData(query, period, sorting);
+        await logApiUsage("keyword_full_search", 1, { niche: nicheKey, query, period, sorting, results: rawVideos.length });
         console.log(`  ED returned ${rawVideos.length} raw videos for "${query}"`);
 
         if (rawVideos.length === 0) continue;

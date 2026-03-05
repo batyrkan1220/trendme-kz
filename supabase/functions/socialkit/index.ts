@@ -98,6 +98,20 @@ Deno.serve(async (req: Request) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+    // API usage logging
+    const logApiUsage = async (action: string, credits: number, metadata: Record<string, any> = {}) => {
+      try {
+        await adminClient.from("api_usage_log").insert({
+          function_name: "socialkit",
+          action,
+          credits_used: credits,
+          metadata,
+        });
+      } catch (e) {
+        console.error("Failed to log API usage:", e);
+      }
+    };
+
     const body = await req.json();
     const { action } = body;
 
@@ -409,6 +423,9 @@ Deno.serve(async (req: Request) => {
         }
 
         // activity_log is handled client-side via checkAndLog
+        const successfulPages = pageResults.filter(r => r.status === "fulfilled").length;
+        const successfulHashtags = hashtags.length;
+        await logApiUsage("search", successfulPages + successfulHashtags, { query, pages: successfulPages, hashtags: successfulHashtags, results: upsertedVideos?.length || 0 });
 
         return json({ videos: upsertedVideos, query: queryRow, hashtags, relatedKeywords });
       }
@@ -423,6 +440,7 @@ Deno.serve(async (req: Request) => {
         console.log("video_stats: resolved URL =", video_url, "awemeId =", awemeId);
 
         const data = await callEnsemble("/tt/post/info", { url: video_url });
+        await logApiUsage("video_stats", 1, { video_url });
         // EnsembleData may return { "0": { ... } } or { data: { "0": { ... } } }
         const rawData = data?.data || data;
         const innerData = rawData?.["0"] || rawData;
@@ -674,6 +692,8 @@ Deno.serve(async (req: Request) => {
           .single();
 
         // activity_log is handled client-side via checkAndLog
+        const analyzeCredits = (postInfoRes.status === "fulfilled" ? 1 : 0) + (commentsRes.status === "fulfilled" && awemeId ? 1 : 0);
+        await logApiUsage("analyze_video", analyzeCredits, { video_url });
 
         return json(analysis);
       }
@@ -781,6 +801,8 @@ Deno.serve(async (req: Request) => {
           .single();
 
         // activity_log is handled client-side via checkAndLog
+        const accountCredits = (userInfoRes.status === "fulfilled" ? 1 : 0) + (userPostsRes.status === "fulfilled" ? 1 : 0);
+        await logApiUsage("account_stats", accountCredits, { profile_url, username });
 
         return json({
           ...account,
@@ -928,6 +950,8 @@ Deno.serve(async (req: Request) => {
         });
 
         console.log(`Admin search "${searchQuery}": ${unique.length} unique videos`);
+        const adminSearchCredits = pageResults.filter(r => r.status === "fulfilled").length + hashtags.length;
+        await logApiUsage("admin_search", adminSearchCredits, { query: searchQuery, results: unique.length });
         return json({ videos: unique });
       }
 
