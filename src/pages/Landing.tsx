@@ -58,7 +58,7 @@ function LandingNav() {
               Войти
             </Button>
           </Link>
-          <Link to="/auth" className="hidden sm:block">
+          <Link to="/auth?mode=register" className="hidden sm:block">
             <Button className="bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold px-5 md:px-6 h-10 md:h-11 hover:bg-primary/90">
               Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
