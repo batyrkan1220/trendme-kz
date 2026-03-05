@@ -18,7 +18,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       {/* Always render on mobile via CSS, not JS condition */}
-      {!drawerOpen && <MobileBottomNav onMenuOpen={() => setDrawerOpen(true)} />}
+      <MobileBottomNav onMenuOpen={() => setDrawerOpen(true)} />
       <MobileSidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </div>
   );
