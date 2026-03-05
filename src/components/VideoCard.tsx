@@ -66,9 +66,10 @@ interface VideoCardProps {
   onPlay: (id: string | null) => void;
   isFavorite: boolean;
   onToggleFav: (id: string) => void;
-  onAnalyze: (video: VideoCardData) => void;
+  onAnalyze?: (video: VideoCardData) => void;
   showTier?: boolean;
   showAuthor?: boolean;
+  showAnalyzeButton?: boolean;
 }
 
 export function VideoCard({
@@ -80,6 +81,7 @@ export function VideoCard({
   onAnalyze,
   showTier = true,
   showAuthor = true,
+  showAnalyzeButton = true,
 }: VideoCardProps) {
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
@@ -249,17 +251,19 @@ export function VideoCard({
       )}
 
       {/* Analyze button */}
-      <div className="px-3 pb-3 mt-auto">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onAnalyze(video);
-          }}
-          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          Анализ видео
-        </button>
-      </div>
+      {showAnalyzeButton && onAnalyze && (
+        <div className="px-3 pb-3 mt-auto">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAnalyze(video);
+            }}
+            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Анализ видео
+          </button>
+        </div>
+      )}
     </div>
   );
 }

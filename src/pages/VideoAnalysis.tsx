@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Video, Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, Target, Copy, Play, X } from "lucide-react";
+import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -213,151 +214,29 @@ export default function VideoAnalysis() {
           <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}
             {/* Mobile: horizontal compact card; Desktop: vertical sidebar */}
-            <div className="w-full md:w-[320px] flex-shrink-0 overflow-y-auto bg-card rounded-xl md:rounded-2xl border border-border/50 card-shadow">
-              {/* Mobile layout: thumbnail + stats side by side */}
-              <div className="flex md:hidden gap-3 p-2">
-                <div className="w-28 h-40 flex-shrink-0 bg-black relative rounded-xl overflow-hidden">
-                  {isPlaying && videoId ? (
-                    <>
-                      <iframe
-                        src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                        className="w-full h-full border-0"
-                        allow="autoplay; encrypted-media; fullscreen"
-                        allowFullScreen
-                      />
-                      <button
-                        onClick={() => setIsPlaying(false)}
-                        className="absolute top-1 right-1 z-20 bg-black/60 text-white rounded-full p-1"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </>
-                  ) : coverUrl ? (
-                    <div className="relative w-full h-full cursor-pointer group" onClick={() => setIsPlaying(true)}>
-                      <img src={coverUrl} alt="" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                        <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                          <Play className="h-4 w-4 text-foreground ml-0.5" fill="currentColor" />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center cursor-pointer" onClick={() => setIsPlaying(true)}>
-                      <Play className="h-8 w-8 text-muted-foreground/30" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 flex flex-col justify-between py-1">
-                  {authorUsername && (
-                    <div className="flex items-center gap-2 mb-2">
-                      {authorAvatar ? (
-                        <img src={authorAvatar} alt="" className="w-7 h-7 rounded-full object-cover border border-border/50" />
-                      ) : (
-                        <div className="w-7 h-7 rounded-full bg-muted" />
-                      )}
-                      <span className="text-xs font-semibold text-primary truncate">@{authorUsername}</span>
-                      <button
-                        onClick={() => window.open(url, "_blank")}
-                        className="ml-auto text-muted-foreground"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                    {[
-                      { icon: Eye, value: fmt(views), label: "Просм." },
-                      { icon: Heart, value: fmt(likes), label: "Лайки", color: "text-primary" },
-                      { icon: MessageCircle, value: fmt(commentsCount), label: "Комм.", color: "text-primary/70" },
-                      { icon: Share2, value: fmt(shares), label: "Реп.", color: "text-primary/70" },
-                    ].map((s) => (
-                      <div key={s.label} className="flex items-center gap-1.5">
-                        <s.icon className={`h-3.5 w-3.5 ${s.color || "text-muted-foreground"}`} />
-                        <span className="text-xs font-bold text-foreground">{s.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Target className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">ER</span>
-                    <span className="text-xs font-bold text-foreground">{er}%</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Desktop layout: full vertical card */}
-              <div className="hidden md:block">
-                <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
-                  {isPlaying && videoId ? (
-                    <>
-                      <iframe
-                        src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                        className="w-full h-full border-0"
-                        allow="autoplay; encrypted-media; fullscreen"
-                        allowFullScreen
-                      />
-                      <button
-                        onClick={() => setIsPlaying(false)}
-                        className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </>
-                  ) : coverUrl ? (
-                    <div className="relative w-full h-full cursor-pointer group" onClick={() => setIsPlaying(true)}>
-                      <img src={coverUrl} alt="" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-                        <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                          <Play className="h-6 w-6 text-foreground ml-1" fill="currentColor" />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center cursor-pointer" onClick={() => setIsPlaying(true)}>
-                      <Play className="h-12 w-12 text-muted-foreground/30" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between px-4 pt-3">
-                  <span className="text-sm text-muted-foreground"></span>
-                  <button
-                    onClick={() => window.open(url, "_blank")}
-                    className="text-muted-foreground hover:text-foreground hover:scale-110 transition-transform"
-                  >
-                    <ExternalLink className="h-5 w-5" />
-                  </button>
-                </div>
-
-                {authorUsername && (
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    {authorAvatar ? (
-                      <img src={authorAvatar} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-border/50" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-muted" />
-                    )}
-                    <span className="text-sm font-semibold text-primary truncate">@{authorUsername}</span>
-                  </div>
-                )}
-
-                <div className="px-4 pb-4 space-y-1">
-                  {[
-                    { icon: Eye, label: "Просмотры", value: fmt(views) },
-                    { icon: Heart, label: "Лайки", value: fmt(likes), color: "text-primary" },
-                    { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount), color: "text-primary/70" },
-                    { icon: Share2, label: "Репосты", value: fmt(shares), color: "text-primary/70" },
-                    { icon: Target, label: "ER", value: er + "%" },
-                  ].map((s) => (
-                    <div key={s.label} className="flex items-center justify-between py-2.5 border-b border-border/30 last:border-0">
-                      <div className="flex items-center gap-2.5">
-                        <s.icon className={`h-4 w-4 ${s.color || "text-muted-foreground"}`} />
-                        <span className="text-sm text-foreground">{s.label}</span>
-                      </div>
-                      <span className="text-sm font-bold text-foreground">{s.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="w-full md:w-[320px] flex-shrink-0 overflow-y-auto">
+              <VideoCard
+                video={{
+                  id: videoId,
+                  platform_video_id: videoId,
+                  url: url,
+                  cover_url: coverUrl,
+                  caption: stats?.caption || stats?.desc || "",
+                  author_username: authorUsername,
+                  author_avatar_url: authorAvatar,
+                  views: views,
+                  likes: likes,
+                  comments: commentsCount,
+                  shares: shares,
+                }}
+                playingId={isPlaying ? videoId : null}
+                onPlay={(id) => setIsPlaying(!!id)}
+                isFavorite={false}
+                onToggleFav={() => {}}
+                showTier={true}
+                showAuthor={true}
+                showAnalyzeButton={false}
+              />
             </div>
 
             {/* Right panel — analysis (same as VideoAnalysisDialog) */}
