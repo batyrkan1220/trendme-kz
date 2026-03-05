@@ -76,15 +76,17 @@ export default function Pricing() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             {plans.map((plan: any) => {
-              const isPopular = plan.sort_order === 3; // 3 ай is best value
+              const isPaid = plan.price_rub > 0;
+              const isPopular = plan.sort_order === 3;
               const isActive = activePlanName === plan.name;
               const features = Array.isArray(plan.features) ? plan.features as string[] : [];
               const usageLimits = plan.usage_limits as Record<string, number> | null;
               const isFree = plan.price_rub === 0;
               const Icon = planIcons[plan.name] || Zap;
               const monthlyPrice = getMonthlyPrice(plan);
+              const displayName = displayNames[plan.name] || plan.name;
 
               return (
                 <div key={plan.id} className="relative flex flex-col">
@@ -104,22 +106,28 @@ export default function Pricing() {
                   )}
 
                   <div
-                    className={`rounded-2xl border transition-all flex flex-col ${
-                      isPopular
-                        ? "p-8 shadow-2xl border-transparent relative overflow-hidden"
+                    className={`rounded-2xl border transition-all flex flex-col flex-1 ${
+                      isPaid
+                        ? "p-8 shadow-xl border-transparent relative overflow-hidden"
                         : "p-7 bg-card border-border/60 shadow-sm hover:shadow-md"
                     }`}
-                    style={isPopular ? {
-                      background: "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--primary) / 0.06) 100%)",
-                      boxShadow: "0 0 40px -10px hsl(var(--primary) / 0.3), 0 20px 50px -15px hsl(var(--primary) / 0.15)",
+                    style={isPaid ? {
+                      background: isPopular
+                        ? "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--primary) / 0.06) 100%)"
+                        : "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--primary) / 0.03) 100%)",
+                      boxShadow: isPopular
+                        ? "0 0 40px -10px hsl(var(--primary) / 0.3), 0 20px 50px -15px hsl(var(--primary) / 0.15)"
+                        : "0 0 30px -10px hsl(var(--primary) / 0.15), 0 10px 30px -15px hsl(var(--primary) / 0.1)",
                     } : undefined}
                   >
-                    {/* Gradient border for popular */}
-                    {isPopular && (
+                    {/* Gradient border for paid plans */}
+                    {isPaid && (
                       <div
                         className="absolute -inset-[2px] rounded-2xl pointer-events-none"
                         style={{
-                          background: "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))",
+                          background: isPopular
+                            ? "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))"
+                            : "linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(280 80% 55% / 0.5))",
                           WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                           WebkitMaskComposite: "xor",
                           maskComposite: "exclude",
@@ -132,12 +140,12 @@ export default function Pricing() {
                     <div className="relative z-10 flex flex-col flex-1">
                       {/* Plan name */}
                       <div className="flex items-center gap-2">
-                        <Icon className={`h-5 w-5 ${isPopular ? "text-primary" : "text-muted-foreground"}`} />
-                        <h3 className={`font-bold text-foreground ${isPopular ? "text-2xl" : "text-xl"}`}>
-                          {plan.name}
+                        <Icon className={`h-5 w-5 ${isPaid ? "text-primary" : "text-muted-foreground"}`} />
+                        <h3 className="font-bold text-foreground text-xl">
+                          {displayName}
                         </h3>
                       </div>
-                      <p className={`font-medium text-primary mt-0.5 italic ${isPopular ? "text-sm" : "text-xs"}`}>
+                      <p className="font-medium text-primary mt-0.5 italic text-xs">
                         {subtitles[plan.name] || ""}
                       </p>
 
@@ -145,12 +153,12 @@ export default function Pricing() {
                       <div className="mt-5">
                         {isFree ? (
                           <div className="flex items-baseline gap-1">
-                            <span className="text-4xl md:text-5xl font-extrabold text-foreground">С лимитами</span>
+                            <span className="text-3xl md:text-4xl font-extrabold text-foreground">Бесплатно</span>
                           </div>
                         ) : (
                           <>
                             <div className="flex items-baseline gap-1">
-                              <span className={`font-extrabold text-foreground tracking-tight ${isPopular ? "text-5xl md:text-6xl" : "text-4xl md:text-5xl"}`}>
+                              <span className="font-extrabold text-foreground tracking-tight text-4xl md:text-5xl">
                                 {plan.price_rub.toLocaleString("ru-RU")}₸
                               </span>
                             </div>
@@ -164,23 +172,25 @@ export default function Pricing() {
                                 </span>
                               </div>
                             )}
-                            {plan.duration_days === 30 && !isFree && (
+                            {plan.duration_days === 30 && (
                               <span className="text-sm text-muted-foreground">/ мес</span>
                             )}
                           </>
                         )}
                       </div>
 
-                      {/* Duration */}
-                      <div className={`mt-4 flex items-center gap-2 ${isPopular ? "bg-primary/10 rounded-lg px-3 py-2 -mx-1" : ""}`}>
-                        <span className="text-sm text-muted-foreground">Срок:</span>
-                        <span className={`font-bold text-foreground ${isPopular ? "text-base" : "text-sm"}`}>
-                          {isFree ? "Пробный" : plan.duration_days === 90 ? "3 мес" : "1 мес"}
-                        </span>
-                      </div>
+                      {/* Duration — only for paid */}
+                      {!isFree && (
+                        <div className={`mt-4 flex items-center gap-2 ${isPopular ? "bg-primary/10 rounded-lg px-3 py-2 -mx-1" : ""}`}>
+                          <span className="text-sm text-muted-foreground">Срок:</span>
+                          <span className="font-bold text-foreground text-sm">
+                            {plan.duration_days === 90 ? "3 мес" : "1 мес"}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Divider */}
-                      <div className={`border-t my-4 ${isPopular ? "border-primary/20" : "border-border/40"}`} />
+                      <div className={`border-t my-4 ${isPaid ? "border-primary/20" : "border-border/40"}`} />
 
                       {/* Unlimited badge for paid plans */}
                       {!usageLimits && !isFree && (
@@ -191,38 +201,37 @@ export default function Pricing() {
 
                       {/* Features list */}
                       <ul className="space-y-3 flex-1">
-                        {/* Show usage limits as list items for trial */}
                         {usageLimits && (
                           <>
                             {usageLimits.search != null && (
-                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
-                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                              <li className="flex items-start gap-2.5 text-foreground text-sm">
+                                <Check className="shrink-0 mt-0.5 h-4 w-4 text-primary" />
                                 <span>Поиск — <strong>{usageLimits.search}</strong> раз</span>
                               </li>
                             )}
                             {usageLimits.video_analysis != null && (
-                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
-                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                              <li className="flex items-start gap-2.5 text-foreground text-sm">
+                                <Check className="shrink-0 mt-0.5 h-4 w-4 text-primary" />
                                 <span>Анализ видео — <strong>{usageLimits.video_analysis}</strong> раз</span>
                               </li>
                             )}
                             {usageLimits.account_analysis != null && (
-                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
-                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                              <li className="flex items-start gap-2.5 text-foreground text-sm">
+                                <Check className="shrink-0 mt-0.5 h-4 w-4 text-primary" />
                                 <span>Анализ профиля — <strong>{usageLimits.account_analysis}</strong> раз</span>
                               </li>
                             )}
                             {usageLimits.ai_script != null && (
-                              <li className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
-                                <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                              <li className="flex items-start gap-2.5 text-foreground text-sm">
+                                <Check className="shrink-0 mt-0.5 h-4 w-4 text-primary" />
                                 <span>AI Сценарий — <strong>{usageLimits.ai_script}</strong> раз</span>
                               </li>
                             )}
                           </>
                         )}
                         {features.map((f: string) => (
-                          <li key={f} className={`flex items-start gap-2.5 text-foreground ${isPopular ? "text-[15px]" : "text-sm"}`}>
-                            <Check className={`shrink-0 mt-0.5 ${isPopular ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"}`} />
+                          <li key={f} className="flex items-start gap-2.5 text-foreground text-sm">
+                            <Check className="shrink-0 mt-0.5 h-4 w-4 text-primary" />
                             <span>{f}</span>
                           </li>
                         ))}
@@ -230,15 +239,17 @@ export default function Pricing() {
 
                       {/* CTA Button */}
                       <Button
-                        className={`w-full mt-6 rounded-xl font-semibold text-base transition-all duration-200 ${
+                        className={`w-full mt-6 rounded-xl font-semibold text-base h-12 transition-all duration-200 ${
                           isActive
-                            ? "h-12 bg-muted text-muted-foreground border border-border cursor-default hover:bg-muted"
-                            : isPopular
-                              ? "h-14 text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] border-0"
-                              : "h-12 bg-card text-foreground border border-border hover:bg-muted"
+                            ? "bg-muted text-muted-foreground border border-border cursor-default hover:bg-muted"
+                            : isPaid
+                              ? "shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] border-0"
+                              : "bg-card text-foreground border border-border hover:bg-muted"
                         }`}
-                        style={!isActive && isPopular ? {
-                          background: "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))",
+                        style={!isActive && isPaid ? {
+                          background: isPopular
+                            ? "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))"
+                            : "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 60%))",
                           color: "white",
                         } : undefined}
                         disabled={isActive}
@@ -247,6 +258,10 @@ export default function Pricing() {
                       </Button>
                     </div>
                   </div>
+                </div>
+              );
+            })}
+          </div>
                 </div>
               );
             })}
