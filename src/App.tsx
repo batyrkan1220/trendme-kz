@@ -23,7 +23,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Razvedka = lazy(() => import("./pages/Razvedka"));
 const Library = lazy(() => import("./pages/Library"));
 const Analytics = lazy(() => import("./pages/Analytics"));
-const Tokens = lazy(() => import("./pages/Tokens"));
+
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Admin = lazy(() => import("./pages/Admin"));
 const ScriptFromVideo = lazy(() => import("./pages/ScriptFromVideo"));
