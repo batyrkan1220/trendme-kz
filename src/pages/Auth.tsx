@@ -11,7 +11,9 @@ import { TrendMeLogo } from "@/components/TrendMeLogo";
 type Mode = "login" | "register" | "forgot";
 
 export default function Auth() {
-  const [mode, setMode] = useState<Mode>("login");
+  const [searchParams] = useSearchParams();
+  const initialMode = searchParams.get("mode") === "register" ? "register" : "login";
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
