@@ -538,7 +538,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-start">
             {plans.map((plan) => (
               <div key={plan.name} className={`rounded-2xl p-6 md:p-8 border transition-all hover-lift relative h-full ${
-                plan.popular
+                plan.popular || plan.badge
                   ? "bg-card border-primary/30 shadow-[0_8px_40px_-8px_hsl(var(--primary)/0.18)] md:scale-105 ring-1 ring-primary/10"
                   : "bg-card border-border/50 card-shadow"
               }`}>
