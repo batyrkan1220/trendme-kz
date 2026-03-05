@@ -134,9 +134,15 @@ No explanation, no markdown, just JSON.`
             continue;
           }
 
+          const updateData: any = { categories: validCats };
+          // If niche is 'other' or not in active categories, set to primary category
+          if (!video.niche || video.niche === 'other' || !ACTIVE_CATEGORIES.includes(video.niche)) {
+            updateData.niche = validCats[0];
+          }
+
           const { error: upErr } = await adminClient
             .from("videos")
-            .update({ categories: validCats })
+            .update(updateData)
             .eq("id", video.id);
 
           if (upErr) {
