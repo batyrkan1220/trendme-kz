@@ -95,8 +95,6 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     if (!query.trim()) return;
-    const ok = await spend("search", `Поиск: ${query.trim()}`);
-    if (!ok) return;
     doSearch(query.trim());
   };
 
