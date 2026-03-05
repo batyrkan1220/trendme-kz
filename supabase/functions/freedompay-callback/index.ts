@@ -1,20 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-async function md5(text: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  const hashBuffer = await crypto.subtle.digest("MD5", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+function md5(text: string): string {
+  const hash = createHash("md5");
+  hash.update(text);
+  return hash.toString("hex");
 }
 
-function verifySignature(scriptName: string, params: Record<string, string>, secretKey: string): Promise<boolean> {
+function verifySignature(scriptName: string, params: Record<string, string>, secretKey: string): boolean {
   const receivedSig = params.pg_sig;
   const paramsWithoutSig = { ...params };
   delete paramsWithoutSig.pg_sig;
@@ -22,7 +21,7 @@ function verifySignature(scriptName: string, params: Record<string, string>, sec
   const sorted = Object.keys(paramsWithoutSig).sort();
   const values = sorted.map(k => paramsWithoutSig[k]);
   const sigString = [scriptName, ...values, secretKey].join(";");
-  return md5(sigString).then(calculated => calculated === receivedSig);
+  return md5(sigString) === receivedSig;
 }
 
 serve(async (req) => {
@@ -49,7 +48,7 @@ serve(async (req) => {
     console.log("Freedom Pay callback params:", JSON.stringify(params));
 
     // Verify signature
-    const isValid = await verifySignature("result_notify", params, SECRET_KEY);
+    const isValid = verifySignature("result_notify", params, SECRET_KEY);
     if (!isValid) {
       console.error("Invalid signature in callback");
       return new Response(
@@ -132,7 +131,7 @@ serve(async (req) => {
     const sorted = Object.keys(responseParams).sort();
     const values = sorted.map(k => responseParams[k]);
     const sigString = ["result_notify", ...values, SECRET_KEY].join(";");
-    const responseSig = await md5(sigString);
+    const responseSig = md5(sigString);
 
     return new Response(
       `<?xml version="1.0" encoding="utf-8"?><response><pg_status>ok</pg_status><pg_description>Payment processed</pg_description><pg_salt>${responseSalt}</pg_salt><pg_sig>${responseSig}</pg_sig></response>`,
