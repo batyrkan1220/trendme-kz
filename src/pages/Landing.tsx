@@ -58,7 +58,7 @@ function LandingNav() {
               Войти
             </Button>
           </Link>
-          <Link to="/auth" className="hidden sm:block">
+          <Link to="/auth?mode=register" className="hidden sm:block">
             <Button className="bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold px-5 md:px-6 h-10 md:h-11 hover:bg-primary/90">
               Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
@@ -86,7 +86,7 @@ function LandingNav() {
             <Link to="/auth" onClick={() => setMenuOpen(false)}>
               <Button variant="outline" className="w-full justify-center text-[15px] font-semibold h-10 border-primary/30 text-primary hover:bg-primary/5">Войти</Button>
             </Link>
-            <Link to="/auth" onClick={() => setMenuOpen(false)}>
+            <Link to="/auth?mode=register" onClick={() => setMenuOpen(false)}>
               <Button className="w-full justify-center bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold h-10">
                 Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
@@ -302,7 +302,7 @@ export default function Landing() {
           </p>
 
           <div className="mb-5 md:mb-8">
-            <Link to="/auth">
+            <Link to="/auth?mode=register">
               <Button className="bg-primary text-primary-foreground rounded-2xl text-sm md:text-lg font-bold px-6 md:px-12 h-12 md:h-16 shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.4)] hover:shadow-[0_12px_40px_-6px_hsl(var(--primary)/0.5)] hover:bg-primary/90 transition-all">
                 <Rocket className="mr-2 h-4 w-4 md:h-6 md:w-6" />
                 Попробовать бесплатно
@@ -388,7 +388,7 @@ export default function Landing() {
           </div>
 
           <div className="text-center mt-8 md:mt-16">
-            <Link to="/auth">
+            <Link to="/auth?mode=register">
               <Button className="bg-primary text-primary-foreground rounded-xl text-sm md:text-lg font-bold px-6 md:px-10 h-11 md:min-h-[56px] hover:bg-primary/90">
                 Начать сейчас — бесплатно
                 <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
@@ -507,7 +507,7 @@ export default function Landing() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/auth">
+                <Link to="/auth?mode=register">
                   <Button className={`w-full rounded-xl h-10 md:h-12 font-semibold text-xs md:text-base ${
                     plan.popular
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -568,7 +568,7 @@ export default function Landing() {
               <p className="text-primary-foreground/80 text-sm md:text-xl mb-5 md:mb-8 max-w-lg mx-auto">
                 Бесплатный старт. Без привязки карты. Первые инсайты через 30 секунд.
               </p>
-              <Link to="/auth">
+              <Link to="/auth?mode=register">
                 <Button className="bg-card text-foreground hover:bg-card/90 rounded-xl text-sm md:text-lg font-bold px-6 md:px-12 h-11 md:h-14 shadow-xl">
                   Создать аккаунт бесплатно
                   <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
