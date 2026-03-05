@@ -242,7 +242,7 @@ export default function Pricing() {
                         {features.map((f: string) => (
                           <li key={f} className="flex items-start gap-2.5 text-foreground text-sm">
                             <Check className="shrink-0 mt-0.5 h-4 w-4 text-primary" />
-                            <span>{f}</span>
+                            <span dangerouslySetInnerHTML={{ __html: f }} />
                           </li>
                         ))}
                       </ul>
