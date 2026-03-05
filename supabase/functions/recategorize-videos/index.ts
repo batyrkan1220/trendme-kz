@@ -170,7 +170,7 @@ No explanation, no markdown, just JSON.`
             Authorization: `Bearer ${serviceRoleKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ offset: nextOffset, limit }),
+          body: JSON.stringify({ offset: nextOffset, limit, only_other: onlyOther }),
         });
       } catch (e) {
         console.error("Chain failed:", e);
