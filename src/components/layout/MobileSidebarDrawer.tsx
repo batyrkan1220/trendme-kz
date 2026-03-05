@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sheet";
 import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
-  Star, ScrollText, LogOut, ArrowRight, Shield, Sparkles, CreditCard
+  Star, ScrollText, LogOut, Shield, Sparkles, CreditCard
 } from "lucide-react";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
 
