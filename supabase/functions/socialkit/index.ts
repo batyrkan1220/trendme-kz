@@ -403,7 +403,7 @@ Example for "пылесос": {"hashtags":["пылесос","vacuum","уборк
         const awemeId = extractAwemeId(video_url);
         if (!awemeId) return json({ error: "Could not extract video ID from URL" }, 400);
 
-        const data = await callEnsemble("/tt/post/info", { id: awemeId });
+        const data = await callEnsemble("/tt/post/info", { url: video_url });
         const videoData = unwrapVideo(data?.data || data);
 
         if (videoData) {
