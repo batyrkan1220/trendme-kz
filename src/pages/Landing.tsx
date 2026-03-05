@@ -434,7 +434,7 @@ export default function Landing() {
       <section id="reviews" className="py-10 md:py-28 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
-            <p className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">Отзывы</p>
+            <p className="text-sm md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 md:mb-3">Отзывы</p>
             <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 md:mb-4">
               Реальные <span className="text-primary">результаты</span>
             </h2>
