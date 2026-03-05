@@ -665,28 +665,28 @@ export default function Landing() {
       </section>
 
       {/* ═══ Footer ═══ */}
-      <footer className="border-t border-border/50 py-10 md:py-16 px-4">
+      <footer className="border-t border-border/50 py-8 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between md:gap-6">
             <div className="flex items-center gap-2.5">
               <TrendMeLogo size={24} className="md:w-8 md:h-8" />
               <BrandName className="text-base md:text-xl" />
             </div>
-            <div className="flex items-center gap-5 md:gap-8 flex-wrap justify-center">
-              <a href="#features" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
-              <a href="#pricing" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
-              <a href="#reviews" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
-              <a href="#faq" className="text-sm md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+            <div className="flex items-center gap-4 md:gap-8 flex-wrap justify-center">
+              <a href="#features" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Инструменты</a>
+              <a href="#pricing" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
+              <a href="#reviews" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
+              <a href="#faq" className="text-xs md:text-[15px] text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-border/30 flex flex-col items-center gap-4 text-sm text-muted-foreground text-center">
-            <div className="flex items-center gap-4 md:gap-6 flex-wrap justify-center">
+          <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border/30 flex flex-col items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground text-center">
+            <div className="grid grid-cols-2 md:flex md:items-center gap-2 md:gap-6 justify-items-center">
               <Link to="/terms" className="hover:text-foreground transition-colors">Пользовательское соглашение</Link>
               <Link to="/privacy" className="hover:text-foreground transition-colors">Политика конфиденциальности</Link>
               <Link to="/payment" className="hover:text-foreground transition-colors">Оплата и возврат</Link>
               <Link to="/contacts" className="hover:text-foreground transition-colors">Контакты</Link>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5 text-[11px] md:text-sm">
               <p>© 2026 trendme</p>
               <p>ИП Батырхан · БИН 970528301753</p>
               <p>г. Шымкент, ул. Кунаева 59, БЦ "Астана", офис 501</p>
