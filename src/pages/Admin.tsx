@@ -202,32 +202,6 @@ function UsersTab() {
     onError: () => toast.error("Ошибка обновления роли"),
   });
 
-  const tokenMutation = useMutation({
-    mutationFn: async ({ user_id, amount, description }: { user_id: string; amount: number; description: string }) => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=update-tokens`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ user_id, amount, description }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
-      setTokenDialog(null);
-      setTokenAmount("");
-      setTokenNote("");
-      toast.success("Токены обновлены");
-    },
-    onError: () => toast.error("Ошибка обновления токенов"),
-  });
-
   const subMutation = useMutation({
     mutationFn: async ({ user_id, plan_id, duration_days, note }: { user_id: string; plan_id: string; duration_days: number; note: string }) => {
       const res = await fetch(
