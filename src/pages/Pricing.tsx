@@ -181,7 +181,7 @@ export default function Pricing() {
                       {/* Unlimited badge for paid plans */}
                       {!usageLimits && !isFree && (
                         <div className="mb-4 text-sm font-semibold text-primary flex items-center gap-1.5">
-                          ♾️ Барлық функциялар шексіз
+                          ♾️ Все функции безлимитно
                         </div>
                       )}
 
