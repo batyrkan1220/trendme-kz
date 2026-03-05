@@ -1,7 +1,9 @@
+import { useState, useRef } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp
+  Trophy, Zap, Target, TrendingUp, Loader2
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -83,6 +85,36 @@ export function VideoCard({
   showAuthor = true,
   showAnalyzeButton = true,
 }: VideoCardProps) {
+  const [playUrl, setPlayUrl] = useState<string | null>(null);
+  const [loadingPlay, setLoadingPlay] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlay = async () => {
+    if (playingId === video.id) {
+      onPlay(null);
+      setPlayUrl(null);
+      return;
+    }
+    onPlay(video.id);
+    setLoadingPlay(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("socialkit", {
+        body: { action: "get_play_url", video_url: video.url },
+      });
+      if (error || !data?.play_url) {
+        console.error("Failed to get play URL:", error || data?.error);
+        setPlayUrl(null);
+      } else {
+        setPlayUrl(data.play_url);
+      }
+    } catch (e) {
+      console.error("Play URL fetch error:", e);
+      setPlayUrl(null);
+    } finally {
+      setLoadingPlay(false);
+    }
+  };
+
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
   const velViews = video.velocity_views || 0;
@@ -97,14 +129,29 @@ export function VideoCard({
       <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
         {playingId === video.id ? (
           <>
-            <iframe
-              src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-              className="w-full h-full border-0"
-              allow="autoplay; encrypted-media; fullscreen"
-              allowFullScreen
-            />
+            {loadingPlay ? (
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              </div>
+            ) : playUrl ? (
+              <video
+                ref={videoRef}
+                src={playUrl}
+                className="w-full h-full object-contain bg-black"
+                controls
+                autoPlay
+                playsInline
+              />
+            ) : (
+              <iframe
+                src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                className="w-full h-full border-0"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+              />
+            )}
             <button
-              onClick={() => onPlay(null)}
+              onClick={() => { onPlay(null); setPlayUrl(null); }}
               className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
               aria-label="Закрыть видео"
             >
@@ -114,7 +161,7 @@ export function VideoCard({
         ) : (
           <>
             {coverUrl ? (
-              <div className="relative w-full h-full cursor-pointer" onClick={() => onPlay(video.id)}>
+              <div className="relative w-full h-full cursor-pointer" onClick={handlePlay}>
                 <img
                   src={coverUrl}
                   alt=""
@@ -131,7 +178,7 @@ export function VideoCard({
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
-                onClick={() => onPlay(video.id)}
+                onClick={handlePlay}
               >
                 <Play className="h-12 w-12 text-muted-foreground/30" />
               </div>
