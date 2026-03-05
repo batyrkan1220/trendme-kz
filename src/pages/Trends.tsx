@@ -129,7 +129,7 @@ export default function Trends() {
           q = q.gte("published_at", since.toISOString());
         }
         if (niche !== "all") {
-          q = q.contains("categories", [niche]);
+          q = q.or(`niche.eq.${niche},categories.cs.{${niche}}`);
         }
         const { data } = await q.order("trend_score", { ascending: false }).range(from, from + PAGE - 1);
         if (!data || data.length === 0) break;
