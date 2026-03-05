@@ -86,7 +86,7 @@ function LandingNav() {
             <Link to="/auth" onClick={() => setMenuOpen(false)}>
               <Button variant="outline" className="w-full justify-center text-[15px] font-semibold h-10 border-primary/30 text-primary hover:bg-primary/5">Войти</Button>
             </Link>
-            <Link to="/auth" onClick={() => setMenuOpen(false)}>
+            <Link to="/auth?mode=register" onClick={() => setMenuOpen(false)}>
               <Button className="w-full justify-center bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold h-10">
                 Начать бесплатно <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
