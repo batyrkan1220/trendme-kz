@@ -26,6 +26,7 @@ export default function VideoAnalysis() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
+  const { checkAndLog } = useSubscription();
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
       const [statsRes, analysisRes] = await Promise.allSettled([
