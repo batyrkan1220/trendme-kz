@@ -10,11 +10,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full overflow-x-hidden">
+    <div className="relative flex min-h-[100dvh] w-full">
       {!isMobile && (
         <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       )}
-      <main className="flex-1 min-w-0 min-h-[100dvh] pb-20 md:pb-0 overflow-x-hidden">
+      <main className="flex-1 min-w-0 min-h-[100dvh] pb-20 md:pb-0 overflow-x-hidden overflow-y-auto">
         {children}
       </main>
       {/* Always render on mobile via CSS, not JS condition */}
