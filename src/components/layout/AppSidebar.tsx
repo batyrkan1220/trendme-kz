@@ -2,12 +2,11 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { useTokens } from "@/hooks/useTokens";
 import {
   LayoutDashboard, TrendingUp, Search,
   Video, UserCircle, Star, ScrollText, Sparkles,
-  Flame, ArrowRight, Shield,
-  LogOut, ChevronLeft, ChevronRight
+  ArrowRight, Shield,
+  LogOut, ChevronLeft, ChevronRight, CreditCard
 } from "lucide-react";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
 
@@ -46,8 +45,6 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { isAdmin } = useAdmin();
-  const { balance, totalEarned } = useTokens();
-  const tokenPercent = totalEarned > 0 ? Math.min(100, (balance / totalEarned) * 100) : 0;
 
   const handleLogout = async () => {
     await signOut();
@@ -107,7 +104,6 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         {!collapsed && (
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-base tracking-tight text-foreground">trendme</span>
-            
           </div>
         )}
       </div>
@@ -122,40 +118,24 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
       {/* Bottom */}
       <div className="border-t border-sidebar-border py-3 px-2 space-y-2 shrink-0">
-        {/* Token widget */}
+        {/* Subscription widget */}
         {!collapsed && (
-          <div className="rounded-xl p-3 space-y-2 bg-muted/40">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Flame className="h-4 w-4 text-orange-500" />
-                <span className="text-sm font-semibold text-foreground">Осталось токенов:</span>
-              </div>
-              <span className="text-sm font-bold text-foreground">{balance}</span>
-            </div>
-            <div className="h-2 w-full rounded-full overflow-hidden bg-muted">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${tokenPercent}%`,
-                  background: "linear-gradient(90deg, hsl(220 80% 55%), hsl(258 80% 58%))"
-                }}
-              />
-            </div>
-            <Link
-              to="/pricing"
-              className="flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary transition-colors"
-            >
-              Открыть тарифы <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
+          <Link
+            to="/pricing"
+            className="flex items-center gap-2 rounded-xl p-3 bg-muted/40 hover:bg-muted/60 transition-colors"
+          >
+            <CreditCard className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm font-semibold text-foreground flex-1">Тарифтер</span>
+            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+          </Link>
         )}
         {collapsed && (
           <Link
             to="/pricing"
-            title={`Токены: ${balance}`}
+            title="Тарифтер"
             className="flex justify-center py-2 rounded-xl text-muted-foreground hover:bg-muted/60 transition-colors"
           >
-            <Flame className="h-[18px] w-[18px] text-orange-500" />
+            <CreditCard className="h-[18px] w-[18px] text-primary" />
           </Link>
         )}
 

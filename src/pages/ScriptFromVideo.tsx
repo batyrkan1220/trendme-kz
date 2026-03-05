@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useTokens } from "@/hooks/useTokens";
 import { ScriptGenerationPanel } from "@/components/ScriptGenerationPanel";
 
 const fmt = (n: number) => {
@@ -23,8 +22,6 @@ const extractVideoId = (url: string): string => {
 export default function ScriptFromVideo() {
   const [url, setUrl] = useState("");
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
-  const { spend } = useTokens();
-
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
       const [statsRes, analysisRes] = await Promise.allSettled([
@@ -52,8 +49,6 @@ export default function ScriptFromVideo() {
 
   const handleAnalyze = async (lang: "ru" | "kk") => {
     if (!url.trim()) return;
-    const ok = await spend("video_analysis", `AI Сценарий: ${url.trim()}`);
-    if (!ok) return;
     setLanguage(lang);
     analyze({ videoUrl: url.trim(), lang });
   };
