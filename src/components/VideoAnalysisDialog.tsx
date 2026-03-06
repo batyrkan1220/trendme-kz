@@ -91,6 +91,28 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     analyze({ v: video, lang });
   };
 
+  const handlePlay = useCallback(async () => {
+    if (!video) return;
+    setIsPlaying(true);
+    setLoadingPlay(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("socialkit", {
+        body: { action: "get_play_url", video_url: video.url },
+      });
+      if (error || !data?.play_url) {
+        console.error("Failed to get play URL:", error || data?.error);
+        setPlayUrl(null);
+      } else {
+        setPlayUrl(data.play_url);
+      }
+    } catch (e) {
+      console.error("Play URL fetch error:", e);
+      setPlayUrl(null);
+    } finally {
+      setLoadingPlay(false);
+    }
+  }, [video]);
+
   if (!video) return null;
 
   const views = Number(video.views || 0);
