@@ -226,7 +226,7 @@ export const NICHE_GROUPS: NicheGroup[] = [
       { key: "motivation", label: "Мотивация" },
       { key: "mental_health", label: "Ментальное здоровье" },
       { key: "productivity", label: "Продуктивность" },
-      { key: "habits", label: "Привычки / Әдеттер" },
+      { key: "habits", label: "Привычки" },
     ],
   },
   {
