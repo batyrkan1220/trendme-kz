@@ -208,10 +208,13 @@ Deno.serve(async (req: Request) => {
           messages: [
             {
               role: "system",
-              content: `You categorize TikTok videos. Available categories: ${ACTIVE_CATEGORIES.join(", ")}.
-For each video (given as index|current_niche|caption), return ALL matching categories (1-3 max).
-The primary niche should always be included.
-Return ONLY a JSON array: [[idx, ["cat1","cat2"]], ...]
+              content: `You categorize TikTok videos into sub-niches.
+
+Main niches: ${MAIN_NICHES.join(", ")}
+Available sub-niches: ${ALL_SUB_NICHES.join(", ")}
+
+For each video (given as index|current_niche|caption), determine the BEST matching sub-niche (exactly 1).
+Return ONLY a JSON array: [[idx, "sub_niche_key"], ...]
 No explanation, no markdown, just JSON.`
             },
             { role: "user", content: videoList }
