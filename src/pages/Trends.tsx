@@ -151,10 +151,13 @@ export default function Trends() {
     });
   }, [allVideos]);
 
-  // Apply language filter
+  // Apply language filter (use stored lang first, fallback to detection)
   const langFilteredVideos = useMemo(() => {
     if (langFilter === "all") return sortedVideos;
-    return sortedVideos.filter((v: any) => detectLang(v.caption) === langFilter);
+    return sortedVideos.filter((v: any) => {
+      const vLang = v.lang || detectLang(v.caption);
+      return vLang === langFilter;
+    });
   }, [sortedVideos, langFilter]);
 
   const videos = useMemo(() => {

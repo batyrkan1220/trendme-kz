@@ -207,10 +207,13 @@ No explanation, no markdown, just JSON.`
             continue;
           }
 
+          const lang = (result[2] as string) || null;
+
           const updateData: any = {
             niche: mainNiche,
             sub_niche: subNiche,
             categories: [mainNiche],
+            ...(lang && ["kk", "ru", "en"].includes(lang) ? { lang } : {}),
           };
 
           const { error: upErr } = await adminClient
