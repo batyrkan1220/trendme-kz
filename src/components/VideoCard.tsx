@@ -1,11 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp, Loader2
+  Trophy, Zap, Target, TrendingUp, Loader2, Maximize
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { MobileVideoPlayer } from "./MobileVideoPlayer";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -92,9 +90,7 @@ export function VideoCard({
   const [coverFailed, setCoverFailed] = useState(false);
   const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
   const [coverRefreshing, setCoverRefreshing] = useState(false);
-  const [mobileFullscreen, setMobileFullscreen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const isMobile = useIsMobile();
 
   const handleCoverError = useCallback(async () => {
     if (coverRefreshing || refreshedCover !== null) {
@@ -124,10 +120,6 @@ export function VideoCard({
   }, [video.id, video.platform_video_id, video.author_username, coverRefreshing, refreshedCover]);
 
   const handlePlay = async () => {
-    if (isMobile) {
-      setMobileFullscreen(true);
-      return;
-    }
     if (playingId === video.id) {
       onPlay(null);
       setPlayUrl(null);
@@ -151,6 +143,13 @@ export function VideoCard({
     } finally {
       setLoadingPlay(false);
     }
+  };
+
+  const handleFullscreen = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if ((el as any).webkitEnterFullscreen) (el as any).webkitEnterFullscreen();
   };
 
   const views = Number(video.views) || 0;
@@ -188,13 +187,24 @@ export function VideoCard({
                 allowFullScreen
               />
             )}
-            <button
-              onClick={() => { onPlay(null); setPlayUrl(null); }}
-              className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
-              aria-label="Закрыть видео"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5">
+              {playUrl && (
+                <button
+                  onClick={handleFullscreen}
+                  className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                  aria-label="Толық экран"
+                >
+                  <Maximize className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                onClick={() => { onPlay(null); setPlayUrl(null); }}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                aria-label="Закрыть видео"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </>
         ) : (
           <>
@@ -360,13 +370,6 @@ export function VideoCard({
             Анализ видео
           </button>
         </div>
-      )}
-      {/* Mobile fullscreen player */}
-      {mobileFullscreen && (
-        <MobileVideoPlayer
-          video={video}
-          onClose={() => setMobileFullscreen(false)}
-        />
       )}
     </div>
   );
