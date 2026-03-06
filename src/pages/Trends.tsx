@@ -114,34 +114,28 @@ export default function Trends() {
 
   const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
 
+  // Server-side paginated fetch — only load what we need
   const { data: allVideos = [], isLoading } = useQuery({
-    queryKey: ["trends", period, niche],
+    queryKey: ["trends", period, niche, visibleCount],
     queryFn: async () => {
       const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,categories";
-      const PAGE = 1000;
-      let all: any[] = [];
-      let from = 0;
+      // Fetch just enough to fill the current visible count + a small buffer
+      const fetchLimit = Math.min(visibleCount + PAGE_SIZE, 1000);
 
-      while (true) {
-        let q = supabase.from("videos").select(selectFields);
-        if (period > 0) {
-          const since = new Date();
-          since.setDate(since.getDate() - period);
-          q = q.gte("published_at", since.toISOString());
-        }
-        if (niche !== "all") {
-          q = q.or(`niche.eq.${niche},categories.cs.{${niche}}`);
-        }
-        const { data } = await q.order("trend_score", { ascending: false }).range(from, from + PAGE - 1);
-        if (!data || data.length === 0) break;
-        all = all.concat(data);
-        if (data.length < PAGE) break;
-        from += PAGE;
+      let q = supabase.from("videos").select(selectFields);
+      if (period > 0) {
+        const since = new Date();
+        since.setDate(since.getDate() - period);
+        q = q.gte("published_at", since.toISOString());
       }
-
-      return all;
+      if (niche !== "all") {
+        q = q.or(`niche.eq.${niche},categories.cs.{${niche}}`);
+      }
+      const { data } = await q.order("trend_score", { ascending: false }).limit(fetchLimit);
+      return data || [];
     },
     staleTime: 60_000,
+    keepPreviousData: true,
   });
 
   // Sort: Strong > Mid > Micro, then by trend_score within tier
