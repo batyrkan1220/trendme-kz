@@ -282,7 +282,6 @@ export const NICHE_GROUPS: NicheGroup[] = [
     ],
   },
 ];
-];
 
 /** Flat map: sub_niche_key → parent niche key */
 export const SUB_NICHE_TO_NICHE: Record<string, string> = {};
