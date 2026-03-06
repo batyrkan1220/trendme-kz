@@ -2044,29 +2044,6 @@ function StatsSection() {
 
 
 
-      let from = 0;
-      const PAGE = 1000;
-      while (true) {
-        const { data, error } = await supabase
-          .from("videos")
-          .select("sub_niche")
-          .gte("published_at", sevenDaysAgo)
-          .range(from, from + PAGE - 1);
-        if (error || !data || data.length === 0) break;
-        for (const v of data) {
-          const sn = (v as any).sub_niche;
-          if (sn) counts[sn] = (counts[sn] || 0) + 1;
-        }
-        if (data.length < PAGE) break;
-        from += PAGE;
-      }
-      return counts;
-    },
-    refetchInterval: 10000,
-  });
-
-  const { data: savedLimits } = useQuery({
-    queryKey: ["category-limits-setting"],
     queryFn: async () => {
       const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
       return (data?.value as Record<string, number>) || {};
