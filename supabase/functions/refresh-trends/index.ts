@@ -370,16 +370,21 @@ Deno.serve(async (req: Request) => {
   const NICHE_QUERIES: Record<string, string[]> = {};
   for (const [key, val] of Object.entries(rawNicheQueries)) {
     if (Array.isArray(val)) {
-      // Old flat array format
-      NICHE_QUERIES[key] = val;
+      // Old flat array format - use if no lang filter or filter matches
+      NICHE_QUERIES[key] = targetLang ? [] : val;
     } else if (val && typeof val === "object") {
-      // New 3-lang format: flatten all languages into one array
-      const kk = (val as any).kk || [];
-      const ru = (val as any).ru || [];
-      const en = (val as any).en || [];
-      NICHE_QUERIES[key] = [...kk, ...ru, ...en];
+      // New 3-lang format: use only target language or flatten all
+      if (targetLang) {
+        NICHE_QUERIES[key] = (val as any)[targetLang] || [];
+      } else {
+        const kk = (val as any).kk || [];
+        const ru = (val as any).ru || [];
+        const en = (val as any).en || [];
+        NICHE_QUERIES[key] = [...kk, ...ru, ...en];
+      }
     }
   }
+  console.log(`Language filter: ${targetLang || "all"}`);
   const allAvailableNiches = Object.keys(NICHE_QUERIES);
   let allNicheKeys = allAvailableNiches;
 
