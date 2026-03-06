@@ -262,8 +262,30 @@ export default function Trends() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {allVideos.length > 0 && (
-            <span className="text-xs text-muted-foreground">{allVideos.length} видео</span>
+          {/* Language filter */}
+          <div className="flex bg-card rounded-lg p-0.5 border border-border/50">
+            {([
+              { key: "all" as const, label: "🌍" },
+              { key: "kk" as const, label: "🇰🇿" },
+              { key: "ru" as const, label: "🇷🇺" },
+              { key: "en" as const, label: "🇬🇧" },
+            ]).map((l) => (
+              <button
+                key={l.key}
+                onClick={() => { setLangFilter(l.key); setVisibleCount(PAGE_SIZE); }}
+                className={`px-2 py-1 rounded-md text-xs font-semibold transition-all ${
+                  langFilter === l.key
+                    ? "gradient-hero text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+
+          {langFilteredVideos.length > 0 && (
+            <span className="text-xs text-muted-foreground">{langFilteredVideos.length} видео</span>
           )}
         </div>
 
