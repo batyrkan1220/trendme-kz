@@ -18,12 +18,20 @@ interface VirtualTrendGridProps {
 }
 
 function useColumns() {
-  // Determine columns from window width (matches grid-cols-2 sm:2 lg:3 xl:5)
-  if (typeof window === "undefined") return 2;
-  const w = window.innerWidth;
-  if (w >= 1280) return 5;
-  if (w >= 1024) return 3;
-  return 2;
+  const getColumns = () => {
+    if (typeof window === "undefined") return 2;
+    const w = window.innerWidth;
+    if (w >= 1280) return 5;
+    if (w >= 1024) return 3;
+    return 2;
+  };
+  const [cols, setCols] = useState(getColumns);
+  useEffect(() => {
+    const handler = () => setCols(getColumns());
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return cols;
 }
 
 export function VirtualTrendGrid({
