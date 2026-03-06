@@ -154,7 +154,7 @@ export default function Trends() {
   }, [sortedVideos, visibleCount]);
 
 
-  const hasMore = visibleCount < sortedVideos.length;
+  const hasMore = allVideos.length >= visibleCount;
 
 
   const { data: userFavorites = [] } = useQuery({
