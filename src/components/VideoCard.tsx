@@ -28,6 +28,18 @@ const getTimeAgo = (published_at: string | number | null) => {
   return `${Math.floor(d / 30)} мес. назад`;
 };
 
+/** Convert TikTok origin cover URLs to smaller cropcenter variants */
+function optimizeCoverUrl(url: string | null | undefined): string | null | undefined {
+  if (!url) return url;
+  if (url.includes("tplv-tiktokx-origin.image")) {
+    return url.replace(
+      /tplv-tiktokx-origin\.image/,
+      "tplv-tiktokx-cropcenter-q:300:400:q72.jpeg"
+    );
+  }
+  return url;
+}
+
 type TrendTier = "strong" | "mid" | "micro";
 
 const getTier = (views: number): TrendTier | null => {
