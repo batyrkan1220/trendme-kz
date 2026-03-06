@@ -86,12 +86,21 @@ export default function Trends() {
 
   const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
 
-  // Server-side paginated fetch — only load what we need
+  // Parse filter: "all" | "business" (main niche) | "business:crypto" (sub-niche)
+  const parsedFilter = useMemo(() => {
+    if (nicheFilter === "all") return { type: "all" as const, niche: "", subNiche: "" };
+    const parts = nicheFilter.split(":");
+    if (parts.length === 2) return { type: "sub" as const, niche: parts[0], subNiche: parts[1] };
+    return { type: "niche" as const, niche: parts[0], subNiche: "" };
+  }, [nicheFilter]);
+
+  const activeGroup = useMemo(() => NICHE_GROUPS.find(g => g.key === parsedFilter.niche), [parsedFilter.niche]);
+
   // Fetch up to 500 videos once per period+niche combo, then paginate client-side
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
-    queryKey: ["trends", period, niche],
+    queryKey: ["trends", period, nicheFilter],
     queryFn: async () => {
-      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,categories";
+      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
 
       let q = supabase.from("videos").select(selectFields);
       if (period > 0) {
@@ -99,8 +108,10 @@ export default function Trends() {
         since.setDate(since.getDate() - period);
         q = q.gte("published_at", since.toISOString());
       }
-      if (niche !== "all") {
-        q = q.or(`niche.eq.${niche},categories.cs.{${niche}}`);
+      if (parsedFilter.type === "niche") {
+        q = q.eq("niche", parsedFilter.niche);
+      } else if (parsedFilter.type === "sub") {
+        q = q.eq("niche", parsedFilter.niche).eq("sub_niche", parsedFilter.subNiche);
       }
       const { data } = await q.order("trend_score", { ascending: false }).limit(500);
       return data || [];
