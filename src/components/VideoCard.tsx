@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import {
-  Eye, Heart, MessageCircle, Share2, Play, ExternalLink, X,
-  Trophy, Zap, Target, TrendingUp, Loader2, Maximize, UserPlus
+  Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
+  Trophy, Zap, Target, TrendingUp, Loader2, Maximize
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+/** Global in-memory cache for play URLs to avoid redundant API calls */
 const playUrlCache = new Map<string, string>();
 
 const fmt = (n: number) => {
@@ -30,10 +31,14 @@ const getTimeAgo = (published_at: string | number | null) => {
   return `${Math.floor(d / 30)} мес. назад`;
 };
 
+/** Convert TikTok origin cover URLs to smaller cropcenter variants */
 function optimizeCoverUrl(url: string | null | undefined): string | null | undefined {
   if (!url) return url;
   if (url.includes("tplv-tiktokx-origin.image")) {
-    return url.replace(/tplv-tiktokx-origin\.image/, "tplv-tiktokx-cropcenter-q:300:400:q72.jpeg");
+    return url.replace(
+      /tplv-tiktokx-origin\.image/,
+      "tplv-tiktokx-cropcenter-q:300:400:q72.jpeg"
+    );
   }
   return url;
 }
@@ -46,35 +51,6 @@ const getTier = (views: number): TrendTier | null => {
   if (views >= 3_000) return "micro";
   return null;
 };
-
-/** Determine the dominant anomaly type for a video */
-function getAnomalyType(video: VideoCardData): { type: string; label: string; multiplier: number; colorClass: string } | null {
-  const views = Number(video.views) || 0;
-  const likes = Number(video.likes) || 0;
-  const comments = Number(video.comments) || 0;
-  const shares = Number(video.shares) || 0;
-
-  if (views < 1000) return null;
-
-  // Calculate engagement ratios (higher = more anomalous)
-  const likeRatio = views > 0 ? (likes / views) * 100 : 0;
-  const commentRatio = views > 0 ? (comments / views) * 100 : 0;
-  const shareRatio = views > 0 ? (shares / views) * 100 : 0;
-
-  // Determine the most anomalous metric
-  const velViews = video.velocity_views || 0;
-  
-  const scores = [
-    { type: "views", label: "Просмотры", multiplier: Math.round(velViews), colorClass: "bg-emerald-500 text-white", minScore: 50 },
-    { type: "likes", label: "Лайки", multiplier: Math.round(likeRatio * 10), colorClass: "bg-rose-500 text-white", minScore: 5 },
-    { type: "comments", label: "Комментарии", multiplier: Math.round(commentRatio * 100), colorClass: "bg-emerald-600 text-white", minScore: 3 },
-    { type: "virality", label: "Виральность", multiplier: Math.round(shareRatio * 100), colorClass: "bg-violet-500 text-white", minScore: 2 },
-  ];
-
-  // Pick highest multiplier that passes minimum threshold
-  const best = scores.filter(s => s.multiplier >= s.minScore).sort((a, b) => b.multiplier - a.multiplier)[0];
-  return best ? { type: best.type, label: best.label, multiplier: best.multiplier, colorClass: best.colorClass } : null;
-}
 
 const tierConfig: Record<TrendTier, { label: string; icon: any; className: string }> = {
   strong: { label: "Взлетает", icon: Trophy, className: "bg-amber-500/90 text-white" },
@@ -132,6 +108,7 @@ export function VideoCard({
   const preloadedUrlRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
 
+  // Auto-fullscreen on mobile when video is ready
   useEffect(() => {
     if (!isMobile || !playUrl || !videoRef.current) return;
     const el = videoRef.current;
@@ -142,6 +119,7 @@ export function VideoCard({
       } catch {}
     };
     el.addEventListener("loadeddata", goFull, { once: true });
+
     const onFsChange = () => {
       if (!document.fullscreenElement) {
         onPlay(null);
@@ -149,14 +127,17 @@ export function VideoCard({
       }
     };
     document.addEventListener("fullscreenchange", onFsChange);
+
     return () => {
       el.removeEventListener("loadeddata", goFull);
       document.removeEventListener("fullscreenchange", onFsChange);
     };
   }, [isMobile, playUrl, onPlay]);
 
+  // Preload disabled to save API credits — play URL fetched only on click
   const handlePreload = useCallback(() => {}, []);
 
+  // Cover refresh disabled on client — handled by background maintenance only
   const handleCoverError = useCallback(() => {
     setCoverFailed(true);
   }, []);
@@ -168,25 +149,35 @@ export function VideoCard({
       return;
     }
     onPlay(video.id);
+
+    // Check global cache first
     const cached = playUrlCache.get(video.url);
-    if (cached) { setPlayUrl(cached); return; }
+    if (cached) {
+      setPlayUrl(cached);
+      return;
+    }
+
+    // Use preloaded URL if available
     if (preloadedUrlRef.current) {
       setPlayUrl(preloadedUrlRef.current);
       playUrlCache.set(video.url, preloadedUrlRef.current);
       return;
     }
+
     setLoadingPlay(true);
     try {
       const { data, error } = await supabase.functions.invoke("socialkit", {
         body: { action: "get_play_url", video_url: video.url },
       });
       if (error || !data?.play_url) {
+        console.error("Failed to get play URL:", error || data?.error);
         setPlayUrl(null);
       } else {
         setPlayUrl(data.play_url);
         playUrlCache.set(video.url, data.play_url);
       }
-    } catch {
+    } catch (e) {
+      console.error("Play URL fetch error:", e);
       setPlayUrl(null);
     } finally {
       setLoadingPlay(false);
@@ -202,62 +193,36 @@ export function VideoCard({
 
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
-  const anomaly = getAnomalyType(video);
+  const velViews = video.velocity_views || 0;
   const activeCover = optimizeCoverUrl(video.cover_url || video.cover);
   const caption = video.caption || video.desc || "";
   const videoId = video.platform_video_id || video.id;
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
 
   return (
-    <div
-      className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-200 relative flex flex-col"
-      onMouseEnter={handlePreload}
-      onTouchStart={handlePreload}
-    >
-      {/* Anomaly type badge — top-left, above image */}
-      {anomaly && (
-        <div className="absolute top-3 left-3 z-20 pointer-events-none">
-          <div className={`flex items-center gap-1 rounded-full px-2.5 py-1 shadow-lg text-[11px] font-bold ${anomaly.colorClass}`}>
-            <span className="drop-shadow-sm">🔥</span>
-            <span>{anomaly.label}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Favorite + external link — top-right */}
-      <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleFav(video.id); }}
-          className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-        >
-          <Heart className={`h-4 w-4 transition-all ${isFavorite ? "text-rose-500 fill-rose-500" : "text-muted-foreground"}`} />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
-          className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
-        >
-          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-        </button>
-      </div>
-
+    <div className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col" onMouseEnter={handlePreload} onTouchStart={handlePreload}>
       {/* Video area */}
       <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
         {playingId === video.id ? (
           <>
             {loadingPlay ? (
               <div className="w-full h-full relative overflow-hidden">
+                {/* Keep cover image as background */}
                 {activeCover && !coverFailed ? (
                   <img src={activeCover} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-muted/80" />
                 )}
+                {/* Dark overlay */}
                 <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+                {/* Animated rings */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-32 h-32 rounded-full border-2 border-white/15 animate-ping" style={{ animationDuration: '2s' }} />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-20 h-20 rounded-full border-2 border-white/20 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
                 </div>
+                {/* Center loader */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                   <div className="h-14 w-14 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/20">
                     <Loader2 className="h-6 w-6 text-primary animate-spin" />
@@ -266,7 +231,14 @@ export function VideoCard({
                 </div>
               </div>
             ) : playUrl ? (
-              <video ref={videoRef} src={playUrl} className="w-full h-full object-contain bg-black" controls autoPlay playsInline />
+              <video
+                ref={videoRef}
+                src={playUrl}
+                className="w-full h-full object-contain bg-black"
+                controls
+                autoPlay
+                playsInline
+              />
             ) : (
               <iframe
                 src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
@@ -277,11 +249,19 @@ export function VideoCard({
             )}
             <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5">
               {playUrl && (
-                <button onClick={handleFullscreen} className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors">
+                <button
+                  onClick={handleFullscreen}
+                  className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                  aria-label="Толық экран"
+                >
                   <Maximize className="h-4 w-4" />
                 </button>
               )}
-              <button onClick={() => { onPlay(null); setPlayUrl(null); }} className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors">
+              <button
+                onClick={() => { onPlay(null); setPlayUrl(null); }}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                aria-label="Закрыть видео"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -298,10 +278,11 @@ export function VideoCard({
                   className="w-full h-full object-cover"
                   onError={() => handleCoverError()}
                 />
-                {/* Play button */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="relative">
+                    {/* Outer glow ring */}
                     <div className="absolute -inset-2 rounded-full bg-white/10 group-hover:bg-white/20 blur-md transition-all duration-300" />
+                    {/* Main play button */}
                     <div className="relative h-14 w-14 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 group-hover:bg-white group-hover:border-white/80 group-hover:scale-110 transition-all duration-300">
                       <Play className="h-6 w-6 text-white group-hover:text-foreground ml-0.5 transition-colors duration-300" fill="currentColor" fillOpacity={0.3} />
                     </div>
@@ -309,92 +290,123 @@ export function VideoCard({
                 </div>
               </div>
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-muted/80 gap-2" onClick={handlePlay}>
+              <div
+                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-muted/80 gap-2"
+                onClick={handlePlay}
+              >
                 <div className="h-12 w-12 rounded-full bg-black/20 flex items-center justify-center">
                   <Play className="h-6 w-6 text-muted-foreground ml-0.5" />
                 </div>
-                {caption && <p className="text-[10px] text-muted-foreground/70 text-center px-3 line-clamp-2">{caption}</p>}
+                {caption && (
+                  <p className="text-[10px] text-muted-foreground/70 text-center px-3 line-clamp-2">{caption}</p>
+                )}
               </div>
             )}
 
-            {/* Platform + multiplier badges — bottom left inside image */}
-            <div className="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1.5 pointer-events-none">
-              <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-md px-2 py-1">
-                <svg className="h-3 w-3 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
-                <span className="text-[11px] font-bold text-white">TikTok</span>
+            {/* TikTok header bar */}
+            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2.5 z-10 pointer-events-none">
+              <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm">
+                <Music className="h-3 w-3 text-foreground" />
+                <span className="text-[11px] font-bold text-foreground">Tik-Tok</span>
               </div>
-              {anomaly && anomaly.multiplier > 0 && (
-                <div className="flex items-center gap-0.5 bg-white/90 backdrop-blur-sm rounded-md px-2 py-1">
-                  <TrendingUp className="h-3 w-3 text-foreground" />
-                  <span className="text-[11px] font-extrabold text-foreground">X{anomaly.multiplier}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onToggleFav(video.id); }}
+                  className="pointer-events-auto w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                >
+                  <Heart
+                    className={`h-4 w-4 transition-all ${
+                      isFavorite ? "text-primary fill-primary" : "text-primary"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
-            {/* Tier badge — below anomaly badge on left */}
+            {/* Tier badge */}
             {tier && (
-              <div className="absolute top-12 left-3 z-10 pointer-events-none">
+              <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
                 <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg ${tierConfig[tier].className}`}>
-                  {(() => { const Icon = tierConfig[tier].icon; return <Icon className="h-3 w-3" />; })()}
+                  {(() => {
+                    const Icon = tierConfig[tier].icon;
+                    return <Icon className="h-3.5 w-3.5" />;
+                  })()}
                   <span className="text-[10px] font-bold">{tierConfig[tier].label}</span>
                 </div>
+                {velViews > 10 && (
+                  <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
+                    <TrendingUp className="h-3 w-3 text-white" />
+                    <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Duration */}
+            {/* Open in TikTok */}
+            <button
+              onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
+              className="absolute top-12 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+            </button>
+
+            {/* Duration badge */}
             {video.duration && video.duration > 0 && (
-              <div className="absolute bottom-2.5 right-2.5 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium z-10">
+              <div className="absolute bottom-2.5 left-2.5 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
                 {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
               </div>
             )}
 
             {/* Bottom gradient */}
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
           </>
         )}
       </div>
 
-      {/* Inline stats bar — horizontal row */}
-      <div className="flex items-center gap-3 px-3 py-2 border-b border-border/20">
-        <span className="flex items-center gap-1">
-          <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-semibold text-foreground">{fmt(views)}</span>
+      {/* Stats bar */}
+      <div className="flex items-center justify-around px-2 py-2 border-b border-border/30">
+        <span className="flex flex-col items-center gap-0.5">
+          <Eye className="h-4 w-4 text-muted-foreground" />
+          <span className="text-[11px] font-bold text-foreground">{fmt(views)}</span>
         </span>
-        <span className="flex items-center gap-1">
-          <Heart className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-semibold text-foreground">{fmt(Number(video.likes))}</span>
+        <span className="flex flex-col items-center gap-0.5">
+          <Heart className="h-4 w-4 text-muted-foreground" />
+          <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.likes))}</span>
         </span>
-        <span className="flex items-center gap-1">
-          <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-semibold text-foreground">{fmt(Number(video.comments))}</span>
+        <span className="flex flex-col items-center gap-0.5">
+          <MessageCircle className="h-4 w-4 text-muted-foreground" />
+          <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.comments))}</span>
         </span>
-        <span className="flex items-center gap-1">
-          <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-semibold text-foreground">{fmt(Number(video.shares || 0))}</span>
+        <span className="flex flex-col items-center gap-0.5">
+          <Share2 className="h-4 w-4 text-muted-foreground" />
+          <span className="text-[11px] font-bold text-foreground">{fmt(Number(video.shares || 0))}</span>
         </span>
       </div>
 
       {/* Author row */}
       {showAuthor && video.author_username && (
-        <div className="px-3 pt-2.5 flex items-center gap-2">
+        <div className="px-3 pt-3 flex items-center gap-2">
           {video.author_avatar_url ? (
-            <img src={video.author_avatar_url} alt="" loading="lazy" className="w-7 h-7 rounded-full object-cover border border-border/50 flex-shrink-0" />
+            <img
+              src={video.author_avatar_url}
+              alt=""
+              loading="lazy"
+              className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0"
+            />
           ) : (
-            <div className="w-7 h-7 rounded-full bg-muted flex-shrink-0" />
+            <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
           )}
-          <span className="text-[13px] font-semibold text-foreground truncate flex-1">@{video.author_username}</span>
-          <button
-            onClick={(e) => { e.stopPropagation(); window.open(`https://www.tiktok.com/@${video.author_username}`, '_blank'); }}
-            className="w-6 h-6 rounded-full bg-muted/60 flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0"
-          >
-            <UserPlus className="h-3 w-3 text-muted-foreground" />
-          </button>
+          <span className="text-sm font-semibold text-foreground truncate">
+            @{video.author_username}
+          </span>
         </div>
       )}
 
       {/* Caption */}
       <div className="px-3 pt-1.5 pb-1">
-        <p className="text-xs text-foreground/70 line-clamp-2 leading-relaxed">{caption || "Без описания"}</p>
+        <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">
+          {caption || "Без описания"}
+        </p>
       </div>
 
       {/* Time ago */}
@@ -408,7 +420,10 @@ export function VideoCard({
       {showAnalyzeButton && onAnalyze && (
         <div className="px-3 pb-3 mt-auto">
           <button
-            onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAnalyze(video);
+            }}
             className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             Анализ видео
