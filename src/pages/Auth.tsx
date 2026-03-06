@@ -70,13 +70,21 @@ export default function Auth() {
         else navigate("/dashboard");
       } else {
         const { error } = await signUp(email, password, { name: name.trim(), phone: `${phoneCode}${phone.trim()}` });
-        if (error) toast.error("Ошибка регистрации: " + error.message);
+        if (error) {
+          const msg = error.message || "";
+          if (msg.includes("already registered") || msg.includes("already been registered")) {
+            toast.error("Этот email уже зарегистрирован. Попробуйте войти.");
+          } else if (msg.includes("rate limit") || msg.includes("after 2 seconds") || msg.includes("security purposes")) {
+            toast.error("Слишком частые запросы. Подождите несколько секунд.");
+          } else if (msg.includes("valid email") || msg.includes("invalid")) {
+            toast.error("Введите корректный email адрес.");
+          } else if (msg.includes("weak password") || msg.includes("at least")) {
+            toast.error("Пароль слишком простой. Используйте минимум 6 символов.");
+          } else {
+            toast.error("Ошибка регистрации. Попробуйте позже.");
+          }
+        }
         else toast.success("Проверьте email для подтверждения регистрации");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 py-8 relative overflow-hidden">
