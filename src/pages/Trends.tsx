@@ -193,7 +193,7 @@ export default function Trends() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-card text-muted-foreground border-border/50 hover:text-foreground`}>
-                <span>📅 {period}д</span>
+                <span>⏱ Время тренда: {period}д</span>
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
@@ -204,7 +204,7 @@ export default function Trends() {
                   onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
                   className={`cursor-pointer ${period === p ? "bg-primary/10 text-primary font-semibold" : ""}`}
                 >
-                  {p === 3 ? "📅 3 күн" : p === 7 ? "📅 7 күн" : "📅 30 күн"}
+                  {p === 3 ? "⏱ 3 күн" : p === 7 ? "⏱ 7 күн" : "⏱ 30 күн"}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
