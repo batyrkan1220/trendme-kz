@@ -1429,25 +1429,42 @@ function RefreshSection() {
   );
 }
 
+type LangQueries = { kk: string[]; ru: string[]; en: string[] };
+type NicheQueriesMap = Record<string, LangQueries>;
+const LANG_TABS = [
+  { key: "kk" as const, label: "🇰🇿 Қазақша", color: "text-emerald-600" },
+  { key: "ru" as const, label: "🇷🇺 Русский", color: "text-blue-600" },
+  { key: "en" as const, label: "🇬🇧 English", color: "text-red-600" },
+] as const;
+
 function KeywordsSection() {
   const queryClient = useQueryClient();
   const [selectedSubNiche, setSelectedSubNiche] = useState<string | null>(null);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const [activeLang, setActiveLang] = useState<"kk" | "ru" | "en">("kk");
   const [newQuery, setNewQuery] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  const { data: nicheQueries = {}, isLoading } = useQuery({
+  const { data: nicheQueries = {} as NicheQueriesMap, isLoading } = useQuery({
     queryKey: ["trend-settings", "niche_queries"],
     queryFn: async () => {
       const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
-      return (data?.value as Record<string, string[]>) || {};
+      return (data?.value as NicheQueriesMap) || {};
     },
   });
 
+  const getLangQueries = (key: string): LangQueries => {
+    const val = nicheQueries[key];
+    if (!val) return { kk: [], ru: [], en: [] };
+    // Backward compat: if old flat array format
+    if (Array.isArray(val)) return { kk: [], ru: val as any, en: [] };
+    return { kk: val.kk || [], ru: val.ru || [], en: val.en || [] };
+  };
+
   const saveMutation = useMutation({
-    mutationFn: async (updated: Record<string, string[]>) => {
+    mutationFn: async (updated: NicheQueriesMap) => {
       const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "niche_queries");
       if (error) throw error;
     },
@@ -1458,7 +1475,9 @@ function KeywordsSection() {
   const addQuery = () => {
     if (!newQuery.trim() || !selectedSubNiche) return;
     const updated = { ...nicheQueries };
-    updated[selectedSubNiche] = [...(updated[selectedSubNiche] || []), newQuery.trim()];
+    const current = getLangQueries(selectedSubNiche);
+    current[activeLang] = [...current[activeLang], newQuery.trim()];
+    updated[selectedSubNiche] = current;
     saveMutation.mutate(updated);
     setNewQuery("");
   };
@@ -1466,7 +1485,9 @@ function KeywordsSection() {
   const removeQuery = (index: number) => {
     if (!selectedSubNiche) return;
     const updated = { ...nicheQueries };
-    updated[selectedSubNiche] = updated[selectedSubNiche].filter((_, i) => i !== index);
+    const current = getLangQueries(selectedSubNiche);
+    current[activeLang] = current[activeLang].filter((_, i) => i !== index);
+    updated[selectedSubNiche] = current;
     saveMutation.mutate(updated);
   };
 
@@ -1475,6 +1496,7 @@ function KeywordsSection() {
     setAiLoading(true);
     setAiSuggestions([]);
     try {
+      const current = getLangQueries(selectedSubNiche);
       const session = (await supabase.auth.getSession()).data.session;
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-keywords`, {
         method: "POST",
@@ -1485,7 +1507,8 @@ function KeywordsSection() {
         },
         body: JSON.stringify({
           niche: selectedSubNiche,
-          existing_queries: nicheQueries[selectedSubNiche] || [],
+          lang: activeLang,
+          existing_queries: current[activeLang],
           ...(seedWord ? { seed_word: seedWord } : {}),
         }),
       });
@@ -1517,7 +1540,9 @@ function KeywordsSection() {
   const acceptSuggestion = (keyword: string) => {
     if (!selectedSubNiche) return;
     const updated = { ...nicheQueries };
-    updated[selectedSubNiche] = [...(updated[selectedSubNiche] || []), keyword];
+    const current = getLangQueries(selectedSubNiche);
+    current[activeLang] = [...current[activeLang], keyword];
+    updated[selectedSubNiche] = current;
     saveMutation.mutate(updated);
     setAiSuggestions((prev) => prev.filter((k) => k !== keyword));
   };
@@ -1525,7 +1550,9 @@ function KeywordsSection() {
   const acceptAllSuggestions = () => {
     if (!selectedSubNiche || aiSuggestions.length === 0) return;
     const updated = { ...nicheQueries };
-    updated[selectedSubNiche] = [...(updated[selectedSubNiche] || []), ...aiSuggestions];
+    const current = getLangQueries(selectedSubNiche);
+    current[activeLang] = [...current[activeLang], ...aiSuggestions];
+    updated[selectedSubNiche] = current;
     saveMutation.mutate(updated);
     setAiSuggestions([]);
     toast.success("Все запросы добавлены");
@@ -1537,7 +1564,7 @@ function KeywordsSection() {
       const res = await supabase.functions.invoke("generate-keywords", { body: { bulk: true } });
       if (res.error) throw new Error("Ошибка генерации");
       const stats = res.data?.stats || {};
-      const total = Object.values(stats).reduce((a: number, b: any) => a + (b as number), 0);
+      const total = Object.values(stats).reduce((a: number, b: any) => a + (typeof b === "number" ? b : 0), 0);
       toast.success(`Обновлено ${Object.keys(stats).length} категорий, всего ${total} запросов`);
       queryClient.invalidateQueries({ queryKey: ["trend-settings"] });
     } catch (e: any) {
@@ -1547,14 +1574,24 @@ function KeywordsSection() {
     }
   };
 
-  const activeQueries = selectedSubNiche ? nicheQueries[selectedSubNiche] || [] : [];
   const selectedSubNicheLabel = selectedSubNiche
     ? NICHE_GROUPS.flatMap(g => g.subNiches).find(s => s.key === selectedSubNiche)?.label || selectedSubNiche
     : "";
 
-  // Count total queries per group
+  const activeQueries = selectedSubNiche ? getLangQueries(selectedSubNiche)[activeLang] : [];
+
+  // Count total queries per group (all langs)
   const groupQueryCount = (group: typeof NICHE_GROUPS[0]) =>
-    group.subNiches.reduce((sum, sub) => sum + (nicheQueries[sub.key]?.length || 0), 0);
+    group.subNiches.reduce((sum, sub) => {
+      const q = getLangQueries(sub.key);
+      return sum + q.kk.length + q.ru.length + q.en.length;
+    }, 0);
+
+  // Count total for a sub-niche (all langs)
+  const subNicheCount = (key: string) => {
+    const q = getLangQueries(key);
+    return q.kk.length + q.ru.length + q.en.length;
+  };
 
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   return (
@@ -1562,7 +1599,7 @@ function KeywordsSection() {
       <div className="flex items-center justify-between">
         <Button onClick={bulkRegenerate} disabled={bulkLoading} variant="outline" className="gap-2">
           {bulkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {bulkLoading ? "Генерация..." : "🔄 Обновить все запросы (AI КЗ/РУ)"}
+          {bulkLoading ? "Генерация..." : "🔄 Обновить все запросы (AI)"}
         </Button>
       </div>
 
@@ -1587,7 +1624,8 @@ function KeywordsSection() {
               {isExpanded && (
                 <div className="px-3 pb-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {group.subNiches.map((sub) => {
-                    const count = nicheQueries[sub.key]?.length || 0;
+                    const count = subNicheCount(sub.key);
+                    const q = getLangQueries(sub.key);
                     const isActive = selectedSubNiche === sub.key;
                     return (
                       <button
@@ -1602,7 +1640,9 @@ function KeywordsSection() {
                         }`}
                       >
                         <span className="font-medium truncate">{sub.label}</span>
-                        <span className="ml-1 text-[10px]">{count}</span>
+                        <span className="ml-1 text-[10px] flex gap-0.5">
+                          <span title="KK">{q.kk.length}</span>/<span title="RU">{q.ru.length}</span>/<span title="EN">{q.en.length}</span>
+                        </span>
                       </button>
                     );
                   })}
@@ -1616,17 +1656,45 @@ function KeywordsSection() {
       {selectedSubNiche && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <CardTitle className="text-lg">Запросы: <span className="text-primary">{selectedSubNicheLabel}</span></CardTitle>
               <Button onClick={() => generateWithAI()} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
                 {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 AI запросы
               </Button>
             </div>
+            {/* Language tabs */}
+            <div className="flex gap-1 mt-2">
+              {LANG_TABS.map(({ key, label, color }) => {
+                const count = getLangQueries(selectedSubNiche)[key].length;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setActiveLang(key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                      activeLang === key
+                        ? "gradient-hero text-primary-foreground border-transparent"
+                        : "bg-card border-border/50 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {label} <span className="ml-1">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex gap-2">
-              <Input placeholder="Введите слово → AI найдёт запросы..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addQuery()} />
+              <Input
+                placeholder={
+                  activeLang === "kk" ? "Қазақша сөз енгізіңіз..."
+                    : activeLang === "en" ? "Enter English keyword..."
+                    : "Введите слово..."
+                }
+                value={newQuery}
+                onChange={(e) => setNewQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addQuery()}
+              />
               <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending} title="Добавить как есть"><Plus className="h-4 w-4" /></Button>
               <Button onClick={generateFromSeed} size="sm" variant="secondary" disabled={aiLoading || !newQuery.trim()} title="AI: найти запросы по слову" className="gap-1.5">
                 {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -1660,7 +1728,11 @@ function KeywordsSection() {
                 </Badge>
               ))}
               {activeQueries.length === 0 && (
-                <p className="text-xs text-muted-foreground">Запросов нет. Добавьте вручную или через AI.</p>
+                <p className="text-xs text-muted-foreground">
+                  {activeLang === "kk" ? "Қазақша запростар жоқ. Қолмен немесе AI арқылы қосыңыз." 
+                   : activeLang === "en" ? "No English queries. Add manually or via AI."
+                   : "Запросов нет. Добавьте вручную или через AI."}
+                </p>
               )}
             </div>
           </CardContent>
