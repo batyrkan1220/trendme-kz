@@ -2043,13 +2043,6 @@ function StatsSection() {
 }
 
 
-  const [selectedNiches, setSelectedNiches] = useState<Set<string>>(new Set());
-  const [bulkLimitValue, setBulkLimitValue] = useState("");
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-
-  // Fetch video counts by sub_niche (7d only)
-  const { data: subNicheCounts = {}, isLoading } = useQuery({
-    queryKey: ["admin-subniche-stats"],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
       const counts: Record<string, number> = {};
