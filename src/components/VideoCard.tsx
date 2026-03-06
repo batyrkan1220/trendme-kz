@@ -101,11 +101,8 @@ export function VideoCard({
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
-  const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
-  const [coverRefreshing, setCoverRefreshing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
-  const preloadingRef = useRef(false);
   const isMobile = useIsMobile();
 
   // Auto-fullscreen on mobile when video is ready
