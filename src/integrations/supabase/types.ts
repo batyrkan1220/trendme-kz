@@ -653,6 +653,7 @@ export type Database = {
           region: string
           shares: number | null
           source_query_id: string | null
+          sub_niche: string | null
           trend_score: number | null
           url: string
           velocity_comments: number | null
@@ -680,6 +681,7 @@ export type Database = {
           region?: string
           shares?: number | null
           source_query_id?: string | null
+          sub_niche?: string | null
           trend_score?: number | null
           url: string
           velocity_comments?: number | null
@@ -707,6 +709,7 @@ export type Database = {
           region?: string
           shares?: number | null
           source_query_id?: string | null
+          sub_niche?: string | null
           trend_score?: number | null
           url?: string
           velocity_comments?: number | null

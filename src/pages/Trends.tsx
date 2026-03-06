@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp, ChevronDown } from "lucide-react";
+import { TrendingUp, ChevronDown, ChevronRight } from "lucide-react";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { useState, useMemo, useCallback } from "react";
 import {
@@ -8,41 +8,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-
-const NICHES = [
-  { key: "all", label: "Все категории", emoji: "🔥" },
-  { key: "animals", label: "Животные", emoji: "🐶" },
-  { key: "art", label: "Искусство / Дизайн", emoji: "🎨" },
-  { key: "auto", label: "Авто", emoji: "🚗" },
-  { key: "beauty", label: "Beauty (Бьюти)", emoji: "💄" },
-  { key: "books", label: "Книги / Саморазвитие", emoji: "📚" },
-  { key: "business", label: "Бизнес и деньги", emoji: "💼" },
-  { key: "cinema", label: "Кино / Сериалы", emoji: "🎬" },
-  { key: "comedy", label: "Юмор / Комедия", emoji: "😂" },
-  { key: "dance", label: "Танцы", emoji: "💃" },
-  { key: "diy", label: "Дом / Ремонт / DIY", emoji: "🛠" },
-  { key: "education", label: "Образование", emoji: "🎓" },
-  { key: "entertainment", label: "Развлечения", emoji: "🎥" },
-  { key: "family", label: "Семья и дети", emoji: "👶" },
-  { key: "fashion", label: "Мода и стиль", emoji: "👗" },
-  { key: "fitness", label: "Фитнес и здоровье", emoji: "🏋️" },
-  { key: "food", label: "Еда / Рецепты", emoji: "🍔" },
-  { key: "gaming", label: "Игры / Gaming", emoji: "🎮" },
-  { key: "lifestyle", label: "Блоги / Лайфстайл", emoji: "📱" },
-  { key: "marketing", label: "Маркетинг / Реклама", emoji: "📈" },
-  { key: "medicine", label: "Медицина / Здоровье", emoji: "🩺" },
-  { key: "music", label: "Музыка", emoji: "🎶" },
-  { key: "news", label: "Новости / Общество", emoji: "🏛" },
-  { key: "podcast", label: "Интервью / Подкасты", emoji: "🎤" },
-  { key: "psychology", label: "Психология и отношения", emoji: "🧠" },
-  { key: "realestate", label: "Недвижимость", emoji: "🏠" },
-  { key: "religion", label: "Религия и мотивация", emoji: "🕌" },
-  { key: "shopping", label: "Покупки / Обзоры товаров", emoji: "🧳" },
-  { key: "sports", label: "Спорт", emoji: "⚽" },
-  { key: "tech", label: "Технологии / IT / AI", emoji: "💻" },
-  { key: "travel", label: "Путешествия", emoji: "✈️" },
-] as const;
+import { NICHE_GROUPS } from "@/config/niches";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
@@ -88,7 +59,8 @@ export default function Trends() {
   const [period, setPeriod] = useState<3 | 7 | 30>(7);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  const [niche, setNiche] = useState("all");
+  // Filter: "all" | "business" (main niche) | "business:crypto" (sub-niche)
+  const [nicheFilter, setNicheFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const { balance } = useTokens();
@@ -114,12 +86,21 @@ export default function Trends() {
 
   const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
 
-  // Server-side paginated fetch — only load what we need
+  // Parse filter: "all" | "business" (main niche) | "business:crypto" (sub-niche)
+  const parsedFilter = useMemo(() => {
+    if (nicheFilter === "all") return { type: "all" as const, niche: "", subNiche: "" };
+    const parts = nicheFilter.split(":");
+    if (parts.length === 2) return { type: "sub" as const, niche: parts[0], subNiche: parts[1] };
+    return { type: "niche" as const, niche: parts[0], subNiche: "" };
+  }, [nicheFilter]);
+
+  const activeGroup = useMemo(() => NICHE_GROUPS.find(g => g.key === parsedFilter.niche), [parsedFilter.niche]);
+
   // Fetch up to 500 videos once per period+niche combo, then paginate client-side
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
-    queryKey: ["trends", period, niche],
+    queryKey: ["trends", period, nicheFilter],
     queryFn: async () => {
-      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,categories";
+      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
 
       let q = supabase.from("videos").select(selectFields);
       if (period > 0) {
@@ -127,8 +108,10 @@ export default function Trends() {
         since.setDate(since.getDate() - period);
         q = q.gte("published_at", since.toISOString());
       }
-      if (niche !== "all") {
-        q = q.or(`niche.eq.${niche},categories.cs.{${niche}}`);
+      if (parsedFilter.type === "niche") {
+        q = q.eq("niche", parsedFilter.niche);
+      } else if (parsedFilter.type === "sub") {
+        q = q.eq("niche", parsedFilter.niche).eq("sub_niche", parsedFilter.subNiche);
       }
       const { data } = await q.order("trend_score", { ascending: false }).limit(500);
       return data || [];
@@ -208,23 +191,54 @@ export default function Trends() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                niche !== "all"
+                nicheFilter !== "all"
                   ? "bg-primary/10 text-primary border-primary/30"
                   : "bg-card text-muted-foreground border-border/50 hover:text-foreground"
               }`}>
-                <span>{NICHES.find(n => n.key === niche)?.emoji} {NICHES.find(n => n.key === niche)?.label || "Ниша"}</span>
+                <span>
+                  {activeGroup ? `${activeGroup.emoji} ${activeGroup.label}` : "🔥 Все ниши"}
+                  {parsedFilter.subNiche && activeGroup
+                    ? ` → ${activeGroup.subNiches.find(s => s.key === parsedFilter.subNiche)?.label || ""}`
+                    : ""}
+                </span>
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="max-h-80 overflow-y-auto w-56">
-              {NICHES.map((n) => (
-                <DropdownMenuItem
-                  key={n.key}
-                  onClick={() => { setNiche(n.key); setVisibleCount(PAGE_SIZE); }}
-                  className={`cursor-pointer ${niche === n.key ? "bg-primary/10 text-primary" : ""}`}
-                >
-                  <span className="mr-2">{n.emoji}</span> {n.label}
-                </DropdownMenuItem>
+            <DropdownMenuContent className="max-h-[420px] overflow-y-auto w-64">
+              <DropdownMenuItem
+                onClick={() => { setNicheFilter("all"); setVisibleCount(PAGE_SIZE); }}
+                className={`cursor-pointer font-semibold ${nicheFilter === "all" ? "bg-primary/10 text-primary" : ""}`}
+              >
+                🔥 Все ниши
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {NICHE_GROUPS.map((group) => (
+                <DropdownMenuSub key={group.key}>
+                  <DropdownMenuSubTrigger
+                    className={`cursor-pointer ${parsedFilter.niche === group.key ? "bg-primary/10 text-primary" : ""}`}
+                    onClick={() => { setNicheFilter(group.key); setVisibleCount(PAGE_SIZE); }}
+                  >
+                    <span className="mr-2">{group.emoji}</span> {group.label}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="max-h-80 overflow-y-auto w-56">
+                    <DropdownMenuItem
+                      onClick={() => { setNicheFilter(group.key); setVisibleCount(PAGE_SIZE); }}
+                      className={`cursor-pointer font-semibold ${nicheFilter === group.key ? "bg-primary/10 text-primary" : ""}`}
+                    >
+                      {group.emoji} Все {group.label}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {group.subNiches.map((sub) => (
+                      <DropdownMenuItem
+                        key={sub.key}
+                        onClick={() => { setNicheFilter(`${group.key}:${sub.key}`); setVisibleCount(PAGE_SIZE); }}
+                        className={`cursor-pointer ${parsedFilter.subNiche === sub.key ? "bg-primary/10 text-primary" : ""}`}
+                      >
+                        {sub.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
