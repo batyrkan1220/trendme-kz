@@ -918,6 +918,59 @@ function RoleAssigner({
 
 
 
+/* ==================== COVER REFRESH (oEmbed, free) ==================== */
+function CoverRefreshCard() {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ updated: number; failed: number; total: number } | null>(null);
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    setResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("socialkit", {
+        body: { action: "refresh_covers_oembed", limit: 100 },
+      });
+      if (error) {
+        toast.error("Ошибка: " + (error.message || "unknown"));
+      } else {
+        setResult(data);
+        toast.success(`Обложки обновлены: ${data?.updated || 0} из ${data?.total || 0}`);
+      }
+    } catch (e: any) {
+      toast.error("Ошибка: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Eye className="h-4 w-4" />
+          Обложкаларды жаңарту (тегін)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          TikTok oEmbed API арқылы обложкаларды жаңартады. EnsembleData кредиттері қажет емес.
+        </p>
+        <Button onClick={handleRefresh} disabled={loading} size="sm" variant="outline" className="gap-2">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          {loading ? "Жаңартылуда..." : "Обложкаларды жаңарту (100 видео)"}
+        </Button>
+        {result && (
+          <div className="text-xs text-muted-foreground">
+            ✅ Жаңартылды: <span className="font-semibold text-foreground">{result.updated}</span> | 
+            ❌ Қате: <span className="font-semibold">{result.failed}</span> | 
+            Барлығы: {result.total}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
 function TrendsManagementTab() {
   const [section, setSection] = useState<"refresh" | "keywords" | "stats" | "recat">("refresh");
