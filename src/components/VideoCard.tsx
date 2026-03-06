@@ -9,7 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 /** Global in-memory cache for play URLs to avoid redundant API calls */
 const playUrlCache = new Map<string, string>();
 
-
+const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return String(n);
