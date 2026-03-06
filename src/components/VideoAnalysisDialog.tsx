@@ -190,14 +190,29 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
               {isPlaying ? (
                 <>
-                  <iframe
-                    src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                    className="w-full h-full border-0"
-                    allow="autoplay; encrypted-media; fullscreen"
-                    allowFullScreen
-                  />
+                  {loadingPlay ? (
+                    <div className="w-full h-full flex items-center justify-center bg-black">
+                      <Loader2 className="h-8 w-8 text-white animate-spin" />
+                    </div>
+                  ) : playUrl ? (
+                    <video
+                      ref={videoRef}
+                      src={playUrl}
+                      className="w-full h-full object-contain bg-black"
+                      controls
+                      autoPlay
+                      playsInline
+                    />
+                  ) : (
+                    <iframe
+                      src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                      className="w-full h-full border-0"
+                      allow="autoplay; encrypted-media; fullscreen"
+                      allowFullScreen
+                    />
+                  )}
                   <button
-                    onClick={() => setIsPlaying(false)}
+                    onClick={() => { setIsPlaying(false); setPlayUrl(null); }}
                     className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
                     aria-label="Закрыть видео"
                   >
@@ -205,7 +220,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   </button>
                 </>
               ) : video.cover_url ? (
-                <div className="relative w-full h-full cursor-pointer group" onClick={() => setIsPlaying(true)}>
+                <div className="relative w-full h-full cursor-pointer group" onClick={handlePlay}>
                   <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
                     <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -214,7 +229,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   </div>
                 </div>
               ) : (
-                <div className="w-full h-full flex items-center justify-center cursor-pointer" onClick={() => setIsPlaying(true)}>
+                <div className="w-full h-full flex items-center justify-center cursor-pointer" onClick={handlePlay}>
                   <Play className="h-12 w-12 text-muted-foreground/30" />
                 </div>
               )}
