@@ -128,7 +128,7 @@ export const NICHE_GROUPS: NicheGroup[] = [
   },
   {
     key: "education",
-    label: "Білім / Образование",
+    label: "Образование",
     emoji: "📚",
     subNiches: [
       { key: "languages", label: "Тілдер / Языки" },
