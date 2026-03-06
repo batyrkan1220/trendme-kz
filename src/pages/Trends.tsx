@@ -135,7 +135,7 @@ export default function Trends() {
       return data || [];
     },
     staleTime: 60_000,
-    keepPreviousData: true,
+    placeholderData: (prev) => prev,
   });
 
   // Sort: Strong > Mid > Micro, then by trend_score within tier
