@@ -84,7 +84,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
       )}
     </>
   );
-}
+});
 
 function LockedCard({ video, freeLimit, onNavigate }: { video: any; freeLimit: number; onNavigate: () => void }) {
   return (
