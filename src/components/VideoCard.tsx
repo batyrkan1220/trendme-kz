@@ -136,8 +136,35 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     };
   }, [isMobile, playUrl, onPlay]);
 
-  // Preload disabled to save API credits — play URL fetched only on click
-  const handlePreload = useCallback(() => {}, []);
+  // Preload play URL on desktop hover (debounced 600ms to avoid wasted calls)
+  const preloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handlePreload = useCallback(() => {
+    if (isMobile) return; // no preload on mobile — save credits
+    if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
+    if (preloadTimer.current) return; // already scheduled
+
+    preloadTimer.current = setTimeout(async () => {
+      preloadTimer.current = null;
+      if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
+      try {
+        const { data } = await supabase.functions.invoke("socialkit", {
+          body: { action: "get_play_url", video_url: video.url },
+        });
+        if (data?.play_url) {
+          preloadedUrlRef.current = data.play_url;
+          playUrlCache.set(video.url, data.play_url);
+        }
+      } catch {}
+    }, 600);
+  }, [isMobile, video.url]);
+
+  const handlePreloadCancel = useCallback(() => {
+    if (preloadTimer.current) {
+      clearTimeout(preloadTimer.current);
+      preloadTimer.current = null;
+    }
+  }, []);
 
   // Cover refresh disabled on client — handled by background maintenance only
   const handleCoverError = useCallback(() => {
