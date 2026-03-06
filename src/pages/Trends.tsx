@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, Eye, Heart, MessageCircle, Star, Share2, Clock, Flame, Play, ExternalLink, Music, X, Rocket, ChevronDown, Zap, Trophy, Target } from "lucide-react";
-import { VideoCard } from "@/components/VideoCard";
+import { TrendingUp, ChevronDown, Zap, Trophy, Target } from "lucide-react";
+import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   DropdownMenu,
