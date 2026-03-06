@@ -48,7 +48,6 @@ import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const fmt = (n: number) => {
