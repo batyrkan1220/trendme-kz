@@ -68,7 +68,7 @@ serve(async (req) => {
       pg_salt: salt,
       pg_testing_mode: "1",
       pg_result_url: resultUrl,
-      pg_success_url: `${appUrl}/payment-success`,
+      pg_success_url: `${appUrl}/payment-success?plan=${encodeURIComponent(plan.name)}&amount=${plan.price_rub}`,
       pg_failure_url: `${appUrl}/payment-failure`,
       pg_language: "ru",
       pg_user_id: user.id,
