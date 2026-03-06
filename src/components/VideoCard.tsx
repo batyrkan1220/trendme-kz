@@ -4,6 +4,8 @@ import {
   Trophy, Zap, Target, TrendingUp, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileVideoPlayer } from "./MobileVideoPlayer";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
