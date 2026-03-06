@@ -278,7 +278,7 @@ export const NICHE_GROUPS: NicheGroup[] = [
       { key: "hotels", label: "Отели" },
       { key: "tourism", label: "Туризм" },
       { key: "travel_hacks", label: "Лайфхаки путешествий" },
-      { key: "kazakhstan_travel", label: "Қазақстан туризмі" },
+      { key: "kazakhstan_travel", label: "Казахстан туризм" },
     ],
   },
   {
