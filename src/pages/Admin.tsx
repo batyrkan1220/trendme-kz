@@ -1176,6 +1176,9 @@ function RefreshSection() {
           </p>
         </CardContent>
       </Card>
+
+      <CoverRefreshCard />
+
       {logs.length > 0 && (
         <Card>
           <CardHeader>
