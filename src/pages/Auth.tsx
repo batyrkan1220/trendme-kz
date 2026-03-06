@@ -85,6 +85,11 @@ export default function Auth() {
           }
         }
         else toast.success("Проверьте email для подтверждения регистрации");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 py-8 relative overflow-hidden">
