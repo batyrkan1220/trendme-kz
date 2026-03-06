@@ -21,6 +21,7 @@ export default function Auth() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState(0);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
