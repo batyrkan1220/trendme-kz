@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp, ChevronDown } from "lucide-react";
+import { TrendingUp, ChevronDown, ChevronRight } from "lucide-react";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { useState, useMemo, useCallback } from "react";
 import {
@@ -8,41 +8,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-
-const NICHES = [
-  { key: "all", label: "Все категории", emoji: "🔥" },
-  { key: "animals", label: "Животные", emoji: "🐶" },
-  { key: "art", label: "Искусство / Дизайн", emoji: "🎨" },
-  { key: "auto", label: "Авто", emoji: "🚗" },
-  { key: "beauty", label: "Beauty (Бьюти)", emoji: "💄" },
-  { key: "books", label: "Книги / Саморазвитие", emoji: "📚" },
-  { key: "business", label: "Бизнес и деньги", emoji: "💼" },
-  { key: "cinema", label: "Кино / Сериалы", emoji: "🎬" },
-  { key: "comedy", label: "Юмор / Комедия", emoji: "😂" },
-  { key: "dance", label: "Танцы", emoji: "💃" },
-  { key: "diy", label: "Дом / Ремонт / DIY", emoji: "🛠" },
-  { key: "education", label: "Образование", emoji: "🎓" },
-  { key: "entertainment", label: "Развлечения", emoji: "🎥" },
-  { key: "family", label: "Семья и дети", emoji: "👶" },
-  { key: "fashion", label: "Мода и стиль", emoji: "👗" },
-  { key: "fitness", label: "Фитнес и здоровье", emoji: "🏋️" },
-  { key: "food", label: "Еда / Рецепты", emoji: "🍔" },
-  { key: "gaming", label: "Игры / Gaming", emoji: "🎮" },
-  { key: "lifestyle", label: "Блоги / Лайфстайл", emoji: "📱" },
-  { key: "marketing", label: "Маркетинг / Реклама", emoji: "📈" },
-  { key: "medicine", label: "Медицина / Здоровье", emoji: "🩺" },
-  { key: "music", label: "Музыка", emoji: "🎶" },
-  { key: "news", label: "Новости / Общество", emoji: "🏛" },
-  { key: "podcast", label: "Интервью / Подкасты", emoji: "🎤" },
-  { key: "psychology", label: "Психология и отношения", emoji: "🧠" },
-  { key: "realestate", label: "Недвижимость", emoji: "🏠" },
-  { key: "religion", label: "Религия и мотивация", emoji: "🕌" },
-  { key: "shopping", label: "Покупки / Обзоры товаров", emoji: "🧳" },
-  { key: "sports", label: "Спорт", emoji: "⚽" },
-  { key: "tech", label: "Технологии / IT / AI", emoji: "💻" },
-  { key: "travel", label: "Путешествия", emoji: "✈️" },
-] as const;
+import { NICHE_GROUPS } from "@/config/niches";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
