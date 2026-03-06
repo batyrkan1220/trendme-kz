@@ -97,7 +97,10 @@ export default function Auth() {
             toast.error("Ошибка регистрации. Попробуйте позже.");
           }
         }
-        else toast.success("Проверьте email для подтверждения регистрации");
+        else {
+          trackRegistrationEvent();
+          toast.success("Проверьте email для подтверждения регистрации");
+        }
       }
     } finally {
       setLoading(false);
