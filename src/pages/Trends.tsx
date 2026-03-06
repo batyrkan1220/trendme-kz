@@ -52,12 +52,27 @@ const tierOrder: Record<TrendTier, number> = {
 
 const PAGE_SIZE = 30;
 
+/** Detect language from caption text */
+const detectLang = (caption: string | null): "kk" | "ru" | "en" | "unknown" => {
+  if (!caption) return "unknown";
+  const kazSpecific = /[әғқңөұүіһ]/i;
+  const cyrillic = /[а-яёА-ЯЁ]/;
+  const latin = /[a-zA-Z]/;
+  const cyrCount = (caption.match(/[а-яёА-ЯЁәғқңөұүіһ]/g) || []).length;
+  const latCount = (caption.match(/[a-zA-Z]/g) || []).length;
+  if (kazSpecific.test(caption) && cyrCount > latCount) return "kk";
+  if (cyrCount > latCount) return "ru";
+  if (latCount > cyrCount) return "en";
+  return "unknown";
+};
+
 export default function Trends() {
   const [period, setPeriod] = useState<3 | 7 | 30>(7);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [expandedNiche, setExpandedNiche] = useState<string | null>(null);
   const [nicheFilter, setNicheFilter] = useState("all");
+  const [langFilter, setLangFilter] = useState<"all" | "kk" | "ru" | "en">("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const { balance } = useTokens();
