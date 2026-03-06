@@ -45,14 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: meta ? { name: meta.name, phone: meta.phone } : undefined,
+      },
     });
-    if (!error && data.user && meta) {
-      await supabase.from("profiles").update({
-        name: meta.name || null,
-        phone: meta.phone || null,
-      }).eq("user_id", data.user.id);
-    }
     return { error: error as Error | null };
   };
 
