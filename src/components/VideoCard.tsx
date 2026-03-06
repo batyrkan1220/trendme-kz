@@ -134,20 +134,8 @@ export function VideoCard({
     };
   }, [isMobile, playUrl, onPlay]);
 
-  // Preload play_url on hover (desktop) or long-press area
-  const handlePreload = useCallback(async () => {
-    if (preloadedUrlRef.current || preloadingRef.current) return;
-    preloadingRef.current = true;
-    try {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "get_play_url", video_url: video.url },
-      });
-      if (!error && data?.play_url) {
-        preloadedUrlRef.current = data.play_url;
-      }
-    } catch { /* silent */ }
-    preloadingRef.current = false;
-  }, [video.url]);
+  // Preload disabled to save API credits — play URL fetched only on click
+  const handlePreload = useCallback(() => {}, []);
 
   const handleCoverError = useCallback(async () => {
     if (coverRefreshing || refreshedCover !== null) {
