@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { trackRegistrationEvent } from "@/components/TrackingPixels";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Loader2, User, Phone, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -96,7 +97,10 @@ export default function Auth() {
             toast.error("Ошибка регистрации. Попробуйте позже.");
           }
         }
-        else toast.success("Проверьте email для подтверждения регистрации");
+        else {
+          trackRegistrationEvent();
+          toast.success("Проверьте email для подтверждения регистрации");
+        }
       }
     } finally {
       setLoading(false);

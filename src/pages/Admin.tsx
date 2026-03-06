@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   RefreshCw, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
   Users, Activity, Video, Search, Heart, UserCircle, ScrollText,
-  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye,
+  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye, Link2,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -62,12 +62,14 @@ export default function Admin() {
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Пользователи</TabsTrigger>
             <TabsTrigger value="tariffs"><CreditCard className="h-4 w-4 mr-1" />Тарифы</TabsTrigger>
             <TabsTrigger value="trends"><RefreshCw className="h-4 w-4 mr-1" />Тренды</TabsTrigger>
+            <TabsTrigger value="integrations"><Link2 className="h-4 w-4 mr-1" />Интеграции</TabsTrigger>
           </TabsList>
 
           <TabsContent value="platform"><PlatformTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="tariffs"><TariffsTab /></TabsContent>
           <TabsContent value="trends"><TrendsManagementTab /></TabsContent>
+          <TabsContent value="integrations"><IntegrationsTab /></TabsContent>
         </Tabs>
       </div>
     </AppLayout>
@@ -2035,5 +2037,154 @@ function AssignSubDialog({ plans, onClose, onAssign, saving }: { plans: any[]; o
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ==================== INTEGRATIONS TAB ==================== */
+function IntegrationsTab() {
+  const [gaId, setGaId] = useState("");
+  const [fbPixelId, setFbPixelId] = useState("");
+  const [tiktokPixelId, setTiktokPixelId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { isLoading } = useQuery({
+    queryKey: ["admin-integrations"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trend_settings")
+        .select("key, value")
+        .in("key", ["ga_id", "fb_pixel_id", "tiktok_pixel_id"]);
+      data?.forEach((row) => {
+        const val = String(row.value ?? "").replace(/"/g, "");
+        if (row.key === "ga_id") setGaId(val);
+        if (row.key === "fb_pixel_id") setFbPixelId(val);
+        if (row.key === "tiktok_pixel_id") setTiktokPixelId(val);
+      });
+      return data;
+    },
+  });
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const entries = [
+        { key: "ga_id", value: gaId },
+        { key: "fb_pixel_id", value: fbPixelId },
+        { key: "tiktok_pixel_id", value: tiktokPixelId },
+      ];
+      for (const entry of entries) {
+        const { data: existing } = await supabase
+          .from("trend_settings")
+          .select("id")
+          .eq("key", entry.key)
+          .maybeSingle();
+        if (existing) {
+          await supabase.from("trend_settings").update({ value: entry.value as any }).eq("key", entry.key);
+        } else {
+          await supabase.from("trend_settings").insert({ key: entry.key, value: entry.value as any });
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: ["tracking-pixel-settings"] });
+      toast.success("Настройки интеграций сохранены");
+    } catch (e) {
+      toast.error("Ошибка при сохранении");
+    }
+    setSaving(false);
+  };
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+
+  const pixelConfigs = [
+    {
+      label: "Google Analytics",
+      description: "Отслеживание посещений, поведения пользователей и конверсий",
+      placeholder: "G-XXXXXXXXXX",
+      value: gaId,
+      onChange: setGaId,
+      icon: "📊",
+      eventInfo: "sign_up — при успешной регистрации",
+    },
+    {
+      label: "Facebook Pixel",
+      description: "Ретаргетинг и отслеживание конверсий для рекламы в Facebook/Instagram",
+      placeholder: "1234567890123456",
+      value: fbPixelId,
+      onChange: setFbPixelId,
+      icon: "📘",
+      eventInfo: "CompleteRegistration — при успешной регистрации",
+    },
+    {
+      label: "TikTok Pixel",
+      description: "Отслеживание конверсий для рекламы в TikTok",
+      placeholder: "CXXXXXXXXXXXXXXXXX",
+      value: tiktokPixelId,
+      onChange: setTiktokPixelId,
+      icon: "🎵",
+      eventInfo: "CompleteRegistration — при успешной регистрации",
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Пиксели и аналитика</h2>
+          <p className="text-sm text-muted-foreground">
+            Настройте пиксели для отслеживания конверсий с рекламных кампаний
+          </p>
+        </div>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+          Сохранить
+        </Button>
+      </div>
+
+      <div className="grid gap-4">
+        {pixelConfigs.map((cfg) => (
+          <Card key={cfg.label}>
+            <CardContent className="pt-5 pb-4 px-5">
+              <div className="flex items-start gap-4">
+                <span className="text-2xl">{cfg.icon}</span>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <h3 className="font-medium text-foreground">{cfg.label}</h3>
+                    <p className="text-sm text-muted-foreground">{cfg.description}</p>
+                  </div>
+                  <Input
+                    placeholder={cfg.placeholder}
+                    value={cfg.value}
+                    onChange={(e) => cfg.onChange(e.target.value)}
+                    className="max-w-md"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Badge variant={cfg.value ? "default" : "outline"} className="text-xs">
+                      {cfg.value ? "✅ Активен" : "⏸️ Не настроен"}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">Событие: {cfg.eventInfo}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardContent className="pt-5 pb-4 px-5">
+          <h3 className="font-medium text-foreground mb-2">📋 Отслеживаемые события</h3>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
+              <Badge variant="secondary">Регистрация</Badge>
+              <span>→ GA: <code className="text-xs bg-muted px-1 rounded">sign_up</code>, FB: <code className="text-xs bg-muted px-1 rounded">CompleteRegistration</code>, TikTok: <code className="text-xs bg-muted px-1 rounded">CompleteRegistration</code></span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
+              <Badge variant="secondary">Просмотр страницы</Badge>
+              <span>→ Все пиксели: автоматически при загрузке</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
