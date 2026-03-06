@@ -281,16 +281,6 @@ export const NICHE_GROUPS: NicheGroup[] = [
       { key: "kazakh_celebrities", label: "Казахские звёзды" },
     ],
   },
-  {
-    key: "other",
-    label: "Другое",
-    emoji: "🔮",
-    subNiches: [
-      { key: "esoteric", label: "Эзотерика и таро" },
-      { key: "astrology", label: "Астрология" },
-      { key: "life_hacks", label: "Лайфхаки" },
-    ],
-  },
 ];
 
 /** Flat map: sub_niche_key → parent niche key */
@@ -328,11 +318,11 @@ export const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   marketing: "business",
   medicine: "medicine",
   music: "media",
-  news: "other",
+  news: "entertainment",
   podcast: "media",
   psychology: "psychology",
   realestate: "realestate",
-  religion: "other",
+  religion: "psychology",
   shopping: "fashion",
   sports: "sports",
   tech: "tech",
