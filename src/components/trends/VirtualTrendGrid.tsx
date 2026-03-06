@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { VideoCard } from "@/components/VideoCard";
 import { Lock } from "lucide-react";
@@ -46,17 +46,33 @@ export function VirtualTrendGrid({
   hasMore,
   onLoadMore,
 }: VirtualTrendGridProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollElRef = useRef<HTMLElement | null>(null);
   const navigate = useNavigate();
   const columns = useColumns();
-
   const rowCount = Math.ceil(videos.length / columns);
 
+  // Find the closest scrollable parent (the <main> element)
+  useEffect(() => {
+    let el = containerRef.current?.parentElement;
+    while (el) {
+      const style = getComputedStyle(el);
+      if (style.overflowY === "auto" || style.overflowY === "scroll") {
+        scrollElRef.current = el;
+        return;
+      }
+      el = el.parentElement;
+    }
+    // fallback to document scrolling element
+    scrollElRef.current = document.documentElement;
+  }, []);
+
   const virtualizer = useVirtualizer({
-    count: rowCount + (hasMore ? 1 : 0), // +1 for loader row
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 420, // estimated row height in px
+    count: rowCount + (hasMore ? 1 : 0),
+    getScrollElement: () => scrollElRef.current,
+    estimateSize: () => 420,
     overscan: 3,
+    scrollMargin: containerRef.current?.offsetTop ?? 0,
     onChange: (instance) => {
       const items = instance.getVirtualItems();
       const lastItem = items[items.length - 1];
@@ -67,24 +83,19 @@ export function VirtualTrendGrid({
   });
 
   return (
-    <div
-      ref={parentRef}
-      className="w-full overflow-y-auto flex-1"
-      style={{ height: "calc(100dvh - 180px)" }}
-    >
+    <div ref={containerRef} className="w-full">
       <div
         className="relative w-full"
         style={{ height: `${virtualizer.getTotalSize()}px` }}
       >
         {virtualizer.getVirtualItems().map((virtualRow) => {
-          // Loader row
           if (virtualRow.index >= rowCount) {
             return (
               <div
                 key="loader"
                 className="absolute left-0 w-full flex justify-center py-8"
                 style={{
-                  top: `${virtualRow.start}px`,
+                  top: `${virtualRow.start - (containerRef.current?.offsetTop ?? 0)}px`,
                   height: `${virtualRow.size}px`,
                 }}
               >
@@ -101,7 +112,7 @@ export function VirtualTrendGrid({
               key={virtualRow.index}
               className="absolute left-0 w-full grid gap-3 md:gap-4"
               style={{
-                top: `${virtualRow.start}px`,
+                top: `${virtualRow.start - (containerRef.current?.offsetTop ?? 0)}px`,
                 gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
               }}
               ref={virtualizer.measureElement}
