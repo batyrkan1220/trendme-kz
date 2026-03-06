@@ -56,7 +56,7 @@ export default function Trends() {
   const [period, setPeriod] = useState<3 | 7 | 30>(7);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  // Filter: "all" | "business" (main niche) | "business:crypto" (sub-niche)
+  const [expandedNiche, setExpandedNiche] = useState<string | null>(null);
   const [nicheFilter, setNicheFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
