@@ -86,7 +86,81 @@ function pickRotatedKeywords(
   return result;
 }
 
-const VERSION = "refresh-trends-ensemble v3 maxAge=7 minViews=5000 cyrillicOnly noCountry";
+const VERSION = "refresh-trends-ensemble v4 hierarchical-niches sub_niche support";
+
+// Sub-niche to main niche mapping (must match src/config/niches.ts)
+const SUB_NICHE_TO_NICHE: Record<string, string> = {
+  // business
+  finance: "business", investing: "business", crypto: "business", business_ideas: "business",
+  startups: "business", marketing: "business", smm: "business", target_ads: "business",
+  sales: "business", online_business: "business", freelance: "business", career: "business",
+  // beauty
+  cosmetology: "beauty", skincare: "beauty", makeup: "beauty", haircare: "beauty",
+  hairstyles: "beauty", barbershop: "beauty", manicure: "beauty", pedicure: "beauty",
+  laser_epilation: "beauty", plastic_surgery: "beauty", beauty_hacks: "beauty",
+  // fashion
+  clothing: "fashion", women_clothing: "fashion", men_clothing: "fashion", kids_clothing: "fashion",
+  shoes: "fashion", bags: "fashion", accessories: "fashion", streetwear: "fashion",
+  luxury_fashion: "fashion", branded_clothing: "fashion", shopping: "fashion",
+  // food
+  recipes: "food", quick_recipes: "food", home_cooking: "food", national_cuisine: "food",
+  fastfood: "food", restaurants: "food", restaurant_reviews: "food", cafes: "food",
+  street_food: "food", food_delivery: "food", cooking_hacks: "food", desserts: "food", baking: "food",
+  // fitness
+  fitness_general: "fitness", home_workouts: "fitness", gym: "fitness", weight_loss: "fitness",
+  muscle_gain: "fitness", yoga: "fitness", pilates: "fitness", healthy_lifestyle: "fitness",
+  diet: "fitness", sports_nutrition: "fitness",
+  // auto
+  auto_reviews: "auto", chinese_auto: "auto", tuning: "auto", auto_hacks: "auto",
+  auto_repair: "auto", auto_news: "auto", car_dealership: "auto", electric_vehicles: "auto",
+  // home
+  renovation: "home", interior: "home", home_design: "home", furniture: "home",
+  cozy_home: "home", organization: "home", garden: "home",
+  // family
+  motherhood: "family", pregnancy: "family", newborns: "family", parenting: "family", family_life: "family",
+  // psychology
+  psychology_general: "psychology", relationships: "psychology", self_development: "psychology",
+  motivation: "psychology", mental_health: "psychology",
+  // entertainment
+  humor: "entertainment", sketches: "entertainment", memes: "entertainment",
+  challenges: "entertainment", reactions: "entertainment",
+  // media
+  music: "media", cinema: "media", series: "media", pop_culture: "media", dance: "media",
+  // animals
+  dogs: "animals", cats: "animals", pets: "animals", pet_care: "animals",
+  // travel
+  travel_general: "travel", hotels: "travel", tourism: "travel", travel_hacks: "travel",
+  // ai
+  neural_networks: "ai", ai_tools: "ai", ai_generation: "ai", ai_avatars: "ai", ai_video: "ai",
+  // hobby
+  crafts: "hobby", diy: "hobby", drawing: "hobby", photography: "hobby",
+  // other
+  esoteric: "other", tarot: "other", astrology: "other",
+};
+
+// Old category → new main niche mapping (for backward compatibility)
+const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
+  animals: "animals", art: "hobby", auto: "auto", beauty: "beauty", books: "psychology",
+  business: "business", cinema: "media", comedy: "entertainment", dance: "media",
+  diy: "home", education: "psychology", entertainment: "entertainment", family: "family",
+  fashion: "fashion", fitness: "fitness", food: "food", gaming: "entertainment",
+  lifestyle: "beauty", marketing: "business", medicine: "fitness", music: "media",
+  news: "other", podcast: "media", psychology: "psychology", realestate: "home",
+  religion: "other", shopping: "fashion", sports: "fitness", tech: "ai", travel: "travel",
+};
+
+function resolveNiche(nicheKey: string): { niche: string; sub_niche: string | null } {
+  // If it's a sub-niche key
+  if (SUB_NICHE_TO_NICHE[nicheKey]) {
+    return { niche: SUB_NICHE_TO_NICHE[nicheKey], sub_niche: nicheKey };
+  }
+  // If it's an old category key
+  if (OLD_CATEGORY_TO_NICHE[nicheKey]) {
+    return { niche: OLD_CATEGORY_TO_NICHE[nicheKey], sub_niche: null };
+  }
+  // If it's already a main niche key
+  return { niche: nicheKey, sub_niche: null };
+}
 
 Deno.serve(async (req: Request) => {
   console.log("VERSION", VERSION);
