@@ -121,4 +121,4 @@ function LockedCard({ video, freeLimit, onNavigate }: { video: any; freeLimit: n
       </div>
     </div>
   );
-}
+});
