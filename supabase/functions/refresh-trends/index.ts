@@ -91,84 +91,67 @@ const VERSION = "refresh-trends-ensemble v4 hierarchical-niches sub_niche suppor
 // Sub-niche to main niche mapping (must match src/config/niches.ts)
 const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // business
-  finance: "business", investing: "business", crypto: "business", business_ideas: "business",
-  startups: "business", marketing: "business", smm: "business", target_ads: "business",
-  sales: "business", online_business: "business", freelance: "business", career: "business",
-  ecommerce: "business", dropshipping: "business", marketplace: "business",
+  finance: "business", crypto: "business", business_ideas: "business",
+  marketing: "business", freelance: "business", ecommerce: "business",
   // beauty
-  cosmetology: "beauty", skincare: "beauty", makeup: "beauty", haircare: "beauty",
-  hairstyles: "beauty", barbershop: "beauty", manicure: "beauty", pedicure: "beauty",
-  laser_epilation: "beauty", plastic_surgery: "beauty", beauty_hacks: "beauty", perfume: "beauty",
+  skincare: "beauty", makeup: "beauty", haircare: "beauty",
+  manicure: "beauty", cosmetology: "beauty", perfume: "beauty",
   // fashion
-  clothing: "fashion", women_clothing: "fashion", men_clothing: "fashion", kids_clothing: "fashion",
-  shoes: "fashion", bags: "fashion", accessories: "fashion", streetwear: "fashion",
-  luxury_fashion: "fashion", branded_clothing: "fashion", shopping: "fashion",
-  jewelry: "fashion", watches: "fashion",
+  clothing: "fashion", shoes: "fashion", accessories: "fashion",
+  luxury_fashion: "fashion", jewelry: "fashion", shopping: "fashion",
   // food
-  recipes: "food", quick_recipes: "food", home_cooking: "food", national_cuisine: "food",
-  fastfood: "food", restaurants: "food", restaurant_reviews: "food", cafes: "food",
-  street_food: "food", food_delivery: "food", cooking_hacks: "food", desserts: "food", baking: "food",
-  coffee_tea: "food",
+  recipes: "food", home_cooking: "food", restaurants: "food",
+  street_food: "food", desserts: "food", coffee_tea: "food",
   // fitness
-  fitness_general: "fitness", home_workouts: "fitness", gym: "fitness", weight_loss: "fitness",
-  muscle_gain: "fitness", yoga: "fitness", pilates: "fitness", healthy_lifestyle: "fitness",
-  diet: "fitness", sports_nutrition: "fitness", stretching: "fitness", running: "fitness",
+  home_workouts: "fitness", gym: "fitness", weight_loss: "fitness",
+  yoga: "fitness", healthy_lifestyle: "fitness", sports_nutrition: "fitness",
   // sports
-  football: "sports", basketball: "sports", mma_boxing: "sports", tennis: "sports",
-  hockey: "sports", sports_news: "sports", extreme_sports: "sports",
+  football: "sports", mma_boxing: "sports", basketball: "sports",
+  sports_news: "sports", extreme_sports: "sports",
   // education
-  languages: "education", english: "education", school_ent: "education", university: "education",
-  online_courses: "education", math_science: "education", study_tips: "education", books: "education",
+  languages: "education", english: "education", school_ent: "education",
+  online_courses: "education", books: "education",
   // gaming
-  mobile_games: "gaming", pc_games: "gaming", console_games: "gaming", game_reviews: "gaming",
-  streaming: "gaming", esports: "gaming", roblox_minecraft: "gaming",
+  mobile_games: "gaming", pc_games: "gaming", game_reviews: "gaming",
+  streaming: "gaming", esports: "gaming",
   // tech
-  programming: "tech", gadgets: "tech", smartphones: "tech", tech_reviews: "tech",
-  web_dev: "tech", apps: "tech", cyber_security: "tech",
+  programming: "tech", gadgets: "tech", tech_reviews: "tech", apps: "tech",
   // auto
-  auto_reviews: "auto", chinese_auto: "auto", tuning: "auto", auto_hacks: "auto",
-  auto_repair: "auto", auto_news: "auto", car_dealership: "auto", electric_vehicles: "auto",
-  moto: "auto",
+  auto_reviews: "auto", chinese_auto: "auto", tuning: "auto",
+  auto_repair: "auto", electric_vehicles: "auto", moto: "auto",
   // home
-  renovation: "home", interior: "home", home_design: "home", furniture: "home",
-  cozy_home: "home", organization: "home", garden: "home", cleaning: "home", real_estate: "home",
+  renovation: "home", interior: "home", furniture: "home",
+  organization: "home", garden: "home",
   // family
-  motherhood: "family", pregnancy: "family", newborns: "family", parenting: "family", family_life: "family",
-  kids_education: "family", wedding: "family",
+  motherhood: "family", pregnancy: "family", parenting: "family",
+  family_life: "family", wedding: "family",
   // psychology
-  psychology_general: "psychology", relationships: "psychology", self_development: "psychology",
-  motivation: "psychology", mental_health: "psychology", productivity: "psychology", habits: "psychology",
+  relationships: "psychology", self_development: "psychology", motivation: "psychology",
+  mental_health: "psychology", productivity: "psychology",
   // entertainment
-  humor: "entertainment", sketches: "entertainment", memes: "entertainment",
-  challenges: "entertainment", reactions: "entertainment", pranks: "entertainment", asmr: "entertainment",
+  humor: "entertainment", memes: "entertainment", challenges: "entertainment", asmr: "entertainment",
   // media
-  music: "media", cinema: "media", series: "media", pop_culture: "media", dance: "media",
-  anime: "media", kpop: "media",
+  music: "media", cinema: "media", dance: "media", anime: "media",
   // animals
-  dogs: "animals", cats: "animals", pets: "animals", pet_care: "animals", exotic_pets: "animals",
+  pets: "animals", pet_care: "animals",
   // travel
-  travel_general: "travel", hotels: "travel", tourism: "travel", travel_hacks: "travel",
-  kazakhstan_travel: "travel",
+  travel_general: "travel", hotels: "travel", kazakhstan_travel: "travel",
   // ai
-  neural_networks: "ai", ai_tools: "ai", ai_generation: "ai", ai_avatars: "ai", ai_video: "ai",
-  chatgpt: "ai",
+  neural_networks: "ai", ai_tools: "ai", ai_generation: "ai", chatgpt: "ai",
   // hobby
-  crafts: "hobby", diy: "hobby", drawing: "hobby", photography: "hobby",
-  videography: "hobby", gardening_hobby: "hobby",
+  crafts: "hobby", drawing: "hobby", photography: "hobby",
   // medicine
-  doctors: "medicine", symptoms: "medicine", dentistry: "medicine", pediatrics: "medicine",
-  sleep_health: "medicine", folk_medicine: "medicine", pharmacy: "medicine", nutrition_health: "medicine",
+  doctors: "medicine", dentistry: "medicine", pharmacy: "medicine", nutrition_health: "medicine",
   // realestate
-  apartments: "realestate", mortgage: "realestate", new_buildings: "realestate", house_tours: "realestate",
-  rent: "realestate", construction: "realestate", real_estate_invest: "realestate",
+  apartments: "realestate", mortgage: "realestate", new_buildings: "realestate", construction: "realestate",
   // blogging
-  content_creation: "blogging", video_editing: "blogging", reels_shorts: "blogging", promotion: "blogging",
-  monetization: "blogging", personal_brand: "blogging", photo_content: "blogging",
+  content_creation: "blogging", video_editing: "blogging", promotion: "blogging",
+  monetization: "blogging", personal_brand: "blogging",
   // kazakh_culture
   kazakh_cuisine: "kazakh_culture", kazakh_history: "kazakh_culture", kazakh_traditions: "kazakh_culture",
   kazakh_language: "kazakh_culture", kazakh_music: "kazakh_culture", kazakh_celebrities: "kazakh_culture",
   // other
-  esoteric: "other", tarot: "other", astrology: "other", life_hacks: "other",
+  esoteric: "other", astrology: "other", life_hacks: "other",
 };
 
 // Old category → new main niche mapping (for backward compatibility)
