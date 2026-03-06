@@ -191,23 +191,54 @@ export default function Trends() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                niche !== "all"
+                nicheFilter !== "all"
                   ? "bg-primary/10 text-primary border-primary/30"
                   : "bg-card text-muted-foreground border-border/50 hover:text-foreground"
               }`}>
-                <span>{NICHES.find(n => n.key === niche)?.emoji} {NICHES.find(n => n.key === niche)?.label || "Ниша"}</span>
+                <span>
+                  {activeGroup ? `${activeGroup.emoji} ${activeGroup.label}` : "🔥 Все ниши"}
+                  {parsedFilter.subNiche && activeGroup
+                    ? ` → ${activeGroup.subNiches.find(s => s.key === parsedFilter.subNiche)?.label || ""}`
+                    : ""}
+                </span>
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="max-h-80 overflow-y-auto w-56">
-              {NICHES.map((n) => (
-                <DropdownMenuItem
-                  key={n.key}
-                  onClick={() => { setNiche(n.key); setVisibleCount(PAGE_SIZE); }}
-                  className={`cursor-pointer ${niche === n.key ? "bg-primary/10 text-primary" : ""}`}
-                >
-                  <span className="mr-2">{n.emoji}</span> {n.label}
-                </DropdownMenuItem>
+            <DropdownMenuContent className="max-h-[420px] overflow-y-auto w-64">
+              <DropdownMenuItem
+                onClick={() => { setNicheFilter("all"); setVisibleCount(PAGE_SIZE); }}
+                className={`cursor-pointer font-semibold ${nicheFilter === "all" ? "bg-primary/10 text-primary" : ""}`}
+              >
+                🔥 Все ниши
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {NICHE_GROUPS.map((group) => (
+                <DropdownMenuSub key={group.key}>
+                  <DropdownMenuSubTrigger
+                    className={`cursor-pointer ${parsedFilter.niche === group.key ? "bg-primary/10 text-primary" : ""}`}
+                    onClick={() => { setNicheFilter(group.key); setVisibleCount(PAGE_SIZE); }}
+                  >
+                    <span className="mr-2">{group.emoji}</span> {group.label}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="max-h-80 overflow-y-auto w-56">
+                    <DropdownMenuItem
+                      onClick={() => { setNicheFilter(group.key); setVisibleCount(PAGE_SIZE); }}
+                      className={`cursor-pointer font-semibold ${nicheFilter === group.key ? "bg-primary/10 text-primary" : ""}`}
+                    >
+                      {group.emoji} Все {group.label}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {group.subNiches.map((sub) => (
+                      <DropdownMenuItem
+                        key={sub.key}
+                        onClick={() => { setNicheFilter(`${group.key}:${sub.key}`); setVisibleCount(PAGE_SIZE); }}
+                        className={`cursor-pointer ${parsedFilter.subNiche === sub.key ? "bg-primary/10 text-primary" : ""}`}
+                      >
+                        {sub.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
