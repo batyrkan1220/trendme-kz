@@ -76,6 +76,8 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ensembleToken = Deno.env.get("ENSEMBLE_DATA_TOKEN")!;
 
+    const authHeader = req.headers.get("authorization") || "";
+
     // Handle cron-safe actions before auth check
     // ========== PERSIST COVERS TO STORAGE (permanent URLs) ==========
     if (action === "persist_covers") {
