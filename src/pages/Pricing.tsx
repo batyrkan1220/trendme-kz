@@ -66,7 +66,7 @@ export default function Pricing() {
     const duration = plan.duration_days === 90 ? "3 айлық" : "1 айлық";
     const message = `Мен trendme.kz платформасының ${duration} подпискасын сатып алғым келеді.`;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
+    window.location.href = url;
   };
 
   // Monthly price for 3-month plan (for display)
