@@ -127,14 +127,28 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Unauthorized" }, 401);
     }
 
+    if (!ensembleToken) {
+      return json({ error: "ENSEMBLE_DATA_TOKEN not configured" }, 500);
+    }
+
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+    const userId = claimsData.claims.sub as string;
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // API usage logging
-    const logApiUsage = async (action: string, credits: number, metadata: Record<string, any> = {}) => {
+    const logApiUsage = async (act: string, credits: number, metadata: Record<string, any> = {}) => {
       try {
         await adminClient.from("api_usage_log").insert({
           function_name: "socialkit",
-          action,
+          action: act,
           credits_used: credits,
           metadata,
         });
@@ -142,15 +156,6 @@ Deno.serve(async (req: Request) => {
         console.error("Failed to log API usage:", e);
       }
     };
-
-    const body = await req.json();
-    const { action } = body;
-
-    const json = (data: unknown, status = 200) =>
-      new Response(JSON.stringify(data), {
-        status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
 
     /** Call EnsembleData API */
     const callEnsemble = async (path: string, params: Record<string, string>) => {
