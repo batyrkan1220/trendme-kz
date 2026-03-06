@@ -2043,9 +2043,7 @@ function StatsSection() {
 }
 
 
-    queryFn: async () => {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      const counts: Record<string, number> = {};
+
       let from = 0;
       const PAGE = 1000;
       while (true) {
