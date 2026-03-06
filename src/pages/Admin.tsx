@@ -927,12 +927,21 @@ function CoverRefreshCard() {
     setLoading(true);
     setResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "refresh_covers_oembed", mass: true, limit: 50 },
+      // Fire-and-forget: use raw fetch so navigation doesn't abort the request
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/socialkit`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ action: "refresh_covers_oembed", mass: true, limit: 50 }),
+        keepalive: true, // ensures request completes even if page navigates away
       });
-      if (error) {
-        toast.error("Ошибка: " + (error.message || "unknown"));
+      if (!res.ok) {
+        toast.error("Ошибка: " + res.statusText);
       } else {
+        const data = await res.json();
         setResult(data);
         toast.success(`Массовый жаңарту іске қосылды! Бірінші пакет: ${data?.updated || 0} жаңартылды. Қалғаны фонда жалғасады.`);
       }
