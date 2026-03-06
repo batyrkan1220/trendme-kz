@@ -961,25 +961,28 @@ Deno.serve(async (req: Request) => {
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
         video_url = await resolveShortUrl(video_url);
 
-        const data = await callEnsemble("/tt/post/info", { url: video_url });
-        await logApiUsage("get_play_url", 1, { video_url });
+        let playUrl: string | null = null;
+        try {
+          const data = await callEnsemble("/tt/post/info", { url: video_url });
+          await logApiUsage("get_play_url", 1, { video_url });
 
-        const rawData = data?.data || data;
-        const innerData = rawData?.["0"] || rawData;
-        const videoData = unwrapVideo(innerData);
+          const rawData = data?.data || data;
+          const innerData = rawData?.aweme_detail || rawData?.aweme_details?.[0] || rawData?.["0"] || rawData;
+          const videoData = unwrapVideo(innerData);
 
-        if (!videoData) return json({ error: "Video not found" }, 404);
+          if (videoData) {
+            const videoInfo = videoData.video || {};
+            const playUrls = videoInfo.play_addr?.url_list || [];
+            const downloadUrls = videoInfo.download_addr?.url_list || [];
+            const h264Urls = videoInfo.play_addr_h264?.url_list || [];
+            playUrl = playUrls[0] || downloadUrls[0] || h264Urls[0] || null;
 
-        const videoInfo = videoData.video || {};
-        // Try multiple URL sources: play_addr (no watermark), download_addr, play_addr_h264
-        const playUrls = videoInfo.play_addr?.url_list || [];
-        const downloadUrls = videoInfo.download_addr?.url_list || [];
-        const h264Urls = videoInfo.play_addr_h264?.url_list || [];
-        const playUrl = playUrls[0] || downloadUrls[0] || h264Urls[0] || null;
-
-        if (!playUrl) {
-          console.log("No play URL found. Video info keys:", JSON.stringify(Object.keys(videoInfo)));
-          return json({ error: "Play URL not available" }, 404);
+            if (!playUrl) {
+              console.log("No play URL found. Video info keys:", JSON.stringify(Object.keys(videoInfo)));
+            }
+          }
+        } catch (e) {
+          console.error("get_play_url error:", (e as Error).message);
         }
 
         return json({ play_url: playUrl });
