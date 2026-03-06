@@ -115,11 +115,11 @@ export default function Trends() {
   const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
 
   // Server-side paginated fetch — only load what we need
+  // Fetch up to 500 videos once per period+niche combo, then paginate client-side
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
-    queryKey: ["trends", period, niche, visibleCount],
+    queryKey: ["trends", period, niche],
     queryFn: async () => {
       const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,categories";
-      const fetchLimit = Math.min(visibleCount + PAGE_SIZE, 1000);
 
       let q = supabase.from("videos").select(selectFields);
       if (period > 0) {
@@ -130,10 +130,10 @@ export default function Trends() {
       if (niche !== "all") {
         q = q.or(`niche.eq.${niche},categories.cs.{${niche}}`);
       }
-      const { data } = await q.order("trend_score", { ascending: false }).limit(fetchLimit);
+      const { data } = await q.order("trend_score", { ascending: false }).limit(500);
       return data || [];
     },
-    staleTime: 60_000,
+    staleTime: 120_000,
     placeholderData: (prev) => prev,
   });
 
