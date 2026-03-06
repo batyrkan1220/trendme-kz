@@ -132,6 +132,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <TrackingPixels />
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>
