@@ -150,9 +150,17 @@ export function VideoCard({
     }
     onPlay(video.id);
 
+    // Check global cache first
+    const cached = playUrlCache.get(video.url);
+    if (cached) {
+      setPlayUrl(cached);
+      return;
+    }
+
     // Use preloaded URL if available
     if (preloadedUrlRef.current) {
       setPlayUrl(preloadedUrlRef.current);
+      playUrlCache.set(video.url, preloadedUrlRef.current);
       return;
     }
 
@@ -166,6 +174,7 @@ export function VideoCard({
         setPlayUrl(null);
       } else {
         setPlayUrl(data.play_url);
+        playUrlCache.set(video.url, data.play_url);
       }
     } catch (e) {
       console.error("Play URL fetch error:", e);
