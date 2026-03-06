@@ -189,21 +189,26 @@ export default function Trends() {
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-xl md:text-2xl font-bold text-foreground mr-1">Тренды 🔥</h1>
 
-          <div className="flex bg-card rounded-lg p-0.5 border border-border/50">
-            {([3, 7, 30] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                  period === p
-                    ? "gradient-hero text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {`${p}д`}
+          {/* Period filter dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-card text-muted-foreground border-border/50 hover:text-foreground`}>
+                <span>📅 {period}д</span>
+                <ChevronDown className="h-3.5 w-3.5" />
               </button>
-            ))}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {([3, 7, 30] as const).map((p) => (
+                <DropdownMenuItem
+                  key={p}
+                  onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
+                  className={`cursor-pointer ${period === p ? "bg-primary/10 text-primary font-semibold" : ""}`}
+                >
+                  {p === 3 ? "📅 3 күн" : p === 7 ? "📅 7 күн" : "📅 30 күн"}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
