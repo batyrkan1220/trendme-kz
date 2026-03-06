@@ -918,7 +918,7 @@ function RoleAssigner({
 
 
 
-/* ==================== COVER REFRESH (oEmbed, free) ==================== */
+/* ==================== COVER PERSISTENCE (Storage) ==================== */
 function CoverRefreshCard() {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -933,9 +933,19 @@ function CoverRefreshCard() {
     refetchInterval: 5000,
   });
 
+  const { data: storageStats } = useQuery({
+    queryKey: ["cover-storage-stats"],
+    queryFn: async () => {
+      const { count: total } = await supabase.from("videos").select("id", { count: "exact", head: true });
+      const { count: persisted } = await supabase.from("videos").select("id", { count: "exact", head: true }).like("cover_url", "%/storage/v1/%");
+      return { total: total || 0, persisted: persisted || 0 };
+    },
+    refetchInterval: 10000,
+  });
+
   const isRunning = coverLogs.some((l: any) => l.status === "running");
 
-  const handleRefresh = async () => {
+  const handlePersist = async () => {
     if (isRunning) {
       toast.error("Жаңарту қазір жүріп жатыр, күтіңіз");
       return;
@@ -949,14 +959,17 @@ function CoverRefreshCard() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ action: "refresh_covers_oembed", mass: true, limit: 50, triggered_by: user?.id || null }),
+        body: JSON.stringify({ action: "persist_covers", mass: true, limit: 30, triggered_by: user?.id || null }),
         keepalive: true,
       });
       if (!res.ok) {
         toast.error("Қате: " + res.statusText);
       } else {
-        toast.success("Обложкаларды жаңарту іске қосылды! Фонда жалғасады.");
-        setTimeout(() => queryClient.invalidateQueries({ queryKey: ["cover-refresh-logs"] }), 2000);
+        toast.success("Обложкаларды storage-ге көшіру іске қосылды! Фонда жалғасады.");
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["cover-refresh-logs"] });
+          queryClient.invalidateQueries({ queryKey: ["cover-storage-stats"] });
+        }, 3000);
       }
     } catch (e: any) {
       toast.error("Қате: " + e.message);
@@ -965,21 +978,37 @@ function CoverRefreshCard() {
     }
   };
 
+  const pctPersisted = storageStats && storageStats.total > 0
+    ? Math.round((storageStats.persisted / storageStats.total) * 100)
+    : 0;
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <Eye className="h-4 w-4" />
-          Обложкаларды жаңарту (тегін)
+          Обложкаларды storage-ге көшіру
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-xs text-muted-foreground">
-          TikTok oEmbed API арқылы обложкаларды жаңартады. EnsembleData кредиттері қажет емес.
+          Обложкаларды TikTok CDN-нен Lovable Cloud storage-ге көшіреді. Тұрақты URL, мерзімі өтпейді. Тегін.
         </p>
-        <Button onClick={handleRefresh} disabled={loading || isRunning} size="sm" variant="outline" className="gap-2">
+
+        {/* Storage stats */}
+        {storageStats && (
+          <div className="space-y-1.5 p-2 rounded-lg bg-muted/30">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Storage-де: <span className="font-semibold text-foreground">{storageStats.persisted}</span> / {storageStats.total}</span>
+              <span className="font-medium">{pctPersisted}%</span>
+            </div>
+            <Progress value={pctPersisted} className="h-1.5" />
+          </div>
+        )}
+
+        <Button onClick={handlePersist} disabled={loading || isRunning} size="sm" variant="outline" className="gap-2">
           {loading || isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {isRunning ? "⏳ Жаңарту жүріп жатыр..." : loading ? "Жіберілуде..." : "🚀 Барлық обложкаларды жаңарту"}
+          {isRunning ? "⏳ Көшіру жүріп жатыр..." : loading ? "Жіберілуде..." : "🚀 Барлық обложкаларды көшіру"}
         </Button>
 
         {/* Running progress */}
@@ -995,7 +1024,7 @@ function CoverRefreshCard() {
               </div>
               <Progress value={pct} className="h-2" />
               <div className="text-xs text-muted-foreground">
-                ✅ Жаңартылды: <span className="font-semibold text-foreground">{running.total_updated}</span> | ❌ Қате: {running.total_failed}
+                ✅ Көшірілді: <span className="font-semibold text-foreground">{running.total_updated}</span> | ❌ Қате: {running.total_failed}
               </div>
             </div>
           );
@@ -1024,7 +1053,7 @@ function CoverRefreshCard() {
                     {log.status === "done" ? "✅" : log.status === "running" ? "⏳" : "❌"}
                   </Badge>
                   <span className="text-muted-foreground">{startedAt.toLocaleDateString("ru")} {startedAt.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" })}</span>
-                  <span className="text-foreground font-medium">+{log.total_updated} жаңартылды</span>
+                  <span className="text-foreground font-medium">+{log.total_updated} көшірілді</span>
                   {log.total_failed > 0 && <span className="text-destructive">{log.total_failed} қате</span>}
                   <span className="text-muted-foreground ml-auto">{durationStr}</span>
                 </div>
