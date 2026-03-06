@@ -335,6 +335,7 @@ Deno.serve(async (req: Request) => {
   let batchIndex = 0;
   let logId: string | null = null;
   let targetNiches: string[] | null = null;
+  let targetLang: string | null = null; // kk, ru, en or null (all)
 
   try {
     const body = await req.json();
@@ -347,6 +348,9 @@ Deno.serve(async (req: Request) => {
     if (body?.logId) logId = body.logId;
     if (Array.isArray(body?.target_niches) && body.target_niches.length > 0) {
       targetNiches = body.target_niches;
+    }
+    if (body?.lang && ["kk", "ru", "en"].includes(body.lang)) {
+      targetLang = body.lang;
     }
   } catch {
     // no body = cron call
