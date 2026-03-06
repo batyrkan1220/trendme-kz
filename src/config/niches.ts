@@ -211,8 +211,8 @@ export const NICHE_GROUPS: NicheGroup[] = [
       { key: "newborns", label: "Новорожденные" },
       { key: "parenting", label: "Воспитание детей" },
       { key: "family_life", label: "Семейная жизнь" },
-      { key: "kids_education", label: "Балалар дамуы" },
-      { key: "wedding", label: "Тойлар / Свадьба" },
+      { key: "kids_education", label: "Развитие детей" },
+      { key: "wedding", label: "Свадьба" },
     ],
   },
   {
