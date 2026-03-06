@@ -10,6 +10,7 @@ interface PixelSettings {
 }
 
 export function TrackingPixels() {
+  const location = useLocation();
   const { data: settings } = useQuery<PixelSettings>({
     queryKey: ["tracking-pixel-settings"],
     queryFn: async () => {
