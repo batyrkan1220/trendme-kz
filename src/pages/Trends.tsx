@@ -108,53 +108,26 @@ export default function Trends() {
 
   const activeGroup = useMemo(() => NICHE_GROUPS.find(g => g.key === parsedFilter.niche), [parsedFilter.niche]);
 
-  // Fetch all videos for period+niche combo, then paginate client-side
+  // Fetch all videos (paginate through 1000-row Supabase limit)
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
     queryKey: ["trends", period, nicheFilter],
     queryFn: async () => {
       const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
-
-      let q = supabase.from("videos").select(selectFields);
-      if (period > 0) {
-        const since = new Date();
-        since.setDate(since.getDate() - period);
-        q = q.gte("published_at", since.toISOString());
-      }
-      if (parsedFilter.type === "niche") {
-        q = q.eq("niche", parsedFilter.niche);
-      } else if (parsedFilter.type === "sub") {
-        q = q.eq("niche", parsedFilter.niche).eq("sub_niche", parsedFilter.subNiche);
-      }
-      
-      // Fetch all videos without limit (paginate through 1000-row pages)
       const allRows: any[] = [];
       let from = 0;
       const pageSize = 1000;
+
       while (true) {
-        const { data, error } = await supabase
-          .from("videos")
-          .select(selectFields)
-          .gte("published_at", period > 0 ? new Date(Date.now() - period * 86400000).toISOString() : "1970-01-01")
-          .order("trend_score", { ascending: false })
-          .range(from, from + pageSize - 1)
-          .then(res => {
-            // Apply niche filters
-            return res;
-          });
-        
-        // Re-do with filters properly
-        let page = supabase.from("videos").select(selectFields);
+        let q = supabase.from("videos").select(selectFields);
         if (period > 0) {
-          const since = new Date();
-          since.setDate(since.getDate() - period);
-          page = page.gte("published_at", since.toISOString());
+          q = q.gte("published_at", new Date(Date.now() - period * 86400000).toISOString());
         }
         if (parsedFilter.type === "niche") {
-          page = page.eq("niche", parsedFilter.niche);
+          q = q.eq("niche", parsedFilter.niche);
         } else if (parsedFilter.type === "sub") {
-          page = page.eq("niche", parsedFilter.niche).eq("sub_niche", parsedFilter.subNiche);
+          q = q.eq("niche", parsedFilter.niche).eq("sub_niche", parsedFilter.subNiche);
         }
-        const { data: rows } = await page.order("trend_score", { ascending: false }).range(from, from + pageSize - 1);
+        const { data: rows } = await q.order("trend_score", { ascending: false }).range(from, from + pageSize - 1);
         if (!rows || rows.length === 0) break;
         allRows.push(...rows);
         if (rows.length < pageSize) break;
