@@ -63,8 +63,8 @@ export default function Pricing() {
     if (!plan) return;
 
     const phone = "77770145874";
-    const duration = plan.duration_days === 90 ? "3 айлық" : "1 айлық";
-    const message = `Мен trendme.kz платформасының ${duration} подпискасын сатып алғым келеді.`;
+    const duration = plan.duration_days === 90 ? "3-месячную" : "1-месячную";
+    const message = `Я хочу Купить ${duration} подписку на платформу trendme.kz`;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
