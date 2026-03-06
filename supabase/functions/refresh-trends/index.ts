@@ -908,6 +908,21 @@ Deno.serve(async (req: Request) => {
         })
         .eq("id", logId);
     }
+
+    // Auto-trigger cover persistence to storage after refresh completes
+    if (totalSaved > 0) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      console.log(`[refresh-trends] Triggering persist_covers for newly added videos...`);
+      fetch(`${supabaseUrl}/functions/v1/socialkit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({ action: "persist_covers", mass: true, limit: 30 }),
+      }).catch(e => console.error("[refresh-trends] persist_covers trigger error:", e));
+    }
   }
 
   return new Response(JSON.stringify({ success: true, batch: batchIndex, totalSaved, nicheStats }), {
