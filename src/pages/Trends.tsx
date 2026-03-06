@@ -148,8 +148,8 @@ export default function Trends() {
     return [...allVideos].sort((a: any, b: any) => {
       const tierA = getTier(Number(a.views));
       const tierB = getTier(Number(b.views));
-      const orderA = tierA ? tierConfig[tierA].order : 3;
-      const orderB = tierB ? tierConfig[tierB].order : 3;
+      const orderA = tierA ? tierOrder[tierA] : 3;
+      const orderB = tierB ? tierOrder[tierB] : 3;
       if (orderA !== orderB) return orderA - orderB;
       return (b.trend_score || 0) - (a.trend_score || 0);
     });
