@@ -2115,19 +2115,22 @@ function RecategorizeSection() {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            AI Рекатегоризация
+            AI Рекатегоризация (Нишалар)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            AI caption бойынша әр видеоны 1-3 категорияға бөледі. Видео дубликатталмайды — тек categories массиві кеңейеді.
+            AI caption бойынша әр видеоны жаңа ниша → под-ниша жүйесіне бөледі. 3 тілді (KK/RU/EN) автоматты анықтайды.
           </p>
 
-          {totalVideos !== undefined && (
-            <div className="bg-muted/40 rounded-md p-3 text-sm">
+          <div className="bg-muted/40 rounded-md p-3 text-sm space-y-1">
+            {totalVideos !== undefined && (
               <p>📊 Жалпы видеолар: <strong>{totalVideos}</strong></p>
-            </div>
-          )}
+            )}
+            <p className="text-xs text-muted-foreground">
+              🏷️ 23 ниша, 100+ под-ниша | 🌐 3 тіл: 🇰🇿 KK, 🇷🇺 RU, 🇬🇧 EN
+            </p>
+          </div>
 
           <Button
             onClick={startRecategorize}
