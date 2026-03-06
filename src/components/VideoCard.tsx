@@ -187,13 +187,24 @@ export function VideoCard({
                 allowFullScreen
               />
             )}
-            <button
-              onClick={() => { onPlay(null); setPlayUrl(null); }}
-              className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
-              aria-label="Закрыть видео"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5">
+              {playUrl && (
+                <button
+                  onClick={handleFullscreen}
+                  className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                  aria-label="Толық экран"
+                >
+                  <Maximize className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                onClick={() => { onPlay(null); setPlayUrl(null); }}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
+                aria-label="Закрыть видео"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </>
         ) : (
           <>
