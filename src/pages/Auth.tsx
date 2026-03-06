@@ -30,7 +30,8 @@ export default function Auth() {
     if (loading) return;
     const now = Date.now();
     if (now - lastSubmitTime < 3000) {
-      toast.error("Тым жылдам! Бірнеше секунд күтіңіз.");
+      toast.error("Подождите несколько секунд перед повторной попыткой.");
+      return;
       return;
     }
     setLastSubmitTime(now);
@@ -42,7 +43,14 @@ export default function Auth() {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       setLoading(false);
-      if (error) toast.error("Ошибка: " + error.message);
+      if (error) {
+        const msg = error.message || "";
+        if (msg.includes("rate limit") || msg.includes("security purposes")) {
+          toast.error("Слишком частые запросы. Подождите несколько секунд.");
+        } else {
+          toast.error("Не удалось отправить ссылку. Проверьте email и попробуйте снова.");
+        }
+      }
       else toast.success("Ссылка для сброса отправлена на email");
       return;
     }
@@ -60,16 +68,34 @@ export default function Auth() {
       if (mode === "login") {
         const { error } = await signIn(email, password);
         if (error) {
-          if (error.message?.includes("Invalid login credentials")) {
+          const msg = error.message || "";
+          if (msg.includes("Invalid login credentials")) {
             toast.error("Неверный email или пароль. Проверьте данные и попробуйте снова.");
+          } else if (msg.includes("Email not confirmed")) {
+            toast.error("Email не подтверждён. Проверьте почту и перейдите по ссылке.");
+          } else if (msg.includes("rate limit") || msg.includes("security purposes")) {
+            toast.error("Слишком частые запросы. Подождите несколько секунд.");
           } else {
-            toast.error("Ошибка входа: " + error.message);
+            toast.error("Ошибка входа. Попробуйте позже.");
           }
         }
         else navigate("/dashboard");
       } else {
         const { error } = await signUp(email, password, { name: name.trim(), phone: `${phoneCode}${phone.trim()}` });
-        if (error) toast.error("Ошибка регистрации: " + error.message);
+        if (error) {
+          const msg = error.message || "";
+          if (msg.includes("already registered") || msg.includes("already been registered")) {
+            toast.error("Этот email уже зарегистрирован. Попробуйте войти.");
+          } else if (msg.includes("rate limit") || msg.includes("after 2 seconds") || msg.includes("security purposes")) {
+            toast.error("Слишком частые запросы. Подождите несколько секунд.");
+          } else if (msg.includes("valid email") || msg.includes("invalid")) {
+            toast.error("Введите корректный email адрес.");
+          } else if (msg.includes("weak password") || msg.includes("at least")) {
+            toast.error("Пароль слишком простой. Используйте минимум 6 символов.");
+          } else {
+            toast.error("Ошибка регистрации. Попробуйте позже.");
+          }
+        }
         else toast.success("Проверьте email для подтверждения регистрации");
       }
     } finally {
