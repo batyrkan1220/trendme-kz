@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
   Trophy, Zap, Target, TrendingUp, Loader2
@@ -87,6 +87,7 @@ export function VideoCard({
 }: VideoCardProps) {
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
+  const [coverFailed, setCoverFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handlePlay = async () => {
@@ -160,7 +161,7 @@ export function VideoCard({
           </>
         ) : (
           <>
-            {coverUrl ? (
+            {coverUrl && !coverFailed ? (
               <div className="relative w-full h-full cursor-pointer" onClick={handlePlay}>
                 <img
                   src={coverUrl}
@@ -168,6 +169,7 @@ export function VideoCard({
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover"
+                  onError={() => setCoverFailed(true)}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:bg-white/90 transition-colors duration-200">
@@ -177,10 +179,15 @@ export function VideoCard({
               </div>
             ) : (
               <div
-                className="w-full h-full flex items-center justify-center cursor-pointer bg-muted"
+                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-muted/80 gap-2"
                 onClick={handlePlay}
               >
-                <Play className="h-12 w-12 text-muted-foreground/30" />
+                <div className="h-12 w-12 rounded-full bg-black/20 flex items-center justify-center">
+                  <Play className="h-6 w-6 text-muted-foreground ml-0.5" />
+                </div>
+                {caption && (
+                  <p className="text-[10px] text-muted-foreground/70 text-center px-3 line-clamp-2">{caption}</p>
+                )}
               </div>
             )}
 
