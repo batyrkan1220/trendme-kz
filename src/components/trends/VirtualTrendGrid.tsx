@@ -1,4 +1,4 @@
-import { useRef, useCallback, useMemo } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { VideoCard } from "@/components/VideoCard";
 import { Lock } from "lucide-react";
