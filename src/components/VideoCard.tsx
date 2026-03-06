@@ -90,9 +90,7 @@ export function VideoCard({
   const [coverFailed, setCoverFailed] = useState(false);
   const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
   const [coverRefreshing, setCoverRefreshing] = useState(false);
-  const [mobileFullscreen, setMobileFullscreen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const isMobile = useIsMobile();
 
   const handleCoverError = useCallback(async () => {
     if (coverRefreshing || refreshedCover !== null) {
