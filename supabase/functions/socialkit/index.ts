@@ -1037,7 +1037,7 @@ Deno.serve(async (req: Request) => {
           return json({ cover_url: newCover, author_avatar_url: newAvatar });
         } catch (e) {
           console.error("Cover refresh failed:", (e as Error).message);
-          return json({ error: "Failed to refresh cover" }, 500);
+          return json({ cover_url: null, error: "API limit or unavailable" });
         }
       }
 
