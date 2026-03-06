@@ -244,7 +244,7 @@ export function VideoCard({
                   <div className="h-14 w-14 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/20">
                     <Loader2 className="h-6 w-6 text-primary animate-spin" />
                   </div>
-                  <span className="text-[11px] text-white/70 font-medium tracking-wide animate-pulse">Жүктелуде...</span>
+                  <span className="text-[11px] text-white/70 font-medium tracking-wide animate-pulse">Загрузка...</span>
                 </div>
               </div>
             ) : playUrl ? (
