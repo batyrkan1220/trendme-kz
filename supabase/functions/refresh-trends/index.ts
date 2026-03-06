@@ -177,8 +177,8 @@ const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   business: "business", cinema: "media", comedy: "entertainment", dance: "media",
   diy: "home", education: "education", entertainment: "entertainment", family: "family",
   fashion: "fashion", fitness: "fitness", food: "food", gaming: "gaming",
-  lifestyle: "beauty", marketing: "business", medicine: "fitness", music: "media",
-  news: "other", podcast: "media", psychology: "psychology", realestate: "home",
+  lifestyle: "beauty", marketing: "business", medicine: "medicine", music: "media",
+  news: "other", podcast: "media", psychology: "psychology", realestate: "realestate",
   religion: "other", shopping: "fashion", sports: "sports", tech: "tech", travel: "travel",
 };
 
