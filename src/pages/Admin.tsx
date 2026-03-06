@@ -928,13 +928,13 @@ function CoverRefreshCard() {
     setResult(null);
     try {
       const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "refresh_covers_oembed", limit: 100 },
+        body: { action: "refresh_covers_oembed", mass: true, limit: 50 },
       });
       if (error) {
         toast.error("Ошибка: " + (error.message || "unknown"));
       } else {
         setResult(data);
-        toast.success(`Обложки обновлены: ${data?.updated || 0} из ${data?.total || 0}`);
+        toast.success(`Массовый жаңарту іске қосылды! Бірінші пакет: ${data?.updated || 0} жаңартылды. Қалғаны фонда жалғасады.`);
       }
     } catch (e: any) {
       toast.error("Ошибка: " + e.message);
