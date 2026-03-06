@@ -88,7 +88,36 @@ export function VideoCard({
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
+  const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
+  const [coverRefreshing, setCoverRefreshing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleCoverError = useCallback(async () => {
+    if (coverRefreshing || refreshedCover !== null) {
+      setCoverFailed(true);
+      return;
+    }
+    setCoverRefreshing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("socialkit", {
+        body: {
+          action: "refresh_cover",
+          video_id: video.id,
+          platform_video_id: video.platform_video_id || video.id,
+          author_username: video.author_username,
+        },
+      });
+      if (!error && data?.cover_url) {
+        setRefreshedCover(data.cover_url);
+      } else {
+        setCoverFailed(true);
+      }
+    } catch {
+      setCoverFailed(true);
+    } finally {
+      setCoverRefreshing(false);
+    }
+  }, [video.id, video.platform_video_id, video.author_username, coverRefreshing, refreshedCover]);
 
   const handlePlay = async () => {
     if (playingId === video.id) {
