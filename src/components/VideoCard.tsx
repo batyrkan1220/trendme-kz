@@ -190,16 +190,22 @@ export function VideoCard({
           </>
         ) : (
           <>
-            {coverUrl && !coverFailed ? (
+            {activeCover && !coverFailed ? (
               <div className="relative w-full h-full cursor-pointer" onClick={handlePlay}>
+                {coverRefreshing ? (
+                  <div className="w-full h-full flex items-center justify-center bg-muted/80">
+                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                  </div>
+                ) : (
                 <img
-                  src={coverUrl}
+                  src={activeCover}
                   alt=""
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover"
-                  onError={() => setCoverFailed(true)}
+                  onError={() => handleCoverError()}
                 />
+                )}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:bg-white/90 transition-colors duration-200">
                     <Play className="h-5 w-5 text-white group-hover:text-foreground ml-0.5 transition-colors duration-200" />
