@@ -124,6 +124,10 @@ export function VideoCard({
   }, [video.id, video.platform_video_id, video.author_username, coverRefreshing, refreshedCover]);
 
   const handlePlay = async () => {
+    if (isMobile) {
+      setMobileFullscreen(true);
+      return;
+    }
     if (playingId === video.id) {
       onPlay(null);
       setPlayUrl(null);
