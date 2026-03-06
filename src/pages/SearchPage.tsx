@@ -53,7 +53,8 @@ export default function SearchPage() {
       }
       return { videos: data.videos || [], relatedKeywords: data.relatedKeywords || [] };
     },
-    onSuccess: () => {
+    onSuccess: (_, query) => {
+      trackSearchEvent(query);
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
     },
