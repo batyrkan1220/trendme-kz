@@ -6,13 +6,86 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ACTIVE_CATEGORIES = [
-  "animals", "art", "auto", "beauty", "books", "business", "cinema", "comedy",
-  "dance", "diy", "education", "entertainment", "family", "fashion", "fitness",
-  "food", "gaming", "lifestyle", "marketing", "medicine", "music", "news",
-  "podcast", "psychology", "realestate", "religion", "shopping", "sports",
-  "tech", "travel"
+const MAIN_NICHES = [
+  "business", "beauty", "fashion", "food", "fitness", "auto", "home",
+  "family", "psychology", "entertainment", "media", "animals", "travel",
+  "ai", "hobby", "other"
 ];
+
+const ALL_SUB_NICHES = [
+  // business
+  "finance", "investing", "crypto", "business_ideas", "startups", "marketing",
+  "smm", "target_ads", "sales", "online_business", "freelance", "career",
+  // beauty
+  "cosmetology", "skincare", "makeup", "haircare", "hairstyles", "barbershop",
+  "manicure", "pedicure", "laser_epilation", "plastic_surgery", "beauty_hacks",
+  // fashion
+  "clothing", "women_clothing", "men_clothing", "kids_clothing", "shoes",
+  "bags", "accessories", "streetwear", "luxury_fashion", "branded_clothing", "shopping",
+  // food
+  "recipes", "quick_recipes", "home_cooking", "national_cuisine", "fastfood",
+  "restaurants", "restaurant_reviews", "cafes", "street_food", "food_delivery",
+  "cooking_hacks", "desserts", "baking",
+  // fitness
+  "fitness_general", "home_workouts", "gym", "weight_loss", "muscle_gain",
+  "yoga", "pilates", "healthy_lifestyle", "diet", "sports_nutrition",
+  // auto
+  "auto_reviews", "chinese_auto", "tuning", "auto_hacks", "auto_repair",
+  "auto_news", "car_dealership", "electric_vehicles",
+  // home
+  "renovation", "interior", "home_design", "furniture", "cozy_home", "organization", "garden",
+  // family
+  "motherhood", "pregnancy", "newborns", "parenting", "family_life",
+  // psychology
+  "psychology_general", "relationships", "self_development", "motivation", "mental_health",
+  // entertainment
+  "humor", "sketches", "memes", "challenges", "reactions",
+  // media
+  "music", "cinema", "series", "pop_culture", "dance",
+  // animals
+  "dogs", "cats", "pets", "pet_care",
+  // travel
+  "travel_general", "hotels", "tourism", "travel_hacks",
+  // ai
+  "neural_networks", "ai_tools", "ai_generation", "ai_avatars", "ai_video",
+  // hobby
+  "crafts", "diy", "drawing", "photography",
+  // other
+  "esoteric", "tarot", "astrology",
+];
+
+const SUB_NICHE_TO_NICHE: Record<string, string> = {
+  finance: "business", investing: "business", crypto: "business", business_ideas: "business",
+  startups: "business", marketing: "business", smm: "business", target_ads: "business",
+  sales: "business", online_business: "business", freelance: "business", career: "business",
+  cosmetology: "beauty", skincare: "beauty", makeup: "beauty", haircare: "beauty",
+  hairstyles: "beauty", barbershop: "beauty", manicure: "beauty", pedicure: "beauty",
+  laser_epilation: "beauty", plastic_surgery: "beauty", beauty_hacks: "beauty",
+  clothing: "fashion", women_clothing: "fashion", men_clothing: "fashion", kids_clothing: "fashion",
+  shoes: "fashion", bags: "fashion", accessories: "fashion", streetwear: "fashion",
+  luxury_fashion: "fashion", branded_clothing: "fashion", shopping: "fashion",
+  recipes: "food", quick_recipes: "food", home_cooking: "food", national_cuisine: "food",
+  fastfood: "food", restaurants: "food", restaurant_reviews: "food", cafes: "food",
+  street_food: "food", food_delivery: "food", cooking_hacks: "food", desserts: "food", baking: "food",
+  fitness_general: "fitness", home_workouts: "fitness", gym: "fitness", weight_loss: "fitness",
+  muscle_gain: "fitness", yoga: "fitness", pilates: "fitness", healthy_lifestyle: "fitness",
+  diet: "fitness", sports_nutrition: "fitness",
+  auto_reviews: "auto", chinese_auto: "auto", tuning: "auto", auto_hacks: "auto",
+  auto_repair: "auto", auto_news: "auto", car_dealership: "auto", electric_vehicles: "auto",
+  renovation: "home", interior: "home", home_design: "home", furniture: "home",
+  cozy_home: "home", organization: "home", garden: "home",
+  motherhood: "family", pregnancy: "family", newborns: "family", parenting: "family", family_life: "family",
+  psychology_general: "psychology", relationships: "psychology", self_development: "psychology",
+  motivation: "psychology", mental_health: "psychology",
+  humor: "entertainment", sketches: "entertainment", memes: "entertainment",
+  challenges: "entertainment", reactions: "entertainment",
+  music: "media", cinema: "media", series: "media", pop_culture: "media", dance: "media",
+  dogs: "animals", cats: "animals", pets: "animals", pet_care: "animals",
+  travel_general: "travel", hotels: "travel", tourism: "travel", travel_hacks: "travel",
+  neural_networks: "ai", ai_tools: "ai", ai_generation: "ai", ai_avatars: "ai", ai_video: "ai",
+  crafts: "hobby", diy: "hobby", drawing: "hobby", photography: "hobby",
+  esoteric: "other", tarot: "other", astrology: "other",
+};
 
 const BATCH_SIZE = 50;
 const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
