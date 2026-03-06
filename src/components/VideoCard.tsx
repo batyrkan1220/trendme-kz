@@ -101,11 +101,8 @@ export function VideoCard({
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
-  const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
-  const [coverRefreshing, setCoverRefreshing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
-  const preloadingRef = useRef(false);
   const isMobile = useIsMobile();
 
   // Auto-fullscreen on mobile when video is ready
@@ -134,47 +131,13 @@ export function VideoCard({
     };
   }, [isMobile, playUrl, onPlay]);
 
-  // Preload play_url on hover (desktop) or long-press area
-  const handlePreload = useCallback(async () => {
-    if (preloadedUrlRef.current || preloadingRef.current) return;
-    preloadingRef.current = true;
-    try {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "get_play_url", video_url: video.url },
-      });
-      if (!error && data?.play_url) {
-        preloadedUrlRef.current = data.play_url;
-      }
-    } catch { /* silent */ }
-    preloadingRef.current = false;
-  }, [video.url]);
+  // Preload disabled to save API credits — play URL fetched only on click
+  const handlePreload = useCallback(() => {}, []);
 
-  const handleCoverError = useCallback(async () => {
-    if (coverRefreshing || refreshedCover !== null) {
-      setCoverFailed(true);
-      return;
-    }
-    setCoverRefreshing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: {
-          action: "refresh_cover",
-          video_id: video.id,
-          platform_video_id: video.platform_video_id || video.id,
-          author_username: video.author_username,
-        },
-      });
-      if (!error && data?.cover_url) {
-        setRefreshedCover(data.cover_url);
-      } else {
-        setCoverFailed(true);
-      }
-    } catch {
-      setCoverFailed(true);
-    } finally {
-      setCoverRefreshing(false);
-    }
-  }, [video.id, video.platform_video_id, video.author_username, coverRefreshing, refreshedCover]);
+  // Cover refresh disabled on client — handled by background maintenance only
+  const handleCoverError = useCallback(() => {
+    setCoverFailed(true);
+  }, []);
 
   const handlePlay = async () => {
     if (playingId === video.id) {
@@ -219,7 +182,7 @@ export function VideoCard({
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
   const velViews = video.velocity_views || 0;
-  const activeCover = optimizeCoverUrl(refreshedCover || video.cover_url || video.cover);
+  const activeCover = optimizeCoverUrl(video.cover_url || video.cover);
   const caption = video.caption || video.desc || "";
   const videoId = video.platform_video_id || video.id;
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
@@ -295,11 +258,6 @@ export function VideoCard({
           <>
             {activeCover && !coverFailed ? (
               <div className="relative w-full h-full cursor-pointer" onClick={handlePlay}>
-                {coverRefreshing ? (
-                  <div className="w-full h-full flex items-center justify-center bg-muted/80">
-                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
-                  </div>
-                ) : (
                 <img
                   src={activeCover}
                   alt=""
@@ -308,7 +266,6 @@ export function VideoCard({
                   className="w-full h-full object-cover"
                   onError={() => handleCoverError()}
                 />
-                )}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="relative">
                     {/* Outer glow ring */}
