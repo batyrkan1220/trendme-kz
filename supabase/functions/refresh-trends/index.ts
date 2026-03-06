@@ -361,7 +361,21 @@ Deno.serve(async (req: Request) => {
     .eq("key", "niche_queries")
     .single();
 
-  const NICHE_QUERIES: Record<string, string[]> = (nicheSettingsRow?.value as any) || {};
+  // Handle new 3-lang format: { kk: [], ru: [], en: [] } or old flat array format
+  const rawNicheQueries: Record<string, any> = (nicheSettingsRow?.value as any) || {};
+  const NICHE_QUERIES: Record<string, string[]> = {};
+  for (const [key, val] of Object.entries(rawNicheQueries)) {
+    if (Array.isArray(val)) {
+      // Old flat array format
+      NICHE_QUERIES[key] = val;
+    } else if (val && typeof val === "object") {
+      // New 3-lang format: flatten all languages into one array
+      const kk = (val as any).kk || [];
+      const ru = (val as any).ru || [];
+      const en = (val as any).en || [];
+      NICHE_QUERIES[key] = [...kk, ...ru, ...en];
+    }
+  }
   const allAvailableNiches = Object.keys(NICHE_QUERIES);
   let allNicheKeys = allAvailableNiches;
 
