@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { trackSearchEvent, trackAddToFavorites } from "@/components/TrackingPixels";
 import {
   Search as SearchIcon, Clock, Loader2, Sparkles,
 } from "lucide-react";
