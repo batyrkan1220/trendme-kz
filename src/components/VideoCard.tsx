@@ -92,6 +92,21 @@ export function VideoCard({
   const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
   const [coverRefreshing, setCoverRefreshing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isMobile = useIsMobile();
+
+  // Auto-fullscreen on mobile when video is ready
+  useEffect(() => {
+    if (!isMobile || !playUrl || !videoRef.current) return;
+    const el = videoRef.current;
+    const goFull = () => {
+      try {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if ((el as any).webkitEnterFullscreen) (el as any).webkitEnterFullscreen();
+      } catch {}
+    };
+    el.addEventListener("loadeddata", goFull, { once: true });
+    return () => el.removeEventListener("loadeddata", goFull);
+  }, [isMobile, playUrl]);
 
   const handleCoverError = useCallback(async () => {
     if (coverRefreshing || refreshedCover !== null) {
