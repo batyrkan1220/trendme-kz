@@ -1100,6 +1100,7 @@ function RefreshSection() {
   const queryClient = useQueryClient();
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
+  const [refreshLang, setRefreshLang] = useState<string>("all");
 
   const { data: nicheQueries = {} } = useQuery({
     queryKey: ["trend-settings", "niche_queries"],
