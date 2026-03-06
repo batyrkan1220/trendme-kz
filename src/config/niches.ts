@@ -197,7 +197,7 @@ export const NICHE_GROUPS: NicheGroup[] = [
       { key: "cozy_home", label: "Уют в доме" },
       { key: "organization", label: "Организация пространства" },
       { key: "garden", label: "Сад и огород" },
-      { key: "cleaning", label: "Уборка / Тазалау" },
+      { key: "cleaning", label: "Уборка" },
       { key: "real_estate", label: "Недвижимость" },
     ],
   },
