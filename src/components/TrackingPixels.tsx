@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -9,6 +10,7 @@ interface PixelSettings {
 }
 
 export function TrackingPixels() {
+  const location = useLocation();
   const { data: settings } = useQuery<PixelSettings>({
     queryKey: ["tracking-pixel-settings"],
     queryFn: async () => {
@@ -85,6 +87,29 @@ export function TrackingPixels() {
     `;
     document.head.appendChild(inline);
   }, [settings?.tiktok_pixel_id]);
+
+  // SPA virtual pageview tracking
+  useEffect(() => {
+    const dl = (window as any).dataLayer = (window as any).dataLayer || [];
+    dl.push({
+      event: "virtual_pageview",
+      page_path: location.pathname + location.search,
+      page_title: document.title,
+    });
+
+    // GA direct
+    if ((window as any).gtag) {
+      (window as any).gtag("event", "page_view", { page_path: location.pathname + location.search });
+    }
+    // FB Pixel
+    if ((window as any).fbq) {
+      (window as any).fbq("track", "PageView");
+    }
+    // TikTok Pixel
+    if ((window as any).ttq) {
+      (window as any).ttq.page();
+    }
+  }, [location.pathname, location.search]);
 
   return null;
 }
