@@ -361,6 +361,13 @@ export function VideoCard({
           </button>
         </div>
       )}
+      {/* Mobile fullscreen player */}
+      {mobileFullscreen && (
+        <MobileVideoPlayer
+          video={video}
+          onClose={() => setMobileFullscreen(false)}
+        />
+      )}
     </div>
   );
 }
