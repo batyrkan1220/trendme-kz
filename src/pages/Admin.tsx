@@ -2043,16 +2043,6 @@ function StatsSection() {
 }
 
 
-
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
-      return (data?.value as Record<string, number>) || {};
-    },
-  });
-
-  // Load niche_queries for language keyword counts
-  const { data: nicheQueries = {} } = useQuery({
-    queryKey: ["niche-queries-for-stats"],
     queryFn: async () => {
       const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
       return (data?.value as Record<string, any>) || {};
