@@ -258,11 +258,6 @@ export function VideoCard({
           <>
             {activeCover && !coverFailed ? (
               <div className="relative w-full h-full cursor-pointer" onClick={handlePlay}>
-                {coverRefreshing ? (
-                  <div className="w-full h-full flex items-center justify-center bg-muted/80">
-                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
-                  </div>
-                ) : (
                 <img
                   src={activeCover}
                   alt=""
@@ -271,7 +266,6 @@ export function VideoCard({
                   className="w-full h-full object-cover"
                   onError={() => handleCoverError()}
                 />
-                )}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="relative">
                     {/* Outer glow ring */}
