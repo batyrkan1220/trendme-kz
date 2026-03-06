@@ -77,6 +77,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
       setIsPlaying(false);
       setShowScript(false);
       setShowLangPicker(false);
+      setPlayUrl(null);
+      setLoadingPlay(false);
     }
   }, [open, video]);
 
