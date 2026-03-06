@@ -124,10 +124,6 @@ export function VideoCard({
   }, [video.id, video.platform_video_id, video.author_username, coverRefreshing, refreshedCover]);
 
   const handlePlay = async () => {
-    if (isMobile) {
-      setMobileFullscreen(true);
-      return;
-    }
     if (playingId === video.id) {
       onPlay(null);
       setPlayUrl(null);
@@ -151,6 +147,13 @@ export function VideoCard({
     } finally {
       setLoadingPlay(false);
     }
+  };
+
+  const handleFullscreen = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if ((el as any).webkitEnterFullscreen) (el as any).webkitEnterFullscreen();
   };
 
   const views = Number(video.views) || 0;
