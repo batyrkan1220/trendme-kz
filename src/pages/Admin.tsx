@@ -742,10 +742,11 @@ function UsersTab() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left p-3 text-muted-foreground font-medium">Email</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Имя</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Почта</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Телефон</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Регистрация</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Тариф</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Действия</th>
                   </tr>
@@ -758,21 +759,23 @@ function UsersTab() {
                     return (
                     <tr key={u.id} className="border-b border-border/50 hover:bg-muted/30">
                       <td className="p-3">
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-medium">{u.email}</p>
-                            {!u.email_confirmed_at && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive text-destructive">
-                                не подтв.
-                              </Badge>
-                            )}
-                          </div>
-                          {u.name && <p className="text-xs text-foreground/80">{u.name}</p>}
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {u.phone && <span>📞 {u.phone}</span>}
-                            <span>Вход: {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU") : "—"}</span>
-                          </div>
+                        <span className="font-medium text-sm">{u.name || "—"}</span>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm">{u.email}</span>
+                          {!u.email_confirmed_at && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive text-destructive">
+                              не подтв.
+                            </Badge>
+                          )}
                         </div>
+                        <span className="text-xs text-muted-foreground">
+                          Вход: {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU") : "—"}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <span className="text-sm">{u.phone || "—"}</span>
                       </td>
                       <td className="p-3 text-muted-foreground text-xs">
                         {new Date(u.created_at).toLocaleDateString("ru-RU")}
