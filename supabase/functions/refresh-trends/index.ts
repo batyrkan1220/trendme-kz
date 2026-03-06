@@ -150,8 +150,6 @@ const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // kazakh_culture
   kazakh_cuisine: "kazakh_culture", kazakh_history: "kazakh_culture", kazakh_traditions: "kazakh_culture",
   kazakh_language: "kazakh_culture", kazakh_music: "kazakh_culture", kazakh_celebrities: "kazakh_culture",
-  // other
-  esoteric: "other", astrology: "other", life_hacks: "other",
 };
 
 // Old category → new main niche mapping (for backward compatibility)
@@ -161,8 +159,8 @@ const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   diy: "home", education: "education", entertainment: "entertainment", family: "family",
   fashion: "fashion", fitness: "fitness", food: "food", gaming: "gaming",
   lifestyle: "beauty", marketing: "business", medicine: "medicine", music: "media",
-  news: "other", podcast: "media", psychology: "psychology", realestate: "realestate",
-  religion: "other", shopping: "fashion", sports: "sports", tech: "tech", travel: "travel",
+  news: "entertainment", podcast: "media", psychology: "psychology", realestate: "realestate",
+  religion: "psychology", shopping: "fashion", sports: "sports", tech: "tech", travel: "travel",
 };
 
 function resolveNiche(nicheKey: string): { niche: string; sub_niche: string | null } {

@@ -1427,7 +1427,8 @@ function RefreshSection() {
 
 function KeywordsSection() {
   const queryClient = useQueryClient();
-  const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
+  const [selectedSubNiche, setSelectedSubNiche] = useState<string | null>(null);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [newQuery, setNewQuery] = useState("");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -1451,25 +1452,22 @@ function KeywordsSection() {
   });
 
   const addQuery = () => {
-    if (!newQuery.trim()) return;
-    if (selectedNiche) {
-      const updated = { ...nicheQueries };
-      updated[selectedNiche] = [...(updated[selectedNiche] || []), newQuery.trim()];
-      saveMutation.mutate(updated);
-    }
+    if (!newQuery.trim() || !selectedSubNiche) return;
+    const updated = { ...nicheQueries };
+    updated[selectedSubNiche] = [...(updated[selectedSubNiche] || []), newQuery.trim()];
+    saveMutation.mutate(updated);
     setNewQuery("");
   };
 
   const removeQuery = (index: number) => {
-    if (selectedNiche) {
-      const updated = { ...nicheQueries };
-      updated[selectedNiche] = updated[selectedNiche].filter((_, i) => i !== index);
-      saveMutation.mutate(updated);
-    }
+    if (!selectedSubNiche) return;
+    const updated = { ...nicheQueries };
+    updated[selectedSubNiche] = updated[selectedSubNiche].filter((_, i) => i !== index);
+    saveMutation.mutate(updated);
   };
 
   const generateWithAI = async (seedWord?: string) => {
-    if (!selectedNiche) return;
+    if (!selectedSubNiche) return;
     setAiLoading(true);
     setAiSuggestions([]);
     try {
@@ -1482,8 +1480,8 @@ function KeywordsSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          niche: selectedNiche,
-          existing_queries: nicheQueries[selectedNiche] || [],
+          niche: selectedSubNiche,
+          existing_queries: nicheQueries[selectedSubNiche] || [],
           ...(seedWord ? { seed_word: seedWord } : {}),
         }),
       });
@@ -1504,7 +1502,7 @@ function KeywordsSection() {
 
   const generateFromSeed = () => {
     const word = newQuery.trim();
-    if (!word || !selectedNiche) {
+    if (!word || !selectedSubNiche) {
       toast.error("Введите ключевое слово");
       return;
     }
@@ -1513,17 +1511,17 @@ function KeywordsSection() {
   };
 
   const acceptSuggestion = (keyword: string) => {
-    if (!selectedNiche) return;
+    if (!selectedSubNiche) return;
     const updated = { ...nicheQueries };
-    updated[selectedNiche] = [...(updated[selectedNiche] || []), keyword];
+    updated[selectedSubNiche] = [...(updated[selectedSubNiche] || []), keyword];
     saveMutation.mutate(updated);
     setAiSuggestions((prev) => prev.filter((k) => k !== keyword));
   };
 
   const acceptAllSuggestions = () => {
-    if (!selectedNiche || aiSuggestions.length === 0) return;
+    if (!selectedSubNiche || aiSuggestions.length === 0) return;
     const updated = { ...nicheQueries };
-    updated[selectedNiche] = [...(updated[selectedNiche] || []), ...aiSuggestions];
+    updated[selectedSubNiche] = [...(updated[selectedSubNiche] || []), ...aiSuggestions];
     saveMutation.mutate(updated);
     setAiSuggestions([]);
     toast.success("Все запросы добавлены");
@@ -1545,15 +1543,14 @@ function KeywordsSection() {
     }
   };
 
-  const selectNiche = (niche: string) => {
-    setSelectedNiche(selectedNiche === niche ? null : niche);
-    setAiSuggestions([]);
-  };
+  const activeQueries = selectedSubNiche ? nicheQueries[selectedSubNiche] || [] : [];
+  const selectedSubNicheLabel = selectedSubNiche
+    ? NICHE_GROUPS.flatMap(g => g.subNiches).find(s => s.key === selectedSubNiche)?.label || selectedSubNiche
+    : "";
 
-  const niches = Object.keys(nicheQueries).sort();
-  const activeQueries = selectedNiche ? nicheQueries[selectedNiche] || [] : [];
-  const activeLabel = selectedNiche || "";
-  const isActive = !!selectedNiche;
+  // Count total queries per group
+  const groupQueryCount = (group: typeof NICHE_GROUPS[0]) =>
+    group.subNiches.reduce((sum, sub) => sum + (nicheQueries[sub.key]?.length || 0), 0);
 
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
   return (
@@ -1564,24 +1561,63 @@ function KeywordsSection() {
           {bulkLoading ? "Генерация..." : "🔄 Обновить все запросы (AI КЗ/РУ)"}
         </Button>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {niches.map((niche) => (
-          <Badge key={niche} variant={selectedNiche === niche ? "default" : "outline"} className="cursor-pointer text-sm" onClick={() => selectNiche(niche)}>
-            {niche} ({nicheQueries[niche]?.length || 0})
-          </Badge>
-        ))}
+
+      {/* Niche groups with expandable sub-niches */}
+      <div className="space-y-1">
+        {NICHE_GROUPS.map((group) => {
+          const isExpanded = expandedGroup === group.key;
+          const totalQ = groupQueryCount(group);
+          return (
+            <div key={group.key} className="border border-border/50 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setExpandedGroup(isExpanded ? null : group.key)}
+                className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/30 transition-colors text-sm"
+              >
+                <span className="flex items-center gap-2 font-medium">
+                  <span>{group.emoji}</span>
+                  <span>{group.label}</span>
+                  <Badge variant="secondary" className="text-[10px] px-1.5">{totalQ}</Badge>
+                </span>
+                <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+              </button>
+              {isExpanded && (
+                <div className="px-3 pb-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  {group.subNiches.map((sub) => {
+                    const count = nicheQueries[sub.key]?.length || 0;
+                    const isActive = selectedSubNiche === sub.key;
+                    return (
+                      <button
+                        key={sub.key}
+                        onClick={() => { setSelectedSubNiche(isActive ? null : sub.key); setAiSuggestions([]); }}
+                        className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs border transition-colors ${
+                          isActive
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : count === 0
+                              ? "bg-destructive/10 border-destructive/30 text-destructive"
+                              : "bg-background border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <span className="font-medium truncate">{sub.label}</span>
+                        <span className="ml-1 text-[10px]">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-      {isActive && (
+
+      {selectedSubNiche && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Запросы: <span className="text-primary">{activeLabel}</span></CardTitle>
-              {selectedNiche && (
-                <Button onClick={() => generateWithAI()} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
-                  {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  AI запросы
-                </Button>
-              )}
+              <CardTitle className="text-lg">Запросы: <span className="text-primary">{selectedSubNicheLabel}</span></CardTitle>
+              <Button onClick={() => generateWithAI()} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
+                {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                AI запросы
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -1619,6 +1655,9 @@ function KeywordsSection() {
                   <button onClick={() => removeQuery(i)} className="ml-1 hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
                 </Badge>
               ))}
+              {activeQueries.length === 0 && (
+                <p className="text-xs text-muted-foreground">Запросов нет. Добавьте вручную или через AI.</p>
+              )}
             </div>
           </CardContent>
         </Card>
