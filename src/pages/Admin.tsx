@@ -1773,9 +1773,274 @@ function KeywordsSection() {
 
 
 
+type LangLimits = { kk: number | null; ru: number | null; en: number | null };
+
 function StatsSection() {
   const queryClient = useQueryClient();
-  const [categoryLimits, setCategoryLimits] = useState<Record<string, number | null>>({});
+  const [categoryLimits, setCategoryLimits] = useState<Record<string, LangLimits>>({});
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+  const [selectedNiches, setSelectedNiches] = useState<Set<string>>(new Set());
+  const [bulkLimitKk, setBulkLimitKk] = useState("");
+  const [bulkLimitRu, setBulkLimitRu] = useState("");
+  const [bulkLimitEn, setBulkLimitEn] = useState("");
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+
+  const { data: subNicheCounts = {}, isLoading } = useQuery({
+    queryKey: ["admin-subniche-stats"],
+    queryFn: async () => {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
+      const counts: Record<string, number> = {};
+      let from = 0;
+      const PAGE = 1000;
+      while (true) {
+        const { data, error } = await supabase
+          .from("videos")
+          .select("sub_niche")
+          .gte("published_at", sevenDaysAgo)
+          .range(from, from + PAGE - 1);
+        if (error || !data || data.length === 0) break;
+        for (const v of data) {
+          const sn = (v as any).sub_niche;
+          if (sn) counts[sn] = (counts[sn] || 0) + 1;
+        }
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      return counts;
+    },
+    refetchInterval: 10000,
+  });
+
+  const { data: savedLimits } = useQuery({
+    queryKey: ["category-limits-setting"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
+      return (data?.value as Record<string, any>) || {};
+    },
+  });
+
+  const { data: nicheQueries = {} } = useQuery({
+    queryKey: ["niche-queries-for-stats"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
+      return (data?.value as Record<string, any>) || {};
+    },
+  });
+
+  if (savedLimits && !initialized) {
+    const parsed: Record<string, LangLimits> = {};
+    for (const [k, v] of Object.entries(savedLimits)) {
+      if (typeof v === "number") {
+        parsed[k] = { kk: v, ru: v, en: v };
+      } else if (v && typeof v === "object") {
+        parsed[k] = { kk: (v as any).kk ?? null, ru: (v as any).ru ?? null, en: (v as any).en ?? null };
+      }
+    }
+    setCategoryLimits(parsed);
+    setInitialized(true);
+  }
+
+  const getLimit = (subKey: string, lang: "kk" | "ru" | "en"): number | null => {
+    return categoryLimits[subKey]?.[lang] ?? null;
+  };
+
+  const cleanLimits = () => {
+    const clean: Record<string, LangLimits> = {};
+    for (const [k, v] of Object.entries(categoryLimits)) {
+      if (v && (v.kk || v.ru || v.en)) {
+        clean[k] = { kk: v.kk || null, ru: v.ru || null, en: v.en || null };
+      }
+    }
+    return clean;
+  };
+
+  const saveLimits = useMutation({
+    mutationFn: async () => {
+      const limits = cleanLimits();
+      const { data: existing } = await supabase.from("trend_settings").select("id").eq("key", "category_limits").maybeSingle();
+      if (existing) {
+        await supabase.from("trend_settings").update({ value: limits as any, updated_at: new Date().toISOString() }).eq("key", "category_limits");
+      } else {
+        await supabase.from("trend_settings").insert({ key: "category_limits", value: limits as any });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["category-limits-setting"] });
+      setHasChanges(false);
+      toast.success("Лимиттер сақталды");
+    },
+    onError: () => toast.error("Қате болды"),
+  });
+
+  const updateLangLimit = (subKey: string, lang: "kk" | "ru" | "en", rawVal: string) => {
+    setCategoryLimits(prev => {
+      const existing = prev[subKey] || { kk: null, ru: null, en: null };
+      return { ...prev, [subKey]: { ...existing, [lang]: rawVal === "" ? null : Number(rawVal) } };
+    });
+    setHasChanges(true);
+  };
+
+  const totalVideos7d = Object.values(subNicheCounts).reduce((a, b) => a + b, 0);
+  const allSubNicheKeys = NICHE_GROUPS.flatMap(g => g.subNiches.map(s => s.key));
+
+  const getLangCounts = (subKey: string) => {
+    const q = nicheQueries[subKey];
+    if (!q || Array.isArray(q)) return { kk: 0, ru: 0, en: 0 };
+    return { kk: (q.kk || []).length, ru: (q.ru || []).length, en: (q.en || []).length };
+  };
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            Нишалар статистикасы
+            <Badge variant="secondary">{totalVideos7d} видео / 7 күн</Badge>
+          </CardTitle>
+          {hasChanges && (
+            <Button size="sm" onClick={() => saveLimits.mutate()} disabled={saveLimits.isPending} className="gap-1.5">
+              {saveLimits.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Сақтау
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Bulk limit controls */}
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/50">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs h-7"
+            onClick={() => {
+              if (selectedNiches.size === allSubNicheKeys.length) setSelectedNiches(new Set());
+              else setSelectedNiches(new Set(allSubNicheKeys));
+            }}
+          >
+            {selectedNiches.size === allSubNicheKeys.length && selectedNiches.size > 0 ? "Бәрін алу" : "Бәрін таңдау"}
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {selectedNiches.size > 0 ? `Таңдалды: ${selectedNiches.size}` : "Под-ниша таңдаңыз"}
+          </span>
+          <div className="flex items-center gap-1 ml-auto flex-wrap">
+            <Input type="number" className="w-14 h-7 text-xs text-center" placeholder="KK" value={bulkLimitKk} onChange={(e) => setBulkLimitKk(e.target.value)} />
+            <Input type="number" className="w-14 h-7 text-xs text-center" placeholder="RU" value={bulkLimitRu} onChange={(e) => setBulkLimitRu(e.target.value)} />
+            <Input type="number" className="w-14 h-7 text-xs text-center" placeholder="EN" value={bulkLimitEn} onChange={(e) => setBulkLimitEn(e.target.value)} />
+            <Button
+              size="sm"
+              variant="default"
+              className="h-7 text-xs gap-1"
+              disabled={selectedNiches.size === 0 || (!bulkLimitKk && !bulkLimitRu && !bulkLimitEn)}
+              onClick={() => {
+                setCategoryLimits(prev => {
+                  const updated = { ...prev };
+                  selectedNiches.forEach(n => {
+                    updated[n] = {
+                      kk: bulkLimitKk ? Number(bulkLimitKk) : null,
+                      ru: bulkLimitRu ? Number(bulkLimitRu) : null,
+                      en: bulkLimitEn ? Number(bulkLimitEn) : null,
+                    };
+                  });
+                  return updated;
+                });
+                setHasChanges(true);
+                toast.success(`Лимиттер ${selectedNiches.size} под-нишаға орнатылды`);
+                setSelectedNiches(new Set());
+                setBulkLimitKk(""); setBulkLimitRu(""); setBulkLimitEn("");
+              }}
+            >
+              <Edit2 className="h-3 w-3" />Қолдану
+            </Button>
+          </div>
+        </div>
+
+        {/* Hierarchical niche list */}
+        <div className="space-y-1 max-h-[600px] overflow-y-auto">
+          {NICHE_GROUPS.map((group) => {
+            const isExpanded = expandedGroup === group.key;
+            const groupVideoCount = group.subNiches.reduce((sum, s) => sum + (subNicheCounts[s.key] || 0), 0);
+
+            return (
+              <div key={group.key}>
+                <button
+                  onClick={() => setExpandedGroup(isExpanded ? null : group.key)}
+                  className="w-full flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors"
+                >
+                  <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                  <span className="text-base">{group.emoji}</span>
+                  <span className="font-semibold text-sm text-foreground">{group.label}</span>
+                  <Badge variant="secondary" className="text-xs ml-auto">{groupVideoCount} / 7д</Badge>
+                  <Badge variant="outline" className="text-xs">{group.subNiches.length}</Badge>
+                </button>
+
+                {isExpanded && (
+                  <div className="ml-4 space-y-0.5 pb-2">
+                    <div className="flex items-center gap-1 px-2 py-1 text-[10px] text-muted-foreground uppercase tracking-wider">
+                      <span className="w-5" />
+                      <span className="flex-1">Под-ниша</span>
+                      <span className="w-10 text-center">7д</span>
+                      <span className="w-7 text-center">KK</span>
+                      <span className="w-7 text-center">RU</span>
+                      <span className="w-7 text-center">EN</span>
+                      <span className="w-[132px] text-center">Лимит KK / RU / EN</span>
+                    </div>
+                    {group.subNiches.map((sub) => {
+                      const count7d = subNicheCounts[sub.key] || 0;
+                      const langCounts = getLangCounts(sub.key);
+                      const isChecked = selectedNiches.has(sub.key);
+                      const limKk = getLimit(sub.key, "kk");
+                      const limRu = getLimit(sub.key, "ru");
+                      const limEn = getLimit(sub.key, "en");
+
+                      return (
+                        <div key={sub.key} className="flex items-center gap-1 py-1 px-2 rounded hover:bg-muted/30">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              setSelectedNiches(prev => {
+                                const next = new Set(prev);
+                                if (next.has(sub.key)) next.delete(sub.key);
+                                else next.add(sub.key);
+                                return next;
+                              });
+                            }}
+                            className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer"
+                          />
+                          <span className="flex-1 text-xs font-medium truncate">{sub.label}</span>
+                          <Badge
+                            variant={count7d === 0 ? "destructive" : "secondary"}
+                            className="text-[10px] w-10 justify-center"
+                          >
+                            {count7d}
+                          </Badge>
+                          <span className={`text-[10px] w-7 text-center ${langCounts.kk === 0 ? "text-destructive" : "text-muted-foreground"}`}>{langCounts.kk}</span>
+                          <span className={`text-[10px] w-7 text-center ${langCounts.ru === 0 ? "text-destructive" : "text-muted-foreground"}`}>{langCounts.ru}</span>
+                          <span className={`text-[10px] w-7 text-center ${langCounts.en === 0 ? "text-destructive" : "text-muted-foreground"}`}>{langCounts.en}</span>
+                          <div className="flex gap-0.5 w-[132px]">
+                            <Input type="number" className="w-11 h-6 text-[10px] text-center px-1" placeholder="KK" value={limKk ?? ""} onChange={(e) => updateLangLimit(sub.key, "kk", e.target.value)} />
+                            <Input type="number" className="w-11 h-6 text-[10px] text-center px-1" placeholder="RU" value={limRu ?? ""} onChange={(e) => updateLangLimit(sub.key, "ru", e.target.value)} />
+                            <Input type="number" className="w-11 h-6 text-[10px] text-center px-1" placeholder="EN" value={limEn ?? ""} onChange={(e) => updateLangLimit(sub.key, "en", e.target.value)} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-xs text-muted-foreground pt-2">
+          Лимиттер тіл бойынша жеке. Refresh кезінде таңдалған тілдің лимиті тексеріледі. KK/RU/EN — запрос саны. Бос = шексіз.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
   const [hasChanges, setHasChanges] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [selectedNiches, setSelectedNiches] = useState<Set<string>>(new Set());
