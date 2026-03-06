@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, forwardRef } from "react";
 import { VideoCard } from "@/components/VideoCard";
 import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +16,7 @@ interface VirtualTrendGridProps {
   onLoadMore: () => void;
 }
 
-export function VirtualTrendGrid({
+export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps>(function VirtualTrendGrid({
   videos,
   playingId,
   onPlay,
@@ -27,7 +27,7 @@ export function VirtualTrendGrid({
   freeLimit,
   hasMore,
   onLoadMore,
-}: VirtualTrendGridProps) {
+}, ref) {
   const navigate = useNavigate();
   const loaderRef = useRef<HTMLDivElement>(null);
 
