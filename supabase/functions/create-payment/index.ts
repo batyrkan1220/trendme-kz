@@ -54,7 +54,7 @@ serve(async (req) => {
     const orderId = `${user.id.slice(0, 8)}-${plan_id.slice(0, 8)}-${Date.now()}`;
 
     // Build published URL for callbacks
-    const appUrl = "https://trendme-kz.lovable.app";
+    const appUrl = "https://trendme.kz";
     const resultUrl = `${SUPABASE_URL}/functions/v1/freedompay-callback`;
 
     const salt = crypto.randomUUID();
