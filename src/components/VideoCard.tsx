@@ -31,9 +31,11 @@ const getTimeAgo = (published_at: string | number | null) => {
   return `${Math.floor(d / 30)} мес. назад`;
 };
 
-/** Convert TikTok origin cover URLs to smaller cropcenter variants */
+/** Convert TikTok origin cover URLs to smaller cropcenter variants (only for unsigned URLs) */
 function optimizeCoverUrl(url: string | null | undefined): string | null | undefined {
   if (!url) return url;
+  // Don't transform signed CDN URLs — changing the path invalidates the signature
+  if (url.includes("x-signature=") || url.includes("x-expires=")) return url;
   if (url.includes("tplv-tiktokx-origin.image")) {
     return url.replace(
       /tplv-tiktokx-origin\.image/,
