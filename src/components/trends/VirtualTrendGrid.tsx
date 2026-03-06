@@ -1,5 +1,4 @@
-import { useRef, useState, useEffect } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useRef, useEffect } from "react";
 import { VideoCard } from "@/components/VideoCard";
 import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -17,23 +16,6 @@ interface VirtualTrendGridProps {
   onLoadMore: () => void;
 }
 
-function useColumns() {
-  const getColumns = () => {
-    if (typeof window === "undefined") return 2;
-    const w = window.innerWidth;
-    if (w >= 1280) return 5;
-    if (w >= 1024) return 3;
-    return 2;
-  };
-  const [cols, setCols] = useState(getColumns);
-  useEffect(() => {
-    const handler = () => setCols(getColumns());
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
-  return cols;
-}
-
 export function VirtualTrendGrid({
   videos,
   playingId,
@@ -46,101 +28,61 @@ export function VirtualTrendGrid({
   hasMore,
   onLoadMore,
 }: VirtualTrendGridProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const columns = useColumns();
+  const loaderRef = useRef<HTMLDivElement>(null);
 
-  const rowCount = Math.ceil(videos.length / columns);
-
-  const virtualizer = useVirtualizer({
-    count: rowCount + (hasMore ? 1 : 0), // +1 for loader row
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 420, // estimated row height in px
-    overscan: 3,
-    onChange: (instance) => {
-      const items = instance.getVirtualItems();
-      const lastItem = items[items.length - 1];
-      if (lastItem && lastItem.index >= rowCount - 2 && hasMore) {
-        onLoadMore();
-      }
-    },
-  });
+  useEffect(() => {
+    if (!hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) onLoadMore();
+      },
+      { threshold: 0.1 }
+    );
+    const el = loaderRef.current;
+    if (el) observer.observe(el);
+    return () => { if (el) observer.unobserve(el); };
+  }, [hasMore, onLoadMore]);
 
   return (
-    <div
-      ref={parentRef}
-      className="w-full overflow-y-auto flex-1"
-      style={{ height: "calc(100dvh - 180px)" }}
-    >
-      <div
-        className="relative w-full"
-        style={{ height: `${virtualizer.getTotalSize()}px` }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          // Loader row
-          if (virtualRow.index >= rowCount) {
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+        {videos.map((video: any, i: number) => {
+          const isLocked = i >= freeLimit && isFreePlan;
+
+          if (isLocked) {
             return (
-              <div
-                key="loader"
-                className="absolute left-0 w-full flex justify-center py-8"
-                style={{
-                  top: `${virtualRow.start}px`,
-                  height: `${virtualRow.size}px`,
-                }}
-              >
-                <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-              </div>
+              <LockedCard
+                key={video.id}
+                video={video}
+                freeLimit={freeLimit}
+                onNavigate={() => navigate("/subscription")}
+              />
             );
           }
 
-          const startIdx = virtualRow.index * columns;
-          const rowVideos = videos.slice(startIdx, startIdx + columns);
-
           return (
-            <div
-              key={virtualRow.index}
-              className="absolute left-0 w-full grid gap-3 md:gap-4"
-              style={{
-                top: `${virtualRow.start}px`,
-                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-              }}
-              ref={virtualizer.measureElement}
-              data-index={virtualRow.index}
-            >
-              {rowVideos.map((video: any, colIdx: number) => {
-                const globalIdx = startIdx + colIdx;
-                const isLocked = globalIdx >= freeLimit && isFreePlan;
-
-                if (isLocked) {
-                  return (
-                    <LockedCard
-                      key={video.id}
-                      video={video}
-                      freeLimit={freeLimit}
-                      onNavigate={() => navigate("/subscription")}
-                    />
-                  );
-                }
-
-                return (
-                  <VideoCard
-                    key={video.id}
-                    video={video}
-                    playingId={playingId}
-                    onPlay={onPlay}
-                    isFavorite={userFavorites.includes(video.id)}
-                    onToggleFav={onToggleFav}
-                    onAnalyze={onAnalyze}
-                    showTier={true}
-                    showAuthor={true}
-                  />
-                );
-              })}
-            </div>
+            <VideoCard
+              key={video.id}
+              video={video}
+              playingId={playingId}
+              onPlay={onPlay}
+              isFavorite={userFavorites.includes(video.id)}
+              onToggleFav={onToggleFav}
+              onAnalyze={onAnalyze}
+              showTier={true}
+              showAuthor={true}
+            />
           );
         })}
       </div>
-    </div>
+
+      {hasMore && (
+        <div ref={loaderRef} className="flex justify-center py-8">
+          <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      )}
+    </>
   );
 }
 
