@@ -104,6 +104,8 @@ export function VideoCard({
   const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
   const [coverRefreshing, setCoverRefreshing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const preloadedUrlRef = useRef<string | null>(null);
+  const preloadingRef = useRef(false);
   const isMobile = useIsMobile();
 
   // Auto-fullscreen on mobile when video is ready
@@ -118,7 +120,6 @@ export function VideoCard({
     };
     el.addEventListener("loadeddata", goFull, { once: true });
 
-    // Close video when exiting fullscreen
     const onFsChange = () => {
       if (!document.fullscreenElement) {
         onPlay(null);
@@ -132,6 +133,21 @@ export function VideoCard({
       document.removeEventListener("fullscreenchange", onFsChange);
     };
   }, [isMobile, playUrl, onPlay]);
+
+  // Preload play_url on hover (desktop) or long-press area
+  const handlePreload = useCallback(async () => {
+    if (preloadedUrlRef.current || preloadingRef.current) return;
+    preloadingRef.current = true;
+    try {
+      const { data, error } = await supabase.functions.invoke("socialkit", {
+        body: { action: "get_play_url", video_url: video.url },
+      });
+      if (!error && data?.play_url) {
+        preloadedUrlRef.current = data.play_url;
+      }
+    } catch { /* silent */ }
+    preloadingRef.current = false;
+  }, [video.url]);
 
   const handleCoverError = useCallback(async () => {
     if (coverRefreshing || refreshedCover !== null) {
@@ -167,6 +183,13 @@ export function VideoCard({
       return;
     }
     onPlay(video.id);
+
+    // Use preloaded URL if available
+    if (preloadedUrlRef.current) {
+      setPlayUrl(preloadedUrlRef.current);
+      return;
+    }
+
     setLoadingPlay(true);
     try {
       const { data, error } = await supabase.functions.invoke("socialkit", {
@@ -202,7 +225,7 @@ export function VideoCard({
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
 
   return (
-    <div className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col">
+    <div className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col" onMouseEnter={handlePreload}>
       {/* Video area */}
       <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
         {playingId === video.id ? (

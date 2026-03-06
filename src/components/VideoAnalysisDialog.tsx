@@ -45,11 +45,22 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [loadingPlay, setLoadingPlay] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastAnalyzedUrl = useRef<string | null>(null);
+  const preloadedUrlRef = useRef<string | null>(null);
   const { checkAndLog } = useSubscription();
 
   useEffect(() => {
     if (open && video) {
       trackViewContent(video.caption || video.url);
+      // Preload play_url when dialog opens
+      if (!preloadedUrlRef.current) {
+        supabase.functions.invoke("socialkit", {
+          body: { action: "get_play_url", video_url: video.url },
+        }).then(({ data, error }) => {
+          if (!error && data?.play_url) {
+            preloadedUrlRef.current = data.play_url;
+          }
+        }).catch(() => {});
+      }
     }
   }, [open, video]);
 
@@ -79,6 +90,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
       setShowLangPicker(false);
       setPlayUrl(null);
       setLoadingPlay(false);
+      preloadedUrlRef.current = null;
     }
   }, [open, video]);
 
@@ -94,6 +106,13 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const handlePlay = useCallback(async () => {
     if (!video) return;
     setIsPlaying(true);
+
+    // Use preloaded URL if available
+    if (preloadedUrlRef.current) {
+      setPlayUrl(preloadedUrlRef.current);
+      return;
+    }
+
     setLoadingPlay(true);
     try {
       const { data, error } = await supabase.functions.invoke("socialkit", {
