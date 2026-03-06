@@ -1066,6 +1066,53 @@ Deno.serve(async (req: Request) => {
         return json({ success: true });
       }
 
+      case "refresh_covers_oembed": {
+        // Free TikTok oEmbed API — no API key needed
+        // Batch update expired cover_url for videos
+        const limit = Math.min(body.limit || 50, 100);
+        const nicheFilter = body.niche || null;
+
+        let q = adminClient
+          .from("videos")
+          .select("id, url, cover_url")
+          .order("trend_score", { ascending: false })
+          .limit(limit);
+
+        if (nicheFilter) q = q.eq("niche", nicheFilter);
+
+        const { data: vids, error: fetchErr } = await q;
+        if (fetchErr) return json({ error: fetchErr.message }, 500);
+        if (!vids?.length) return json({ updated: 0, total: 0 });
+
+        let updated = 0;
+        let failed = 0;
+
+        for (const vid of vids) {
+          try {
+            const oembedRes = await fetch(
+              `https://www.tiktok.com/oembed?url=${encodeURIComponent(vid.url)}`,
+              { headers: { "User-Agent": "Mozilla/5.0" } }
+            );
+            if (!oembedRes.ok) { failed++; continue; }
+            const oembedData = await oembedRes.json();
+            const thumb = oembedData.thumbnail_url;
+            if (thumb && thumb !== vid.cover_url) {
+              await adminClient
+                .from("videos")
+                .update({ cover_url: thumb })
+                .eq("id", vid.id);
+              updated++;
+            }
+          } catch {
+            failed++;
+          }
+          // Small delay to avoid rate limiting
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        return json({ updated, failed, total: vids.length });
+      }
+
       default:
         return json({ error: `Unknown action: ${action}` }, 400);
     }
