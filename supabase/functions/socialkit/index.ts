@@ -63,24 +63,72 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
+    const body = await req.json();
+    const { action } = body;
+    const json = (data: any, status = 200) =>
+      new Response(JSON.stringify(data), {
+        status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ensembleToken = Deno.env.get("ENSEMBLE_DATA_TOKEN")!;
 
+    // Handle cron-safe actions before auth check
+    if (action === "refresh_covers_oembed") {
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const limit = Math.min(body.limit || 50, 100);
+      const nicheFilter = body.niche || null;
+
+      let q = adminClient
+        .from("videos")
+        .select("id, url, cover_url")
+        .order("trend_score", { ascending: false })
+        .limit(limit);
+
+      if (nicheFilter) q = q.eq("niche", nicheFilter);
+
+      const { data: vids, error: fetchErr } = await q;
+      if (fetchErr) return json({ error: fetchErr.message }, 500);
+      if (!vids?.length) return json({ updated: 0, total: 0 });
+
+      let updated = 0;
+      let failed = 0;
+
+      for (const vid of vids) {
+        try {
+          const oembedRes = await fetch(
+            `https://www.tiktok.com/oembed?url=${encodeURIComponent(vid.url)}`,
+            { headers: { "User-Agent": "Mozilla/5.0" } }
+          );
+          if (!oembedRes.ok) { failed++; continue; }
+          const oembedData = await oembedRes.json();
+          const thumb = oembedData.thumbnail_url;
+          if (thumb && thumb !== vid.cover_url) {
+            await adminClient
+              .from("videos")
+              .update({ cover_url: thumb })
+              .eq("id", vid.id);
+            updated++;
+          }
+        } catch {
+          failed++;
+        }
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      return json({ updated, failed, total: vids.length });
+    }
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+
     if (!ensembleToken) {
-      return new Response(JSON.stringify({ error: "ENSEMBLE_DATA_TOKEN not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: "ENSEMBLE_DATA_TOKEN not configured" }, 500);
     }
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -89,21 +137,18 @@ Deno.serve(async (req: Request) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: "Unauthorized" }, 401);
     }
     const userId = claimsData.claims.sub as string;
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // API usage logging
-    const logApiUsage = async (action: string, credits: number, metadata: Record<string, any> = {}) => {
+    const logApiUsage = async (act: string, credits: number, metadata: Record<string, any> = {}) => {
       try {
         await adminClient.from("api_usage_log").insert({
           function_name: "socialkit",
-          action,
+          action: act,
           credits_used: credits,
           metadata,
         });
@@ -111,15 +156,6 @@ Deno.serve(async (req: Request) => {
         console.error("Failed to log API usage:", e);
       }
     };
-
-    const body = await req.json();
-    const { action } = body;
-
-    const json = (data: unknown, status = 200) =>
-      new Response(JSON.stringify(data), {
-        status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
 
     /** Call EnsembleData API */
     const callEnsemble = async (path: string, params: Record<string, string>) => {
@@ -1066,52 +1102,7 @@ Deno.serve(async (req: Request) => {
         return json({ success: true });
       }
 
-      case "refresh_covers_oembed": {
-        // Free TikTok oEmbed API — no API key needed
-        // Batch update expired cover_url for videos
-        const limit = Math.min(body.limit || 50, 100);
-        const nicheFilter = body.niche || null;
-
-        let q = adminClient
-          .from("videos")
-          .select("id, url, cover_url")
-          .order("trend_score", { ascending: false })
-          .limit(limit);
-
-        if (nicheFilter) q = q.eq("niche", nicheFilter);
-
-        const { data: vids, error: fetchErr } = await q;
-        if (fetchErr) return json({ error: fetchErr.message }, 500);
-        if (!vids?.length) return json({ updated: 0, total: 0 });
-
-        let updated = 0;
-        let failed = 0;
-
-        for (const vid of vids) {
-          try {
-            const oembedRes = await fetch(
-              `https://www.tiktok.com/oembed?url=${encodeURIComponent(vid.url)}`,
-              { headers: { "User-Agent": "Mozilla/5.0" } }
-            );
-            if (!oembedRes.ok) { failed++; continue; }
-            const oembedData = await oembedRes.json();
-            const thumb = oembedData.thumbnail_url;
-            if (thumb && thumb !== vid.cover_url) {
-              await adminClient
-                .from("videos")
-                .update({ cover_url: thumb })
-                .eq("id", vid.id);
-              updated++;
-            }
-          } catch {
-            failed++;
-          }
-          // Small delay to avoid rate limiting
-          await new Promise(r => setTimeout(r, 200));
-        }
-
-        return json({ updated, failed, total: vids.length });
-      }
+      // refresh_covers_oembed handled before auth check (for cron support)
 
       default:
         return json({ error: `Unknown action: ${action}` }, 400);
