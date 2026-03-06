@@ -4,6 +4,8 @@ import {
   Trophy, Zap, Target, TrendingUp, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileVideoPlayer } from "./MobileVideoPlayer";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -90,7 +92,9 @@ export function VideoCard({
   const [coverFailed, setCoverFailed] = useState(false);
   const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
   const [coverRefreshing, setCoverRefreshing] = useState(false);
+  const [mobileFullscreen, setMobileFullscreen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isMobile = useIsMobile();
 
   const handleCoverError = useCallback(async () => {
     if (coverRefreshing || refreshedCover !== null) {
@@ -120,6 +124,10 @@ export function VideoCard({
   }, [video.id, video.platform_video_id, video.author_username, coverRefreshing, refreshedCover]);
 
   const handlePlay = async () => {
+    if (isMobile) {
+      setMobileFullscreen(true);
+      return;
+    }
     if (playingId === video.id) {
       onPlay(null);
       setPlayUrl(null);
@@ -352,6 +360,13 @@ export function VideoCard({
             Анализ видео
           </button>
         </div>
+      )}
+      {/* Mobile fullscreen player */}
+      {mobileFullscreen && (
+        <MobileVideoPlayer
+          video={video}
+          onClose={() => setMobileFullscreen(false)}
+        />
       )}
     </div>
   );
