@@ -1197,10 +1197,15 @@ function RefreshSection() {
       toast.error("Выберите хотя бы одну категорию");
       return;
     }
+    const langLabels: Record<string, string> = { all: "все языки", kk: "🇰🇿 қазақша", ru: "🇷🇺 русский", en: "🇬🇧 English" };
     const label = selectAll ? "все категории" : `${selectedNiches.length} категорий`;
-    toast.info(`Обновление запущено: ${label}. Каждая категория будет заполнена до лимита.`);
+    toast.info(`Обновление запущено: ${label}, ${langLabels[refreshLang]}`);
     supabase.functions.invoke("refresh-trends", { 
-      body: { mode: "mass", ...(niches ? { target_niches: niches } : {}) } 
+      body: { 
+        mode: "mass", 
+        ...(niches ? { target_niches: niches } : {}),
+        ...(refreshLang !== "all" ? { lang: refreshLang } : {}),
+      } 
     }).then(() => {
       queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
     }).catch(() => {
