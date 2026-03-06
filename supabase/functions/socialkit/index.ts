@@ -79,20 +79,32 @@ Deno.serve(async (req: Request) => {
     // Handle cron-safe actions before auth check
     if (action === "refresh_covers_oembed") {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
-      const limit = Math.min(body.limit || 50, 100);
-      const nicheFilter = body.niche || null;
+      const batchSize = Math.min(body.limit || 50, 100);
+      const offset = body.offset || 0;
+      const massMode = body.mass === true; // mass = process ALL videos via self-chaining
+
+      // Get total count for mass mode tracking
+      let totalCount = 0;
+      if (massMode && offset === 0) {
+        const { count } = await adminClient.from("videos").select("id", { count: "exact", head: true });
+        totalCount = count || 0;
+        console.log(`[cover-refresh] Mass mode started. Total videos: ${totalCount}`);
+      }
 
       let q = adminClient
         .from("videos")
         .select("id, url, cover_url")
-        .order("trend_score", { ascending: false })
-        .limit(limit);
+        .order("created_at", { ascending: true })
+        .range(offset, offset + batchSize - 1);
 
-      if (nicheFilter) q = q.eq("niche", nicheFilter);
+      if (body.niche) q = q.eq("niche", body.niche);
 
       const { data: vids, error: fetchErr } = await q;
       if (fetchErr) return json({ error: fetchErr.message }, 500);
-      if (!vids?.length) return json({ updated: 0, total: 0 });
+      if (!vids?.length) {
+        console.log(`[cover-refresh] Done. No more videos at offset ${offset}`);
+        return json({ updated: 0, failed: 0, total: 0, offset, done: true });
+      }
 
       let updated = 0;
       let failed = 0;
@@ -116,10 +128,32 @@ Deno.serve(async (req: Request) => {
         } catch {
           failed++;
         }
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 150));
       }
 
-      return json({ updated, failed, total: vids.length });
+      const nextOffset = offset + vids.length;
+      console.log(`[cover-refresh] Batch done: offset=${offset}, updated=${updated}, failed=${failed}, next=${nextOffset}`);
+
+      // Self-chain if mass mode and there are more videos
+      if (massMode && vids.length === batchSize) {
+        const selfUrl = `${supabaseUrl}/functions/v1/socialkit`;
+        fetch(selfUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            action: "refresh_covers_oembed",
+            mass: true,
+            offset: nextOffset,
+            limit: batchSize,
+            ...(body.niche ? { niche: body.niche } : {}),
+          }),
+        }).catch(e => console.error("[cover-refresh] Self-chain error:", e));
+      }
+
+      return json({ updated, failed, total: vids.length, offset, nextOffset, done: vids.length < batchSize });
     }
 
     const authHeader = req.headers.get("Authorization");
