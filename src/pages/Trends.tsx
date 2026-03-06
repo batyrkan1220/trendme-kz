@@ -210,32 +210,34 @@ export default function Trends() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {NICHE_GROUPS.map((group) => (
-                <DropdownMenuSub key={group.key}>
-                  <DropdownMenuSubTrigger
-                    className={`cursor-pointer ${parsedFilter.niche === group.key ? "bg-primary/10 text-primary" : ""}`}
-                    onClick={() => { setNicheFilter(group.key); setVisibleCount(PAGE_SIZE); }}
+                <div key={group.key}>
+                  <DropdownMenuItem
+                    className={`cursor-pointer justify-between ${parsedFilter.niche === group.key ? "bg-primary/10 text-primary" : ""}`}
+                    onSelect={(e) => { e.preventDefault(); setExpandedNiche(prev => prev === group.key ? null : group.key); }}
                   >
-                    <span className="mr-2">{group.emoji}</span> {group.label}
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="max-h-80 overflow-y-auto w-56">
-                    <DropdownMenuItem
-                      onClick={() => { setNicheFilter(group.key); setVisibleCount(PAGE_SIZE); }}
-                      className={`cursor-pointer font-semibold ${nicheFilter === group.key ? "bg-primary/10 text-primary" : ""}`}
-                    >
-                      {group.emoji} Все {group.label}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {group.subNiches.map((sub) => (
+                    <span><span className="mr-2">{group.emoji}</span>{group.label}</span>
+                    <ChevronRight className={`h-3.5 w-3.5 transition-transform ${expandedNiche === group.key ? "rotate-90" : ""}`} />
+                  </DropdownMenuItem>
+                  {expandedNiche === group.key && (
+                    <div className="pl-4 border-l-2 border-primary/20 ml-3 my-1">
                       <DropdownMenuItem
-                        key={sub.key}
-                        onClick={() => { setNicheFilter(`${group.key}:${sub.key}`); setVisibleCount(PAGE_SIZE); }}
-                        className={`cursor-pointer ${parsedFilter.subNiche === sub.key ? "bg-primary/10 text-primary" : ""}`}
+                        onClick={() => { setNicheFilter(group.key); setVisibleCount(PAGE_SIZE); }}
+                        className={`cursor-pointer font-semibold text-xs ${nicheFilter === group.key ? "bg-primary/10 text-primary" : ""}`}
                       >
-                        {sub.label}
+                        {group.emoji} Все {group.label}
                       </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+                      {group.subNiches.map((sub) => (
+                        <DropdownMenuItem
+                          key={sub.key}
+                          onClick={() => { setNicheFilter(`${group.key}:${sub.key}`); setVisibleCount(PAGE_SIZE); }}
+                          className={`cursor-pointer text-xs ${parsedFilter.subNiche === sub.key && parsedFilter.niche === group.key ? "bg-primary/10 text-primary" : ""}`}
+                        >
+                          {sub.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
