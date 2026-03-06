@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
   Trophy, Zap, Target, TrendingUp, Loader2
