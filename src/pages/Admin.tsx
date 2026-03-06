@@ -1780,41 +1780,33 @@ function StatsSection() {
   const [initialized, setInitialized] = useState(false);
   const [selectedNiches, setSelectedNiches] = useState<Set<string>>(new Set());
   const [bulkLimitValue, setBulkLimitValue] = useState("");
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
-  const { data: nicheData, isLoading } = useQuery({
-    queryKey: ["admin-niche-stats"],
+  // Fetch video counts by sub_niche (7d only)
+  const { data: subNicheCounts = {}, isLoading } = useQuery({
+    queryKey: ["admin-subniche-stats"],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      const fetchAll = async (filter?: { gte?: string }) => {
-        const counts: Record<string, number> = {};
-        let uniqueCount = 0;
-        let from = 0;
-        const PAGE = 1000;
-        while (true) {
-          let q = supabase.from("videos").select("categories", { count: "exact" }).range(from, from + PAGE - 1);
-          if (filter?.gte) q = q.gte("published_at", filter.gte);
-          const { data, error } = await q;
-          if (error || !data || data.length === 0) break;
-          uniqueCount += data.length;
-          for (const v of data) {
-            const cats = (v as any).categories as string[] | null;
-            if (cats && cats.length > 0) {
-              for (const c of cats) counts[c] = (counts[c] || 0) + 1;
-            } else {
-              counts["uncategorized"] = (counts["uncategorized"] || 0) + 1;
-            }
-          }
-          if (data.length < PAGE) break;
-          from += PAGE;
+      const counts: Record<string, number> = {};
+      let from = 0;
+      const PAGE = 1000;
+      while (true) {
+        const { data, error } = await supabase
+          .from("videos")
+          .select("sub_niche")
+          .gte("published_at", sevenDaysAgo)
+          .range(from, from + PAGE - 1);
+        if (error || !data || data.length === 0) break;
+        for (const v of data) {
+          const sn = (v as any).sub_niche;
+          if (sn) counts[sn] = (counts[sn] || 0) + 1;
         }
-        return { counts, uniqueCount };
-      };
-      const [totalRes, recentRes] = await Promise.all([fetchAll(), fetchAll({ gte: sevenDaysAgo })]);
-      const allNiches = new Set([...Object.keys(totalRes.counts), ...Object.keys(recentRes.counts)]);
-      const stats = [...allNiches].map((niche) => ({ niche, total: totalRes.counts[niche] || 0, recent: recentRes.counts[niche] || 0 })).sort((a, b) => b.total - a.total);
-      return { stats, uniqueTotal: totalRes.uniqueCount, uniqueRecent: recentRes.uniqueCount };
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      return counts;
     },
-    refetchInterval: 5000,
+    refetchInterval: 10000,
   });
 
   const { data: savedLimits } = useQuery({
@@ -1825,16 +1817,22 @@ function StatsSection() {
     },
   });
 
-  // Init local state from saved limits once
+  // Load niche_queries for language keyword counts
+  const { data: nicheQueries = {} } = useQuery({
+    queryKey: ["niche-queries-for-stats"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
+      return (data?.value as Record<string, any>) || {};
+    },
+  });
+
   if (savedLimits && !initialized) {
     setCategoryLimits(savedLimits);
     setInitialized(true);
   }
 
-  // Merge: local overrides saved
   const effectiveLimits: Record<string, number | null> = { ...savedLimits, ...categoryLimits };
 
-  // Filter out null/0 values before saving
   const cleanLimits = () => {
     const clean: Record<string, number> = {};
     for (const [k, v] of Object.entries(effectiveLimits)) {
@@ -1856,7 +1854,7 @@ function StatsSection() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["category-limits-setting"] });
       setHasChanges(false);
-      toast.success("Лимиты категорий сохранены");
+      toast.success("Лимиты сохранены");
     },
     onError: () => toast.error("Ошибка сохранения"),
   });
@@ -1870,15 +1868,28 @@ function StatsSection() {
     setHasChanges(true);
   };
 
+  // Calculate totals
+  const totalVideos7d = Object.values(subNicheCounts).reduce((a, b) => a + b, 0);
+
+  // Get all sub-niche keys
+  const allSubNicheKeys = NICHE_GROUPS.flatMap(g => g.subNiches.map(s => s.key));
+
+  const getLangCounts = (subKey: string) => {
+    const q = nicheQueries[subKey];
+    if (!q || Array.isArray(q)) return { kk: 0, ru: 0, en: 0 };
+    return { kk: (q.kk || []).length, ru: (q.ru || []).length, en: (q.en || []).length };
+  };
+
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-  const nicheStats = nicheData?.stats || [];
-  const totalAll = nicheData?.uniqueTotal || 0;
-  const recentAll = nicheData?.uniqueRecent || 0;
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-lg flex items-center gap-2">Статистика по категориям <Badge variant="secondary">{totalAll} всего / {recentAll} за 7 дней</Badge></CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            Статистика по нишам
+            <Badge variant="secondary">{totalVideos7d} видео за 7 дней</Badge>
+          </CardTitle>
           {hasChanges && (
             <Button size="sm" onClick={() => saveLimits.mutate()} disabled={saveLimits.isPending} className="gap-1.5">
               {saveLimits.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -1895,18 +1906,17 @@ function StatsSection() {
             variant="outline"
             className="text-xs h-7"
             onClick={() => {
-              const allNicheKeys = nicheStats.filter(s => s.niche !== "uncategorized").map(s => s.niche);
-              if (selectedNiches.size === allNicheKeys.length) {
+              if (selectedNiches.size === allSubNicheKeys.length) {
                 setSelectedNiches(new Set());
               } else {
-                setSelectedNiches(new Set(allNicheKeys));
+                setSelectedNiches(new Set(allSubNicheKeys));
               }
             }}
           >
-            {selectedNiches.size === nicheStats.filter(s => s.niche !== "uncategorized").length && selectedNiches.size > 0 ? "Снять все" : "Выбрать все"}
+            {selectedNiches.size === allSubNicheKeys.length && selectedNiches.size > 0 ? "Снять все" : "Выбрать все"}
           </Button>
           <span className="text-xs text-muted-foreground">
-            {selectedNiches.size > 0 ? `Выбрано: ${selectedNiches.size}` : "Выберите категории"}
+            {selectedNiches.size > 0 ? `Выбрано: ${selectedNiches.size}` : "Выберите под-ниши"}
           </span>
           <div className="flex items-center gap-1.5 ml-auto">
             <Input
@@ -1929,7 +1939,7 @@ function StatsSection() {
                   return updated;
                 });
                 setHasChanges(true);
-                toast.success(`Лимит ${val || "∞"} установлен для ${selectedNiches.size} категорий`);
+                toast.success(`Лимит ${val || "∞"} установлен для ${selectedNiches.size} под-ниш`);
                 setSelectedNiches(new Set());
                 setBulkLimitValue("");
               }}
@@ -1939,48 +1949,96 @@ function StatsSection() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 px-2 text-xs text-muted-foreground">
-          <span className="w-6" />
-          <span className="w-28">Категория</span>
-          <span className="flex-1" />
-          <span className="w-20 text-right">Всего</span>
-          <span className="w-16 text-center">7 дней</span>
-          <span className="w-20 text-center">Лимит</span>
-        </div>
-        <div className="space-y-1 max-h-[500px] overflow-y-auto">
-          {nicheStats.filter(s => s.niche !== "uncategorized").map((s) => (
-            <div key={s.niche} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/30">
-              <input
-                type="checkbox"
-                checked={selectedNiches.has(s.niche)}
-                onChange={() => {
-                  setSelectedNiches(prev => {
-                    const next = new Set(prev);
-                    if (next.has(s.niche)) next.delete(s.niche);
-                    else next.add(s.niche);
-                    return next;
-                  });
-                }}
-                className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
-              />
-              <span className="text-sm font-medium w-28 truncate">{s.niche}</span>
-              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${Math.min(100, (s.total / (nicheStats[0]?.total || 1)) * 100)}%` }} />
+        {/* Hierarchical niche list */}
+        <div className="space-y-1 max-h-[600px] overflow-y-auto">
+          {NICHE_GROUPS.map((group) => {
+            const isExpanded = expandedGroup === group.key;
+            const groupVideoCount = group.subNiches.reduce((sum, s) => sum + (subNicheCounts[s.key] || 0), 0);
+            const groupSubCount = group.subNiches.length;
+
+            return (
+              <div key={group.key}>
+                {/* Group header */}
+                <button
+                  onClick={() => setExpandedGroup(isExpanded ? null : group.key)}
+                  className="w-full flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors"
+                >
+                  <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                  <span className="text-base">{group.emoji}</span>
+                  <span className="font-semibold text-sm text-foreground">{group.label}</span>
+                  <Badge variant="secondary" className="text-xs ml-auto">{groupVideoCount} / 7д</Badge>
+                  <Badge variant="outline" className="text-xs">{groupSubCount} под-ниш</Badge>
+                </button>
+
+                {/* Sub-niches */}
+                {isExpanded && (
+                  <div className="ml-6 space-y-0.5 pb-2">
+                    {/* Header row */}
+                    <div className="flex items-center gap-2 px-2 py-1 text-[10px] text-muted-foreground uppercase tracking-wider">
+                      <span className="w-5" />
+                      <span className="flex-1">Под-ниша</span>
+                      <span className="w-14 text-center">7 дней</span>
+                      <span className="w-10 text-center text-blue-400">KK</span>
+                      <span className="w-10 text-center text-green-400">RU</span>
+                      <span className="w-10 text-center text-orange-400">EN</span>
+                      <span className="w-16 text-center">Лимит</span>
+                    </div>
+                    {group.subNiches.map((sub) => {
+                      const count7d = subNicheCounts[sub.key] || 0;
+                      const limit = effectiveLimits[sub.key];
+                      const isFull = limit != null && limit > 0 && count7d >= limit;
+                      const langCounts = getLangCounts(sub.key);
+                      const isChecked = selectedNiches.has(sub.key);
+
+                      return (
+                        <div key={sub.key} className={`flex items-center gap-2 py-1.5 px-2 rounded transition-colors ${isFull ? "bg-primary/5" : "hover:bg-muted/30"}`}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              setSelectedNiches(prev => {
+                                const next = new Set(prev);
+                                if (next.has(sub.key)) next.delete(sub.key);
+                                else next.add(sub.key);
+                                return next;
+                              });
+                            }}
+                            className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer"
+                          />
+                          <span className="flex-1 text-sm font-medium truncate">{sub.label}</span>
+                          <Badge
+                            variant={count7d === 0 ? "destructive" : isFull ? "default" : "secondary"}
+                            className="text-xs w-14 justify-center"
+                          >
+                            {count7d}
+                          </Badge>
+                          <span className={`text-xs w-10 text-center ${langCounts.kk === 0 ? "text-destructive" : "text-blue-400"}`}>
+                            {langCounts.kk}
+                          </span>
+                          <span className={`text-xs w-10 text-center ${langCounts.ru === 0 ? "text-destructive" : "text-green-400"}`}>
+                            {langCounts.ru}
+                          </span>
+                          <span className={`text-xs w-10 text-center ${langCounts.en === 0 ? "text-destructive" : "text-orange-400"}`}>
+                            {langCounts.en}
+                          </span>
+                          <Input
+                            type="number"
+                            className="w-16 h-6 text-xs text-center"
+                            placeholder="∞"
+                            value={limit ?? ""}
+                            onChange={(e) => updateLimit(sub.key, e.target.value)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              <span className="text-sm text-muted-foreground w-20 text-right">{s.total}</span>
-              <Badge variant={s.recent < 20 ? "destructive" : "default"} className="text-xs w-16 justify-center">{s.recent} / 7д</Badge>
-              <Input
-                type="number"
-                className="w-20 h-7 text-xs text-center"
-                placeholder="∞"
-                value={effectiveLimits[s.niche] ?? ""}
-                onChange={(e) => updateLimit(s.niche, e.target.value)}
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
         <p className="text-xs text-muted-foreground pt-2">
-          Лимит — максимум видео в категории. При обновлении категория с количеством ≥ лимит будет пропущена. Пустое поле = без лимита.
+          Лимит — максимум видео за 7 дней в под-нише. KK/RU/EN — количество запросов по языкам. Пустое поле = без лимита.
         </p>
       </CardContent>
     </Card>
