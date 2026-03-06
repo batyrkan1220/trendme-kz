@@ -616,6 +616,8 @@ Deno.serve(async (req: Request) => {
 
           const trends = computeTrend(views, likes, comments, publishedAt);
 
+    const resolved = resolveNiche(nicheKey);
+
           return {
             platform: "tiktok",
             platform_video_id: String(awemeId),
@@ -632,8 +634,9 @@ Deno.serve(async (req: Request) => {
             duration_sec: duration,
             fetched_at: nowIso,
             region: "world",
-            niche: nicheKey,
-            categories: [nicheKey],
+            niche: resolved.niche,
+            sub_niche: resolved.sub_niche,
+            categories: [resolved.niche],
             published_at: publishedAtStr,
             ...trends,
           };
