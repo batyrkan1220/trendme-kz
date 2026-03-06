@@ -46,7 +46,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
   useEffect(() => {
     if (open && video) {
-      trackViewContent(video.caption || video.url, video.niche || undefined);
+      trackViewContent(video.caption || video.url);
     }
   }, [open, video]);
 
