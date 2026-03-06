@@ -232,31 +232,30 @@ No explanation, no markdown, just JSON.`
       }
 
       try {
-        const results: [number, string[]][] = JSON.parse(match[0]);
+        const results: [number, string][] = JSON.parse(match[0]);
 
-        for (const [idx, cats] of results) {
+        for (const [idx, subNiche] of results) {
           const video = batch[idx];
           if (!video) continue;
 
-          const validCats = cats.filter(c => ACTIVE_CATEGORIES.includes(c));
-          if (video.niche && !validCats.includes(video.niche)) {
-            validCats.unshift(video.niche);
-          }
-          if (validCats.length === 0) continue;
-
-          const currentCats = video.categories || [];
-          const sortedNew = [...validCats].sort();
-          const sortedOld = [...currentCats].sort();
-
-          if (JSON.stringify(sortedNew) === JSON.stringify(sortedOld)) {
+          // Validate sub-niche
+          const mainNiche = SUB_NICHE_TO_NICHE[subNiche];
+          if (!mainNiche) {
             unchanged++;
             continue;
           }
 
-          const updateData: any = { categories: validCats };
-          if (!video.niche || video.niche === 'other' || !ACTIVE_CATEGORIES.includes(video.niche)) {
-            updateData.niche = validCats[0];
+          // Check if already correct
+          if ((video as any).sub_niche === subNiche && video.niche === mainNiche) {
+            unchanged++;
+            continue;
           }
+
+          const updateData: any = {
+            niche: mainNiche,
+            sub_niche: subNiche,
+            categories: [mainNiche],
+          };
 
           const { error: upErr } = await adminClient
             .from("videos")
@@ -270,7 +269,7 @@ No explanation, no markdown, just JSON.`
           }
         }
       } catch (e) {
-        console.error(`Parse error for batch at ${i}:`, e.message);
+        console.error(`Parse error for batch at ${i}:`, (e as any).message);
       }
 
       // Update progress in log after each batch
