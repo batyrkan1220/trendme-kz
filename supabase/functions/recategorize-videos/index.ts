@@ -154,7 +154,7 @@ Deno.serve(async (req: Request) => {
     // Fetch videos
     let q = adminClient
       .from("videos")
-      .select("id, caption, niche, categories, author_username")
+      .select("id, caption, niche, sub_niche, categories, author_username")
       .order("created_at", { ascending: true });
 
     if (onlyOther) q = q.eq("niche", "other");
