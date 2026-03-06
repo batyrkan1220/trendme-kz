@@ -995,17 +995,25 @@ Deno.serve(async (req: Request) => {
           await logApiUsage("refresh_cover", 1, { platform_video_id });
 
           const rawData = data?.data || data;
-          const innerData = rawData?.["0"] || rawData;
+          // EnsembleData may nest post info under various keys
+          const innerData = rawData?.aweme_detail || rawData?.aweme_details?.[0] || rawData?.["0"] || rawData;
           const postData = unwrapVideo(innerData);
 
           if (!postData) return json({ error: "Video not found" }, 404);
 
           const videoInfo = postData.video || {};
           const author = postData.author || {};
-          const newCover = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+          const newCover = videoInfo.cover?.url_list?.[0] 
+            || videoInfo.origin_cover?.url_list?.[0] 
+            || videoInfo.dynamic_cover?.url_list?.[0]
+            || postData.cover_url
+            || "";
           const newAvatar = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
 
-          if (!newCover) return json({ error: "No cover found" }, 404);
+          if (!newCover) {
+            console.log("No cover found in response. Keys:", JSON.stringify(Object.keys(postData)).slice(0, 300));
+            return json({ cover_url: null, error: "No cover found" }, 200);
+          }
 
           if (video_id) {
             const updateFields: Record<string, any> = {
