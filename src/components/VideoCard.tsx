@@ -28,6 +28,18 @@ const getTimeAgo = (published_at: string | number | null) => {
   return `${Math.floor(d / 30)} мес. назад`;
 };
 
+/** Convert TikTok origin cover URLs to smaller cropcenter variants */
+function optimizeCoverUrl(url: string | null | undefined): string | null | undefined {
+  if (!url) return url;
+  if (url.includes("tplv-tiktokx-origin.image")) {
+    return url.replace(
+      /tplv-tiktokx-origin\.image/,
+      "tplv-tiktokx-cropcenter-q:300:400:q72.jpeg"
+    );
+  }
+  return url;
+}
+
 type TrendTier = "strong" | "mid" | "micro";
 
 const getTier = (views: number): TrendTier | null => {
@@ -184,7 +196,7 @@ export function VideoCard({
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
   const velViews = video.velocity_views || 0;
-  const activeCover = refreshedCover || video.cover_url || video.cover;
+  const activeCover = optimizeCoverUrl(refreshedCover || video.cover_url || video.cover);
   const caption = video.caption || video.desc || "";
   const videoId = video.platform_video_id || video.id;
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
