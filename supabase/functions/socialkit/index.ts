@@ -81,14 +81,20 @@ Deno.serve(async (req: Request) => {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
       const batchSize = Math.min(body.limit || 50, 100);
       const offset = body.offset || 0;
-      const massMode = body.mass === true; // mass = process ALL videos via self-chaining
+      const massMode = body.mass === true;
+      let logId = body.log_id || null;
 
-      // Get total count for mass mode tracking
-      let totalCount = 0;
+      // First batch in mass mode: create log entry with total count
       if (massMode && offset === 0) {
         const { count } = await adminClient.from("videos").select("id", { count: "exact", head: true });
-        totalCount = count || 0;
-        console.log(`[cover-refresh] Mass mode started. Total videos: ${totalCount}`);
+        const totalCount = count || 0;
+        const { data: logRow } = await adminClient.from("cover_refresh_logs").insert({
+          total_videos: totalCount,
+          status: "running",
+          triggered_by: body.triggered_by || null,
+        }).select("id").single();
+        logId = logRow?.id || null;
+        console.log(`[cover-refresh] Mass mode started. Total: ${totalCount}, logId: ${logId}`);
       }
 
       let q = adminClient
@@ -100,10 +106,15 @@ Deno.serve(async (req: Request) => {
       if (body.niche) q = q.eq("niche", body.niche);
 
       const { data: vids, error: fetchErr } = await q;
-      if (fetchErr) return json({ error: fetchErr.message }, 500);
+      if (fetchErr) {
+        if (logId) await adminClient.from("cover_refresh_logs").update({ status: "error", error_message: fetchErr.message, finished_at: new Date().toISOString() }).eq("id", logId);
+        return json({ error: fetchErr.message }, 500);
+      }
       if (!vids?.length) {
+        // Done — finalize log
+        if (logId) await adminClient.from("cover_refresh_logs").update({ status: "done", finished_at: new Date().toISOString(), current_offset: offset }).eq("id", logId);
         console.log(`[cover-refresh] Done. No more videos at offset ${offset}`);
-        return json({ updated: 0, failed: 0, total: 0, offset, done: true });
+        return json({ updated: 0, failed: 0, total: 0, offset, done: true, log_id: logId });
       }
 
       let updated = 0;
@@ -119,10 +130,7 @@ Deno.serve(async (req: Request) => {
           const oembedData = await oembedRes.json();
           const thumb = oembedData.thumbnail_url;
           if (thumb && thumb !== vid.cover_url) {
-            await adminClient
-              .from("videos")
-              .update({ cover_url: thumb })
-              .eq("id", vid.id);
+            await adminClient.from("videos").update({ cover_url: thumb }).eq("id", vid.id);
             updated++;
           }
         } catch {
@@ -132,7 +140,20 @@ Deno.serve(async (req: Request) => {
       }
 
       const nextOffset = offset + vids.length;
-      console.log(`[cover-refresh] Batch done: offset=${offset}, updated=${updated}, failed=${failed}, next=${nextOffset}`);
+      console.log(`[cover-refresh] Batch: offset=${offset}, updated=${updated}, failed=${failed}, next=${nextOffset}`);
+
+      // Update log with cumulative progress
+      if (logId) {
+        // Use raw SQL to increment counters atomically
+        await adminClient.rpc("exec_sql" as any, {} as any).catch(() => {});
+        // Fallback: read current values and add
+        const { data: currentLog } = await adminClient.from("cover_refresh_logs").select("total_updated, total_failed").eq("id", logId).single();
+        await adminClient.from("cover_refresh_logs").update({
+          total_updated: (currentLog?.total_updated || 0) + updated,
+          total_failed: (currentLog?.total_failed || 0) + failed,
+          current_offset: nextOffset,
+        }).eq("id", logId);
+      }
 
       // Self-chain if mass mode and there are more videos
       if (massMode && vids.length === batchSize) {
@@ -148,12 +169,23 @@ Deno.serve(async (req: Request) => {
             mass: true,
             offset: nextOffset,
             limit: batchSize,
+            log_id: logId,
             ...(body.niche ? { niche: body.niche } : {}),
           }),
         }).catch(e => console.error("[cover-refresh] Self-chain error:", e));
+      } else if (massMode && vids.length < batchSize && logId) {
+        // Last batch — finalize
+        const { data: finalLog } = await adminClient.from("cover_refresh_logs").select("total_updated, total_failed").eq("id", logId).single();
+        await adminClient.from("cover_refresh_logs").update({
+          status: "done",
+          finished_at: new Date().toISOString(),
+          total_updated: (finalLog?.total_updated || 0) + updated,
+          total_failed: (finalLog?.total_failed || 0) + failed,
+          current_offset: nextOffset,
+        }).eq("id", logId);
       }
 
-      return json({ updated, failed, total: vids.length, offset, nextOffset, done: vids.length < batchSize });
+      return json({ updated, failed, total: vids.length, offset, nextOffset, done: vids.length < batchSize, log_id: logId });
     }
 
     const authHeader = req.headers.get("Authorization");
