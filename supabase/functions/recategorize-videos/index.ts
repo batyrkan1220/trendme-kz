@@ -6,86 +6,44 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const MAIN_NICHES = [
-  "business", "beauty", "fashion", "food", "fitness", "auto", "home",
-  "family", "psychology", "entertainment", "media", "animals", "travel",
-  "ai", "hobby", "other"
-];
-
-const ALL_SUB_NICHES = [
-  // business
-  "finance", "investing", "crypto", "business_ideas", "startups", "marketing",
-  "smm", "target_ads", "sales", "online_business", "freelance", "career",
-  // beauty
-  "cosmetology", "skincare", "makeup", "haircare", "hairstyles", "barbershop",
-  "manicure", "pedicure", "laser_epilation", "plastic_surgery", "beauty_hacks",
-  // fashion
-  "clothing", "women_clothing", "men_clothing", "kids_clothing", "shoes",
-  "bags", "accessories", "streetwear", "luxury_fashion", "branded_clothing", "shopping",
-  // food
-  "recipes", "quick_recipes", "home_cooking", "national_cuisine", "fastfood",
-  "restaurants", "restaurant_reviews", "cafes", "street_food", "food_delivery",
-  "cooking_hacks", "desserts", "baking",
-  // fitness
-  "fitness_general", "home_workouts", "gym", "weight_loss", "muscle_gain",
-  "yoga", "pilates", "healthy_lifestyle", "diet", "sports_nutrition",
-  // auto
-  "auto_reviews", "chinese_auto", "tuning", "auto_hacks", "auto_repair",
-  "auto_news", "car_dealership", "electric_vehicles",
-  // home
-  "renovation", "interior", "home_design", "furniture", "cozy_home", "organization", "garden",
-  // family
-  "motherhood", "pregnancy", "newborns", "parenting", "family_life",
-  // psychology
-  "psychology_general", "relationships", "self_development", "motivation", "mental_health",
-  // entertainment
-  "humor", "sketches", "memes", "challenges", "reactions",
-  // media
-  "music", "cinema", "series", "pop_culture", "dance",
-  // animals
-  "dogs", "cats", "pets", "pet_care",
-  // travel
-  "travel_general", "hotels", "tourism", "travel_hacks",
-  // ai
-  "neural_networks", "ai_tools", "ai_generation", "ai_avatars", "ai_video",
-  // hobby
-  "crafts", "diy", "drawing", "photography",
-  // other
-  "esoteric", "tarot", "astrology",
-];
-
-const SUB_NICHE_TO_NICHE: Record<string, string> = {
-  finance: "business", investing: "business", crypto: "business", business_ideas: "business",
-  startups: "business", marketing: "business", smm: "business", target_ads: "business",
-  sales: "business", online_business: "business", freelance: "business", career: "business",
-  cosmetology: "beauty", skincare: "beauty", makeup: "beauty", haircare: "beauty",
-  hairstyles: "beauty", barbershop: "beauty", manicure: "beauty", pedicure: "beauty",
-  laser_epilation: "beauty", plastic_surgery: "beauty", beauty_hacks: "beauty",
-  clothing: "fashion", women_clothing: "fashion", men_clothing: "fashion", kids_clothing: "fashion",
-  shoes: "fashion", bags: "fashion", accessories: "fashion", streetwear: "fashion",
-  luxury_fashion: "fashion", branded_clothing: "fashion", shopping: "fashion",
-  recipes: "food", quick_recipes: "food", home_cooking: "food", national_cuisine: "food",
-  fastfood: "food", restaurants: "food", restaurant_reviews: "food", cafes: "food",
-  street_food: "food", food_delivery: "food", cooking_hacks: "food", desserts: "food", baking: "food",
-  fitness_general: "fitness", home_workouts: "fitness", gym: "fitness", weight_loss: "fitness",
-  muscle_gain: "fitness", yoga: "fitness", pilates: "fitness", healthy_lifestyle: "fitness",
-  diet: "fitness", sports_nutrition: "fitness",
-  auto_reviews: "auto", chinese_auto: "auto", tuning: "auto", auto_hacks: "auto",
-  auto_repair: "auto", auto_news: "auto", car_dealership: "auto", electric_vehicles: "auto",
-  renovation: "home", interior: "home", home_design: "home", furniture: "home",
-  cozy_home: "home", organization: "home", garden: "home",
-  motherhood: "family", pregnancy: "family", newborns: "family", parenting: "family", family_life: "family",
-  psychology_general: "psychology", relationships: "psychology", self_development: "psychology",
-  motivation: "psychology", mental_health: "psychology",
-  humor: "entertainment", sketches: "entertainment", memes: "entertainment",
-  challenges: "entertainment", reactions: "entertainment",
-  music: "media", cinema: "media", series: "media", pop_culture: "media", dance: "media",
-  dogs: "animals", cats: "animals", pets: "animals", pet_care: "animals",
-  travel_general: "travel", hotels: "travel", tourism: "travel", travel_hacks: "travel",
-  neural_networks: "ai", ai_tools: "ai", ai_generation: "ai", ai_avatars: "ai", ai_video: "ai",
-  crafts: "hobby", diy: "hobby", drawing: "hobby", photography: "hobby",
-  esoteric: "other", tarot: "other", astrology: "other",
+// ========== New niche/sub-niche system (synced with niches.ts) ==========
+const NICHE_GROUPS: Record<string, string[]> = {
+  business: ["finance", "crypto", "business_ideas", "marketing", "freelance", "ecommerce"],
+  beauty: ["skincare", "makeup", "haircare", "manicure", "cosmetology", "perfume"],
+  fashion: ["clothing", "shoes", "accessories", "luxury_fashion", "jewelry", "shopping"],
+  food: ["recipes", "home_cooking", "restaurants", "street_food", "desserts", "coffee_tea"],
+  fitness: ["home_workouts", "gym", "weight_loss", "yoga", "healthy_lifestyle", "sports_nutrition"],
+  sports: ["football", "mma_boxing", "basketball", "sports_news", "extreme_sports"],
+  education: ["languages", "english", "school_ent", "online_courses", "books"],
+  gaming: ["mobile_games", "pc_games", "game_reviews", "streaming", "esports"],
+  tech: ["programming", "gadgets", "tech_reviews", "apps"],
+  auto: ["auto_reviews", "chinese_auto", "tuning", "auto_repair", "electric_vehicles", "moto"],
+  home: ["renovation", "interior", "furniture", "organization", "garden"],
+  family: ["motherhood", "pregnancy", "parenting", "family_life", "wedding"],
+  psychology: ["relationships", "self_development", "motivation", "mental_health", "productivity"],
+  entertainment: ["humor", "memes", "challenges", "asmr"],
+  media: ["music", "cinema", "dance", "anime"],
+  animals: ["pets", "pet_care"],
+  travel: ["travel_general", "hotels", "kazakhstan_travel"],
+  ai: ["neural_networks", "ai_tools", "ai_generation", "chatgpt"],
+  hobby: ["crafts", "drawing", "photography"],
+  medicine: ["doctors", "dentistry", "pharmacy", "nutrition_health"],
+  realestate: ["apartments", "mortgage", "new_buildings", "construction"],
+  blogging: ["content_creation", "video_editing", "promotion", "monetization", "personal_brand"],
+  kazakh_culture: ["kazakh_cuisine", "kazakh_history", "kazakh_traditions", "kazakh_language", "kazakh_music", "kazakh_celebrities"],
 };
+
+// Build reverse map: sub_niche → niche
+const SUB_NICHE_TO_NICHE: Record<string, string> = {};
+const ALL_SUB_NICHES: string[] = [];
+for (const [niche, subs] of Object.entries(NICHE_GROUPS)) {
+  for (const sub of subs) {
+    SUB_NICHE_TO_NICHE[sub] = niche;
+    ALL_SUB_NICHES.push(sub);
+  }
+}
+
+const MAIN_NICHES = Object.keys(NICHE_GROUPS);
 
 const BATCH_SIZE = 50;
 const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -111,23 +69,18 @@ Deno.serve(async (req: Request) => {
 
     let offset = 0;
     let limit = 200;
-    let onlyOther = false;
     let logId: string | null = null;
     try {
       const body = await req.json();
       if (typeof body?.offset === "number") offset = body.offset;
       if (typeof body?.limit === "number") limit = body.limit;
-      if (body?.only_other === true) onlyOther = true;
       if (body?.log_id) logId = body.log_id;
     } catch {}
 
     // Count total videos for progress tracking
     let totalVideos = 0;
     if (!logId) {
-      // First call — create log entry
-      let countQuery = adminClient.from("videos").select("id", { count: "exact", head: true });
-      if (onlyOther) countQuery = countQuery.eq("niche", "other");
-      const { count } = await countQuery;
+      const { count } = await adminClient.from("videos").select("id", { count: "exact", head: true });
       totalVideos = count || 0;
 
       const { data: logData, error: logErr } = await adminClient.from("recat_logs").insert({
@@ -152,18 +105,14 @@ Deno.serve(async (req: Request) => {
     }
 
     // Fetch videos
-    let q = adminClient
+    const { data: videos, error: fetchErr } = await adminClient
       .from("videos")
-      .select("id, caption, niche, sub_niche, categories, author_username")
-      .order("created_at", { ascending: true });
-
-    if (onlyOther) q = q.eq("niche", "other");
-
-    const { data: videos, error: fetchErr } = await q.range(offset, offset + limit - 1);
+      .select("id, caption, niche, sub_niche, author_username")
+      .order("created_at", { ascending: true })
+      .range(offset, offset + limit - 1);
 
     if (fetchErr) throw new Error(`Fetch error: ${fetchErr.message}`);
     if (!videos || videos.length === 0) {
-      // Done — mark log as done
       if (logId) {
         await adminClient.from("recat_logs").update({
           status: "done",
@@ -200,6 +149,8 @@ Deno.serve(async (req: Request) => {
         return `${idx}|${v.niche || "unknown"}|${caption}`;
       }).join("\n");
 
+      const nicheList = MAIN_NICHES.map(n => `${n}: ${NICHE_GROUPS[n].join(", ")}`).join("\n");
+
       const res = await fetch(AI_URL, {
         method: "POST",
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
@@ -208,13 +159,16 @@ Deno.serve(async (req: Request) => {
           messages: [
             {
               role: "system",
-              content: `You categorize TikTok videos into sub-niches.
+              content: `You categorize TikTok videos into niches and sub-niches.
 
-Main niches: ${MAIN_NICHES.join(", ")}
-Available sub-niches: ${ALL_SUB_NICHES.join(", ")}
+Available niches and their sub-niches:
+${nicheList}
 
-For each video (given as index|current_niche|caption), determine the BEST matching sub-niche (exactly 1).
-Return ONLY a JSON array: [[idx, "sub_niche_key"], ...]
+For each video (given as index|current_niche|caption):
+1. Determine the BEST matching sub_niche (exactly 1)
+2. Detect caption language: "kk" (Kazakh - contains ә,ғ,қ,ң,ө,ұ,ү,і,һ), "ru" (Russian/Cyrillic), "en" (English/Latin)
+
+Return ONLY a JSON array: [[idx, "sub_niche_key", "lang"], ...]
 No explanation, no markdown, just JSON.`
             },
             { role: "user", content: videoList }
@@ -232,9 +186,11 @@ No explanation, no markdown, just JSON.`
       }
 
       try {
-        const results: [number, string][] = JSON.parse(match[0]);
+        const results: (number | string)[][] = JSON.parse(match[0]);
 
-        for (const [idx, subNiche] of results) {
+        for (const result of results) {
+          const idx = result[0] as number;
+          const subNiche = result[1] as string;
           const video = batch[idx];
           if (!video) continue;
 
@@ -312,7 +268,7 @@ No explanation, no markdown, just JSON.`
             Authorization: `Bearer ${serviceRoleKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ offset: nextOffset, limit, only_other: onlyOther, log_id: logId }),
+          body: JSON.stringify({ offset: nextOffset, limit, log_id: logId }),
         });
       } catch (e) {
         console.error("Chain failed:", e);
