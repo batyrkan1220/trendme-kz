@@ -20,8 +20,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   RefreshCw, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
   Users, Activity, Video, Search, Heart, UserCircle, ScrollText,
-  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye, Link2,
+  CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye, Link2, ChevronRight,
 } from "lucide-react";
+import { NICHE_GROUPS } from "@/config/niches";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
