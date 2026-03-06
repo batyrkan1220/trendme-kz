@@ -148,7 +148,7 @@ export function VideoCard({
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
   const velViews = video.velocity_views || 0;
-  const coverUrl = video.cover_url || video.cover;
+  const activeCover = refreshedCover || video.cover_url || video.cover;
   const caption = video.caption || video.desc || "";
   const videoId = video.platform_video_id || video.id;
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
