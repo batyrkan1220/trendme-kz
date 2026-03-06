@@ -137,32 +137,10 @@ export function VideoCard({
   // Preload disabled to save API credits — play URL fetched only on click
   const handlePreload = useCallback(() => {}, []);
 
-  const handleCoverError = useCallback(async () => {
-    if (coverRefreshing || refreshedCover !== null) {
-      setCoverFailed(true);
-      return;
-    }
-    setCoverRefreshing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: {
-          action: "refresh_cover",
-          video_id: video.id,
-          platform_video_id: video.platform_video_id || video.id,
-          author_username: video.author_username,
-        },
-      });
-      if (!error && data?.cover_url) {
-        setRefreshedCover(data.cover_url);
-      } else {
-        setCoverFailed(true);
-      }
-    } catch {
-      setCoverFailed(true);
-    } finally {
-      setCoverRefreshing(false);
-    }
-  }, [video.id, video.platform_video_id, video.author_username, coverRefreshing, refreshedCover]);
+  // Cover refresh disabled on client — handled by background maintenance only
+  const handleCoverError = useCallback(() => {
+    setCoverFailed(true);
+  }, []);
 
   const handlePlay = async () => {
     if (playingId === video.id) {
