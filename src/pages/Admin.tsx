@@ -2179,8 +2179,28 @@ function IntegrationsTab() {
               <span>→ GA: <code className="text-xs bg-muted px-1 rounded">sign_up</code>, FB: <code className="text-xs bg-muted px-1 rounded">CompleteRegistration</code>, TikTok: <code className="text-xs bg-muted px-1 rounded">CompleteRegistration</code></span>
             </div>
             <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
+              <Badge variant="secondary">Оплата</Badge>
+              <span>→ GA: <code className="text-xs bg-muted px-1 rounded">purchase</code>, FB: <code className="text-xs bg-muted px-1 rounded">Purchase</code>, TikTok: <code className="text-xs bg-muted px-1 rounded">PlaceAnOrder</code></span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
+              <Badge variant="secondary">Просмотр видео</Badge>
+              <span>→ GA: <code className="text-xs bg-muted px-1 rounded">view_item</code>, FB: <code className="text-xs bg-muted px-1 rounded">ViewContent</code>, TikTok: <code className="text-xs bg-muted px-1 rounded">ViewContent</code></span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
+              <Badge variant="secondary">Поиск</Badge>
+              <span>→ GA: <code className="text-xs bg-muted px-1 rounded">search</code>, FB: <code className="text-xs bg-muted px-1 rounded">Search</code>, TikTok: <code className="text-xs bg-muted px-1 rounded">Search</code></span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
+              <Badge variant="secondary">Начало оплаты</Badge>
+              <span>→ GA: <code className="text-xs bg-muted px-1 rounded">begin_checkout</code>, FB: <code className="text-xs bg-muted px-1 rounded">InitiateCheckout</code>, TikTok: <code className="text-xs bg-muted px-1 rounded">InitiateCheckout</code></span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
+              <Badge variant="secondary">Избранное</Badge>
+              <span>→ GA: <code className="text-xs bg-muted px-1 rounded">add_to_wishlist</code>, FB: <code className="text-xs bg-muted px-1 rounded">AddToWishlist</code>, TikTok: <code className="text-xs bg-muted px-1 rounded">AddToWishlist</code></span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded">
               <Badge variant="secondary">Просмотр страницы</Badge>
-              <span>→ Все пиксели: автоматически при загрузке</span>
+              <span>→ Все пиксели: автоматически при навигации (SPA)</span>
             </div>
           </div>
         </CardContent>
