@@ -63,38 +63,69 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
+    const body = await req.json();
+    const { action } = body;
+    const json = (data: any, status = 200) =>
+      new Response(JSON.stringify(data), {
+        status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ensembleToken = Deno.env.get("ENSEMBLE_DATA_TOKEN")!;
 
-    if (!ensembleToken) {
-      return new Response(JSON.stringify({ error: "ENSEMBLE_DATA_TOKEN not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Handle cron-safe actions before auth check
+    if (action === "refresh_covers_oembed") {
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const limit = Math.min(body.limit || 50, 100);
+      const nicheFilter = body.niche || null;
+
+      let q = adminClient
+        .from("videos")
+        .select("id, url, cover_url")
+        .order("trend_score", { ascending: false })
+        .limit(limit);
+
+      if (nicheFilter) q = q.eq("niche", nicheFilter);
+
+      const { data: vids, error: fetchErr } = await q;
+      if (fetchErr) return json({ error: fetchErr.message }, 500);
+      if (!vids?.length) return json({ updated: 0, total: 0 });
+
+      let updated = 0;
+      let failed = 0;
+
+      for (const vid of vids) {
+        try {
+          const oembedRes = await fetch(
+            `https://www.tiktok.com/oembed?url=${encodeURIComponent(vid.url)}`,
+            { headers: { "User-Agent": "Mozilla/5.0" } }
+          );
+          if (!oembedRes.ok) { failed++; continue; }
+          const oembedData = await oembedRes.json();
+          const thumb = oembedData.thumbnail_url;
+          if (thumb && thumb !== vid.cover_url) {
+            await adminClient
+              .from("videos")
+              .update({ cover_url: thumb })
+              .eq("id", vid.id);
+            updated++;
+          }
+        } catch {
+          failed++;
+        }
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      return json({ updated, failed, total: vids.length });
     }
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ error: "Unauthorized" }, 401);
     }
-    const userId = claimsData.claims.sub as string;
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
