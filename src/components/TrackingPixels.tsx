@@ -91,7 +91,11 @@ export function TrackingPixels() {
 
 // Helper to fire conversion events from anywhere
 export function trackRegistrationEvent() {
-  // Google Analytics
+  // GTM dataLayer
+  (window as any).dataLayer = (window as any).dataLayer || [];
+  (window as any).dataLayer.push({ event: "sign_up", method: "email" });
+
+  // Google Analytics (direct)
   if ((window as any).gtag) {
     (window as any).gtag("event", "sign_up", { method: "email" });
   }
@@ -102,5 +106,29 @@ export function trackRegistrationEvent() {
   // TikTok Pixel
   if ((window as any).ttq) {
     (window as any).ttq.track("CompleteRegistration");
+  }
+}
+
+export function trackPurchaseEvent(planName: string, amount: number) {
+  // GTM dataLayer
+  (window as any).dataLayer = (window as any).dataLayer || [];
+  (window as any).dataLayer.push({
+    event: "purchase",
+    currency: "KZT",
+    value: amount,
+    items: [{ item_name: planName }],
+  });
+
+  // Google Analytics (direct)
+  if ((window as any).gtag) {
+    (window as any).gtag("event", "purchase", { currency: "KZT", value: amount, items: [{ item_name: planName }] });
+  }
+  // Facebook Pixel
+  if ((window as any).fbq) {
+    (window as any).fbq("track", "Purchase", { currency: "KZT", value: amount });
+  }
+  // TikTok Pixel
+  if ((window as any).ttq) {
+    (window as any).ttq.track("PlaceAnOrder", { content_name: planName, value: amount, currency: "KZT" });
   }
 }
