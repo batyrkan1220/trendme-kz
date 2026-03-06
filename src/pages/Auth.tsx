@@ -43,7 +43,14 @@ export default function Auth() {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       setLoading(false);
-      if (error) toast.error("Ошибка: " + error.message);
+      if (error) {
+        const msg = error.message || "";
+        if (msg.includes("rate limit") || msg.includes("security purposes")) {
+          toast.error("Слишком частые запросы. Подождите несколько секунд.");
+        } else {
+          toast.error("Не удалось отправить ссылку. Проверьте email и попробуйте снова.");
+        }
+      }
       else toast.success("Ссылка для сброса отправлена на email");
       return;
     }
