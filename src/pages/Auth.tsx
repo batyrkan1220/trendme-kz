@@ -68,10 +68,15 @@ export default function Auth() {
       if (mode === "login") {
         const { error } = await signIn(email, password);
         if (error) {
-          if (error.message?.includes("Invalid login credentials")) {
+          const msg = error.message || "";
+          if (msg.includes("Invalid login credentials")) {
             toast.error("Неверный email или пароль. Проверьте данные и попробуйте снова.");
+          } else if (msg.includes("Email not confirmed")) {
+            toast.error("Email не подтверждён. Проверьте почту и перейдите по ссылке.");
+          } else if (msg.includes("rate limit") || msg.includes("security purposes")) {
+            toast.error("Слишком частые запросы. Подождите несколько секунд.");
           } else {
-            toast.error("Ошибка входа: " + error.message);
+            toast.error("Ошибка входа. Попробуйте позже.");
           }
         }
         else navigate("/dashboard");
