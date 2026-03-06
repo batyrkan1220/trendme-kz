@@ -6,6 +6,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+/** Global in-memory cache for play URLs to avoid redundant API calls */
+const playUrlCache = new Map<string, string>();
+
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
@@ -147,9 +150,17 @@ export function VideoCard({
     }
     onPlay(video.id);
 
+    // Check global cache first
+    const cached = playUrlCache.get(video.url);
+    if (cached) {
+      setPlayUrl(cached);
+      return;
+    }
+
     // Use preloaded URL if available
     if (preloadedUrlRef.current) {
       setPlayUrl(preloadedUrlRef.current);
+      playUrlCache.set(video.url, preloadedUrlRef.current);
       return;
     }
 
@@ -163,6 +174,7 @@ export function VideoCard({
         setPlayUrl(null);
       } else {
         setPlayUrl(data.play_url);
+        playUrlCache.set(video.url, data.play_url);
       }
     } catch (e) {
       console.error("Play URL fetch error:", e);
