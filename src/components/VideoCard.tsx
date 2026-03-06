@@ -1,11 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp, Loader2
+  Trophy, Zap, Target, TrendingUp, Loader2, Maximize
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { MobileVideoPlayer } from "./MobileVideoPlayer";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
