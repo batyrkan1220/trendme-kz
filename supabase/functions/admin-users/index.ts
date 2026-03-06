@@ -71,14 +71,15 @@ Deno.serve(async (req) => {
         .filter((u: any) => !search || u.email?.toLowerCase().includes(search.toLowerCase()))
         .map((u: any) => {
           const profile = (allProfiles || []).find((p: any) => p.user_id === u.id);
+          const meta = u.user_metadata || {};
           return {
             id: u.id,
             email: u.email,
             created_at: u.created_at,
             last_sign_in_at: u.last_sign_in_at,
             email_confirmed_at: u.email_confirmed_at || null,
-            name: profile?.name || null,
-            phone: profile?.phone || null,
+            name: profile?.name || meta.name || null,
+            phone: profile?.phone || meta.phone || null,
             roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
             subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
             tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
