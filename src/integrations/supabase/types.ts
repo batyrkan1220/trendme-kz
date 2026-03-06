@@ -684,6 +684,7 @@ export type Database = {
           duration_sec: number | null
           fetched_at: string
           id: string
+          lang: string | null
           likes: number | null
           niche: string | null
           platform: string
@@ -712,6 +713,7 @@ export type Database = {
           duration_sec?: number | null
           fetched_at?: string
           id?: string
+          lang?: string | null
           likes?: number | null
           niche?: string | null
           platform?: string
@@ -740,6 +742,7 @@ export type Database = {
           duration_sec?: number | null
           fetched_at?: string
           id?: string
+          lang?: string | null
           likes?: number | null
           niche?: string | null
           platform?: string
