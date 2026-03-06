@@ -1,0 +1,1 @@
+UPDATE cover_refresh_logs SET status = 'done', finished_at = now(), error_message = 'Функция deploy болмаған еді' WHERE id = '37ce55a2-13af-41ee-acfe-516d05b73eba';
