@@ -27,6 +27,13 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+    const now = Date.now();
+    if (now - lastSubmitTime < 3000) {
+      toast.error("Тым жылдам! Бірнеше секунд күтіңіз.");
+      return;
+    }
+    setLastSubmitTime(now);
     if (!email) { toast.error("Введите email"); return; }
 
     if (mode === "forgot") {
