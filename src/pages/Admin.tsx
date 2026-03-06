@@ -2041,8 +2041,8 @@ function StatsSection() {
     </Card>
   );
 }
-  const [hasChanges, setHasChanges] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+
+
   const [selectedNiches, setSelectedNiches] = useState<Set<string>>(new Set());
   const [bulkLimitValue, setBulkLimitValue] = useState("");
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
