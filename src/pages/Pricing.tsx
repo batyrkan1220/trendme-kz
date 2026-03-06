@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { trackInitiateCheckout } from "@/components/TrackingPixels";
 import { Check, Sparkles, Zap, Crown, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
