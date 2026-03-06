@@ -761,7 +761,7 @@ Deno.serve(async (req: Request) => {
       const { count } = await adminClient
         .from("videos")
         .select("id", { count: "exact", head: true })
-        .eq("niche", nicheKey)
+        .eq("sub_niche", nicheKey)
         .gte("published_at", freshCutoff7);
 
       if ((count || 0) >= limit) {
