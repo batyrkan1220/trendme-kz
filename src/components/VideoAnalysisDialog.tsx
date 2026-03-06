@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { trackViewContent } from "@/components/TrackingPixels";
 import { Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, X, Target, Copy, Play } from "lucide-react";
 import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -41,6 +41,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk">("ru");
   const [showLangPicker, setShowLangPicker] = useState(false);
+  const [playUrl, setPlayUrl] = useState<string | null>(null);
+  const [loadingPlay, setLoadingPlay] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const lastAnalyzedUrl = useRef<string | null>(null);
   const { checkAndLog } = useSubscription();
 
@@ -74,6 +77,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
       setIsPlaying(false);
       setShowScript(false);
       setShowLangPicker(false);
+      setPlayUrl(null);
+      setLoadingPlay(false);
     }
   }, [open, video]);
 
@@ -85,6 +90,28 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     setShowLangPicker(false);
     analyze({ v: video, lang });
   };
+
+  const handlePlay = useCallback(async () => {
+    if (!video) return;
+    setIsPlaying(true);
+    setLoadingPlay(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("socialkit", {
+        body: { action: "get_play_url", video_url: video.url },
+      });
+      if (error || !data?.play_url) {
+        console.error("Failed to get play URL:", error || data?.error);
+        setPlayUrl(null);
+      } else {
+        setPlayUrl(data.play_url);
+      }
+    } catch (e) {
+      console.error("Play URL fetch error:", e);
+      setPlayUrl(null);
+    } finally {
+      setLoadingPlay(false);
+    }
+  }, [video]);
 
   if (!video) return null;
 
@@ -163,14 +190,29 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
               {isPlaying ? (
                 <>
-                  <iframe
-                    src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                    className="w-full h-full border-0"
-                    allow="autoplay; encrypted-media; fullscreen"
-                    allowFullScreen
-                  />
+                  {loadingPlay ? (
+                    <div className="w-full h-full flex items-center justify-center bg-black">
+                      <Loader2 className="h-8 w-8 text-white animate-spin" />
+                    </div>
+                  ) : playUrl ? (
+                    <video
+                      ref={videoRef}
+                      src={playUrl}
+                      className="w-full h-full object-contain bg-black"
+                      controls
+                      autoPlay
+                      playsInline
+                    />
+                  ) : (
+                    <iframe
+                      src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                      className="w-full h-full border-0"
+                      allow="autoplay; encrypted-media; fullscreen"
+                      allowFullScreen
+                    />
+                  )}
                   <button
-                    onClick={() => setIsPlaying(false)}
+                    onClick={() => { setIsPlaying(false); setPlayUrl(null); }}
                     className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
                     aria-label="Закрыть видео"
                   >
@@ -178,7 +220,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   </button>
                 </>
               ) : video.cover_url ? (
-                <div className="relative w-full h-full cursor-pointer group" onClick={() => setIsPlaying(true)}>
+                <div className="relative w-full h-full cursor-pointer group" onClick={handlePlay}>
                   <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
                     <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -187,7 +229,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   </div>
                 </div>
               ) : (
-                <div className="w-full h-full flex items-center justify-center cursor-pointer" onClick={() => setIsPlaying(true)}>
+                <div className="w-full h-full flex items-center justify-center cursor-pointer" onClick={handlePlay}>
                   <Play className="h-12 w-12 text-muted-foreground/30" />
                 </div>
               )}
