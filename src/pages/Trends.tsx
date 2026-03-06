@@ -196,22 +196,19 @@ export default function Trends() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="space-y-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тренды 🔥</h1>
-          </div>
+       <div className="p-4 md:p-6 lg:p-8 space-y-3 md:space-y-4 animate-fade-in">
+        {/* Compact header: title + period + niche in one row */}
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground mr-1">Тренды 🔥</h1>
 
-          {/* Period tabs */}
-          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto w-fit">
+          <div className="flex bg-card rounded-lg p-0.5 border border-border/50">
             {([3, 7, 30] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
-                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                   period === p
-                    ? "gradient-hero text-primary-foreground glow-primary"
+                    ? "gradient-hero text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -219,18 +216,16 @@ export default function Trends() {
               </button>
             ))}
           </div>
-        </div>
 
-        <div className="flex flex-wrap gap-2 items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+              <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                 niche !== "all"
                   ? "bg-primary/10 text-primary border-primary/30"
-                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted/50"
+                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground"
               }`}>
                 <span>{NICHES.find(n => n.key === niche)?.emoji} {NICHES.find(n => n.key === niche)?.label || "Ниша"}</span>
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="max-h-80 overflow-y-auto w-56">
@@ -246,22 +241,8 @@ export default function Trends() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Tier stats badges */}
           {allVideos.length > 0 && (
-            <div className="flex items-center gap-1.5 ml-2">
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-600 font-semibold">
-                <Trophy className="h-3 w-3" /> {tierCounts.strong}
-              </span>
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-semibold">
-                <Zap className="h-3 w-3" /> {tierCounts.mid}
-              </span>
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary/70 font-semibold">
-                <Target className="h-3 w-3" /> {tierCounts.micro}
-              </span>
-              <span className="text-xs text-muted-foreground ml-1">
-                = {allVideos.length}
-              </span>
-            </div>
+            <span className="text-xs text-muted-foreground">{allVideos.length} видео</span>
           )}
         </div>
 
