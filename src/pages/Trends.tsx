@@ -144,12 +144,17 @@ export default function Trends() {
     });
   }, [allVideos]);
 
+  // Apply language filter
+  const langFilteredVideos = useMemo(() => {
+    if (langFilter === "all") return sortedVideos;
+    return sortedVideos.filter((v: any) => detectLang(v.caption) === langFilter);
+  }, [sortedVideos, langFilter]);
+
   const videos = useMemo(() => {
-    return sortedVideos.slice(0, visibleCount);
-  }, [sortedVideos, visibleCount]);
+    return langFilteredVideos.slice(0, visibleCount);
+  }, [langFilteredVideos, visibleCount]);
 
-
-  const hasMore = allVideos.length >= visibleCount;
+  const hasMore = langFilteredVideos.length >= visibleCount;
 
 
   const { data: userFavorites = [] } = useQuery({
