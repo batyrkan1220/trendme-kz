@@ -41,6 +41,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk">("ru");
   const [showLangPicker, setShowLangPicker] = useState(false);
+  const [playUrl, setPlayUrl] = useState<string | null>(null);
+  const [loadingPlay, setLoadingPlay] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const lastAnalyzedUrl = useRef<string | null>(null);
   const { checkAndLog } = useSubscription();
 
