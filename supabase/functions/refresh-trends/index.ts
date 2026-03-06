@@ -416,7 +416,7 @@ Deno.serve(async (req: Request) => {
   const weakQueriesPerNiche = thresholds.weak_queries_per_niche ?? 12;
 
   // =========================
-  // Load per-category limits
+  // Load per-category limits (supports per-lang: { kk: N, ru: N, en: N } or flat number)
   // =========================
   const { data: categoryLimitsRow } = await adminClient
     .from("trend_settings")
@@ -424,7 +424,28 @@ Deno.serve(async (req: Request) => {
     .eq("key", "category_limits")
     .maybeSingle();
 
-  const categoryLimits: Record<string, number> = (categoryLimitsRow?.value as any) || {};
+  const rawCategoryLimits: Record<string, any> = (categoryLimitsRow?.value as any) || {};
+  
+  // Resolve effective limit for a niche based on targetLang
+  const getEffectiveLimit = (nicheKey: string): number => {
+    const val = rawCategoryLimits[nicheKey];
+    if (!val) return 0;
+    if (typeof val === "number") return val;
+    if (typeof val === "object" && targetLang) {
+      return val[targetLang] ?? 0;
+    }
+    // No lang filter: sum all lang limits
+    if (typeof val === "object") {
+      return (val.kk || 0) + (val.ru || 0) + (val.en || 0);
+    }
+    return 0;
+  };
+  
+  // Backward compat: categoryLimits[key] still used in some places
+  const categoryLimits: Record<string, number> = {};
+  for (const key of Object.keys(rawCategoryLimits)) {
+    categoryLimits[key] = getEffectiveLimit(key);
+  }
 
   // =========================
   // Weak niches detection
