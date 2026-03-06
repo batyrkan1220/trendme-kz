@@ -231,8 +231,21 @@ export function VideoCard({
         {playingId === video.id ? (
           <>
             {loadingPlay ? (
-              <div className="w-full h-full flex items-center justify-center bg-black">
-                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              <div className="w-full h-full flex items-center justify-center bg-black relative overflow-hidden">
+                {/* Animated background rings */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-32 h-32 rounded-full border-2 border-primary/20 animate-ping" style={{ animationDuration: '2s' }} />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full border-2 border-primary/30 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
+                </div>
+                {/* Center loader */}
+                <div className="relative z-10 flex flex-col items-center gap-3">
+                  <div className="h-14 w-14 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/20">
+                    <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                  </div>
+                  <span className="text-[11px] text-white/70 font-medium tracking-wide animate-pulse">Жүктелуде...</span>
+                </div>
               </div>
             ) : playUrl ? (
               <video
@@ -289,8 +302,13 @@ export function VideoCard({
                 />
                 )}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:bg-white/90 transition-colors duration-200">
-                    <Play className="h-5 w-5 text-white group-hover:text-foreground ml-0.5 transition-colors duration-200" />
+                  <div className="relative">
+                    {/* Outer glow ring */}
+                    <div className="absolute -inset-2 rounded-full bg-white/10 group-hover:bg-white/20 blur-md transition-all duration-300" />
+                    {/* Main play button */}
+                    <div className="relative h-14 w-14 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 group-hover:bg-white group-hover:border-white/80 group-hover:scale-110 transition-all duration-300">
+                      <Play className="h-6 w-6 text-white group-hover:text-foreground ml-0.5 transition-colors duration-300" fill="currentColor" fillOpacity={0.3} />
+                    </div>
                   </div>
                 </div>
               </div>
