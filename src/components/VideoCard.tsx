@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, forwardRef } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
   Trophy, Zap, Target, TrendingUp, Loader2, Maximize
@@ -90,7 +90,7 @@ interface VideoCardProps {
   showAnalyzeButton?: boolean;
 }
 
-export function VideoCard({
+export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function VideoCard({
   video,
   playingId,
   onPlay,
@@ -100,7 +100,7 @@ export function VideoCard({
   showTier = true,
   showAuthor = true,
   showAnalyzeButton = true,
-}: VideoCardProps) {
+}, ref) {
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
@@ -432,4 +432,4 @@ export function VideoCard({
       )}
     </div>
   );
-}
+});
