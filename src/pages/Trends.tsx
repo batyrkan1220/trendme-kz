@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { TrendingUp, ChevronDown, Zap, Trophy, Target } from "lucide-react";
+import { TrendingUp, ChevronDown } from "lucide-react";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { useState, useMemo, useCallback } from "react";
 import {
@@ -75,10 +75,10 @@ const getTier = (views: number): TrendTier | null => {
   return null;
 };
 
-const tierConfig: Record<TrendTier, { label: string; icon: any; className: string; order: number }> = {
-  strong: { label: "Взлетает", icon: Trophy, className: "bg-amber-500/90 text-white", order: 0 },
-  mid: { label: "В тренде", icon: Zap, className: "bg-primary/80 text-white", order: 1 },
-  micro: { label: "Набирает", icon: Target, className: "bg-accent/80 text-white", order: 2 },
+const tierOrder: Record<TrendTier, number> = {
+  strong: 0,
+  mid: 1,
+  micro: 2,
 };
 
 const PAGE_SIZE = 30;
@@ -148,8 +148,8 @@ export default function Trends() {
     return [...allVideos].sort((a: any, b: any) => {
       const tierA = getTier(Number(a.views));
       const tierB = getTier(Number(b.views));
-      const orderA = tierA ? tierConfig[tierA].order : 3;
-      const orderB = tierB ? tierConfig[tierB].order : 3;
+      const orderA = tierA ? tierOrder[tierA] : 3;
+      const orderB = tierB ? tierOrder[tierB] : 3;
       if (orderA !== orderB) return orderA - orderB;
       return (b.trend_score || 0) - (a.trend_score || 0);
     });
@@ -184,34 +184,24 @@ export default function Trends() {
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);
 
-  // Tier stats
-  const tierCounts = useMemo(() => {
-    const counts = { strong: 0, mid: 0, micro: 0 };
-    for (const v of allVideos) {
-      const t = getTier(Number((v as any).views));
-      if (t) counts[t]++;
-    }
-    return counts;
-  }, [allVideos]);
+
+
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="space-y-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Тренды 🔥</h1>
-          </div>
+       <div className="p-4 md:p-6 lg:p-8 space-y-3 md:space-y-4 animate-fade-in">
+        {/* Compact header: title + period + niche in one row */}
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground mr-1">Тренды 🔥</h1>
 
-          {/* Period tabs */}
-          <div className="flex bg-card rounded-xl p-1 border border-border/50 card-shadow overflow-x-auto w-fit">
+          <div className="flex bg-card rounded-lg p-0.5 border border-border/50">
             {([3, 7, 30] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
-                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                   period === p
-                    ? "gradient-hero text-primary-foreground glow-primary"
+                    ? "gradient-hero text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -219,18 +209,16 @@ export default function Trends() {
               </button>
             ))}
           </div>
-        </div>
 
-        <div className="flex flex-wrap gap-2 items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+              <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                 niche !== "all"
                   ? "bg-primary/10 text-primary border-primary/30"
-                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted/50"
+                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground"
               }`}>
                 <span>{NICHES.find(n => n.key === niche)?.emoji} {NICHES.find(n => n.key === niche)?.label || "Ниша"}</span>
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="max-h-80 overflow-y-auto w-56">
@@ -246,22 +234,8 @@ export default function Trends() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Tier stats badges */}
           {allVideos.length > 0 && (
-            <div className="flex items-center gap-1.5 ml-2">
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-600 font-semibold">
-                <Trophy className="h-3 w-3" /> {tierCounts.strong}
-              </span>
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-semibold">
-                <Zap className="h-3 w-3" /> {tierCounts.mid}
-              </span>
-              <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary/70 font-semibold">
-                <Target className="h-3 w-3" /> {tierCounts.micro}
-              </span>
-              <span className="text-xs text-muted-foreground ml-1">
-                = {allVideos.length}
-              </span>
-            </div>
+            <span className="text-xs text-muted-foreground">{allVideos.length} видео</span>
           )}
         </div>
 
