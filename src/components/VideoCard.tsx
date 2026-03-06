@@ -87,6 +87,7 @@ export function VideoCard({
 }: VideoCardProps) {
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
+  const [coverFailed, setCoverFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handlePlay = async () => {
