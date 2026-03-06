@@ -115,11 +115,10 @@ export default function Trends() {
   const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
 
   // Server-side paginated fetch — only load what we need
-  const { data: allVideos = [], isLoading } = useQuery({
+  const { data: allVideos = [], isLoading } = useQuery<any[]>({
     queryKey: ["trends", period, niche, visibleCount],
     queryFn: async () => {
       const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,categories";
-      // Fetch just enough to fill the current visible count + a small buffer
       const fetchLimit = Math.min(visibleCount + PAGE_SIZE, 1000);
 
       let q = supabase.from("videos").select(selectFields);
