@@ -162,10 +162,10 @@ export const NICHE_GROUPS: NicheGroup[] = [
     subNiches: [
       { key: "programming", label: "Программирование" },
       { key: "gadgets", label: "Гаджеты" },
-      { key: "smartphones", label: "Смартфондар" },
-      { key: "tech_reviews", label: "Техно обзорлар" },
+      { key: "smartphones", label: "Смартфоны" },
+      { key: "tech_reviews", label: "Обзоры техники" },
       { key: "web_dev", label: "Веб-разработка" },
-      { key: "apps", label: "Қосымшалар / Приложения" },
+      { key: "apps", label: "Приложения" },
       { key: "cyber_security", label: "Кибербезопасность" },
     ],
   },
