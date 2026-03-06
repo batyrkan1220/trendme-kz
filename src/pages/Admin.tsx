@@ -1145,6 +1145,9 @@ function RefreshSection() {
     refetchInterval: 10000,
   });
 
+  // Build sub-niche label map
+  const subNicheLabels: Record<string, string> = {};
+  for (const g of NICHE_GROUPS) for (const s of g.subNiches) subNicheLabels[s.key] = s.label;
   const allNiches = Object.keys(nicheQueries).sort();
 
   const { data: totalVideos7d = 0 } = useQuery({
