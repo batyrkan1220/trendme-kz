@@ -335,6 +335,7 @@ Deno.serve(async (req: Request) => {
   let batchIndex = 0;
   let logId: string | null = null;
   let targetNiches: string[] | null = null;
+  let targetLang: string | null = null; // kk, ru, en or null (all)
 
   try {
     const body = await req.json();
@@ -347,6 +348,9 @@ Deno.serve(async (req: Request) => {
     if (body?.logId) logId = body.logId;
     if (Array.isArray(body?.target_niches) && body.target_niches.length > 0) {
       targetNiches = body.target_niches;
+    }
+    if (body?.lang && ["kk", "ru", "en"].includes(body.lang)) {
+      targetLang = body.lang;
     }
   } catch {
     // no body = cron call
@@ -366,16 +370,21 @@ Deno.serve(async (req: Request) => {
   const NICHE_QUERIES: Record<string, string[]> = {};
   for (const [key, val] of Object.entries(rawNicheQueries)) {
     if (Array.isArray(val)) {
-      // Old flat array format
-      NICHE_QUERIES[key] = val;
+      // Old flat array format - use if no lang filter or filter matches
+      NICHE_QUERIES[key] = targetLang ? [] : val;
     } else if (val && typeof val === "object") {
-      // New 3-lang format: flatten all languages into one array
-      const kk = (val as any).kk || [];
-      const ru = (val as any).ru || [];
-      const en = (val as any).en || [];
-      NICHE_QUERIES[key] = [...kk, ...ru, ...en];
+      // New 3-lang format: use only target language or flatten all
+      if (targetLang) {
+        NICHE_QUERIES[key] = (val as any)[targetLang] || [];
+      } else {
+        const kk = (val as any).kk || [];
+        const ru = (val as any).ru || [];
+        const en = (val as any).en || [];
+        NICHE_QUERIES[key] = [...kk, ...ru, ...en];
+      }
     }
   }
+  console.log(`Language filter: ${targetLang || "all"}`);
   const allAvailableNiches = Object.keys(NICHE_QUERIES);
   let allNicheKeys = allAvailableNiches;
 
@@ -497,7 +506,7 @@ Deno.serve(async (req: Request) => {
           Authorization: `Bearer ${serviceRoleKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ mode, batch: nextBatch, logId, target_niches: targetNiches }),
+        body: JSON.stringify({ mode, batch: nextBatch, logId, target_niches: targetNiches, lang: targetLang }),
       });
     } catch (e) {
       console.error("Chain call failed:", e);

@@ -1100,6 +1100,7 @@ function RefreshSection() {
   const queryClient = useQueryClient();
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
+  const [refreshLang, setRefreshLang] = useState<string>("all");
 
   const { data: nicheQueries = {} } = useQuery({
     queryKey: ["trend-settings", "niche_queries"],
@@ -1196,10 +1197,15 @@ function RefreshSection() {
       toast.error("Выберите хотя бы одну категорию");
       return;
     }
+    const langLabels: Record<string, string> = { all: "все языки", kk: "🇰🇿 қазақша", ru: "🇷🇺 русский", en: "🇬🇧 English" };
     const label = selectAll ? "все категории" : `${selectedNiches.length} категорий`;
-    toast.info(`Обновление запущено: ${label}. Каждая категория будет заполнена до лимита.`);
+    toast.info(`Обновление запущено: ${label}, ${langLabels[refreshLang]}`);
     supabase.functions.invoke("refresh-trends", { 
-      body: { mode: "mass", ...(niches ? { target_niches: niches } : {}) } 
+      body: { 
+        mode: "mass", 
+        ...(niches ? { target_niches: niches } : {}),
+        ...(refreshLang !== "all" ? { lang: refreshLang } : {}),
+      } 
     }).then(() => {
       queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
     }).catch(() => {
@@ -1282,6 +1288,28 @@ function RefreshSection() {
             )}
           </div>
 
+          {/* Language selector */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Тіл / Язык запросов:</p>
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { key: "all", label: "🌐 Все языки" },
+                { key: "kk", label: "🇰🇿 Қазақша" },
+                { key: "ru", label: "🇷🇺 Русский" },
+                { key: "en", label: "🇬🇧 English" },
+              ].map(l => (
+                <Button
+                  key={l.key}
+                  variant={refreshLang === l.key ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setRefreshLang(l.key)}
+                >
+                  {l.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <Button 
             onClick={triggerRefresh} 
             disabled={isRunning} 
@@ -1292,8 +1320,8 @@ function RefreshSection() {
             {isRunning 
               ? "⏳ Обновление идёт на сервере..." 
               : selectAll 
-                ? "🚀 Запустить (все категории)"
-                : `🚀 Запустить (${selectedNiches.length} категорий)`
+                ? `🚀 Запустить (все категории, ${refreshLang === "all" ? "все языки" : refreshLang.toUpperCase()})`
+                : `🚀 Запустить (${selectedNiches.length} категорий, ${refreshLang === "all" ? "все языки" : refreshLang.toUpperCase()})`
             }
           </Button>
           {isRunning && (
