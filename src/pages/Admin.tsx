@@ -957,7 +957,7 @@ function CoverRefreshCard() {
         </p>
         <Button onClick={handleRefresh} disabled={loading} size="sm" variant="outline" className="gap-2">
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {loading ? "Жаңартылуда..." : "Обложкаларды жаңарту (100 видео)"}
+          {loading ? "Жіберілуде..." : "🚀 Барлық обложкаларды жаңарту"}
         </Button>
         {result && (
           <div className="text-xs text-muted-foreground">
