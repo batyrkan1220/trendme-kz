@@ -30,7 +30,8 @@ export default function Auth() {
     if (loading) return;
     const now = Date.now();
     if (now - lastSubmitTime < 3000) {
-      toast.error("Тым жылдам! Бірнеше секунд күтіңіз.");
+      toast.error("Подождите несколько секунд перед повторной попыткой.");
+      return;
       return;
     }
     setLastSubmitTime(now);
