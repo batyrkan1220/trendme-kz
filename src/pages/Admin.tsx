@@ -921,13 +921,27 @@ function RoleAssigner({
 /* ==================== COVER REFRESH (oEmbed, free) ==================== */
 function CoverRefreshCard() {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ updated: number; failed: number; total: number } | null>(null);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: coverLogs = [] } = useQuery({
+    queryKey: ["cover-refresh-logs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("cover_refresh_logs").select("*").order("started_at", { ascending: false }).limit(10);
+      return data || [];
+    },
+    refetchInterval: 5000,
+  });
+
+  const isRunning = coverLogs.some((l: any) => l.status === "running");
 
   const handleRefresh = async () => {
+    if (isRunning) {
+      toast.error("Жаңарту қазір жүріп жатыр, күтіңіз");
+      return;
+    }
     setLoading(true);
-    setResult(null);
     try {
-      // Fire-and-forget: use raw fetch so navigation doesn't abort the request
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/socialkit`;
       const res = await fetch(url, {
         method: "POST",
@@ -935,18 +949,17 @@ function CoverRefreshCard() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ action: "refresh_covers_oembed", mass: true, limit: 50 }),
-        keepalive: true, // ensures request completes even if page navigates away
+        body: JSON.stringify({ action: "refresh_covers_oembed", mass: true, limit: 50, triggered_by: user?.id || null }),
+        keepalive: true,
       });
       if (!res.ok) {
-        toast.error("Ошибка: " + res.statusText);
+        toast.error("Қате: " + res.statusText);
       } else {
-        const data = await res.json();
-        setResult(data);
-        toast.success(`Массовый жаңарту іске қосылды! Бірінші пакет: ${data?.updated || 0} жаңартылды. Қалғаны фонда жалғасады.`);
+        toast.success("Обложкаларды жаңарту іске қосылды! Фонда жалғасады.");
+        setTimeout(() => queryClient.invalidateQueries({ queryKey: ["cover-refresh-logs"] }), 2000);
       }
     } catch (e: any) {
-      toast.error("Ошибка: " + e.message);
+      toast.error("Қате: " + e.message);
     } finally {
       setLoading(false);
     }
@@ -964,15 +977,59 @@ function CoverRefreshCard() {
         <p className="text-xs text-muted-foreground">
           TikTok oEmbed API арқылы обложкаларды жаңартады. EnsembleData кредиттері қажет емес.
         </p>
-        <Button onClick={handleRefresh} disabled={loading} size="sm" variant="outline" className="gap-2">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {loading ? "Жіберілуде..." : "🚀 Барлық обложкаларды жаңарту"}
+        <Button onClick={handleRefresh} disabled={loading || isRunning} size="sm" variant="outline" className="gap-2">
+          {loading || isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          {isRunning ? "⏳ Жаңарту жүріп жатыр..." : loading ? "Жіберілуде..." : "🚀 Барлық обложкаларды жаңарту"}
         </Button>
-        {result && (
-          <div className="text-xs text-muted-foreground">
-            ✅ Жаңартылды: <span className="font-semibold text-foreground">{result.updated}</span> | 
-            ❌ Қате: <span className="font-semibold">{result.failed}</span> | 
-            Барлығы: {result.total}
+
+        {/* Running progress */}
+        {isRunning && (() => {
+          const running = coverLogs.find((l: any) => l.status === "running");
+          if (!running) return null;
+          const pct = running.total_videos > 0 ? Math.round((running.current_offset / running.total_videos) * 100) : 0;
+          return (
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Прогресс: {running.current_offset} / {running.total_videos}</span>
+                <span>{pct}%</span>
+              </div>
+              <Progress value={pct} className="h-2" />
+              <div className="text-xs text-muted-foreground">
+                ✅ Жаңартылды: <span className="font-semibold text-foreground">{running.total_updated}</span> | ❌ Қате: {running.total_failed}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Log history */}
+        {coverLogs.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <p className="text-xs font-medium text-muted-foreground">Журнал:</p>
+            {coverLogs.slice(0, 5).map((log: any) => {
+              const startedAt = new Date(log.started_at);
+              const finishedAt = log.finished_at ? new Date(log.finished_at) : null;
+              const durationMs = finishedAt ? finishedAt.getTime() - startedAt.getTime() : null;
+              const durationStr = durationMs != null
+                ? durationMs < 60000
+                  ? `${Math.round(durationMs / 1000)}с`
+                  : `${Math.floor(durationMs / 60000)}м ${Math.round((durationMs % 60000) / 1000)}с`
+                : "—";
+              return (
+                <div key={log.id} className="flex items-center gap-2 text-xs border border-border rounded-lg px-3 py-2">
+                  <Badge variant={
+                    log.status === "done" ? "default"
+                    : log.status === "running" ? "secondary"
+                    : "destructive"
+                  } className="text-[10px]">
+                    {log.status === "done" ? "✅" : log.status === "running" ? "⏳" : "❌"}
+                  </Badge>
+                  <span className="text-muted-foreground">{startedAt.toLocaleDateString("ru")} {startedAt.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="text-foreground font-medium">+{log.total_updated} жаңартылды</span>
+                  {log.total_failed > 0 && <span className="text-destructive">{log.total_failed} қате</span>}
+                  <span className="text-muted-foreground ml-auto">{durationStr}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </CardContent>
