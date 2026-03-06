@@ -432,4 +432,4 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       )}
     </div>
   );
-}
+});
