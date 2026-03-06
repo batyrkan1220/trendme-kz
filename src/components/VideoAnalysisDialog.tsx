@@ -44,6 +44,12 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const lastAnalyzedUrl = useRef<string | null>(null);
   const { checkAndLog } = useSubscription();
 
+  useEffect(() => {
+    if (open && video) {
+      trackViewContent(video.caption || video.url, video.niche || undefined);
+    }
+  }, [open, video]);
+
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {

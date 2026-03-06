@@ -82,6 +82,7 @@ export default function SearchPage() {
       await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
     } else {
       await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+      trackAddToFavorites(videoId);
     }
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
