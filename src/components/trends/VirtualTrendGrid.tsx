@@ -70,7 +70,7 @@ export function VirtualTrendGrid({
     <div
       ref={parentRef}
       className="w-full overflow-y-auto"
-      style={{ height: "calc(100vh - 220px)" }}
+      style={{ height: "calc(100dvh - 280px)" }}
     >
       <div
         className="relative w-full"
