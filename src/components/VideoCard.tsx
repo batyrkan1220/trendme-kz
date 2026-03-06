@@ -1,9 +1,10 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
   Trophy, Zap, Target, TrendingUp, Loader2, Maximize
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -91,6 +92,21 @@ export function VideoCard({
   const [refreshedCover, setRefreshedCover] = useState<string | null>(null);
   const [coverRefreshing, setCoverRefreshing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isMobile = useIsMobile();
+
+  // Auto-fullscreen on mobile when video is ready
+  useEffect(() => {
+    if (!isMobile || !playUrl || !videoRef.current) return;
+    const el = videoRef.current;
+    const goFull = () => {
+      try {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if ((el as any).webkitEnterFullscreen) (el as any).webkitEnterFullscreen();
+      } catch {}
+    };
+    el.addEventListener("loadeddata", goFull, { once: true });
+    return () => el.removeEventListener("loadeddata", goFull);
+  }, [isMobile, playUrl]);
 
   const handleCoverError = useCallback(async () => {
     if (coverRefreshing || refreshedCover !== null) {
