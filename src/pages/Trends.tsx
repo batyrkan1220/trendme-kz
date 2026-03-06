@@ -193,7 +193,7 @@ export default function Trends() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-card text-muted-foreground border-border/50 hover:text-foreground`}>
-                <span>📅 {period}д</span>
+                <span>⏱ {period}д</span>
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
