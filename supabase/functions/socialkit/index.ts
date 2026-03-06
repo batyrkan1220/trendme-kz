@@ -1219,7 +1219,7 @@ Deno.serve(async (req: Request) => {
         return json({ success: true });
       }
 
-      // refresh_covers_oembed handled before auth check (for cron support)
+      // persist_covers handled before auth check (for cron support)
 
       default:
         return json({ error: `Unknown action: ${action}` }, 400);
