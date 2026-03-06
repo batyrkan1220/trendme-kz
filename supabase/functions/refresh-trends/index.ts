@@ -523,7 +523,7 @@ Deno.serve(async (req: Request) => {
     const { count } = await adminClient
       .from("videos")
       .select("id", { count: "exact", head: true })
-      .eq("niche", nicheKey)
+      .eq("sub_niche", nicheKey)
       .gte("published_at", freshCutoff);
 
     const currentCount = count || 0;
@@ -533,7 +533,7 @@ Deno.serve(async (req: Request) => {
     const { data: weakest } = await adminClient
       .from("videos")
       .select("id")
-      .eq("niche", nicheKey)
+      .eq("sub_niche", nicheKey)
       .order("trend_score", { ascending: true })
       .limit(excess);
 
@@ -761,7 +761,7 @@ Deno.serve(async (req: Request) => {
       const { count } = await adminClient
         .from("videos")
         .select("id", { count: "exact", head: true })
-        .eq("niche", nicheKey)
+        .eq("sub_niche", nicheKey)
         .gte("published_at", freshCutoff7);
 
       if ((count || 0) >= limit) {
