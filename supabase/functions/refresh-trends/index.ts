@@ -800,22 +800,22 @@ Deno.serve(async (req: Request) => {
     }
 
     // =========================
-    // Refresh stale cover URLs via TikTok oEmbed (FREE, no API key)
+    // Refresh stale cover URLs (fetched > 2 days ago)
     // =========================
     const COVER_STALE_HOURS = 48;
-    const COVER_REFRESH_LIMIT = 50; // oEmbed is free, can do more
+    const COVER_REFRESH_LIMIT = 30; // max videos per run to avoid burning credits
     const staleCutoff = new Date(Date.now() - COVER_STALE_HOURS * 3600000).toISOString();
 
     const { data: staleVideos } = await adminClient
       .from("videos")
-      .select("id, url, platform_video_id, author_username")
+      .select("id, platform_video_id, author_username")
       .lt("fetched_at", staleCutoff)
       .gte("published_at", new Date(Date.now() - MAX_AGE_DAYS * 24 * 3600000).toISOString())
       .order("fetched_at", { ascending: true })
       .limit(COVER_REFRESH_LIMIT);
 
     if (staleVideos && staleVideos.length > 0) {
-      console.log(`🖼 Refreshing covers via oEmbed for ${staleVideos.length} stale videos...`);
+      console.log(`🖼 Refreshing covers for ${staleVideos.length} stale videos...`);
       let coverUpdated = 0;
       let coverFailed = 0;
 
@@ -826,25 +826,50 @@ Deno.serve(async (req: Request) => {
         }
 
         try {
-          // Use the stored video URL or construct from platform_video_id
-          const videoUrl = sv.url || `https://www.tiktok.com/@${sv.author_username || "user"}/video/${sv.platform_video_id}`;
-          const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(videoUrl)}`;
-          
-          const res = await fetch(oembedUrl, {
-            headers: { "User-Agent": "Mozilla/5.0 (compatible; TrendMe/1.0)" },
+          const postUrl = `https://www.tiktok.com/@${sv.author_username || "user"}/video/${sv.platform_video_id}`;
+          const params = new URLSearchParams({
+            url: postUrl,
+            token: ensembleToken,
           });
+          const res = await fetch(`${ENSEMBLE_BASE}/tt/post/info?${params.toString()}`);
 
           if (res.ok) {
             const json = await res.json();
-            const newCover = json.thumbnail_url || "";
+            const postData = json?.data?.aweme_detail || json?.data;
+            if (postData) {
+              const videoInfo = postData.video || {};
+              const newCover = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+              const author = postData.author || {};
+              const newAvatar = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
 
-            const updateFields: Record<string, any> = { fetched_at: new Date().toISOString() };
-            if (newCover) updateFields.cover_url = newCover;
+              const updateFields: Record<string, any> = { fetched_at: new Date().toISOString() };
+              if (newCover) updateFields.cover_url = newCover;
+              if (newAvatar) updateFields.author_avatar_url = newAvatar;
 
-            await adminClient.from("videos").update(updateFields).eq("id", sv.id);
-            if (newCover) {
+              // Also refresh stats while we're at it
+              const stats = postData.statistics || {};
+              if (stats.play_count != null) updateFields.views = stats.play_count;
+              if (stats.digg_count != null) updateFields.likes = stats.digg_count;
+              if (stats.comment_count != null) updateFields.comments = stats.comment_count;
+              if (stats.share_count != null) updateFields.shares = stats.share_count;
+
+              // Recompute trend score
+              if (updateFields.views) {
+                const pubAt = new Date((postData.create_time || 0) * 1000);
+                const trends = computeTrend(
+                  updateFields.views || 0,
+                  updateFields.likes || 0,
+                  updateFields.comments || 0,
+                  pubAt.getTime() > 0 ? pubAt : new Date()
+                );
+                Object.assign(updateFields, trends);
+              }
+
+              await adminClient.from("videos").update(updateFields).eq("id", sv.id);
               coverUpdated++;
             } else {
+              // Mark as fetched to avoid retrying immediately
+              await adminClient.from("videos").update({ fetched_at: new Date().toISOString() }).eq("id", sv.id);
               coverFailed++;
             }
           } else {
@@ -853,17 +878,15 @@ Deno.serve(async (req: Request) => {
             coverFailed++;
           }
 
-          // Small delay to be polite, but oEmbed has no strict rate limit
-          await sleep(300);
+          await logApiUsage("post_info_cover_refresh", 1, { platform_video_id: sv.platform_video_id });
+          await sleep(800);
         } catch (e) {
-          console.error(`oEmbed cover refresh failed for ${sv.platform_video_id}:`, (e as Error).message);
-          // Still update fetched_at to avoid retrying immediately
-          await adminClient.from("videos").update({ fetched_at: new Date().toISOString() }).eq("id", sv.id);
+          console.error(`Cover refresh failed for ${sv.platform_video_id}:`, (e as Error).message);
           coverFailed++;
         }
       }
 
-      console.log(`🖼 oEmbed cover refresh done: ${coverUpdated} updated, ${coverFailed} failed`);
+      console.log(`🖼 Cover refresh done: ${coverUpdated} updated, ${coverFailed} failed`);
     }
 
     console.log(`Refresh COMPLETE (accumulated totalSaved=${totalSaved})`);
