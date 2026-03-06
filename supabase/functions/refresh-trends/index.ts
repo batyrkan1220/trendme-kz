@@ -155,6 +155,18 @@ const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // hobby
   crafts: "hobby", diy: "hobby", drawing: "hobby", photography: "hobby",
   videography: "hobby", gardening_hobby: "hobby",
+  // medicine
+  doctors: "medicine", symptoms: "medicine", dentistry: "medicine", pediatrics: "medicine",
+  sleep_health: "medicine", folk_medicine: "medicine", pharmacy: "medicine", nutrition_health: "medicine",
+  // realestate
+  apartments: "realestate", mortgage: "realestate", new_buildings: "realestate", house_tours: "realestate",
+  rent: "realestate", construction: "realestate", real_estate_invest: "realestate",
+  // blogging
+  content_creation: "blogging", video_editing: "blogging", reels_shorts: "blogging", promotion: "blogging",
+  monetization: "blogging", personal_brand: "blogging", photo_content: "blogging",
+  // kazakh_culture
+  kazakh_cuisine: "kazakh_culture", kazakh_history: "kazakh_culture", kazakh_traditions: "kazakh_culture",
+  kazakh_language: "kazakh_culture", kazakh_music: "kazakh_culture", kazakh_celebrities: "kazakh_culture",
   // other
   esoteric: "other", tarot: "other", astrology: "other", life_hacks: "other",
 };
@@ -165,8 +177,8 @@ const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   business: "business", cinema: "media", comedy: "entertainment", dance: "media",
   diy: "home", education: "education", entertainment: "entertainment", family: "family",
   fashion: "fashion", fitness: "fitness", food: "food", gaming: "gaming",
-  lifestyle: "beauty", marketing: "business", medicine: "fitness", music: "media",
-  news: "other", podcast: "media", psychology: "psychology", realestate: "home",
+  lifestyle: "beauty", marketing: "business", medicine: "medicine", music: "media",
+  news: "other", podcast: "media", psychology: "psychology", realestate: "realestate",
   religion: "other", shopping: "fashion", sports: "sports", tech: "tech", travel: "travel",
 };
 
