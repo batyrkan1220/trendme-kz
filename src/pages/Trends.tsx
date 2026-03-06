@@ -52,12 +52,27 @@ const tierOrder: Record<TrendTier, number> = {
 
 const PAGE_SIZE = 30;
 
+/** Detect language from caption text */
+const detectLang = (caption: string | null): "kk" | "ru" | "en" | "unknown" => {
+  if (!caption) return "unknown";
+  const kazSpecific = /[әғқңөұүіһ]/i;
+  const cyrillic = /[а-яёА-ЯЁ]/;
+  const latin = /[a-zA-Z]/;
+  const cyrCount = (caption.match(/[а-яёА-ЯЁәғқңөұүіһ]/g) || []).length;
+  const latCount = (caption.match(/[a-zA-Z]/g) || []).length;
+  if (kazSpecific.test(caption) && cyrCount > latCount) return "kk";
+  if (cyrCount > latCount) return "ru";
+  if (latCount > cyrCount) return "en";
+  return "unknown";
+};
+
 export default function Trends() {
   const [period, setPeriod] = useState<3 | 7 | 30>(7);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [expandedNiche, setExpandedNiche] = useState<string | null>(null);
   const [nicheFilter, setNicheFilter] = useState("all");
+  const [langFilter, setLangFilter] = useState<"all" | "kk" | "ru" | "en">("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const { balance } = useTokens();
@@ -129,12 +144,17 @@ export default function Trends() {
     });
   }, [allVideos]);
 
+  // Apply language filter
+  const langFilteredVideos = useMemo(() => {
+    if (langFilter === "all") return sortedVideos;
+    return sortedVideos.filter((v: any) => detectLang(v.caption) === langFilter);
+  }, [sortedVideos, langFilter]);
+
   const videos = useMemo(() => {
-    return sortedVideos.slice(0, visibleCount);
-  }, [sortedVideos, visibleCount]);
+    return langFilteredVideos.slice(0, visibleCount);
+  }, [langFilteredVideos, visibleCount]);
 
-
-  const hasMore = allVideos.length >= visibleCount;
+  const hasMore = langFilteredVideos.length >= visibleCount;
 
 
   const { data: userFavorites = [] } = useQuery({
@@ -242,8 +262,30 @@ export default function Trends() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {allVideos.length > 0 && (
-            <span className="text-xs text-muted-foreground">{allVideos.length} видео</span>
+          {/* Language filter */}
+          <div className="flex bg-card rounded-lg p-0.5 border border-border/50">
+            {([
+              { key: "all" as const, label: "🌍" },
+              { key: "kk" as const, label: "🇰🇿" },
+              { key: "ru" as const, label: "🇷🇺" },
+              { key: "en" as const, label: "🇬🇧" },
+            ]).map((l) => (
+              <button
+                key={l.key}
+                onClick={() => { setLangFilter(l.key); setVisibleCount(PAGE_SIZE); }}
+                className={`px-2 py-1 rounded-md text-xs font-semibold transition-all ${
+                  langFilter === l.key
+                    ? "gradient-hero text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+
+          {langFilteredVideos.length > 0 && (
+            <span className="text-xs text-muted-foreground">{langFilteredVideos.length} видео</span>
           )}
         </div>
 
