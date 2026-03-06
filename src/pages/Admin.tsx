@@ -1288,6 +1288,28 @@ function RefreshSection() {
             )}
           </div>
 
+          {/* Language selector */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Тіл / Язык запросов:</p>
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { key: "all", label: "🌐 Все языки" },
+                { key: "kk", label: "🇰🇿 Қазақша" },
+                { key: "ru", label: "🇷🇺 Русский" },
+                { key: "en", label: "🇬🇧 English" },
+              ].map(l => (
+                <Button
+                  key={l.key}
+                  variant={refreshLang === l.key ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setRefreshLang(l.key)}
+                >
+                  {l.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <Button 
             onClick={triggerRefresh} 
             disabled={isRunning} 
@@ -1298,8 +1320,8 @@ function RefreshSection() {
             {isRunning 
               ? "⏳ Обновление идёт на сервере..." 
               : selectAll 
-                ? "🚀 Запустить (все категории)"
-                : `🚀 Запустить (${selectedNiches.length} категорий)`
+                ? `🚀 Запустить (все категории, ${refreshLang === "all" ? "все языки" : refreshLang.toUpperCase()})`
+                : `🚀 Запустить (${selectedNiches.length} категорий, ${refreshLang === "all" ? "все языки" : refreshLang.toUpperCase()})`
             }
           </Button>
           {isRunning && (
