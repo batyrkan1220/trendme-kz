@@ -353,7 +353,7 @@ export const NICHE_GROUPS: NicheGroup[] = [
   {
     key: "kazakh_culture",
     label: "Казахская культура",
-    emoji: "🐎",
+    emoji: "🇰🇿",
     subNiches: [
       { key: "kazakh_cuisine", label: "Казахская кухня" },
       { key: "kazakh_history", label: "История Казахстана" },
