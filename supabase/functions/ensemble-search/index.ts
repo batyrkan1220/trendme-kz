@@ -38,147 +38,320 @@ Deno.serve(async (req: Request) => {
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: authErr } = await userClient.auth.getUser();
-    if (authErr || !user) return json({ error: "Unauthorized" }, 401);
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+    const userId = claimsData.claims.sub as string;
 
-    // Admin check
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data: roleCheck } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!roleCheck) return json({ error: "Admin access required" }, 403);
 
     const body = await req.json();
-    const { query, period = "0", sorting = "0", country = "us" } = body;
+    const { query, period = "7", sorting = "0", country = "", region = "world" } = body;
 
     if (!query || typeof query !== "string" || query.trim().length === 0) {
       return json({ error: "query is required" }, 400);
     }
 
+    const trimmedQuery = query.trim();
+
     // EnsembleData sorting: 0 = relevance, 1 = likes, 2 = date
-    // Our UI: "3" = by date, "1" = by likes, "0" = relevance
     let edSorting = "0";
     if (sorting === "3" || sorting === "2") edSorting = "2";
     else if (sorting === "1") edSorting = "1";
 
-    // EnsembleData period: 0 = all, 1 = 1 day, 7 = 7 days, 30 = 30 days, 90, 180
     let edPeriod = period;
-    // Map our "0" to "0" (all time)
     if (!["0", "1", "7", "30", "90", "180"].includes(edPeriod)) {
-      edPeriod = "0";
+      edPeriod = "7";
     }
 
-    console.log(`EnsembleData search: query="${query.trim()}", period=${edPeriod}, sorting=${edSorting}, country=${country}`);
+    console.log(`EnsembleData search: query="${trimmedQuery}", period=${edPeriod}, sorting=${edSorting}`);
 
-    // Call EnsembleData full keyword search (handles pagination automatically)
-    const params = new URLSearchParams({
-      name: query.trim(),
-      period: edPeriod,
-      sorting: edSorting,
-      country,
-      match_exactly: "false",
-      token: ensembleToken,
-    });
+    /** Call EnsembleData API */
+    const callEnsemble = async (path: string, params: Record<string, string>) => {
+      const url = new URL(`${ENSEMBLE_BASE}${path}`);
+      params.token = ensembleToken;
+      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+      const res = await fetch(url.toString());
+      if (!res.ok) {
+        const text = await res.text();
+        console.error(`EnsembleData error ${res.status} for ${path}:`, text);
+        throw new Error(`EnsembleData error ${res.status}: ${text}`);
+      }
+      return await res.json();
+    };
 
-    const url = `${ENSEMBLE_BASE}/tt/keyword/full-search?${params.toString()}`;
-    const res = await fetch(url);
+    /** Extract videos from EnsembleData response */
+    const extractVideos = (data: any): any[] => {
+      if (Array.isArray(data)) return data;
+      if (data?.data?.data && Array.isArray(data.data.data)) return data.data.data;
+      if (Array.isArray(data?.data)) return data.data;
+      if (data?.data?.posts && Array.isArray(data.data.posts)) return data.data.posts;
+      if (Array.isArray(data?.data?.aweme_list)) return data.data.aweme_list;
+      if (Array.isArray(data?.data?.videos)) return data.data.videos;
+      if (Array.isArray(data?.items)) return data.items;
+      if (Array.isArray(data?.videos)) return data.videos;
+      return [];
+    };
+
+    const unwrapVideo = (item: any) => item.aweme_info || item.itemInfos || item;
+
+    const getPublishedAt = (video: any): string => {
+      const ct = video.create_time || video.createTime;
+      if (ct) {
+        const ms = typeof ct === "number" ? (ct > 1e12 ? ct : ct * 1000) : 0;
+        if (ms > 0) return new Date(ms).toISOString();
+      }
+      return new Date().toISOString();
+    };
+
+    const computeTrend = (v: any, stats: any) => {
+      const publishedAt = new Date(getPublishedAt(v));
+      const hoursSince = Math.max(1, (Date.now() - publishedAt.getTime()) / 3600000);
+      const views = stats.views || 0;
+      const likes = stats.likes || 0;
+      const comments = stats.comments || 0;
+      return {
+        velocity_views: views / hoursSince,
+        velocity_likes: likes / hoursSince,
+        velocity_comments: comments / hoursSince,
+        trend_score: 0.6 * (views / hoursSince) + 0.3 * (likes / hoursSince) + 0.1 * (comments / hoursSince),
+        published_at: publishedAt.toISOString(),
+      };
+    };
+
+    /** Normalize video to standard format */
+    const normalizeVideo = (raw: any) => {
+      const v = unwrapVideo(raw);
+      const rawStats = v.statistics || v.stats || {};
+      const author = v.author || {};
+      const videoInfo = v.video || {};
+
+      const awemeId = v.aweme_id || v.id || "";
+      const uniqueId = author.unique_id || author.uniqueId || author.search_user_name || "";
+      const avatarUrl = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
+      const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+      const desc = v.desc || v.caption || v.title || "";
+
+      const stats = {
+        views: rawStats.play_count ?? rawStats.views ?? v.views ?? v.playCount ?? 0,
+        likes: rawStats.digg_count ?? rawStats.likes ?? v.likes ?? v.diggCount ?? 0,
+        comments: rawStats.comment_count ?? rawStats.comments ?? v.comments ?? v.commentCount ?? 0,
+        shares: rawStats.share_count ?? rawStats.shares ?? v.shares ?? v.shareCount ?? 0,
+      };
+
+      return {
+        aweme_id: awemeId,
+        platform_video_id: String(awemeId),
+        caption: desc,
+        url: `https://www.tiktok.com/@${uniqueId || "user"}/video/${awemeId}`,
+        cover_url: coverUrl,
+        author_username: uniqueId,
+        author_display_name: author.nickname || "",
+        author_avatar_url: avatarUrl,
+        duration: videoInfo.duration ? Math.round(videoInfo.duration / 1000) : 0,
+        stats,
+        ...stats,
+        createTime: v.create_time || v.createTime || 0,
+      };
+    };
+
+    /** AI: Generate hashtags + related keywords */
+    const generateHashtagsAndKeywords = async (q: string) => {
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) return { hashtags: [], relatedKeywords: [] };
+      try {
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              {
+                role: "system",
+                content: `Дан поисковый запрос для TikTok. Сгенерируй:
+1. "hashtags": 3-5 хэштегов TikTok (без #) ТОЛЬКО на русском и казахском языках.
+2. "related_keywords": 8-12 связанных поисковых слов ТОЛЬКО на русском и казахском языках.
+Верни ТОЛЬКО валидный JSON: {"hashtags":["..."],"related_keywords":["..."]}`,
+              },
+              { role: "user", content: q },
+            ],
+          }),
+        });
+        const aiData = await res.json();
+        const content = aiData?.choices?.[0]?.message?.content || "";
+        const match = content.match(/\{[\s\S]*?\}/);
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          return {
+            hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags.filter((t: any) => typeof t === "string").slice(0, 5) : [],
+            relatedKeywords: Array.isArray(parsed.related_keywords) ? parsed.related_keywords.filter((t: any) => typeof t === "string").slice(0, 12) : [],
+          };
+        }
+      } catch (e) {
+        console.error("AI keyword generation failed:", e);
+      }
+      return { hashtags: [], relatedKeywords: [] };
+    };
+
+    // 1. Keyword search (5 pages) + AI hashtags in parallel
+    const PAGES = 5;
+    const [aiResult, ...pageResults] = await Promise.allSettled([
+      generateHashtagsAndKeywords(trimmedQuery),
+      ...Array.from({ length: PAGES }, (_, page) =>
+        callEnsemble("/tt/keyword/search", {
+          name: trimmedQuery,
+          cursor: String(page * 20),
+          period: edPeriod,
+          sorting: edSorting,
+          country,
+          match_exactly: "false",
+          get_author_stats: "false",
+        })
+      ),
+    ]);
+
+    const { hashtags = [], relatedKeywords = [] } =
+      (aiResult as any).status === "fulfilled" ? (aiResult as any).value : {};
+
+    let allRaw: any[] = [];
+    for (const r of pageResults) {
+      if (r.status === "fulfilled") allRaw.push(...extractVideos(r.value));
+    }
+    console.log(`Keyword search returned ${allRaw.length} videos`);
+
+    // 2. Hashtag search in parallel
+    if (hashtags.length > 0) {
+      const hashResults = await Promise.allSettled(
+        hashtags.map((tag: string) =>
+          callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" })
+        )
+      );
+      for (const r of hashResults) {
+        if (r.status === "fulfilled") {
+          const vids = extractVideos(r.value);
+          console.log(`Hashtag "${hashtags}" returned ${vids.length} videos`);
+          allRaw.push(...vids);
+        }
+      }
+    }
+
+    // 3. Normalize + Deduplicate
+    const seen = new Set<string>();
+    const uniqueVideos: any[] = [];
+    for (const raw of allRaw) {
+      const v = normalizeVideo(raw);
+      if (!v.aweme_id || seen.has(v.aweme_id)) continue;
+      seen.add(v.aweme_id);
+      uniqueVideos.push(v);
+    }
+    console.log(`Total unique videos: ${uniqueVideos.length}`);
+
+    // 4. Prepare DB rows + upsert
+    const now = new Date().toISOString();
+    const videoRows = uniqueVideos
+      .filter((v) => v.aweme_id)
+      .map((v) => {
+        const trends = computeTrend(v, v.stats);
+        return {
+          platform: "tiktok",
+          platform_video_id: v.platform_video_id,
+          url: v.url,
+          caption: v.caption || "",
+          cover_url: v.cover_url || "",
+          author_username: v.author_username || "",
+          author_display_name: v.author_display_name || "",
+          author_avatar_url: v.author_avatar_url || "",
+          views: v.views || 0,
+          likes: v.likes || 0,
+          comments: v.comments || 0,
+          shares: v.shares || 0,
+          duration_sec: v.duration || null,
+          fetched_at: now,
+          source_query_id: null,
+          region: region || "world",
+          ...trends,
+        };
+      });
+
+    const [upsertResult, queryResult] = await Promise.all([
+      adminClient
+        .from("videos")
+        .upsert(videoRows, { onConflict: "platform,platform_video_id" })
+        .select(),
+      userClient
+        .from("search_queries")
+        .upsert(
+          { user_id: userId, query_text: trimmedQuery, last_run_at: now, total_results_saved: videoRows.length },
+          { onConflict: "user_id,query_text", ignoreDuplicates: false }
+        )
+        .select()
+        .single(),
+    ]);
+
+    const upsertedVideos = upsertResult.data || [];
 
     // Log API usage
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
     try {
       await adminClient.from("api_usage_log").insert({
         function_name: "ensemble-search",
-        action: "keyword_full_search",
-        credits_used: 1,
-        metadata: { query: query.trim(), period: edPeriod, sorting: edSorting },
+        action: "user_search",
+        credits_used: PAGES + hashtags.length,
+        metadata: { query: trimmedQuery, period: edPeriod, sorting: edSorting, results: uniqueVideos.length },
       });
     } catch (e) {
       console.error("Failed to log API usage:", e);
     }
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error(`EnsembleData error ${res.status}: ${errText}`);
-      return json({ error: `EnsembleData API error: ${res.status}` }, 502);
-    }
-
-    const data = await res.json();
-
-    // Debug: log response structure
-    const topKeys = Object.keys(data || {});
-    console.log(`EnsembleData response keys: ${JSON.stringify(topKeys)}`);
-    if (data?.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
-      console.log(`data.data keys: ${JSON.stringify(Object.keys(data.data))}`);
-      if (data.data.videos) {
-        console.log(`data.data.videos length: ${data.data.videos.length}`);
+    // Fire-and-forget: AI categorize uncategorized videos
+    const uncategorized = upsertedVideos.filter((v: any) => !v.niche);
+    if (uncategorized.length > 0) {
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (LOVABLE_API_KEY) {
+        (async () => {
+          try {
+            const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other"];
+            for (let i = 0; i < uncategorized.length; i += 30) {
+              const batch = uncategorized.slice(i, i + 30);
+              const captions = batch.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+              const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  model: "google/gemini-2.5-flash-lite",
+                  messages: [
+                    { role: "system", content: `Classify each video caption into ONE niche from: ${NICHE_KEYS.join(", ")}. Return JSON array: [{"idx":0,"niche":"..."},...]` },
+                    { role: "user", content: captions },
+                  ],
+                }),
+              });
+              const aiData = await res.json();
+              const content = aiData?.choices?.[0]?.message?.content || "";
+              const match = content.match(/\[[\s\S]*?\]/);
+              if (match) {
+                const items = JSON.parse(match[0]);
+                for (const item of items) {
+                  if (typeof item.idx === "number" && batch[item.idx] && NICHE_KEYS.includes(item.niche)) {
+                    await adminClient.from("videos").update({ niche: item.niche }).eq("id", batch[item.idx].id);
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Categorization failed:", e);
+          }
+        })();
       }
     }
 
-    // EnsembleData full-search may return data in different structures
-    let rawVideos: any[] = [];
-    if (Array.isArray(data?.data)) {
-      rawVideos = data.data;
-    } else if (data?.data?.videos && Array.isArray(data.data.videos)) {
-      rawVideos = data.data.videos;
-    } else if (data?.data?.aweme_list && Array.isArray(data.data.aweme_list)) {
-      rawVideos = data.data.aweme_list;
-    } else if (Array.isArray(data)) {
-      rawVideos = data;
-    }
-    console.log(`EnsembleData returned ${rawVideos.length} videos`);
-    if (rawVideos.length > 0) {
-      console.log(`First video keys: ${JSON.stringify(Object.keys(rawVideos[0]))}`);
-      console.log(`First video sample: ${JSON.stringify(rawVideos[0]).substring(0, 1500)}`);
-    }
+    // Return videos with DB IDs + related keywords
+    const responseVideos = upsertedVideos.length > 0 ? upsertedVideos : uniqueVideos;
 
-    // Normalize: EnsembleData wraps each video in { aweme_info: {...} }
-    const videos = rawVideos.map((item: any) => {
-      const v = item.aweme_info || item; // unwrap aweme_info
-      const stats = v.statistics || v.stats || {};
-      const author = v.author || {};
-      const videoInfo = v.video || {};
-      const avatarUrl = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
-      const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
-      const uniqueId = author.unique_id || author.uniqueId || "";
-      const awemeId = v.aweme_id || v.id || "";
-
-      return {
-        id: awemeId,
-        video_id: awemeId,
-        aweme_id: awemeId,
-        desc: v.desc || "",
-        caption: v.desc || "",
-        createTime: v.create_time || v.createTime || 0,
-        stats: {
-          views: stats.play_count ?? stats.playCount ?? 0,
-          likes: stats.digg_count ?? stats.diggCount ?? 0,
-          comments: stats.comment_count ?? stats.commentCount ?? 0,
-          shares: stats.share_count ?? stats.shareCount ?? 0,
-        },
-        views: stats.play_count ?? stats.playCount ?? 0,
-        likes: stats.digg_count ?? stats.diggCount ?? 0,
-        comments: stats.comment_count ?? stats.commentCount ?? 0,
-        shares: stats.share_count ?? stats.shareCount ?? 0,
-        author: {
-          uniqueId,
-          unique_id: uniqueId,
-          nickname: author.nickname || "",
-          avatar: avatarUrl,
-          avatarThumb: avatarUrl,
-        },
-        video: {
-          cover: coverUrl,
-          duration: videoInfo.duration || 0,
-        },
-        cover_url: coverUrl,
-        url: `https://www.tiktok.com/@${uniqueId || "user"}/video/${awemeId}`,
-      };
-    });
-
-    return json({ videos });
+    return json({ videos: responseVideos, relatedKeywords });
   } catch (err) {
     console.error("ensemble-search error:", err);
     return json({ error: "Unable to process request. Please try again later." }, 500);

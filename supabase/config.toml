@@ -9,5 +9,7 @@ project_id = "oacmuheaobrluhvkwayc"
     verify_jwt = false
   [functions.refresh-trends]
     verify_jwt = false
+  [functions.ensemble-search]
+    verify_jwt = false
   [functions.socialkit]
     verify_jwt = false

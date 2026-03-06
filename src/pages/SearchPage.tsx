@@ -43,11 +43,10 @@ export default function SearchPage() {
 
   const { data: searchResults, isPending: isSearching, mutate: doSearch } = useMutation({
     mutationFn: async (q: string) => {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "search", query: q, limit: 100 },
+      const { data, error } = await supabase.functions.invoke("ensemble-search", {
+        body: { query: q },
       });
       if (error) {
-        // Check if data contains a more specific error from the function
         if (data?.error) throw new Error(data.error);
         throw error;
       }
