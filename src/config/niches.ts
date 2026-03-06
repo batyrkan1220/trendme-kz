@@ -13,7 +13,7 @@ export interface NicheGroup {
 export const NICHE_GROUPS: NicheGroup[] = [
   {
     key: "business",
-    label: "Бизнес және ақша",
+    label: "Бизнес и деньги",
     emoji: "💰",
     subNiches: [
       { key: "finance", label: "Финансы" },
