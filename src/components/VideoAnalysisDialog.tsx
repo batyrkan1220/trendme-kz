@@ -1,4 +1,5 @@
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { trackViewContent } from "@/components/TrackingPixels";
 import { Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, X, Target, Copy, Play } from "lucide-react";
 import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
 import { useState, useEffect, useRef } from "react";
@@ -42,6 +43,12 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const [showLangPicker, setShowLangPicker] = useState(false);
   const lastAnalyzedUrl = useRef<string | null>(null);
   const { checkAndLog } = useSubscription();
+
+  useEffect(() => {
+    if (open && video) {
+      trackViewContent(video.caption || video.url);
+    }
+  }, [open, video]);
 
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {

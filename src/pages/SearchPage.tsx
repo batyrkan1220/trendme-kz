@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { trackSearchEvent, trackAddToFavorites } from "@/components/TrackingPixels";
 import {
   Search as SearchIcon, Clock, Loader2, Sparkles,
 } from "lucide-react";
@@ -52,7 +53,8 @@ export default function SearchPage() {
       }
       return { videos: data.videos || [], relatedKeywords: data.relatedKeywords || [] };
     },
-    onSuccess: () => {
+    onSuccess: (_, query) => {
+      trackSearchEvent(query);
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
     },
@@ -80,6 +82,7 @@ export default function SearchPage() {
       await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
     } else {
       await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+      trackAddToFavorites(videoId);
     }
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     queryClient.invalidateQueries({ queryKey: ["favorites-count"] });

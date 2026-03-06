@@ -135,25 +135,45 @@ export function trackRegistrationEvent() {
 }
 
 export function trackPurchaseEvent(planName: string, amount: number) {
-  // GTM dataLayer
-  (window as any).dataLayer = (window as any).dataLayer || [];
-  (window as any).dataLayer.push({
-    event: "purchase",
-    currency: "KZT",
-    value: amount,
-    items: [{ item_name: planName }],
-  });
+  const dl = (window as any).dataLayer = (window as any).dataLayer || [];
+  dl.push({ event: "purchase", currency: "KZT", value: amount, items: [{ item_name: planName }] });
+  if ((window as any).gtag) (window as any).gtag("event", "purchase", { currency: "KZT", value: amount, items: [{ item_name: planName }] });
+  if ((window as any).fbq) (window as any).fbq("track", "Purchase", { currency: "KZT", value: amount });
+  if ((window as any).ttq) (window as any).ttq.track("PlaceAnOrder", { content_name: planName, value: amount, currency: "KZT" });
+}
 
-  // Google Analytics (direct)
-  if ((window as any).gtag) {
-    (window as any).gtag("event", "purchase", { currency: "KZT", value: amount, items: [{ item_name: planName }] });
-  }
-  // Facebook Pixel
-  if ((window as any).fbq) {
-    (window as any).fbq("track", "Purchase", { currency: "KZT", value: amount });
-  }
-  // TikTok Pixel
-  if ((window as any).ttq) {
-    (window as any).ttq.track("PlaceAnOrder", { content_name: planName, value: amount, currency: "KZT" });
-  }
+// ViewContent — видео карточкасын ашқанда
+export function trackViewContent(contentName: string, contentCategory?: string) {
+  const dl = (window as any).dataLayer = (window as any).dataLayer || [];
+  dl.push({ event: "view_content", content_name: contentName, content_category: contentCategory });
+  if ((window as any).gtag) (window as any).gtag("event", "view_item", { item_name: contentName, item_category: contentCategory });
+  if ((window as any).fbq) (window as any).fbq("track", "ViewContent", { content_name: contentName, content_category: contentCategory });
+  if ((window as any).ttq) (window as any).ttq.track("ViewContent", { content_name: contentName, content_category: contentCategory });
+}
+
+// Search — іздеу жасағанда
+export function trackSearchEvent(searchTerm: string) {
+  const dl = (window as any).dataLayer = (window as any).dataLayer || [];
+  dl.push({ event: "search", search_term: searchTerm });
+  if ((window as any).gtag) (window as any).gtag("event", "search", { search_term: searchTerm });
+  if ((window as any).fbq) (window as any).fbq("track", "Search", { search_string: searchTerm });
+  if ((window as any).ttq) (window as any).ttq.track("Search", { query: searchTerm });
+}
+
+// InitiateCheckout — тариф таңдағанда
+export function trackInitiateCheckout(planName: string, amount: number) {
+  const dl = (window as any).dataLayer = (window as any).dataLayer || [];
+  dl.push({ event: "begin_checkout", currency: "KZT", value: amount, items: [{ item_name: planName }] });
+  if ((window as any).gtag) (window as any).gtag("event", "begin_checkout", { currency: "KZT", value: amount, items: [{ item_name: planName }] });
+  if ((window as any).fbq) (window as any).fbq("track", "InitiateCheckout", { currency: "KZT", value: amount, content_name: planName });
+  if ((window as any).ttq) (window as any).ttq.track("InitiateCheckout", { content_name: planName, value: amount, currency: "KZT" });
+}
+
+// AddToWishlist — видеоны таңдаулыларға қосқанда
+export function trackAddToFavorites(contentName: string) {
+  const dl = (window as any).dataLayer = (window as any).dataLayer || [];
+  dl.push({ event: "add_to_wishlist", content_name: contentName });
+  if ((window as any).gtag) (window as any).gtag("event", "add_to_wishlist", { items: [{ item_name: contentName }] });
+  if ((window as any).fbq) (window as any).fbq("track", "AddToWishlist", { content_name: contentName });
+  if ((window as any).ttq) (window as any).ttq.track("AddToWishlist", { content_name: contentName });
 }

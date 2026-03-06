@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { trackInitiateCheckout } from "@/components/TrackingPixels";
 import { Check, Sparkles, Zap, Crown, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -61,6 +62,8 @@ export default function Pricing() {
   const handlePayment = (planId: string) => {
     const plan = plans.find((p: any) => p.id === planId);
     if (!plan) return;
+
+    trackInitiateCheckout(plan.name, plan.price_rub);
 
     const phone = "77770145874";
     const duration = plan.duration_days === 90 ? "3-месячную" : "1-месячную";

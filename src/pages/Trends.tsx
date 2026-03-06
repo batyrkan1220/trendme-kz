@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp, ChevronDown } from "lucide-react";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { useState, useMemo, useCallback } from "react";
@@ -180,6 +181,7 @@ export default function Trends() {
       await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
     } else {
       await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+      trackAddToFavorites(videoId);
     }
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);
