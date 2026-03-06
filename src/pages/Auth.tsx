@@ -21,11 +21,19 @@ export default function Auth() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState(0);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+    const now = Date.now();
+    if (now - lastSubmitTime < 3000) {
+      toast.error("Тым жылдам! Бірнеше секунд күтіңіз.");
+      return;
+    }
+    setLastSubmitTime(now);
     if (!email) { toast.error("Введите email"); return; }
 
     if (mode === "forgot") {
