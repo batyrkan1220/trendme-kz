@@ -105,8 +105,21 @@ export function VideoCard({
       } catch {}
     };
     el.addEventListener("loadeddata", goFull, { once: true });
-    return () => el.removeEventListener("loadeddata", goFull);
-  }, [isMobile, playUrl]);
+
+    // Close video when exiting fullscreen
+    const onFsChange = () => {
+      if (!document.fullscreenElement) {
+        onPlay(null);
+        setPlayUrl(null);
+      }
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+
+    return () => {
+      el.removeEventListener("loadeddata", goFull);
+      document.removeEventListener("fullscreenchange", onFsChange);
+    };
+  }, [isMobile, playUrl, onPlay]);
 
   const handleCoverError = useCallback(async () => {
     if (coverRefreshing || refreshedCover !== null) {
