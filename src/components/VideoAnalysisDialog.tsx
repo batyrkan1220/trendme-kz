@@ -1,4 +1,5 @@
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { trackViewContent } from "@/components/TrackingPixels";
 import { Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, X, Target, Copy, Play } from "lucide-react";
 import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
 import { useState, useEffect, useRef } from "react";
