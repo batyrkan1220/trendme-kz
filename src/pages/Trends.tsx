@@ -184,15 +184,8 @@ export default function Trends() {
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);
 
-  // Tier stats
-  const tierCounts = useMemo(() => {
-    const counts = { strong: 0, mid: 0, micro: 0 };
-    for (const v of allVideos) {
-      const t = getTier(Number((v as any).views));
-      if (t) counts[t]++;
-    }
-    return counts;
-  }, [allVideos]);
+
+
 
   return (
     <AppLayout>
