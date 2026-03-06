@@ -262,27 +262,37 @@ export default function Trends() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Language filter */}
-          <div className="flex bg-card rounded-lg p-0.5 border border-border/50">
-            {([
-              { key: "all" as const, label: "🌍" },
-              { key: "kk" as const, label: "🇰🇿" },
-              { key: "ru" as const, label: "🇷🇺" },
-              { key: "en" as const, label: "🇬🇧" },
-            ]).map((l) => (
-              <button
-                key={l.key}
-                onClick={() => { setLangFilter(l.key); setVisibleCount(PAGE_SIZE); }}
-                className={`px-2 py-1 rounded-md text-xs font-semibold transition-all ${
-                  langFilter === l.key
-                    ? "gradient-hero text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {l.label}
+          {/* Language filter dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                langFilter !== "all"
+                  ? "bg-primary/10 text-primary border-primary/30"
+                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground"
+              }`}>
+                <span>
+                  {langFilter === "all" ? "🌍 Все языки" : langFilter === "kk" ? "🇰🇿 Қазақша" : langFilter === "ru" ? "🇷🇺 Русский" : "🇬🇧 English"}
+                </span>
+                <ChevronDown className="h-3.5 w-3.5" />
               </button>
-            ))}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {([
+                { key: "all" as const, label: "🌍 Все языки" },
+                { key: "kk" as const, label: "🇰🇿 Қазақша" },
+                { key: "ru" as const, label: "🇷🇺 Русский" },
+                { key: "en" as const, label: "🇬🇧 English" },
+              ]).map((l) => (
+                <DropdownMenuItem
+                  key={l.key}
+                  onClick={() => { setLangFilter(l.key); setVisibleCount(PAGE_SIZE); }}
+                  className={`cursor-pointer ${langFilter === l.key ? "bg-primary/10 text-primary font-semibold" : ""}`}
+                >
+                  {l.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {langFilteredVideos.length > 0 && (
             <span className="text-xs text-muted-foreground">{langFilteredVideos.length} видео</span>
