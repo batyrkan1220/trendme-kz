@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp, ChevronDown } from "lucide-react";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { useState, useMemo, useCallback } from "react";
