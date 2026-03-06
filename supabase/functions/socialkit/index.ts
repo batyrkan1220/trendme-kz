@@ -985,6 +985,51 @@ Deno.serve(async (req: Request) => {
         return json({ play_url: playUrl });
       }
 
+      case "refresh_cover": {
+        const { video_id, platform_video_id, author_username } = body;
+        if (!platform_video_id) return json({ error: "platform_video_id is required" }, 400);
+
+        const postUrl = `https://www.tiktok.com/@${author_username || "user"}/video/${platform_video_id}`;
+        try {
+          const data = await callEnsemble("/tt/post/info", { url: postUrl });
+          await logApiUsage("refresh_cover", 1, { platform_video_id });
+
+          const rawData = data?.data || data;
+          const innerData = rawData?.["0"] || rawData;
+          const postData = unwrapVideo(innerData);
+
+          if (!postData) return json({ error: "Video not found" }, 404);
+
+          const videoInfo = postData.video || {};
+          const author = postData.author || {};
+          const newCover = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+          const newAvatar = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
+
+          if (!newCover) return json({ error: "No cover found" }, 404);
+
+          if (video_id) {
+            const updateFields: Record<string, any> = {
+              cover_url: newCover,
+              fetched_at: new Date().toISOString(),
+            };
+            if (newAvatar) updateFields.author_avatar_url = newAvatar;
+
+            const stats = postData.statistics || {};
+            if (stats.play_count != null) updateFields.views = stats.play_count;
+            if (stats.digg_count != null) updateFields.likes = stats.digg_count;
+            if (stats.comment_count != null) updateFields.comments = stats.comment_count;
+            if (stats.share_count != null) updateFields.shares = stats.share_count;
+
+            await adminClient.from("videos").update(updateFields).eq("id", video_id);
+          }
+
+          return json({ cover_url: newCover, author_avatar_url: newAvatar });
+        } catch (e) {
+          console.error("Cover refresh failed:", (e as Error).message);
+          return json({ error: "Failed to refresh cover" }, 500);
+        }
+      }
+
       case "admin_add_video": {
         // Admin-only: add single video to trends DB
         const { data: roleCheck2 } = await adminClient
