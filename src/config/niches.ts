@@ -122,7 +122,7 @@ export const NICHE_GROUPS: NicheGroup[] = [
       { key: "mma_boxing", label: "ММА / Бокс" },
       { key: "tennis", label: "Теннис" },
       { key: "hockey", label: "Хоккей" },
-      { key: "sports_news", label: "Спорт жаңалықтары" },
+      { key: "sports_news", label: "Спортивные новости" },
       { key: "extreme_sports", label: "Экстремальный спорт" },
     ],
   },
