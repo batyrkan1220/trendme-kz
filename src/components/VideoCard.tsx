@@ -395,8 +395,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               </div>
             )}
 
-            {/* Bottom gradient */}
-            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            {/* Bottom gradient — subtle */}
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
           </>
         )}
       </div>
