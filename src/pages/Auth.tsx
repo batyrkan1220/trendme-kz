@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
-import { Capacitor } from "@capacitor/core";
+import { isNativePlatform } from "@/lib/native";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -26,7 +26,7 @@ export default function Auth() {
   const [lastSubmitTime, setLastSubmitTime] = useState(0);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  const isNative = Capacitor.isNativePlatform();
+  const isNative = isNativePlatform;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
