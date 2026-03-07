@@ -107,7 +107,7 @@ const AppRoutes = () => (
         <Route path="/ai-script" element={<ProtectedRoute><ScriptFromVideo /></ProtectedRoute>} />
         <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
         <Route path="/favorites" element={<Navigate to="/library" replace />} />
-        <Route path="/journal" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/journal" element={<Navigate to="/trends" replace />} />
         <Route path="/razvedka" element={<ProtectedRoute><Razvedka /></ProtectedRoute>} />
         <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
