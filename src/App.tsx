@@ -44,7 +44,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // On native, skip onboarding check — allow access without auth
+      if (isNativePlatform) {
+        setOnboardingDone(true);
+      }
+      return;
+    }
     supabase
       .from("profiles")
       .select("onboarding_completed")
@@ -52,7 +58,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       .maybeSingle()
       .then(async ({ data }) => {
         if (!data) {
-          // No profile exists (old user) — create one and skip onboarding
           await supabase.from("profiles").insert({ user_id: user.id, onboarding_completed: true });
           setOnboardingDone(true);
         } else {
@@ -69,8 +74,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // On native: allow access without login
+  if (!user && isNativePlatform) return <>{children}</>;
+  
   if (!user) return <Navigate to="/auth" replace />;
-  if (!onboardingDone) return <Navigate to="/onboarding" replace />;
+  if (!onboardingDone && !isNativePlatform) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }
 
