@@ -185,6 +185,7 @@ export default function Trends() {
 
   const handleViewAll = (nicheKey: string) => {
     setDrillNiche(nicheKey);
+    setDrillSubNiche(null);
     setVisibleCount(PAGE_SIZE);
   };
 
