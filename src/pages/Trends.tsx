@@ -193,35 +193,24 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Hero mosaic — UNREELS style */}
+              {/* Hero banner — single cover */}
               {allVideos.length > 0 && (
-                <div className="relative w-full overflow-hidden" style={{ height: "clamp(280px, 55vw, 380px)" }}>
-                  {/* Mosaic grid of covers */}
-                  <div className="absolute inset-0 grid grid-cols-4 gap-1 p-1">
-                    {allVideos.slice(0, 8).map((v, i) => (
-                      <div key={v.id} className="relative overflow-hidden rounded-lg" style={{ aspectRatio: i < 4 ? "9/14" : "9/12" }}>
-                        {v.cover_url ? (
-                          <img
-                            src={v.cover_url}
-                            alt=""
-                            loading="eager"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-white/5" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {/* Dark overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-[#0a0a0a]" />
-                  {/* Logo + tabs overlay */}
+                <div className="relative w-full overflow-hidden" style={{ height: "160px" }}>
+                  {allVideos[0]?.cover_url && (
+                    <img
+                      src={allVideos[0].cover_url}
+                      alt=""
+                      loading="eager"
+                      className="absolute inset-0 w-full h-full object-cover scale-110 blur-[2px]"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-[#0a0a0a]" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                     <h1
-                      className="text-2xl font-black tracking-widest uppercase mb-4"
+                      className="text-lg font-extrabold tracking-widest uppercase mb-3"
                       style={{
                         color: "hsl(var(--neon))",
-                        textShadow: "0 0 30px hsl(var(--neon) / 0.5)",
+                        textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
                       }}
                     >
                       trendme
