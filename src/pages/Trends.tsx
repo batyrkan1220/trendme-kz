@@ -55,11 +55,13 @@ const PAGE_SIZE = 30;
 /** Detect language from caption text */
 const detectLang = (caption: string | null): "kk" | "ru" | "en" | "unknown" => {
   if (!caption) return "unknown";
-  const kazSpecific = /[әғқңөұүіһ]/i;
+  const kazSpecific = /[әғқңөұүһ]/i;
+  const ukrSpecific = /[єїґ]/i;
   const cyrillic = /[а-яёА-ЯЁ]/;
   const latin = /[a-zA-Z]/;
-  const cyrCount = (caption.match(/[а-яёА-ЯЁәғқңөұүіһ]/g) || []).length;
+  const cyrCount = (caption.match(/[а-яёА-ЯЁәғқңөұүіһєїґ]/g) || []).length;
   const latCount = (caption.match(/[a-zA-Z]/g) || []).length;
+  if (ukrSpecific.test(caption)) return "ru";
   if (kazSpecific.test(caption) && cyrCount > latCount) return "kk";
   if (cyrCount > latCount) return "ru";
   if (latCount > cyrCount) return "en";
