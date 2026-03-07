@@ -306,7 +306,7 @@ function FloatingOrbs() {
 /* ─── Main ─── */
 export default function Landing() {
   return (
-    <main className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <main className="bg-background text-foreground overflow-x-hidden" style={{ minHeight: "100vh", overflowY: "auto", position: "relative" }}>
       <LandingNav />
 
       {/* ═══ Hero ═══ */}
