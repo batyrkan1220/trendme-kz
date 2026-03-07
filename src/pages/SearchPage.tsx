@@ -303,7 +303,7 @@ export default function SearchPage() {
             )}
           </div>
         </div>
-        </div>
+      </div>
       </div>
       <VideoAnalysisDialog
         video={analysisVideo}
