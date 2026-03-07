@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import trendsBg from "@/assets/trends-bg.jpg";
+
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
