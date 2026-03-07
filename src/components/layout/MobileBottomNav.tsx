@@ -56,7 +56,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         right: 0,
         zIndex: drawerOpen ? 40 : 99999,
         pointerEvents: drawerOpen ? "none" : "auto",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        paddingBottom: 0,
         transition: "opacity 0.2s",
         opacity: drawerOpen ? 0 : 1,
       }}
@@ -103,7 +103,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       )}
 
       {/* Bottom bar */}
-      <div className="flex items-center justify-around px-4 py-2 animate-bottom-nav-enter" style={{ background: "rgba(10,10,10,0.75)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
+      <div className="flex items-center justify-around px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "rgba(10,10,10,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
         {/* Main nav items */}
         {mainNavItems.map((item) => {
           const active = location.pathname === item.path;
@@ -112,17 +112,17 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               key={item.path}
               to={item.path}
               onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(false); }}
-              className="relative flex flex-col items-center gap-0.5 py-1.5 min-w-[56px] active:scale-[0.93] transition-transform"
+              className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] active:scale-[0.93] transition-transform"
             >
               <item.icon
                 className={cn(
-                  "h-[22px] w-[22px] transition-colors duration-200",
+                  "h-[26px] w-[26px] transition-colors duration-200",
                   active ? "text-neon" : "text-white"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span className={cn(
-                "text-[10px] font-semibold leading-tight transition-colors",
+                "text-[11px] font-semibold leading-tight transition-colors",
                 active ? "text-neon" : "text-white"
               )}>
                 {item.label}
@@ -134,12 +134,12 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         {/* Tools button */}
         <button
           onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(v => !v); }}
-          className="relative flex flex-col items-center gap-0.5 py-1.5 min-w-[56px] active:scale-[0.93] transition-transform"
+          className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] active:scale-[0.93] transition-transform"
         >
           <div className="relative">
             <Wrench
               className={cn(
-                "h-[22px] w-[22px] transition-colors duration-200",
+                "h-[26px] w-[26px] transition-colors duration-200",
                 isToolsActive || showToolsMenu ? "text-neon" : "text-white"
               )}
               strokeWidth={isToolsActive || showToolsMenu ? 2.2 : 1.8}
@@ -152,7 +152,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             />
           </div>
           <span className={cn(
-            "text-[10px] font-semibold leading-tight transition-colors",
+            "text-[11px] font-semibold leading-tight transition-colors",
             isToolsActive || showToolsMenu ? "text-neon" : "text-white"
           )}>
             Инструменты
@@ -166,17 +166,17 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             <Link
               to="/library"
               onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(false); }}
-              className="relative flex flex-col items-center gap-0.5 py-1.5 min-w-[56px] active:scale-[0.93] transition-transform"
+              className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] active:scale-[0.93] transition-transform"
             >
               <Heart
                 className={cn(
-                  "h-[22px] w-[22px] transition-colors duration-200",
+                  "h-[26px] w-[26px] transition-colors duration-200",
                   active ? "text-neon fill-neon" : "text-white"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span className={cn(
-                "text-[10px] font-semibold leading-tight transition-colors",
+                "text-[11px] font-semibold leading-tight transition-colors",
                 active ? "text-neon" : "text-white"
               )}>
                 Избранное
