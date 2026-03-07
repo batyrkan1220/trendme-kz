@@ -1,10 +1,12 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Search, TrendingUp, Video, Sparkles, UserCircle, Lock, ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 const actions = [
   {
