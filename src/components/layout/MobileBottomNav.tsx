@@ -56,7 +56,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         right: 0,
         zIndex: drawerOpen ? 40 : 99999,
         pointerEvents: drawerOpen ? "none" : "auto",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        paddingBottom: 0,
         transition: "opacity 0.2s",
         opacity: drawerOpen ? 0 : 1,
       }}
