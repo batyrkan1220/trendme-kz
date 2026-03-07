@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'trendme',
   webDir: 'dist',
   server: {
-    url: 'https://trendme-kz.lovable.app?forceHideBadge=true',
+    url: 'https://trendme-kz.lovable.app?forceHideBadge=true&native=1',
     cleartext: true,
   },
   ios: {
