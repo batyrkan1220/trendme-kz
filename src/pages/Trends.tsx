@@ -225,8 +225,6 @@ export default function Trends() {
                     );
                   })}
                 </div>
-                {/* Bottom fade */}
-                <div className="h-4 bg-gradient-to-b from-white/10 to-transparent mt-1" />
               </div>
 
 
