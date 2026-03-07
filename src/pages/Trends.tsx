@@ -293,7 +293,7 @@ export default function Trends() {
             <>
               {/* Sticky transparent header — logo + categories */}
               <div
-                className="sticky top-0 z-30 pb-3 px-4 backdrop-blur-xl"
+                className="sticky top-0 z-30 pb-3 px-4"
                 style={{ background: "transparent", paddingTop: "calc(env(safe-area-inset-top, 0px) + 4px)" }}
               >
                 <div className="flex items-center justify-center mb-2 mt-1 animate-stagger-fade-in">
