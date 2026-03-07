@@ -312,6 +312,7 @@ export default function AccountAnalysis() {
                         }}
                         showTier={true}
                         showAuthor={false}
+                        darkMode
                       />
                     );
                   })}

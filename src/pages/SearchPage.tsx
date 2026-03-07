@@ -263,6 +263,7 @@ export default function SearchPage() {
                     showTier={true}
                     showAuthor={true}
                     showAnalyzeButton={true}
+                    darkMode
                   />
                 );
               })}
