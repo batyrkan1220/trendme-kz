@@ -1,5 +1,9 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { isNativePlatform } from "@/lib/native";
+import { lazy } from "react";
+
+const Landing = lazy(() => import("./Landing"));
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -12,8 +16,12 @@ const Index = () => {
     );
   }
 
+  if (isNativePlatform) {
+    return user ? <Navigate to="/trends" replace /> : <Navigate to="/auth" replace />;
+  }
+
   if (user) return <Navigate to="/trends" replace />;
-  return <Navigate to="/auth" replace />;
+  return <Landing />;
 };
 
 export default Index;
