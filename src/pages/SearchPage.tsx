@@ -169,7 +169,7 @@ export default function SearchPage() {
         </div>
       ) : (
       <>
-      <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 animate-fade-in">
+      <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 animate-fade-in" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
         <div className="flex-1 space-y-4 md:space-y-6 min-w-0">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Поиск 🔍</h1>
 
