@@ -4,8 +4,6 @@ import { isNativePlatform } from "@/lib/native";
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
@@ -30,6 +28,7 @@ export default function Trends() {
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
+  const [drillPeriod, setDrillPeriod] = useState<number>(7);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const { balance } = useTokens();
@@ -124,12 +123,12 @@ export default function Trends() {
 
   // Fetch full niche data only when drilling down
   const { data: drillNicheVideos = [] } = useQuery<any[]>({
-    queryKey: ["trends-niche", drillNiche],
+    queryKey: ["trends-niche", drillNiche, drillPeriod],
     queryFn: async () => {
       if (!drillNiche) return [];
       const selectFields =
         "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
-      const since = new Date(Date.now() - 7 * 86400000).toISOString();
+      const since = new Date(Date.now() - drillPeriod * 86400000).toISOString();
       const allRows: any[] = [];
       let from = 0;
       const pageSize = 1000;
@@ -172,16 +171,11 @@ export default function Trends() {
     [drillNiche]
   );
 
-  const drillDateRange = useMemo(() => {
-    if (!drillNicheVideos.length) return "";
-    const dates = drillNicheVideos
-      .filter((v: any) => v.published_at)
-      .map((v: any) => new Date(v.published_at).getTime());
-    if (!dates.length) return "";
-    const min = new Date(Math.min(...dates));
-    const max = new Date(Math.max(...dates));
-    return `${format(min, "d MMM", { locale: ru })} — ${format(max, "d MMM", { locale: ru })}`;
-  }, [drillNicheVideos]);
+  const PERIOD_OPTIONS = [
+    { value: 3, label: "3 дня" },
+    { value: 7, label: "7 дней" },
+    { value: 30, label: "30 дней" },
+  ];
 
   const handleViewAll = (nicheKey: string) => {
     setDrillNiche(nicheKey);
@@ -228,12 +222,23 @@ export default function Trends() {
                   </h1>
                 </div>
 
-                {/* Info: date range + video count */}
-                <div className="flex items-center gap-3 text-xs text-white/50">
-                  {drillDateRange && (
-                    <span>📅 {drillDateRange}</span>
-                  )}
-                  <span>🎬 {drillTotalFiltered} видео</span>
+                {/* Period chips + video count */}
+                <div className="flex items-center gap-2 text-xs">
+                  {PERIOD_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setDrillPeriod(opt.value); setVisibleCount(PAGE_SIZE); }}
+                      className={cn(
+                        "shrink-0 px-2.5 py-1 rounded-full font-medium transition-all",
+                        drillPeriod === opt.value
+                          ? "bg-white/20 text-white"
+                          : "bg-white/5 text-white/40 hover:bg-white/10"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                  <span className="text-white/40 ml-1">· {drillTotalFiltered} видео</span>
                 </div>
 
                 {/* Sub-niche chips */}
