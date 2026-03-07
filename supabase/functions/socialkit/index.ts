@@ -8,6 +8,13 @@ const corsHeaders = {
 
 const ENSEMBLE_BASE = "https://ensembledata.com/apis";
 
+// Sanitize user-controlled text before passing to AI prompts
+const cleanForPrompt = (s: string, max = 200) =>
+  String(s || '')
+    .replace(/system:|assistant:|user:/gi, '')
+    .replace(/ignore.*(previous|above|all)/gi, '')
+    .slice(0, max);
+
 function validateTikTokUrl(url: string): boolean {
   try {
     if (url.length > 500) return false;
@@ -544,7 +551,7 @@ Deno.serve(async (req: Request) => {
                 const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other"];
                 for (let i = 0; i < uncategorized.length; i += 30) {
                   const batch = uncategorized.slice(i, i + 30);
-                  const videoCaptions = batch.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+                  const videoCaptions = batch.map((v: any, idx: number) => `${idx}: ${cleanForPrompt(v.caption, 150)}`).join("\n");
                   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                     method: "POST",
                     headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
@@ -691,11 +698,11 @@ Deno.serve(async (req: Request) => {
         // 2. Use Lovable AI to generate structured analysis
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        const caption = body.caption || "";
+        const caption = cleanForPrompt(body.caption || "", 500);
         const analysisLang = body.language === "kk" ? "kk" : "ru";
 
         const videoStats = statsData?.statistics || statsData?.stats || {};
-        const videoTitle = statsData?.desc || caption || "";
+        const videoTitle = cleanForPrompt(statsData?.desc || caption || "", 500);
         const videoDuration = statsData?.video?.duration ? Math.round(statsData.video.duration / 1000) : "";
 
         // Build context for AI from all available data
@@ -983,7 +990,7 @@ Deno.serve(async (req: Request) => {
 
           if (!uncategorized || uncategorized.length === 0) break;
 
-          const videoCaptions = uncategorized.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+          const videoCaptions = uncategorized.map((v: any, idx: number) => `${idx}: ${cleanForPrompt(v.caption, 150)}`).join("\n");
 
           try {
             const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

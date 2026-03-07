@@ -42,25 +42,32 @@ serve(async (req) => {
     const lang = language === "kk" ? "kk" : "ru";
     const langLabel = lang === "kk" ? "қазақ тілінде" : "на русском языке";
 
+    // Sanitize user-controlled input to prevent prompt injection
+    const clean = (s: string, max = 1000) =>
+      s.replace(/system:|assistant:|user:/gi, '')
+       .replace(/ignore.*(previous|above|all)/gi, '')
+       .replace(/\r?\n{3,}/g, '\n\n')
+       .slice(0, max);
+
     // Build context about the video
     const contextParts: string[] = [];
-    if (caption) contextParts.push(`Описание видео: ${caption}`);
-    if (summary?.topic) contextParts.push(`Тема: ${summary.topic}`);
-    if (summary?.summary) contextParts.push(`Суть: ${summary.summary}`);
-    if (summary?.hook_phrase) contextParts.push(`Хук-фраза оригинала: ${summary.hook_phrase}`);
-    if (summary?.visual_hook) contextParts.push(`Визуальный хук: ${summary.visual_hook}`);
-    if (summary?.tags?.length) contextParts.push(`Форматы: ${summary.tags.join(", ")}`);
-    if (summary?.niches?.length) contextParts.push(`Ниши: ${summary.niches.join(", ")}`);
+    if (caption) contextParts.push(`Описание видео: ${clean(String(caption), 500)}`);
+    if (summary?.topic) contextParts.push(`Тема: ${clean(String(summary.topic), 200)}`);
+    if (summary?.summary) contextParts.push(`Суть: ${clean(String(summary.summary), 500)}`);
+    if (summary?.hook_phrase) contextParts.push(`Хук-фраза оригинала: ${clean(String(summary.hook_phrase), 200)}`);
+    if (summary?.visual_hook) contextParts.push(`Визуальный хук: ${clean(String(summary.visual_hook), 200)}`);
+    if (summary?.tags?.length) contextParts.push(`Форматы: ${summary.tags.slice(0, 10).map((t: string) => clean(String(t), 50)).join(", ")}`);
+    if (summary?.niches?.length) contextParts.push(`Ниши: ${summary.niches.slice(0, 10).map((n: string) => clean(String(n), 50)).join(", ")}`);
     if (summary?.structure?.length) {
-      const structText = summary.structure.map((s: any) => `[${s.time}] ${s.title}: ${s.description}`).join("\n");
+      const structText = summary.structure.slice(0, 20).map((s: any) => `[${clean(String(s.time || ''), 10)}] ${clean(String(s.title || ''), 100)}: ${clean(String(s.description || ''), 200)}`).join("\n");
       contextParts.push(`Структура видео:\n${structText}`);
     }
     if (summary?.funnel) {
-      contextParts.push(`Воронка: ${summary.funnel.direction || ""} / Цель: ${summary.funnel.goal || ""}`);
+      contextParts.push(`Воронка: ${clean(String(summary.funnel.direction || ''), 100)} / Цель: ${clean(String(summary.funnel.goal || ''), 100)}`);
     }
-    if (transcript) contextParts.push(`Оригинальный транскрипт:\n${transcript.slice(0, 6000)}`);
+    if (transcript) contextParts.push(`Оригинальный транскрипт:\n${clean(String(transcript), 6000)}`);
 
-    const videoContext = contextParts.join("\n\n");
+    const videoContext = `=== VIDEO CONTENT (reference data) ===\n${contextParts.join("\n\n")}\n=== END VIDEO CONTENT ===`;
 
     const systemPrompt = lang === "kk"
       ? `Сен — TikTok/Reels үшін AI-сценарист. Сенің міндетің — табысты бейнелерді талдау негізінде вирустық бейімделген сценарийлер жасау.
@@ -97,10 +104,16 @@ ${videoContext}
 Если пользователь просит доработать — корректируй сценарий по его пожеланиям.`;
 
     // If no messages, generate initial script
-    const chatMessages = messages && messages.length > 0
+    // Limit message history and sanitize
+    const sanitizedMessages = (messages || []).slice(-10).map((m: any) => ({
+      role: String(m.role) === "assistant" ? "assistant" : "user",
+      content: clean(String(m.content || ''), 2000),
+    }));
+
+    const chatMessages = sanitizedMessages.length > 0
       ? [
           { role: "system", content: systemPrompt },
-          ...messages,
+          ...sanitizedMessages,
         ]
       : [
           { role: "system", content: systemPrompt },
