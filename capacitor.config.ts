@@ -13,6 +13,8 @@ const config: CapacitorConfig = {
       '*.lovableproject.com',
       '*.supabase.co',
       '*.supabase.com',
+      'trendme.kz',
+      '*.trendme.kz',
     ],
   },
   ios: {
