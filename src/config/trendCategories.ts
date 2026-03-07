@@ -14,12 +14,11 @@ export const TREND_CATEGORIES: TrendCategory[] = [
     nicheKeys: [], // special: shows top trending across ALL niches
   },
   {
-    key: "everyday",
-    label: "Повседневные",
+    key: "lifestyle",
+    label: "Лайфстайл",
     nicheKeys: [
       "beauty", "fashion", "food", "fitness", "home", "family",
-      "entertainment", "media", "animals", "travel", "hobby",
-      "sports", "medicine", "kazakh_culture",
+      "animals", "travel", "medicine", "hobby",
     ],
   },
   {
@@ -27,13 +26,28 @@ export const TREND_CATEGORIES: TrendCategory[] = [
     label: "Бизнес",
     nicheKeys: [
       "business", "tech", "ai", "realestate", "blogging",
-      "education", "gaming",
     ],
   },
   {
-    key: "quotes",
-    label: "Цитаты",
-    nicheKeys: ["psychology"],
+    key: "entertainment",
+    label: "Развлечения",
+    nicheKeys: [
+      "entertainment", "media", "gaming", "sports",
+    ],
+  },
+  {
+    key: "education",
+    label: "Образование",
+    nicheKeys: [
+      "education", "psychology", "auto",
+    ],
+  },
+  {
+    key: "kazakhstan",
+    label: "Казахстан",
+    nicheKeys: [
+      "kazakh_culture",
+    ],
   },
 ];
 
