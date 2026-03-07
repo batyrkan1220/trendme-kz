@@ -296,7 +296,9 @@ export default function Trends() {
                 className="sticky top-0 z-30 pb-3 px-4 backdrop-blur-md"
                 style={{ background: "rgba(10,10,10,0.4)", paddingTop: "calc(env(safe-area-inset-top, 0px) + 4px)" }}
               >
-                <div className="flex items-center justify-center mb-2 mt-1">
+                <div
+                  className="flex items-center justify-center mb-2 mt-1 animate-stagger-fade-in"
+                >
                   <h1
                     className="text-lg font-black tracking-[0.2em] uppercase"
                     style={{
@@ -307,7 +309,10 @@ export default function Trends() {
                     trendme
                   </h1>
                 </div>
-                <div className="flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide">
+                <div
+                  className="flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide animate-stagger-fade-in"
+                  style={{ animationDelay: "100ms" }}
+                >
                   {TREND_CATEGORIES.map((cat) => {
                     const active = activeCategory === cat.key;
                     return (
@@ -351,19 +356,24 @@ export default function Trends() {
                   </div>
                 ) : (
                   <>
-                    {categoryGroups.map((group) => (
-                      <LazyNicheRow
+                    {categoryGroups.map((group, idx) => (
+                      <div
                         key={group.key}
-                        group={group}
-                        videos={videosByNiche[group.key] || []}
-                        userFavorites={userFavorites}
-                        onToggleFav={toggleFav}
-                        onAnalyze={(v) => setAnalysisVideo(v)}
-                        playingId={playingId}
-                        onPlay={setPlayingId}
-                        onViewAll={handleViewAll}
-                        darkMode
-                      />
+                        className="animate-stagger-fade-in"
+                        style={{ animationDelay: `${200 + idx * 80}ms` }}
+                      >
+                        <LazyNicheRow
+                          group={group}
+                          videos={videosByNiche[group.key] || []}
+                          userFavorites={userFavorites}
+                          onToggleFav={toggleFav}
+                          onAnalyze={(v) => setAnalysisVideo(v)}
+                          playingId={playingId}
+                          onPlay={setPlayingId}
+                          onViewAll={handleViewAll}
+                          darkMode
+                        />
+                      </div>
                     ))}
 
                     {categoryGroups.every((g) => !(videosByNiche[g.key]?.length)) &&
