@@ -7,7 +7,7 @@ import { useState, useMemo, useCallback } from "react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
-import { TREND_CATEGORIES, getNicheGroupsForCategory } from "@/config/trendCategories";
+import { TREND_CATEGORIES } from "@/config/trendCategories";
 import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
@@ -23,7 +23,7 @@ import { ChevronLeft } from "lucide-react";
 const PAGE_SIZE = 30;
 
 export default function Trends() {
-  const [activeCategory, setActiveCategory] = useState("for_you");
+  // removed activeCategory state
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
@@ -116,10 +116,8 @@ export default function Trends() {
     onRefresh: handleRefresh,
   });
 
-  const categoryGroups = useMemo(
-    () => getNicheGroupsForCategory(activeCategory),
-    [activeCategory]
-  );
+  // Show all niches in one list
+  const allGroups = NICHE_GROUPS;
 
   // Fetch full niche data only when drilling down
   const { data: drillNicheVideos = [] } = useQuery<any[]>({
@@ -291,12 +289,12 @@ export default function Trends() {
             </>
           ) : (
             <>
-              {/* Sticky transparent header — logo + categories */}
+              {/* Sticky transparent header — logo */}
               <div
                 className="sticky top-0 z-30 pb-3 px-4"
                 style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 4px)" }}
               >
-                <div className="flex items-center justify-center mb-2 mt-1">
+                <div className="flex items-center justify-center mb-1 mt-1">
                   <h1
                     className="text-lg font-black tracking-[0.2em] uppercase"
                     style={{
@@ -306,25 +304,6 @@ export default function Trends() {
                   >
                     trendme
                   </h1>
-                </div>
-                <div className="flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide">
-                  {TREND_CATEGORIES.map((cat) => {
-                    const active = activeCategory === cat.key;
-                    return (
-                      <button
-                        key={cat.key}
-                        onClick={() => setActiveCategory(cat.key)}
-                        className={cn(
-                          "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-0.5 border-b-2",
-                          active
-                            ? "text-neon border-neon"
-                            : "text-white/70 border-transparent hover:text-white"
-                        )}
-                      >
-                        {cat.label}
-                      </button>
-                    );
-                  })}
                 </div>
               </div>
 
@@ -351,7 +330,7 @@ export default function Trends() {
                   </div>
                 ) : (
                   <>
-                    {categoryGroups.map((group) => (
+                    {allGroups.map((group) => (
                       <LazyNicheRow
                         key={group.key}
                         group={group}
@@ -366,17 +345,16 @@ export default function Trends() {
                       />
                     ))}
 
-                    {categoryGroups.every((g) => !(videosByNiche[g.key]?.length)) &&
-                      activeCategory !== "for_you" && (
-                        <div className="text-center py-20">
-                          <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                            <TrendingUp className="h-10 w-10 text-white/20" />
-                          </div>
-                          <p className="text-white/50 font-medium">
-                            Нет трендовых видео в этой категории
-                          </p>
+                    {allGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
+                      <div className="text-center py-20">
+                        <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                          <TrendingUp className="h-10 w-10 text-white/20" />
                         </div>
-                      )}
+                        <p className="text-white/50 font-medium">
+                          Нет трендовых видео
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
