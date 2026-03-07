@@ -13,7 +13,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { NativePaywall } from "@/components/NativePaywall";
 import { isNativePlatform } from "@/lib/native";
 import Index from "./pages/Index";
-import { MaintenancePage } from "@/components/MaintenancePage";
+
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
