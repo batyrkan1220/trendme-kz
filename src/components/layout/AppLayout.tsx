@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileSidebarDrawer } from "./MobileSidebarDrawer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { isNativePlatform } from "@/lib/native";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
