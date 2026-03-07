@@ -21,7 +21,6 @@ interface NavItem {
 const searchItems: NavItem[] = [
   { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
   { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
-  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
 ];
 
 const aiVideoItems: NavItem[] = [
