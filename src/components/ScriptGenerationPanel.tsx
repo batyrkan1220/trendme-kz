@@ -346,6 +346,17 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           )}
         </div>
 
+        {/* Mobile: floating AI chat button */}
+        {!chatOpen && (
+          <button
+            onClick={() => setChatOpen(true)}
+            className="md:hidden fixed bottom-24 right-4 z-[99997] h-14 w-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xl active:scale-90 transition-transform"
+            style={{ boxShadow: "0 4px 20px hsl(258 80% 58% / 0.4)" }}
+          >
+            <MessageCircle className="h-6 w-6" />
+          </button>
+        )}
+
         {/* Mobile: bottom sheet overlay */}
         {chatOpen && (
           <div className="md:hidden fixed inset-0 z-[99998] flex flex-col">
