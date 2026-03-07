@@ -17,14 +17,6 @@ export const TREND_CATEGORIES: TrendCategory[] = [
     ],
   },
   {
-    key: "lifestyle",
-    label: "Лайфстайл",
-    nicheKeys: [
-      "beauty", "fashion", "food", "fitness", "home", "family",
-      "animals", "travel", "medicine", "hobby", "kazakh_culture",
-    ],
-  },
-  {
     key: "business",
     label: "Бизнес",
     nicheKeys: [
