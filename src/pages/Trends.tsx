@@ -193,19 +193,22 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Hero header with logo */}
-              <div className="relative pt-4 px-4 md:px-6 lg:px-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h1 className="text-2xl font-black tracking-tight text-white uppercase">
+              {/* Header — centered brand name */}
+              <div className="relative pt-6 px-4 md:px-6 lg:px-8">
+                <div className="flex items-center justify-center mb-5">
+                  <h1
+                    className="text-3xl font-black tracking-wider uppercase"
+                    style={{
+                      color: "hsl(var(--neon))",
+                      textShadow: "0 0 30px hsl(var(--neon) / 0.4), 0 0 60px hsl(var(--neon) / 0.15)",
+                    }}
+                  >
                     TRENDME
                   </h1>
-                  <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-neon/50">
-                    <img src={logoIcon} alt="TrendMe" className="w-full h-full object-cover" />
-                  </div>
                 </div>
 
                 {/* Category tabs */}
-                <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+                <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide">
                   {TREND_CATEGORIES.map((cat) => {
                     const active = activeCategory === cat.key;
                     return (
@@ -216,7 +219,7 @@ export default function Trends() {
                           "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-2 border-b-2",
                           active
                             ? "text-neon border-neon"
-                            : "text-white/50 border-transparent hover:text-white/80"
+                            : "text-white/40 border-transparent hover:text-white/70"
                         )}
                       >
                         {cat.label}
