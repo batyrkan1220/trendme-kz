@@ -7,7 +7,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
 import { TREND_CATEGORIES, getNicheGroupsForCategory } from "@/config/trendCategories";
-import { TrendNicheRow } from "@/components/trends/TrendNicheRow";
+import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
