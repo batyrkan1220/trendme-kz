@@ -12,7 +12,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative flex min-h-[100dvh] w-full" style={{ background: "#0a0a0a", color: "#ffffff" }}>
-      {!isMobile && (
+      {!isMobile && !isNativePlatform && (
         <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       )}
       <main className="flex-1 min-w-0 min-h-[100dvh] pb-24 md:pb-0 overflow-x-hidden overflow-y-auto">
