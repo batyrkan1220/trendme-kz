@@ -157,7 +157,6 @@
 body.native-app {
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: 0;
-  /* Prevent overscroll bounce revealing background */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -189,9 +188,56 @@ body.native-app {
   transition: opacity 150ms ease-in, transform 150ms ease-in;
 }
 
-/* iOS: prevent auto-zoom on input focus in Capacitor / Safari */
+/* iOS: prevent auto-zoom on input focus */
 @supports (-webkit-touch-callout: none) {
   input, textarea, select {
     font-size: 16px !important;
   }
+}
+
+/* Staggered slide-up animation for cards */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale-in animation */
+@keyframes animate-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: animate-scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Haptic-style press feedback */
+.press-feedback:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
+/* Smooth card tap animation */
+@keyframes tap-ripple {
+  0% { background-color: transparent; }
+  50% { background-color: hsl(var(--muted) / 0.5); }
+  100% { background-color: transparent; }
+}
+
+/* Pull to refresh spinner */
+@keyframes ptr-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

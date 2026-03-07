@@ -99,11 +99,12 @@ export default function Dashboard() {
         {/* Quick Actions — Mobile: list, Desktop: grid */}
         {/* Mobile list */}
         <div className="md:hidden rounded-2xl border border-border/50 bg-card overflow-hidden divide-y divide-border/40">
-          {actions.map((action) => (
+          {actions.map((action, idx) => (
             <Link
               key={action.path}
               to={action.path}
-              className="group flex items-center gap-3.5 px-4 py-3.5 hover:bg-muted/50 active:bg-muted/70 transition-colors duration-150"
+              className="group flex items-center gap-3.5 px-4 py-3.5 hover:bg-muted/50 active:bg-muted/70 active:scale-[0.98] transition-all duration-150"
+              style={{ animation: `slide-up 0.3s ease-out ${idx * 60}ms both` }}
             >
               <div className={`shrink-0 h-10 w-10 rounded-xl ${action.iconBg} flex items-center justify-center shadow-sm`}>
                 <action.icon className="h-5 w-5 text-white" />
