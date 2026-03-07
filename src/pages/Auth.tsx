@@ -177,7 +177,7 @@ export default function Auth() {
             )}
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} autoComplete="email" />
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow text-base" disabled={loading} autoComplete="email" />
             </div>
             {mode !== "forgot" && (
               <div className="relative">
