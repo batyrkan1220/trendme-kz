@@ -289,12 +289,12 @@ export default function Trends() {
             </>
           ) : (
             <>
-              {/* Sticky transparent header — logo + categories */}
+              {/* Sticky transparent header — logo */}
               <div
                 className="sticky top-0 z-30 pb-3 px-4"
                 style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 4px)" }}
               >
-                <div className="flex items-center justify-center mb-2 mt-1">
+                <div className="flex items-center justify-center mb-1 mt-1">
                   <h1
                     className="text-lg font-black tracking-[0.2em] uppercase"
                     style={{
@@ -304,25 +304,6 @@ export default function Trends() {
                   >
                     trendme
                   </h1>
-                </div>
-                <div className="flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide">
-                  {TREND_CATEGORIES.map((cat) => {
-                    const active = activeCategory === cat.key;
-                    return (
-                      <button
-                        key={cat.key}
-                        onClick={() => setActiveCategory(cat.key)}
-                        className={cn(
-                          "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-0.5 border-b-2",
-                          active
-                            ? "text-neon border-neon"
-                            : "text-white/70 border-transparent hover:text-white"
-                        )}
-                      >
-                        {cat.label}
-                      </button>
-                    );
-                  })}
                 </div>
               </div>
 
