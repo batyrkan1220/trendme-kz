@@ -2,15 +2,14 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  Home, TrendingUp, Flame, UserSearch, Plus,
-  Search, Video, UserCircle, Sparkles, BookOpen, Heart
+  Flame, Plus, Search, Video, Sparkles, BookOpen, Heart, BarChart3
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 const mainNavItems = [
   { icon: Flame, path: "/trends", label: "Тренды" },
-  { icon: TrendingUp, path: "/search", label: "Поиск" },
-  { icon: UserSearch, path: "/account-analysis", label: "Анализ" },
+  { icon: Search, path: "/search", label: "Поиск" },
+  { icon: BarChart3, path: "/account-analysis", label: "Анализ" },
 ];
 
 const plusMenuItems = [
@@ -62,12 +61,17 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         opacity: drawerOpen ? 0 : 1,
       }}
     >
-      {/* Plus menu popover */}
+      {/* Plus menu popover — dark style */}
       {showPlusMenu && (
         <div
           ref={popoverRef}
-          className="absolute bottom-full right-3 mb-3 bg-card/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-2xl p-2 min-w-[200px]"
-          style={{ animation: "slide-up 0.2s ease-out" }}
+          className="absolute bottom-full right-3 mb-3 rounded-2xl shadow-2xl p-2 min-w-[200px]"
+          style={{
+            background: "#1a1a1a",
+            border: "1px solid rgba(255,255,255,0.1)",
+            backdropFilter: "blur(20px)",
+            animation: "slide-up 0.2s ease-out",
+          }}
         >
           {plusMenuItems.map((item) => {
             const active = location.pathname === item.path;
@@ -78,8 +82,11 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
                 onClick={() => setShowPlusMenu(false)}
                 className={cn(
                   "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm transition-colors active:scale-[0.97]",
-                  active ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-muted"
+                  active
+                    ? "text-neon font-semibold"
+                    : "text-white/80 hover:text-white hover:bg-white/5"
                 )}
+                style={active ? { background: "rgba(200,255,0,0.1)" } : undefined}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 <span className="font-medium">{item.label}</span>
@@ -89,65 +96,53 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         </div>
       )}
 
-      <div className="flex items-center px-4 py-2 gap-2">
-        {/* Main nav pill */}
-        <div
-          className="flex-1 flex items-center justify-around rounded-2xl py-1.5 px-1"
-          style={{
-            background: "hsl(var(--card) / 0.85)",
-            backdropFilter: "blur(20px)",
-            boxShadow: "0 2px 20px hsl(var(--foreground) / 0.08), inset 0 1px 0 hsl(var(--background) / 0.5)",
-            border: "1px solid hsl(var(--border) / 0.5)",
-          }}
-        >
-          {mainNavItems.map((item) => {
-            const active = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => { drawerOpen && onDrawerClose?.(); setShowPlusMenu(false); }}
+      {/* Bottom bar — dark glass */}
+      <div className="flex items-center justify-between px-6 py-2" style={{ background: "#0a0a0a" }}>
+        {/* Left nav items */}
+        {mainNavItems.map((item) => {
+          const active = location.pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => { drawerOpen && onDrawerClose?.(); setShowPlusMenu(false); }}
+              className="relative flex flex-col items-center gap-0.5 py-1.5 min-w-[56px] active:scale-[0.93] transition-transform"
+            >
+              <item.icon
                 className={cn(
-                  "relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[52px] active:scale-[0.93]",
-                  active && "bg-primary/12"
+                  "h-[22px] w-[22px] transition-colors duration-200",
+                  active ? "text-neon" : "text-white/40"
                 )}
-              >
-                <item.icon
-                  className={cn(
-                    "h-[22px] w-[22px] transition-colors duration-200",
-                    active ? "text-primary" : "text-muted-foreground"
-                  )}
-                  strokeWidth={active ? 2.2 : 1.8}
-                />
-                {active && (
-                  <span className="text-[10px] font-semibold text-primary leading-tight">
-                    {item.label}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </div>
+                strokeWidth={active ? 2.2 : 1.8}
+              />
+              <span className={cn(
+                "text-[10px] font-semibold leading-tight transition-colors",
+                active ? "text-neon" : "text-white/40"
+              )}>
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
 
-        {/* Plus button */}
+        {/* Plus button — neon green */}
         <button
           onClick={() => { drawerOpen && onDrawerClose?.(); setShowPlusMenu(v => !v); }}
           className={cn(
             "shrink-0 h-12 w-12 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
             showPlusMenu
-              ? "bg-primary text-primary-foreground shadow-lg"
-              : "bg-card/85 text-muted-foreground border border-border/50"
+              ? "shadow-lg"
+              : ""
           )}
           style={{
-            backdropFilter: "blur(20px)",
-            boxShadow: showPlusMenu
-              ? "0 4px 20px hsl(var(--primary) / 0.3)"
-              : "0 2px 12px hsl(var(--foreground) / 0.06)",
+            background: showPlusMenu ? "hsl(var(--neon))" : "hsl(var(--neon))",
+            color: "#000",
+            boxShadow: "0 0 20px hsl(var(--neon) / 0.4)",
           }}
         >
           <Plus
             className={cn("h-6 w-6 transition-transform duration-200", showPlusMenu && "rotate-45")}
-            strokeWidth={2}
+            strokeWidth={2.5}
           />
         </button>
       </div>
