@@ -267,7 +267,7 @@ export default function Trends() {
                             <div
                               key={video.id}
                               className="snap-start shrink-0"
-                              style={{ width: "min(44vw, 200px)" }}
+                              style={{ width: "min(38vw, 172px)" }}
                             >
                               <VideoCard
                                 video={video}
