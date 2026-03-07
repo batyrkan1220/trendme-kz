@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
+import { VideoCard } from "@/components/VideoCard";
+import logoIcon from "@/assets/logo-icon-cropped.png";
 
 const PAGE_SIZE = 30;
 
@@ -22,7 +24,7 @@ export default function Trends() {
   const [activeCategory, setActiveCategory] = useState("for_you");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  const [drillNiche, setDrillNiche] = useState<string | null>(null); // when user taps "Все"
+  const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const { balance } = useTokens();
@@ -47,7 +49,6 @@ export default function Trends() {
 
   const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
 
-  // Fetch ALL videos for last 7 days, grouped client-side
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
     queryKey: ["trends-all"],
     queryFn: async () => {
@@ -76,7 +77,6 @@ export default function Trends() {
     placeholderData: (prev) => prev,
   });
 
-  // Group videos by niche
   const videosByNiche = useMemo(() => {
     const map: Record<string, any[]> = {};
     for (const v of allVideos) {
@@ -121,13 +121,11 @@ export default function Trends() {
     onRefresh: handleRefresh,
   });
 
-  // Niche groups for current category
   const categoryGroups = useMemo(
     () => getNicheGroupsForCategory(activeCategory),
     [activeCategory]
   );
 
-  // Drill-down: get videos for a specific niche
   const drillVideos = useMemo(() => {
     if (!drillNiche) return [];
     return (videosByNiche[drillNiche] || []).slice(0, visibleCount);
@@ -150,28 +148,32 @@ export default function Trends() {
 
   return (
     <AppLayout>
-      <div ref={containerRef} className="overflow-y-auto" style={{ height: "100dvh" }}>
+      <div
+        ref={containerRef}
+        className="overflow-y-auto trends-dark-theme"
+        style={{ height: "100dvh", background: "#0a0a0a", color: "#ffffff" }}
+      >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
           isRefreshing={isRefreshing}
           progress={progress}
         />
 
-        <div className="p-4 md:p-6 lg:p-8 space-y-4 pb-28">
+        <div className="space-y-4 pb-28">
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
-            <>
+            <div className="p-4 md:p-6 lg:p-8 space-y-4">
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleBack}
-                  className="h-8 w-8 rounded-full bg-card border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
+                  className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4 text-white" />
                 </button>
-                <h1 className="text-xl font-bold text-foreground">
+                <h1 className="text-xl font-bold text-white">
                   {drillGroup.emoji} {drillGroup.label}
                 </h1>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-white/50">
                   {videosByNiche[drillNiche]?.length || 0} видео
                 </span>
               </div>
@@ -186,117 +188,130 @@ export default function Trends() {
                 freeLimit={FREE_LIMIT}
                 hasMore={(videosByNiche[drillNiche]?.length || 0) > visibleCount}
                 onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                darkMode
               />
-            </>
+            </div>
           ) : (
             <>
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-                  Тренды
-                </h1>
-              </div>
-
-              {/* Category tabs — UNREELS neon style */}
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-                {TREND_CATEGORIES.map((cat) => {
-                  const active = activeCategory === cat.key;
-                  return (
-                    <button
-                      key={cat.key}
-                      onClick={() => setActiveCategory(cat.key)}
-                      className={cn(
-                        "shrink-0 px-5 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
-                        active
-                          ? "bg-neon text-neon-foreground shadow-[0_0_16px_hsl(var(--neon)/0.5)]"
-                          : "bg-transparent text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      {cat.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Loading */}
-              {isLoading ? (
-                <div className="space-y-6">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <div className="h-5 bg-muted rounded w-32 animate-pulse" />
-                      <div className="flex gap-3">
-                        {Array.from({ length: 3 }).map((_, j) => (
-                          <div
-                            key={j}
-                            className="shrink-0 bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse"
-                            style={{ width: "min(44vw, 200px)" }}
-                          >
-                            <div className="aspect-[9/14] bg-muted m-1.5 rounded-xl" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+              {/* Hero header with logo */}
+              <div className="relative pt-4 px-4 md:px-6 lg:px-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h1 className="text-2xl font-black tracking-tight text-white uppercase">
+                    TRENDME
+                  </h1>
+                  <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-neon/50">
+                    <img src={logoIcon} alt="TrendMe" className="w-full h-full object-cover" />
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-5">
-                  {/* "Для тебя" shows top trending as a big row, then by niche */}
-                  {activeCategory === "for_you" && allVideos.length > 0 && (
-                    <section className="space-y-2">
-                      <h2 className="text-base font-bold text-foreground px-1">
-                        В тренде 🔥
-                      </h2>
-                      <div
-                        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
-                        style={{ WebkitOverflowScrolling: "touch" }}
+
+                {/* Category tabs */}
+                <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+                  {TREND_CATEGORIES.map((cat) => {
+                    const active = activeCategory === cat.key;
+                    return (
+                      <button
+                        key={cat.key}
+                        onClick={() => setActiveCategory(cat.key)}
+                        className={cn(
+                          "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-2 border-b-2",
+                          active
+                            ? "text-neon border-neon"
+                            : "text-white/50 border-transparent hover:text-white/80"
+                        )}
                       >
-                        {allVideos.slice(0, 10).map((video) => (
-                          <div
-                            key={video.id}
-                            className="snap-start shrink-0"
-                            style={{ width: "min(44vw, 200px)" }}
-                          >
-                            <VideoCardWrapper
-                              video={video}
-                              playingId={playingId}
-                              onPlay={setPlayingId}
-                              isFavorite={userFavorites.includes(video.id)}
-                              onToggleFav={toggleFav}
-                              onAnalyze={(v) => setAnalysisVideo(v)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-
-                  {categoryGroups.map((group) => (
-                    <TrendNicheRow
-                      key={group.key}
-                      group={group}
-                      videos={videosByNiche[group.key] || []}
-                      userFavorites={userFavorites}
-                      onToggleFav={toggleFav}
-                      onAnalyze={(v) => setAnalysisVideo(v)}
-                      playingId={playingId}
-                      onPlay={setPlayingId}
-                      onViewAll={handleViewAll}
-                    />
-                  ))}
-
-                  {categoryGroups.every((g) => !(videosByNiche[g.key]?.length)) &&
-                    activeCategory !== "for_you" && (
-                      <div className="text-center py-20">
-                        <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                          <TrendingUp className="h-10 w-10 text-muted-foreground/30" />
-                        </div>
-                        <p className="text-muted-foreground font-medium">
-                          Нет трендовых видео в этой категории
-                        </p>
-                      </div>
-                    )}
+                        {cat.label}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
+
+              {/* Content */}
+              <div className="px-4 md:px-6 lg:px-8 space-y-6">
+                {isLoading ? (
+                  <div className="space-y-6">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <div className="h-5 bg-white/10 rounded w-32 animate-pulse" />
+                        <div className="flex gap-3">
+                          {Array.from({ length: 3 }).map((_, j) => (
+                            <div
+                              key={j}
+                              className="shrink-0 rounded-2xl overflow-hidden animate-pulse"
+                              style={{ width: "min(44vw, 200px)", background: "#1a1a1a" }}
+                            >
+                              <div className="aspect-[9/14] bg-white/5 m-1.5 rounded-xl" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    {/* "Для тебя" → top trending row */}
+                    {activeCategory === "for_you" && allVideos.length > 0 && (
+                      <section className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-lg font-bold text-white">В тренде 🔥</h2>
+                          <span className="text-sm font-semibold text-neon">Все</span>
+                        </div>
+                        <div
+                          className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+                          style={{ WebkitOverflowScrolling: "touch" }}
+                        >
+                          {allVideos.slice(0, 10).map((video) => (
+                            <div
+                              key={video.id}
+                              className="snap-start shrink-0"
+                              style={{ width: "min(44vw, 200px)" }}
+                            >
+                              <VideoCard
+                                video={video}
+                                playingId={playingId}
+                                onPlay={setPlayingId}
+                                isFavorite={userFavorites.includes(video.id)}
+                                onToggleFav={toggleFav}
+                                onAnalyze={(v) => setAnalysisVideo(v)}
+                                showTier={true}
+                                showAuthor={false}
+                                darkMode
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
+                    {categoryGroups.map((group) => (
+                      <TrendNicheRow
+                        key={group.key}
+                        group={group}
+                        videos={videosByNiche[group.key] || []}
+                        userFavorites={userFavorites}
+                        onToggleFav={toggleFav}
+                        onAnalyze={(v) => setAnalysisVideo(v)}
+                        playingId={playingId}
+                        onPlay={setPlayingId}
+                        onViewAll={handleViewAll}
+                        darkMode
+                      />
+                    ))}
+
+                    {categoryGroups.every((g) => !(videosByNiche[g.key]?.length)) &&
+                      activeCategory !== "for_you" && (
+                        <div className="text-center py-20">
+                          <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                            <TrendingUp className="h-10 w-10 text-white/20" />
+                          </div>
+                          <p className="text-white/50 font-medium">
+                            Нет трендовых видео в этой категории
+                          </p>
+                        </div>
+                      )}
+                  </>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -310,37 +325,5 @@ export default function Trends() {
         }}
       />
     </AppLayout>
-  );
-}
-
-// Lightweight wrapper to avoid importing VideoCard at top level with all props
-import { VideoCard } from "@/components/VideoCard";
-
-function VideoCardWrapper({
-  video,
-  playingId,
-  onPlay,
-  isFavorite,
-  onToggleFav,
-  onAnalyze,
-}: {
-  video: any;
-  playingId: string | null;
-  onPlay: (id: string | null) => void;
-  isFavorite: boolean;
-  onToggleFav: (id: string) => void;
-  onAnalyze: (v: any) => void;
-}) {
-  return (
-    <VideoCard
-      video={video}
-      playingId={playingId}
-      onPlay={onPlay}
-      isFavorite={isFavorite}
-      onToggleFav={onToggleFav}
-      onAnalyze={onAnalyze}
-      showTier={true}
-      showAuthor={false}
-    />
   );
 }

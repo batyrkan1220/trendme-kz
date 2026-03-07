@@ -14,6 +14,7 @@ interface VirtualTrendGridProps {
   freeLimit: number;
   hasMore: boolean;
   onLoadMore: () => void;
+  darkMode?: boolean;
 }
 
 export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps>(function VirtualTrendGrid({
@@ -27,6 +28,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
   freeLimit,
   hasMore,
   onLoadMore,
+  darkMode,
 }, ref) {
   const navigate = useNavigate();
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
               onAnalyze={onAnalyze}
               showTier={true}
               showAuthor={true}
+              darkMode={darkMode}
             />
           );
         })}

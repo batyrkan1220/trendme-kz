@@ -12,6 +12,7 @@ interface TrendNicheRowProps {
   playingId: string | null;
   onPlay: (id: string | null) => void;
   onViewAll: (nicheKey: string) => void;
+  darkMode?: boolean;
 }
 
 export function TrendNicheRow({
@@ -23,16 +24,17 @@ export function TrendNicheRow({
   playingId,
   onPlay,
   onViewAll,
+  darkMode,
 }: TrendNicheRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   if (videos.length === 0) return null;
 
   return (
-    <section className="space-y-2">
+    <section className="space-y-3">
       {/* Section header */}
-      <div className="flex items-center justify-between px-1">
-        <h2 className="text-base font-bold text-foreground">
+      <div className="flex items-center justify-between">
+        <h2 className={`text-base font-bold ${darkMode ? "text-white" : "text-foreground"}`}>
           {group.label} {group.emoji}
         </h2>
         <button
@@ -65,6 +67,7 @@ export function TrendNicheRow({
               onAnalyze={onAnalyze}
               showTier={true}
               showAuthor={false}
+              darkMode={darkMode}
             />
           </div>
         ))}
