@@ -37,7 +37,7 @@ export function TrendNicheRow({
         </h2>
         <button
           onClick={() => onViewAll(group.key)}
-          className="flex items-center gap-0.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-0.5 text-sm font-semibold text-neon hover:text-neon/80 transition-colors"
         >
           Все
           <ChevronRight className="h-4 w-4" />
