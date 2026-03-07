@@ -211,7 +211,9 @@ No explanation, no markdown, just JSON.`
             continue;
           }
 
-          const lang = (result[2] as string) || null;
+          let lang = (result[2] as string) || null;
+          // Map Ukrainian to Russian
+          if (lang === "uk") lang = "ru";
 
           const updateData: any = {
             niche: mainNiche,
