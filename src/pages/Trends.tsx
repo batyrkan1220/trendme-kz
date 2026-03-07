@@ -197,9 +197,7 @@ export default function Trends() {
               <div
                 className="sticky top-0 z-30 pt-3 pb-1 px-4 md:px-6 lg:px-8"
                 style={{
-                  background: "rgba(10,10,10,0.7)",
-                  backdropFilter: "blur(20px)",
-                  WebkitBackdropFilter: "blur(20px)",
+                  background: "transparent",
                 }}
               >
                 <div className="flex items-center justify-center mb-2">
