@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
-import { VideoCard } from "@/components/VideoCard";
+
 
 
 const PAGE_SIZE = 30;
