@@ -194,51 +194,31 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Hero mosaic header like UNREELS */}
-              <div className="relative">
-                {/* Mosaic grid of video covers */}
-                {!isLoading && allVideos.length > 0 && (
-                  <div className="grid grid-cols-4 gap-0.5 px-0.5 pt-0.5">
-                    {allVideos.slice(0, 12).map((video: any) => (
-                      <div key={video.id} className="aspect-[3/4] overflow-hidden rounded-md">
-                        {video.cover_url ? (
-                          <img
-                            src={video.cover_url}
-                            alt=""
-                            loading="lazy"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-white/5" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* Fallback skeleton for loading */}
-                {(isLoading || allVideos.length === 0) && (
-                  <div className="grid grid-cols-4 gap-0.5 px-0.5 pt-0.5">
-                    {Array.from({ length: 12 }).map((_, i) => (
-                      <div key={i} className="aspect-[3/4] rounded-md bg-white/5 animate-pulse" />
-                    ))}
-                  </div>
-                )}
+              {/* Vibrant header */}
+              <div
+                className="relative overflow-hidden pt-10 pb-6 px-4"
+                style={{
+                  background: "radial-gradient(ellipse at 20% 0%, hsl(var(--neon) / 0.25) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(139,92,246,0.2) 0%, transparent 50%), #0a0a0a",
+                }}
+              >
+                {/* Animated glow orbs */}
+                <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full blur-3xl opacity-40" style={{ background: "hsl(var(--neon))" }} />
+                <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-25" style={{ background: "#8b5cf6" }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full blur-[100px] opacity-10" style={{ background: "#06b6d4" }} />
 
-                {/* Gradient overlays */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black pointer-events-none" />
-
-                {/* Logo + categories floating on top */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div className="relative z-10 flex flex-col items-center">
                   <h1
-                    className="text-2xl font-extrabold tracking-widest uppercase mb-4 pointer-events-auto"
+                    className="text-3xl font-black tracking-[0.25em] uppercase mb-5"
                     style={{
-                      color: "hsl(var(--neon))",
-                      textShadow: "0 0 30px hsl(var(--neon) / 0.5)",
+                      background: "linear-gradient(135deg, hsl(var(--neon)) 0%, #06b6d4 50%, #8b5cf6 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      filter: "drop-shadow(0 0 20px hsl(var(--neon) / 0.4))",
                     }}
                   >
                     trendme
                   </h1>
-                  <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide pointer-events-auto px-4">
+                  <div className="flex items-center gap-1 bg-white/[0.07] backdrop-blur-md rounded-full p-1 border border-white/10">
                     {TREND_CATEGORIES.map((cat) => {
                       const active = activeCategory === cat.key;
                       return (
@@ -246,10 +226,10 @@ export default function Trends() {
                           key={cat.key}
                           onClick={() => setActiveCategory(cat.key)}
                           className={cn(
-                            "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
+                            "shrink-0 text-xs font-bold transition-all whitespace-nowrap px-4 py-2 rounded-full",
                             active
-                              ? "text-neon border-neon"
-                              : "text-white/90 border-transparent hover:text-white"
+                              ? "bg-neon text-black shadow-lg shadow-neon/30"
+                              : "text-white/70 hover:text-white hover:bg-white/10"
                           )}
                         >
                           {cat.label}
