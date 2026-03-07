@@ -272,6 +272,7 @@ export default function SearchPage() {
             </>
           )}
         </div>
+        </div>
 
         {/* Recent queries - shown as horizontal chips on mobile, sidebar on xl */}
         <div className="w-full xl:w-72 shrink-0">
@@ -301,6 +302,7 @@ export default function SearchPage() {
               <p className="text-muted-foreground text-xs text-center py-4 xl:py-6">Нет запросов</p>
             )}
           </div>
+        </div>
         </div>
       </div>
       <VideoAnalysisDialog
