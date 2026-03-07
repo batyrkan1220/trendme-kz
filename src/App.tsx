@@ -13,7 +13,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { NativePaywall } from "@/components/NativePaywall";
 import { isNativePlatform } from "@/lib/native";
 import Index from "./pages/Index";
-import { MaintenancePage } from "@/components/MaintenancePage";
+
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -99,18 +99,7 @@ const SuspenseFallback = () => (
   </div>
 );
 
-const isPreview = typeof window !== "undefined" && (window.location.hostname.includes("lovable.app") || window.location.hostname.includes("lovableproject.com") || window.location.hostname === "localhost");
-const MAINTENANCE_MODE = !isNativePlatform && !isPreview;
-
 const AppRoutes = () => {
-  if (MAINTENANCE_MODE) {
-    return (
-      <Routes>
-        <Route path="*" element={<MaintenancePage />} />
-      </Routes>
-    );
-  }
-
   return (
     <Suspense fallback={<SuspenseFallback />}>
       <Routes>
