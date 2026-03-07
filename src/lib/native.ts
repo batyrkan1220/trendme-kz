@@ -28,8 +28,7 @@ export async function initNativeApp() {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
     await StatusBar.setStyle({ style: Style.Dark });
     await StatusBar.setOverlaysWebView({ overlay: true });
-    // Hide status bar for full immersive experience
-    await StatusBar.hide();
+    await StatusBar.show();
   } catch {
     // StatusBar plugin not available
   }
