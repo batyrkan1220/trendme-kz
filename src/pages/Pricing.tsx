@@ -122,7 +122,7 @@ export default function Pricing() {
                       <span
                         className="inline-flex items-center gap-1.5 text-xs font-bold px-5 py-1.5 rounded-full shadow-lg"
                         style={{
-                          background: "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))",
+                          background: "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))",
                           color: "white",
                         }}
                       >
