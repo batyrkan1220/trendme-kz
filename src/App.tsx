@@ -45,9 +45,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
+  // Web users: show maintenance page everywhere
+  if (!isNativePlatform) {
+    const { MaintenancePage } = require("@/components/MaintenancePage");
+    return <MaintenancePage />;
+  }
+
   useEffect(() => {
     if (!user) {
-      // On native, skip onboarding check — allow access without auth
       if (isNativePlatform) {
         setOnboardingDone(true);
       }
@@ -76,9 +81,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // On native: allow access without login
   if (!user && isNativePlatform) return <>{children}</>;
-  
   if (!user) return <Navigate to="/auth" replace />;
   if (!onboardingDone && !isNativePlatform) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
