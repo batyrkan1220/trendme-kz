@@ -213,7 +213,7 @@ export default function Trends() {
                   onAnalyze={(v) => setAnalysisVideo(v)}
                   isFreePlan={isFreePlan}
                   freeLimit={FREE_LIMIT}
-                  hasMore={(videosByNiche[drillNiche]?.length || 0) > visibleCount}
+                  hasMore={drillNicheVideos.length > visibleCount}
                   onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
                   darkMode
                 />
