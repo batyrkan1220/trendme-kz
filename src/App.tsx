@@ -99,7 +99,8 @@ const SuspenseFallback = () => (
   </div>
 );
 
-const MAINTENANCE_MODE = !isNativePlatform;
+const isPreview = typeof window !== "undefined" && (window.location.hostname.includes("lovable.app") || window.location.hostname.includes("lovableproject.com") || window.location.hostname === "localhost");
+const MAINTENANCE_MODE = !isNativePlatform && !isPreview;
 
 const AppRoutes = () => {
   if (MAINTENANCE_MODE) {
