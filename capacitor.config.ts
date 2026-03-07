@@ -7,6 +7,7 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://trendme-kz.lovable.app?forceHideBadge=true&native=1',
     cleartext: true,
+    allowNavigation: ['trendme-kz.lovable.app', '*.lovable.app', '*.supabase.co'],
   },
   ios: {
     contentInset: 'automatic',
