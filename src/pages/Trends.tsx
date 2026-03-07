@@ -194,9 +194,9 @@ export default function Trends() {
           ) : (
             <>
               <div
-                className="sticky top-0 z-30 pt-6 pb-3 px-4 md:px-6 lg:px-8"
+                className="sticky top-0 z-30 pt-6 pb-3 px-4 md:px-6 lg:px-8 backdrop-blur-xl"
                 style={{
-                  background: "linear-gradient(to bottom, #0a0a0a 70%, transparent 100%)",
+                  background: "linear-gradient(to bottom, rgba(10,10,10,0.5) 0%, rgba(10,10,10,0.3) 70%, transparent 100%)",
                 }}
               >
                 <div className="flex items-center justify-center mb-3">
