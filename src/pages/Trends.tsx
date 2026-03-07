@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import trendsBg from "@/assets/trends-bg.jpg";
+
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
@@ -152,19 +152,8 @@ export default function Trends() {
       <div
         ref={containerRef}
         className="overflow-y-auto trends-dark-theme relative"
-        style={{ height: "100dvh", color: "#ffffff" }}
+        style={{ height: "100dvh", background: "#0a0a0a", color: "#ffffff" }}
       >
-        {/* Background image */}
-        <div
-          className="fixed inset-0 pointer-events-none"
-          style={{
-            backgroundImage: `url(${trendsBg})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-          }}
-        />
-        <div className="fixed inset-0 bg-black/60 pointer-events-none" />
         <PullToRefreshIndicator
           pullDistance={pullDistance}
           isRefreshing={isRefreshing}
@@ -205,41 +194,69 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              <div
-                className="sticky top-0 z-30 pt-6 pb-3 px-4 md:px-6 lg:px-8 backdrop-blur-xl border-b border-white/10"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                }}
-              >
-                <div className="flex items-center justify-center mb-3">
+              {/* Hero mosaic header like UNREELS */}
+              <div className="relative">
+                {/* Mosaic grid of video covers */}
+                {!isLoading && allVideos.length > 0 && (
+                  <div className="grid grid-cols-4 gap-0.5 px-0.5 pt-0.5">
+                    {allVideos.slice(0, 12).map((video: any) => (
+                      <div key={video.id} className="aspect-[3/4] overflow-hidden rounded-md">
+                        {video.cover_url ? (
+                          <img
+                            src={video.cover_url}
+                            alt=""
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-white/5" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Fallback skeleton for loading */}
+                {(isLoading || allVideos.length === 0) && (
+                  <div className="grid grid-cols-4 gap-0.5 px-0.5 pt-0.5">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div key={i} className="aspect-[3/4] rounded-md bg-white/5 animate-pulse" />
+                    ))}
+                  </div>
+                )}
+
+                {/* Gradient overlays */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black pointer-events-none" />
+
+                {/* Logo + categories floating on top */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <h1
-                    className="text-lg font-extrabold tracking-widest uppercase"
+                    className="text-2xl font-extrabold tracking-widest uppercase mb-4 pointer-events-auto"
                     style={{
                       color: "hsl(var(--neon))",
-                      textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
+                      textShadow: "0 0 30px hsl(var(--neon) / 0.5)",
                     }}
                   >
                     trendme
                   </h1>
-                </div>
-                <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide">
-                  {TREND_CATEGORIES.map((cat) => {
-                    const active = activeCategory === cat.key;
-                    return (
-                      <button
-                        key={cat.key}
-                        onClick={() => setActiveCategory(cat.key)}
-                        className={cn(
-                          "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
-                          active
-                            ? "text-neon border-neon"
-                            : "text-white border-transparent hover:text-white/70"
-                        )}
-                      >
-                        {cat.label}
-                      </button>
-                    );
-                  })}
+                  <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide pointer-events-auto px-4">
+                    {TREND_CATEGORIES.map((cat) => {
+                      const active = activeCategory === cat.key;
+                      return (
+                        <button
+                          key={cat.key}
+                          onClick={() => setActiveCategory(cat.key)}
+                          className={cn(
+                            "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
+                            active
+                              ? "text-neon border-neon"
+                              : "text-white/90 border-transparent hover:text-white"
+                          )}
+                        >
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
