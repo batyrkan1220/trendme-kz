@@ -194,7 +194,12 @@ export default function Trends() {
           ) : (
             <>
               {/* Header — transparent */}
-              <div className="pt-6 pb-3 px-4 md:px-6 lg:px-8">
+              <div
+                className="pt-6 pb-3 px-4 md:px-6 lg:px-8"
+                style={{
+                  background: "linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
+                }}
+              >
                 <div className="flex items-center justify-center mb-3">
                   <h1
                     className="text-lg font-extrabold tracking-widest uppercase"
