@@ -152,8 +152,8 @@ export default function Pricing() {
                         className="absolute -inset-[2px] rounded-2xl pointer-events-none"
                         style={{
                           background: isPopular
-                            ? "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))"
-                            : "linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(280 80% 55% / 0.5))",
+                            ? "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))"
+                            : "linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(82 90% 45% / 0.5))",
                           WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                           WebkitMaskComposite: "xor",
                           maskComposite: "exclude",
