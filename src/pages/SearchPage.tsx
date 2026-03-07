@@ -169,141 +169,143 @@ export default function SearchPage() {
         </div>
       ) : (
       <>
-      <div className="flex flex-col animate-fade-in" style={{ minHeight: "calc(100dvh - 5rem)", paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
+      <div
+        className="flex flex-col animate-fade-in"
+        style={{ minHeight: "calc(100dvh - 5rem)", paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+      >
         <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 flex-1">
-        <div className="flex-1 space-y-4 md:space-y-6 min-w-0 flex flex-col">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Поиск 🔍</h1>
+          <div className="flex-1 space-y-4 md:space-y-6 min-w-0 flex flex-col">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Поиск 🔍</h1>
 
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              placeholder="Введите ключевое слово..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-base"
-            />
-            <Button
-              onClick={handleSearch}
-              disabled={isSearching}
-              className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
-            >
-              {isSearching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <SearchIcon className="h-4 w-4 mr-2" />
-                  Искать
-                </>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                placeholder="Введите ключевое слово..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-base"
+              />
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching}
+                className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
+              >
+                {isSearching ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <SearchIcon className="h-4 w-4 mr-2" />
+                    Искать
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {results.length === 0 && searchResults && !isSearching && (
+              <div className="flex-1 flex flex-col items-center justify-center py-8 gap-4 animate-fade-in">
+                <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
+                  <SearchIcon className="h-8 w-8 text-muted-foreground/30" />
+                </div>
+                <p className="text-lg font-semibold text-foreground">Ничего не найдено</p>
+                <p className="text-sm text-muted-foreground text-center max-w-sm">
+                  По запросу «{query}» не найдено видео. Попробуйте изменить запрос.
+                </p>
+              </div>
+            )}
+
+            {results.length > 0 && (
+              <>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{results.length}</span> видео найдено
+              </div>
+
+              {relatedKeywords.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {relatedKeywords.map((kw) => (
+                    <button
+                      key={kw}
+                      onClick={() => {
+                        setQuery(kw);
+                        doSearch(kw);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-card border border-border/50 text-sm font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-colors card-shadow"
+                    >
+                      {kw}
+                    </button>
+                  ))}
+                </div>
               )}
-            </Button>
-          </div>
 
-          {results.length === 0 && searchResults && !isSearching && (
-            <div className="flex-1 flex flex-col items-center justify-center py-8 gap-4 animate-fade-in">
-              <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
-                <SearchIcon className="h-8 w-8 text-muted-foreground/30" />
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
+                {results.map((video: any, i: number) => {
+                  const cardData: VideoCardData = {
+                    id: video.id,
+                    platform_video_id: video.platform_video_id,
+                    url: video.url,
+                    cover_url: video.cover_url,
+                    caption: video.caption,
+                    author_username: video.author_username,
+                    author_avatar_url: video.author_avatar_url,
+                    views: Number(video.views) || 0,
+                    likes: Number(video.likes) || 0,
+                    comments: Number(video.comments) || 0,
+                    shares: Number(video.shares) || 0,
+                    velocity_views: Number(video.velocity_views) || 0,
+                    published_at: video.published_at,
+                    duration: Number(video.duration_sec) || 0,
+                  };
+
+                  return (
+                    <VideoCard
+                      key={video.id || i}
+                      video={cardData}
+                      playingId={playingId}
+                      onPlay={setPlayingId}
+                      isFavorite={userFavorites.includes(video.id)}
+                      onToggleFav={toggleFav}
+                      onAnalyze={(v) => setAnalysisVideo(video)}
+                      showTier={true}
+                      showAuthor={true}
+                      showAnalyzeButton={true}
+                      darkMode
+                    />
+                  );
+                })}
               </div>
-              <p className="text-lg font-semibold text-foreground">Ничего не найдено</p>
-              <p className="text-sm text-muted-foreground text-center max-w-sm">
-                По запросу «{query}» не найдено видео. Попробуйте изменить запрос.
-              </p>
-            </div>
-          )}
-
-          {results.length > 0 && (
-            <>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{results.length}</span> видео найдено
-            </div>
-
-            {relatedKeywords.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {relatedKeywords.map((kw) => (
-                  <button
-                    key={kw}
-                    onClick={() => {
-                      setQuery(kw);
-                      doSearch(kw);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-card border border-border/50 text-sm font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-colors card-shadow"
-                  >
-                    {kw}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
-              {results.map((video: any, i: number) => {
-                const cardData: VideoCardData = {
-                  id: video.id,
-                  platform_video_id: video.platform_video_id,
-                  url: video.url,
-                  cover_url: video.cover_url,
-                  caption: video.caption,
-                  author_username: video.author_username,
-                  author_avatar_url: video.author_avatar_url,
-                  views: Number(video.views) || 0,
-                  likes: Number(video.likes) || 0,
-                  comments: Number(video.comments) || 0,
-                  shares: Number(video.shares) || 0,
-                  velocity_views: Number(video.velocity_views) || 0,
-                  published_at: video.published_at,
-                  duration: Number(video.duration_sec) || 0,
-                };
-
-                return (
-                  <VideoCard
-                    key={video.id || i}
-                    video={cardData}
-                    playingId={playingId}
-                    onPlay={setPlayingId}
-                    isFavorite={userFavorites.includes(video.id)}
-                    onToggleFav={toggleFav}
-                    onAnalyze={(v) => setAnalysisVideo(video)}
-                    showTier={true}
-                    showAuthor={true}
-                    showAnalyzeButton={true}
-                    darkMode
-                  />
-                );
-              })}
-            </div>
-            </>
-          )}
-        </div>
-        </div>
-
-        {/* Recent queries - shown as horizontal chips on mobile, sidebar on xl */}
-        <div className="w-full xl:w-72 shrink-0">
-          <div className="bg-card rounded-2xl p-4 md:p-5 border border-border/50 xl:sticky xl:top-6 card-shadow">
-            <div className="flex items-center gap-2 mb-3 md:mb-4">
-              <div className="h-7 w-7 rounded-lg gradient-card flex items-center justify-center">
-                <Clock className="h-3.5 w-3.5 text-primary" />
-              </div>
-              <h3 className="font-semibold text-sm text-foreground">Последние запросы</h3>
-            </div>
-            {recentQueries && recentQueries.length > 0 ? (
-              <div className="flex xl:flex-col flex-wrap gap-1.5">
-                {recentQueries.map((q) => (
-                  <button
-                    key={q.id}
-                    onClick={() => {
-                      setQuery(q.query_text);
-                      doSearch(q.query_text);
-                    }}
-                    className="text-left px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors truncate xl:w-full border border-border/30 xl:border-0"
-                  >
-                    {q.query_text}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-xs text-center py-4 xl:py-6">Нет запросов</p>
+              </>
             )}
           </div>
+
+          {/* Recent queries sidebar */}
+          <div className="w-full xl:w-72 shrink-0">
+            <div className="bg-card rounded-2xl p-4 md:p-5 border border-border/50 xl:sticky xl:top-6 card-shadow">
+              <div className="flex items-center gap-2 mb-3 md:mb-4">
+                <div className="h-7 w-7 rounded-lg gradient-card flex items-center justify-center">
+                  <Clock className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-sm text-foreground">Последние запросы</h3>
+              </div>
+              {recentQueries && recentQueries.length > 0 ? (
+                <div className="flex xl:flex-col flex-wrap gap-1.5">
+                  {recentQueries.map((q) => (
+                    <button
+                      key={q.id}
+                      onClick={() => {
+                        setQuery(q.query_text);
+                        doSearch(q.query_text);
+                      }}
+                      className="text-left px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors truncate xl:w-full border border-border/30 xl:border-0"
+                    >
+                      {q.query_text}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-xs text-center py-4 xl:py-6">Нет запросов</p>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
       </div>
       <VideoAnalysisDialog
         video={analysisVideo}
