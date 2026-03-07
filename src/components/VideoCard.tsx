@@ -238,7 +238,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   return (
     <div className={`group rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col ${darkMode ? "bg-[#1a1a1a] border border-white/10" : "bg-card border border-border/40"}`} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel} onTouchStart={handlePreload}>
       {/* Video area */}
-      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
+      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-xl m-1.5">
         {playingId === video.id ? (
           <>
             {loadingPlay ? (
@@ -340,18 +340,18 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             )}
 
             {/* TikTok header bar */}
-            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2.5 z-10 pointer-events-none">
-              <div className={`flex items-center gap-1.5 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm ${darkMode ? "bg-neon/90" : "bg-white/90"}`}>
-                <Music className={`h-3 w-3 ${darkMode ? "text-black" : "text-foreground"}`} />
-                <span className={`text-[11px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
+            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-10 pointer-events-none">
+              <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm ${darkMode ? "bg-neon/90" : "bg-white/90"}`}>
+                <Music className={`h-2.5 w-2.5 ${darkMode ? "text-black" : "text-foreground"}`} />
+                <span className={`text-[9px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleFav(video.id); }}
-                  className={`pointer-events-auto w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform ${darkMode ? "bg-black/50" : "bg-white/90"}`}
+                  className={`pointer-events-auto w-6 h-6 rounded-full backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform ${darkMode ? "bg-black/50" : "bg-white/90"}`}
                 >
                   <Heart
-                    className={`h-4 w-4 transition-all ${
+                    className={`h-3 w-3 transition-all ${
                       isFavorite
                         ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
                         : darkMode ? "text-white/70" : "text-primary"
@@ -363,18 +363,18 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
             {/* Tier badge */}
             {tier && (
-              <div className="absolute top-12 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
-                <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg ${tierConfig[tier].className}`}>
+              <div className="absolute top-8 left-1.5 z-10 flex flex-col gap-1 pointer-events-none">
+                <div className={`flex items-center gap-0.5 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-lg ${tierConfig[tier].className}`}>
                   {(() => {
                     const Icon = tierConfig[tier].icon;
-                    return <Icon className="h-3.5 w-3.5" />;
+                    return <Icon className="h-2.5 w-2.5" />;
                   })()}
-                  <span className="text-[10px] font-bold">{tierConfig[tier].label}</span>
+                  <span className="text-[8px] font-bold">{tierConfig[tier].label}</span>
                 </div>
                 {velViews > 10 && (
-                  <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5">
-                    <TrendingUp className="h-3 w-3 text-white" />
-                    <span className="text-[9px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
+                  <div className="flex items-center gap-0.5 bg-white/20 backdrop-blur-md rounded-full px-1.5 py-0.5">
+                    <TrendingUp className="h-2.5 w-2.5 text-white" />
+                    <span className="text-[8px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
                   </div>
                 )}
               </div>
@@ -383,9 +383,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             {/* Open in TikTok */}
             <button
               onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
-              className="absolute top-12 right-2.5 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+              className="absolute top-8 right-1.5 z-10 w-6 h-6 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
             >
-              <ExternalLink className="h-3.5 w-3.5 text-foreground" />
+              <ExternalLink className="h-3 w-3 text-foreground" />
             </button>
 
             {/* Duration badge */}
