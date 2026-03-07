@@ -118,10 +118,40 @@ export default function Trends() {
     [activeCategory]
   );
 
+  // Fetch full niche data only when drilling down
+  const { data: drillNicheVideos = [] } = useQuery<any[]>({
+    queryKey: ["trends-niche", drillNiche],
+    queryFn: async () => {
+      if (!drillNiche) return [];
+      const selectFields =
+        "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
+      const since = new Date(Date.now() - 7 * 86400000).toISOString();
+      const allRows: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data: rows } = await supabase
+          .from("videos")
+          .select(selectFields)
+          .eq("niche", drillNiche)
+          .gte("published_at", since)
+          .order("trend_score", { ascending: false })
+          .range(from, from + pageSize - 1);
+        if (!rows || rows.length === 0) break;
+        allRows.push(...rows);
+        if (rows.length < pageSize) break;
+        from += pageSize;
+      }
+      return allRows;
+    },
+    enabled: !!drillNiche,
+    staleTime: 120_000,
+  });
+
   const drillVideos = useMemo(() => {
     if (!drillNiche) return [];
-    return (videosByNiche[drillNiche] || []).slice(0, visibleCount);
-  }, [drillNiche, videosByNiche, visibleCount]);
+    return drillNicheVideos.slice(0, visibleCount);
+  }, [drillNiche, drillNicheVideos, visibleCount]);
 
   const drillGroup = useMemo(
     () => NICHE_GROUPS.find((g) => g.key === drillNiche),
