@@ -138,7 +138,11 @@ const AppRoutes = () => (
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(isNativePlatform);
-  const handleSplashComplete = useCallback(() => setShowSplash(false), []);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false);
+    if (isNativePlatform) setShowPaywall(true);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -146,6 +150,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+        {showPaywall && <NativePaywall onDismiss={() => setShowPaywall(false)} />}
         <BrowserRouter>
           <AuthProvider>
             <TrackingPixels />
