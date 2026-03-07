@@ -654,7 +654,7 @@ Deno.serve(async (req: Request) => {
           .gte("published_at", freshCutoff7);
 
         if ((midCount || 0) >= limit) {
-          console.log(`⏭ ${nicheKey}: reached 7d limit (${midCount}/${limit}), stopping`);
+          console.log(`⏭ ${nicheLabel(nicheKey)}: reached 7d limit (${midCount}/${limit}), stopping`);
           break;
         }
       }
