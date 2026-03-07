@@ -448,7 +448,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       {/* Time ago */}
       {timeAgo && (
         <div className="px-3 pb-2">
-          <span className="text-[11px] text-muted-foreground">{timeAgo}</span>
+          <span className={`text-[11px] ${darkMode ? "text-white/30" : "text-muted-foreground"}`}>{timeAgo}</span>
         </div>
       )}
 
