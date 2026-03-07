@@ -200,7 +200,7 @@ export default function Trends() {
                   {drillGroup.emoji} {drillGroup.label}
                 </h1>
                 <span className="text-xs text-white/50 shrink-0">
-                  {videosByNiche[drillNiche]?.length || 0} видео
+                  {drillNicheVideos.length || 0} видео
                 </span>
               </div>
               <div className="p-4 md:p-6 lg:p-8">
