@@ -848,9 +848,9 @@ Deno.serve(async (req: Request) => {
       const saved = await processNiche(nicheKey);
       nicheStats[nicheKey] = saved;
       totalSaved += saved;
-      console.log(`✓ ${nicheKey}: ${saved} videos`);
+      console.log(`✓ ${nicheLabel(nicheKey)}: ${saved} videos`);
     } catch (e) {
-      console.error(`✗ ${nicheKey} failed:`, (e as Error).message);
+      console.error(`✗ ${nicheLabel(nicheKey)} failed:`, (e as Error).message);
       nicheStats[nicheKey] = 0;
     }
 
