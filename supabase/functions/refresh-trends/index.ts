@@ -697,10 +697,17 @@ Deno.serve(async (req: Request) => {
 
           if (views < MIN_VIEWS) { lowViews++; return null; }
 
-          // Filter: only keep videos with Cyrillic text in caption (Russian/Kazakh content)
+          // Filter: only keep videos with appropriate language content
           const caption = v.desc || "";
-          const hasCyrillic = /[а-яА-ЯёЁәіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
-          if (!hasCyrillic) { nonCyrillic++; return null; }
+          if (targetLang === "kk") {
+            // For Kazakh mode: require at least one Kazakh-specific character
+            const hasKazakhChars = /[әіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
+            if (!hasKazakhChars) { nonCyrillic++; return null; }
+          } else {
+            // For other modes: require any Cyrillic
+            const hasCyrillic = /[а-яА-ЯёЁәіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
+            if (!hasCyrillic) { nonCyrillic++; return null; }
+          }
 
           const publishedAtStr = getPublishedAt(v.create_time || v.createTime || 0);
           const publishedAt = new Date(publishedAtStr);
