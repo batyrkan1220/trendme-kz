@@ -193,50 +193,39 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Hero banner — single cover */}
-              {allVideos.length > 0 && (
-                <div className="relative w-full overflow-hidden" style={{ height: "160px" }}>
-                  {allVideos[0]?.cover_url && (
-                    <img
-                      src={allVideos[0].cover_url}
-                      alt=""
-                      loading="eager"
-                      className="absolute inset-0 w-full h-full object-cover scale-110 blur-[2px]"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-[#0a0a0a]" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                    <h1
-                      className="text-lg font-extrabold tracking-widest uppercase mb-3"
-                      style={{
-                        color: "hsl(var(--neon))",
-                        textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
-                      }}
-                    >
-                      trendme
-                    </h1>
-                    <div className="flex items-center gap-5 overflow-x-auto scrollbar-hide px-4">
-                      {TREND_CATEGORIES.map((cat) => {
-                        const active = activeCategory === cat.key;
-                        return (
-                          <button
-                            key={cat.key}
-                            onClick={() => setActiveCategory(cat.key)}
-                            className={cn(
-                              "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
-                              active
-                                ? "text-neon border-neon"
-                                : "text-white border-transparent hover:text-white/70"
-                            )}
-                          >
-                            {cat.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+              {/* Header — transparent */}
+              <div className="pt-6 pb-3 px-4 md:px-6 lg:px-8">
+                <div className="flex items-center justify-center mb-3">
+                  <h1
+                    className="text-lg font-extrabold tracking-widest uppercase"
+                    style={{
+                      color: "hsl(var(--neon))",
+                      textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
+                    }}
+                  >
+                    trendme
+                  </h1>
                 </div>
-              )}
+                <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide">
+                  {TREND_CATEGORIES.map((cat) => {
+                    const active = activeCategory === cat.key;
+                    return (
+                      <button
+                        key={cat.key}
+                        onClick={() => setActiveCategory(cat.key)}
+                        className={cn(
+                          "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
+                          active
+                            ? "text-neon border-neon"
+                            : "text-white border-transparent hover:text-white/70"
+                        )}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
 
               {/* Content */}
