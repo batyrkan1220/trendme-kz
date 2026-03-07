@@ -606,7 +606,7 @@ Deno.serve(async (req: Request) => {
       for (let i = 0; i < ids.length; i += 50) {
         await adminClient.from("videos").delete().in("id", ids.slice(i, i + 50));
       }
-      console.log(`🗑 ${nicheKey}: removed ${weakest.length} weakest videos (limit=${limit})`);
+      console.log(`🗑 ${nicheLabel(nicheKey)}: removed ${weakest.length} weakest videos (limit=${limit})`);
     }
   };
 
