@@ -7,7 +7,7 @@ import { useState, useMemo, useCallback } from "react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
-import { TREND_CATEGORIES, getNicheGroupsForCategory } from "@/config/trendCategories";
+import { TREND_CATEGORIES } from "@/config/trendCategories";
 import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
