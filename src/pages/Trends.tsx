@@ -194,48 +194,66 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Header */}
-              <div className="relative pt-8 pb-5 px-4">
-                {/* Neon line accent */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] rounded-full" style={{ background: "hsl(var(--neon))", boxShadow: "0 0 20px hsl(var(--neon) / 0.6), 0 0 60px hsl(var(--neon) / 0.2)" }} />
-
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="flex items-center gap-2.5 mb-5">
-                    <div className="h-8 w-1 rounded-full" style={{ background: "hsl(var(--neon))" }} />
-                    <h1
-                      className="text-2xl font-black tracking-[0.2em] uppercase"
-                      style={{ color: "hsl(var(--neon))" }}
-                    >
-                      trendme
-                    </h1>
-                    <div className="h-8 w-1 rounded-full" style={{ background: "hsl(var(--neon))" }} />
-                  </div>
-
-                  <div className="w-full overflow-x-auto scrollbar-hide">
-                    <div className="flex items-center justify-center gap-2">
-                      {TREND_CATEGORIES.map((cat) => {
-                        const active = activeCategory === cat.key;
-                        return (
-                          <button
-                            key={cat.key}
-                            onClick={() => setActiveCategory(cat.key)}
-                            className={cn(
-                              "shrink-0 text-xs font-bold transition-all whitespace-nowrap px-4 py-2 rounded-lg border",
-                              active
-                                ? "bg-neon/10 text-neon border-neon/50 shadow-[0_0_12px_hsl(var(--neon)/0.2)]"
-                                : "text-white/50 border-white/10 hover:text-white hover:border-white/20"
-                            )}
-                          >
-                            {cat.label}
-                          </button>
-                        );
-                      })}
+              {/* Hero header with mosaic background */}
+              <div className="relative overflow-hidden">
+                {/* Mosaic background — 3 rows of tilted covers */}
+                {!isLoading && allVideos.length > 0 ? (
+                  <div className="relative h-[220px] overflow-hidden">
+                    {/* Row 1 */}
+                    <div className="absolute top-[-10px] left-[-10px] right-[-10px] flex gap-1.5" style={{ transform: "rotate(-6deg) scale(1.15)" }}>
+                      {allVideos.slice(0, 6).map((v: any) => (
+                        <div key={v.id} className="shrink-0 w-[22vw] aspect-[3/4] rounded-lg overflow-hidden">
+                          {v.cover_url ? <img src={v.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-white/5" />}
+                        </div>
+                      ))}
+                    </div>
+                    {/* Row 2 */}
+                    <div className="absolute top-[85px] left-[-30px] right-[-10px] flex gap-1.5" style={{ transform: "rotate(-6deg) scale(1.15)" }}>
+                      {allVideos.slice(6, 12).map((v: any) => (
+                        <div key={v.id} className="shrink-0 w-[22vw] aspect-[3/4] rounded-lg overflow-hidden">
+                          {v.cover_url ? <img src={v.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-white/5" />}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="h-[220px] bg-white/5 animate-pulse" />
+                )}
 
-                {/* Bottom separator */}
-                <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                {/* Dark gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black pointer-events-none" />
+
+                {/* Logo + categories */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                  <h1
+                    className="text-2xl font-black tracking-[0.2em] uppercase mb-4"
+                    style={{
+                      color: "hsl(var(--neon))",
+                      textShadow: "0 0 30px hsl(var(--neon) / 0.5)",
+                    }}
+                  >
+                    trendme
+                  </h1>
+                  <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide px-4">
+                    {TREND_CATEGORIES.map((cat) => {
+                      const active = activeCategory === cat.key;
+                      return (
+                        <button
+                          key={cat.key}
+                          onClick={() => setActiveCategory(cat.key)}
+                          className={cn(
+                            "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-0.5 border-b-2",
+                            active
+                              ? "text-neon border-neon"
+                              : "text-white/80 border-transparent hover:text-white"
+                          )}
+                        >
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               {/* Content below hero */}
