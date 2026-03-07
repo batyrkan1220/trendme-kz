@@ -1,11 +1,11 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "./Landing";
-import { Capacitor } from "@capacitor/core";
+import { isNativePlatform } from "@/lib/native";
 
 const Index = () => {
   const { user, loading } = useAuth();
-  const isNative = Capacitor.isNativePlatform();
+  const isNative = isNativePlatform;
 
   if (loading) {
     return (
