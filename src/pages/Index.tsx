@@ -1,14 +1,8 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { isNativePlatform } from "@/lib/native";
-import { MaintenancePage } from "@/components/MaintenancePage";
 
 const Index = () => {
   const { user, loading } = useAuth();
-  const isNative = isNativePlatform;
-
-  // Web users see maintenance page
-  if (!isNative) return <MaintenancePage />;
 
   if (loading) {
     return (
