@@ -356,7 +356,6 @@ export default function Trends() {
                       </div>
                     )}
                   </>
-                  </>
                 )}
               </div>
             </>
