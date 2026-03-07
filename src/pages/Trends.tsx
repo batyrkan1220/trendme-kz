@@ -194,16 +194,16 @@ export default function Trends() {
           ) : (
             <>
               {/* Header — centered brand name */}
-              <div className="relative pt-6 px-4 md:px-6 lg:px-8">
-                <div className="flex items-center justify-center mb-5">
+               <div className="relative pt-3 px-4 md:px-6 lg:px-8">
+                <div className="flex items-center justify-center mb-3">
                   <h1
-                    className="text-3xl font-black tracking-wider uppercase"
+                    className="text-lg font-extrabold tracking-widest uppercase"
                     style={{
                       color: "hsl(var(--neon))",
-                      textShadow: "0 0 30px hsl(var(--neon) / 0.4), 0 0 60px hsl(var(--neon) / 0.15)",
+                      textShadow: "0 0 20px hsl(var(--neon) / 0.3)",
                     }}
                   >
-                    TRENDME
+                    trendme
                   </h1>
                 </div>
 
