@@ -163,35 +163,41 @@ export default function Trends() {
         <div className="space-y-4 pb-28">
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
-            <div className="p-4 md:p-6 lg:p-8 space-y-4">
-              <div className="flex items-center gap-2">
+            <>
+              {/* Sticky sub-niche header */}
+              <div
+                className="sticky top-0 z-30 flex items-center gap-3 pt-4 pb-3 px-4 backdrop-blur-md"
+                style={{ background: "rgba(10,10,10,0.4)" }}
+              >
                 <button
                   onClick={handleBack}
-                  className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                  className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors shrink-0"
                 >
                   <ChevronLeft className="h-4 w-4 text-white" />
                 </button>
-                <h1 className="text-xl font-bold text-white">
+                <h1 className="text-lg font-bold text-white truncate">
                   {drillGroup.emoji} {drillGroup.label}
                 </h1>
-                <span className="text-xs text-white/50">
+                <span className="text-xs text-white/50 shrink-0">
                   {videosByNiche[drillNiche]?.length || 0} видео
                 </span>
               </div>
-              <VirtualTrendGrid
-                videos={drillVideos}
-                playingId={playingId}
-                onPlay={setPlayingId}
-                userFavorites={userFavorites}
-                onToggleFav={toggleFav}
-                onAnalyze={(v) => setAnalysisVideo(v)}
-                isFreePlan={isFreePlan}
-                freeLimit={FREE_LIMIT}
-                hasMore={(videosByNiche[drillNiche]?.length || 0) > visibleCount}
-                onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                darkMode
-              />
-            </div>
+              <div className="p-4 md:p-6 lg:p-8">
+                <VirtualTrendGrid
+                  videos={drillVideos}
+                  playingId={playingId}
+                  onPlay={setPlayingId}
+                  userFavorites={userFavorites}
+                  onToggleFav={toggleFav}
+                  onAnalyze={(v) => setAnalysisVideo(v)}
+                  isFreePlan={isFreePlan}
+                  freeLimit={FREE_LIMIT}
+                  hasMore={(videosByNiche[drillNiche]?.length || 0) > visibleCount}
+                  onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  darkMode
+                />
+              </div>
+            </>
           ) : (
             <>
               {/* Sticky transparent header — logo + categories */}
