@@ -205,8 +205,9 @@ No explanation, no markdown, just JSON.`
             continue;
           }
 
-          // Check if already correct
-          if ((video as any).sub_niche === subNiche && video.niche === mainNiche) {
+          // Check if already correct (niche, sub_niche AND lang)
+          const resolvedLang = (lang && ["kk", "ru", "en"].includes(lang)) ? lang : null;
+          if ((video as any).sub_niche === subNiche && video.niche === mainNiche && (video as any).lang === resolvedLang) {
             unchanged++;
             continue;
           }
