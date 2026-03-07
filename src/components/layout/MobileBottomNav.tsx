@@ -2,21 +2,19 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  Flame, Plus, Search, Video, Sparkles, BookOpen, Heart, BarChart3
+  Flame, Search, Heart, Wrench, Video, Sparkles, BarChart3, ChevronUp
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 const mainNavItems = [
   { icon: Flame, path: "/trends", label: "Тренды" },
   { icon: Search, path: "/search", label: "Поиск" },
-  { icon: BarChart3, path: "/account-analysis", label: "Анализ" },
 ];
 
-const plusMenuItems = [
+const toolsMenuItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
   { icon: Sparkles, path: "/ai-script", label: "AI Сценарий" },
-  { icon: BookOpen, path: "/library", label: "Библиотека" },
-  { icon: Heart, path: "/library", label: "Избранное" },
+  { icon: BarChart3, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 
 interface MobileBottomNavProps {
@@ -27,14 +25,16 @@ interface MobileBottomNavProps {
 
 export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: MobileBottomNavProps) {
   const location = useLocation();
-  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
+  const isToolsActive = toolsMenuItems.some(item => location.pathname === item.path);
+
   useEffect(() => {
-    if (!showPlusMenu) return;
+    if (!showToolsMenu) return;
     const handle = (e: MouseEvent | TouchEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setShowPlusMenu(false);
+        setShowToolsMenu(false);
       }
     };
     document.addEventListener("mousedown", handle);
@@ -43,7 +43,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       document.removeEventListener("mousedown", handle);
       document.removeEventListener("touchstart", handle);
     };
-  }, [showPlusMenu]);
+  }, [showToolsMenu]);
 
   const nav = (
     <nav
@@ -61,25 +61,30 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         opacity: drawerOpen ? 0 : 1,
       }}
     >
-      {/* Plus menu popover — dark style */}
-      {showPlusMenu && (
+      {/* Tools menu popover */}
+      {showToolsMenu && (
         <div
           ref={popoverRef}
-          className="absolute bottom-full right-3 mb-3 rounded-2xl shadow-2xl p-2 min-w-[200px]"
+          className="absolute bottom-full mb-3 rounded-2xl shadow-2xl p-2 min-w-[220px]"
           style={{
             background: "#1a1a1a",
             border: "1px solid rgba(255,255,255,0.1)",
             backdropFilter: "blur(20px)",
             animation: "slide-up 0.2s ease-out",
+            left: "50%",
+            transform: "translateX(-50%)",
           }}
         >
-          {plusMenuItems.map((item) => {
+          <div className="px-3 py-2 mb-1">
+            <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider">Инструменты</span>
+          </div>
+          {toolsMenuItems.map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link
-                key={item.path + item.label}
+                key={item.path}
                 to={item.path}
-                onClick={() => setShowPlusMenu(false)}
+                onClick={() => setShowToolsMenu(false)}
                 className={cn(
                   "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm transition-colors active:scale-[0.97]",
                   active
@@ -96,16 +101,16 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         </div>
       )}
 
-      {/* Bottom bar — dark glass */}
-      <div className="flex items-center justify-between px-6 py-2" style={{ background: "rgba(10,10,10,0.75)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
-        {/* Left nav items */}
+      {/* Bottom bar */}
+      <div className="flex items-center justify-around px-4 py-2" style={{ background: "rgba(10,10,10,0.75)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
+        {/* Main nav items */}
         {mainNavItems.map((item) => {
           const active = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              onClick={() => { drawerOpen && onDrawerClose?.(); setShowPlusMenu(false); }}
+              onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(false); }}
               className="relative flex flex-col items-center gap-0.5 py-1.5 min-w-[56px] active:scale-[0.93] transition-transform"
             >
               <item.icon
@@ -125,26 +130,59 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           );
         })}
 
-        {/* Plus button — neon green */}
+        {/* Tools button */}
         <button
-          onClick={() => { drawerOpen && onDrawerClose?.(); setShowPlusMenu(v => !v); }}
-          className={cn(
-            "shrink-0 h-12 w-12 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
-            showPlusMenu
-              ? "shadow-lg"
-              : ""
-          )}
-          style={{
-            background: showPlusMenu ? "hsl(var(--neon))" : "hsl(var(--neon))",
-            color: "#000",
-            boxShadow: "0 0 20px hsl(var(--neon) / 0.4)",
-          }}
+          onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(v => !v); }}
+          className="relative flex flex-col items-center gap-0.5 py-1.5 min-w-[56px] active:scale-[0.93] transition-transform"
         >
-          <Plus
-            className={cn("h-6 w-6 transition-transform duration-200", showPlusMenu && "rotate-45")}
-            strokeWidth={2.5}
-          />
+          <div className="relative">
+            <Wrench
+              className={cn(
+                "h-[22px] w-[22px] transition-colors duration-200",
+                isToolsActive || showToolsMenu ? "text-neon" : "text-white"
+              )}
+              strokeWidth={isToolsActive || showToolsMenu ? 2.2 : 1.8}
+            />
+            <ChevronUp
+              className={cn(
+                "absolute -top-1.5 -right-1.5 h-3 w-3 transition-all duration-200",
+                showToolsMenu ? "text-neon rotate-180" : "text-white/50"
+              )}
+            />
+          </div>
+          <span className={cn(
+            "text-[10px] font-semibold leading-tight transition-colors",
+            isToolsActive || showToolsMenu ? "text-neon" : "text-white"
+          )}>
+            Инструменты
+          </span>
         </button>
+
+        {/* Favorites */}
+        {(() => {
+          const active = location.pathname === "/library";
+          return (
+            <Link
+              to="/library"
+              onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(false); }}
+              className="relative flex flex-col items-center gap-0.5 py-1.5 min-w-[56px] active:scale-[0.93] transition-transform"
+            >
+              <Heart
+                className={cn(
+                  "h-[22px] w-[22px] transition-colors duration-200",
+                  active ? "text-neon fill-neon" : "text-white"
+                )}
+                strokeWidth={active ? 2.2 : 1.8}
+              />
+              <span className={cn(
+                "text-[10px] font-semibold leading-tight transition-colors",
+                active ? "text-neon" : "text-white"
+              )}>
+                Избранное
+              </span>
+            </Link>
+          );
+        })()}
       </div>
     </nav>
   );
