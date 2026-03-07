@@ -193,47 +193,116 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Header — transparent */}
-              <div
-                className="sticky top-0 z-30 pt-6 pb-3 px-4 md:px-6 lg:px-8"
-                style={{
-                  background: "linear-gradient(to bottom, #0a0a0a 70%, transparent 100%)",
-                }}
-              >
-                <div className="flex items-center justify-center mb-3">
-                  <h1
-                    className="text-lg font-extrabold tracking-widest uppercase"
+              {/* Hero: cards with overlay header (for_you + has videos + not loading) */}
+              {!isLoading && activeCategory === "for_you" && allVideos.length > 0 ? (
+                <div className="relative">
+                  {/* Hero video cards row — sits behind the header */}
+                  <div
+                    className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-3 pt-2"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {allVideos.slice(0, 6).map((video) => (
+                      <div
+                        key={video.id}
+                        className="snap-start shrink-0"
+                        style={{ width: "min(46vw, 200px)" }}
+                      >
+                        <VideoCard
+                          video={video}
+                          playingId={playingId}
+                          onPlay={setPlayingId}
+                          isFavorite={userFavorites.includes(video.id)}
+                          onToggleFav={toggleFav}
+                          onAnalyze={(v) => setAnalysisVideo(v)}
+                          showTier={true}
+                          showAuthor={false}
+                          darkMode
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Overlay header floating on top of hero cards */}
+                  <div
+                    className="absolute top-0 left-0 right-0 z-30 pt-6 pb-10 px-4 md:px-6 lg:px-8 pointer-events-none"
                     style={{
-                      color: "hsl(var(--neon))",
-                      textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
+                      background: "linear-gradient(to bottom, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.5) 50%, transparent 100%)",
                     }}
                   >
-                    trendme
-                  </h1>
-                </div>
-                <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide">
-                  {TREND_CATEGORIES.map((cat) => {
-                    const active = activeCategory === cat.key;
-                    return (
-                      <button
-                        key={cat.key}
-                        onClick={() => setActiveCategory(cat.key)}
-                        className={cn(
-                          "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
-                          active
-                            ? "text-neon border-neon"
-                            : "text-white border-transparent hover:text-white/70"
-                        )}
+                    <div className="flex items-center justify-center mb-3 pointer-events-auto">
+                      <h1
+                        className="text-lg font-extrabold tracking-widest uppercase"
+                        style={{
+                          color: "hsl(var(--neon))",
+                          textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
+                        }}
                       >
-                        {cat.label}
-                      </button>
-                    );
-                  })}
+                        trendme
+                      </h1>
+                    </div>
+                    <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide pointer-events-auto">
+                      {TREND_CATEGORIES.map((cat) => {
+                        const active = activeCategory === cat.key;
+                        return (
+                          <button
+                            key={cat.key}
+                            onClick={() => setActiveCategory(cat.key)}
+                            className={cn(
+                              "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
+                              active
+                                ? "text-neon border-neon"
+                                : "text-white border-transparent hover:text-white/70"
+                            )}
+                          >
+                            {cat.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* Regular sticky header for other categories or loading */
+                <div
+                  className="sticky top-0 z-30 pt-6 pb-3 px-4 md:px-6 lg:px-8"
+                  style={{
+                    background: "linear-gradient(to bottom, #0a0a0a 70%, transparent 100%)",
+                  }}
+                >
+                  <div className="flex items-center justify-center mb-3">
+                    <h1
+                      className="text-lg font-extrabold tracking-widest uppercase"
+                      style={{
+                        color: "hsl(var(--neon))",
+                        textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
+                      }}
+                    >
+                      trendme
+                    </h1>
+                  </div>
+                  <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide">
+                    {TREND_CATEGORIES.map((cat) => {
+                      const active = activeCategory === cat.key;
+                      return (
+                        <button
+                          key={cat.key}
+                          onClick={() => setActiveCategory(cat.key)}
+                          className={cn(
+                            "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
+                            active
+                              ? "text-neon border-neon"
+                              : "text-white border-transparent hover:text-white/70"
+                          )}
+                        >
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-
-              {/* Content */}
+              {/* Content below hero */}
               <div className="px-4 md:px-6 lg:px-8 space-y-6">
                 {isLoading ? (
                   <div className="space-y-6">
@@ -256,40 +325,6 @@ export default function Trends() {
                   </div>
                 ) : (
                   <>
-                    {/* "Для тебя" → top trending row */}
-                    {activeCategory === "for_you" && allVideos.length > 0 && (
-                      <section className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h2 className="text-lg font-bold text-white">В тренде 🔥</h2>
-                          <span className="text-sm font-semibold text-neon">Все</span>
-                        </div>
-                        <div
-                          className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
-                          style={{ WebkitOverflowScrolling: "touch" }}
-                        >
-                          {allVideos.slice(0, 10).map((video) => (
-                            <div
-                              key={video.id}
-                              className="snap-start shrink-0"
-                              style={{ width: "min(38vw, 172px)" }}
-                            >
-                              <VideoCard
-                                video={video}
-                                playingId={playingId}
-                                onPlay={setPlayingId}
-                                isFavorite={userFavorites.includes(video.id)}
-                                onToggleFav={toggleFav}
-                                onAnalyze={(v) => setAnalysisVideo(v)}
-                                showTier={true}
-                                showAuthor={false}
-                                darkMode
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </section>
-                    )}
-
                     {categoryGroups.map((group) => (
                       <TrendNicheRow
                         key={group.key}
