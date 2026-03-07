@@ -35,16 +35,24 @@ export function TrendNicheRow({
     const el = scrollRef.current;
     if (!el) return;
 
-    const timer = setTimeout(() => {
-      el.scrollTo({ left: 60, behavior: "smooth" });
-      setTimeout(() => {
-        el.scrollTo({ left: 0, behavior: "smooth" });
-        setHinted(true);
-      }, 400);
-    }, 600);
+    // Wait for DOM to render cards, then animate
+    const raf = requestAnimationFrame(() => {
+      const timer = setTimeout(() => {
+        el.scrollTo({ left: 80, behavior: "smooth" });
+        setTimeout(() => {
+          el.scrollTo({ left: 0, behavior: "smooth" });
+          setHinted(true);
+        }, 500);
+      }, 800);
+      // Store cleanup
+      (el as any).__hintTimer = timer;
+    });
 
-    return () => clearTimeout(timer);
-  }, [hinted, videos.length]);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout((el as any).__hintTimer);
+    };
+  }, [videos.length]); // only depend on videos.length, not hinted
 
   if (videos.length === 0) return null;
 
