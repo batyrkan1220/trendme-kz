@@ -55,24 +55,15 @@ export default function Trends() {
     queryFn: async () => {
       const selectFields =
         "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
-      const allRows: any[] = [];
-      let from = 0;
-      const pageSize = 1000;
       const since = new Date(Date.now() - 7 * 86400000).toISOString();
 
-      while (true) {
-        const { data: rows } = await supabase
-          .from("videos")
-          .select(selectFields)
-          .gte("published_at", since)
-          .order("trend_score", { ascending: false })
-          .range(from, from + pageSize - 1);
-        if (!rows || rows.length === 0) break;
-        allRows.push(...rows);
-        if (rows.length < pageSize) break;
-        from += pageSize;
-      }
-      return allRows;
+      const { data: rows } = await supabase
+        .from("videos")
+        .select(selectFields)
+        .gte("published_at", since)
+        .order("trend_score", { ascending: false })
+        .range(0, 999);
+      return rows || [];
     },
     staleTime: 120_000,
     placeholderData: (prev) => prev,
