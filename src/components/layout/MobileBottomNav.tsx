@@ -158,32 +158,6 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             Инструменты
           </span>
         </button>
-
-        {/* Favorites */}
-        {(() => {
-          const active = location.pathname === "/library";
-          return (
-            <Link
-              to="/library"
-              onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(false); }}
-              className="relative flex flex-col items-center gap-0.5 py-1.5 min-w-[56px] active:scale-[0.93] transition-transform"
-            >
-              <Heart
-                className={cn(
-                  "h-[22px] w-[22px] transition-colors duration-200",
-                  active ? "text-neon fill-neon" : "text-white"
-                )}
-                strokeWidth={active ? 2.2 : 1.8}
-              />
-              <span className={cn(
-                "text-[10px] font-semibold leading-tight transition-colors",
-                active ? "text-neon" : "text-white"
-              )}>
-                Избранное
-              </span>
-            </Link>
-          );
-        })()}
       </div>
     </nav>
   );
