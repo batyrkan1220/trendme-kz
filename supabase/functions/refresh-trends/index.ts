@@ -88,6 +88,49 @@ function pickRotatedKeywords(
 
 const VERSION = "refresh-trends-ensemble v4 hierarchical-niches sub_niche support";
 
+// Human-readable labels for sub-niches (for logs)
+const SUB_NICHE_LABELS: Record<string, string> = {
+  finance: "Финансы", crypto: "Крипто", business_ideas: "Бизнес идеи",
+  marketing: "Маркетинг", freelance: "Фриланс", ecommerce: "E-commerce",
+  skincare: "Уход за кожей", makeup: "Макияж", haircare: "Волосы",
+  manicure: "Маникюр", cosmetology: "Косметология", perfume: "Парфюмерия",
+  clothing: "Одежда", shoes: "Обувь", accessories: "Аксессуары",
+  luxury_fashion: "Люкс бренды", jewelry: "Украшения", shopping: "Шопинг",
+  recipes: "Рецепты", home_cooking: "Домашняя кухня", restaurants: "Рестораны",
+  street_food: "Уличная еда", desserts: "Десерты", coffee_tea: "Кофе и чай",
+  home_workouts: "Тренировки дома", gym: "Тренажерный зал", weight_loss: "Похудение",
+  yoga: "Йога", healthy_lifestyle: "ЗОЖ", sports_nutrition: "Спортпитание",
+  football: "Футбол", mma_boxing: "ММА/Бокс", basketball: "Баскетбол",
+  sports_news: "Спорт новости", extreme_sports: "Экстрим спорт",
+  languages: "Языки", english: "Английский", school_ent: "ЕНТ/Школа",
+  online_courses: "Онлайн курсы", books: "Книги",
+  mobile_games: "Мобильные игры", pc_games: "PC игры", game_reviews: "Обзоры игр",
+  streaming: "Стриминг", esports: "Киберспорт",
+  programming: "Программирование", gadgets: "Гаджеты", tech_reviews: "Обзоры техники", apps: "Приложения",
+  auto_reviews: "Авто обзоры", chinese_auto: "Китайские авто", tuning: "Тюнинг",
+  auto_repair: "Авто ремонт", electric_vehicles: "Электромобили", moto: "Мотоциклы",
+  renovation: "Ремонт", interior: "Интерьер", furniture: "Мебель",
+  organization: "Организация", garden: "Сад и огород",
+  motherhood: "Материнство", pregnancy: "Беременность", parenting: "Воспитание",
+  family_life: "Семья", wedding: "Свадьба",
+  relationships: "Отношения", self_development: "Саморазвитие", motivation: "Мотивация",
+  mental_health: "Ментальное здоровье", productivity: "Продуктивность",
+  humor: "Юмор", memes: "Мемы", challenges: "Челленджи", asmr: "ASMR",
+  music: "Музыка", cinema: "Кино", dance: "Танцы", anime: "Аниме",
+  pets: "Домашние животные", pet_care: "Уход за животными",
+  travel_general: "Путешествия", hotels: "Отели", kazakhstan_travel: "КЗ туризм",
+  neural_networks: "Нейросети", ai_tools: "AI инструменты", ai_generation: "AI генерация", chatgpt: "ChatGPT",
+  crafts: "Рукоделие", drawing: "Рисование", photography: "Фотография",
+  doctors: "Врачи", dentistry: "Стоматология", pharmacy: "Аптека", nutrition_health: "Нутрициология",
+  apartments: "Квартиры", mortgage: "Ипотека", new_buildings: "Новостройки", construction: "Стройка",
+  content_creation: "Создание контента", video_editing: "Монтаж", promotion: "Продвижение",
+  monetization: "Монетизация", personal_brand: "Личный бренд",
+  kazakh_cuisine: "Қазақ ас", kazakh_history: "ҚР тарихы", kazakh_traditions: "Дәстүрлер",
+  kazakh_language: "Қазақ тілі", kazakh_music: "Қазақ музыка", kazakh_celebrities: "Қазақ жұлдыздар",
+};
+
+const nicheLabel = (key: string) => SUB_NICHE_LABELS[key] || key;
+
 // Sub-niche to main niche mapping (must match src/config/niches.ts)
 const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // business
@@ -563,7 +606,7 @@ Deno.serve(async (req: Request) => {
       for (let i = 0; i < ids.length; i += 50) {
         await adminClient.from("videos").delete().in("id", ids.slice(i, i + 50));
       }
-      console.log(`🗑 ${nicheKey}: removed ${weakest.length} weakest videos (limit=${limit})`);
+      console.log(`🗑 ${nicheLabel(nicheKey)}: removed ${weakest.length} weakest videos (limit=${limit})`);
     }
   };
 
@@ -589,7 +632,7 @@ Deno.serve(async (req: Request) => {
     const selectedKeywords = pickRotatedKeywords(nicheKey, allKeywords, qCount, nicheSeed, nicheRotationIndex);
     keywordsUsedPerNiche[nicheKey] = selectedKeywords;
 
-    console.log(`  🔑 ${nicheKey}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (cursor=${nicheRotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
+    console.log(`  🔑 ${nicheLabel(nicheKey)}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (cursor=${nicheRotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
 
     let nicheSaved = 0;
 
@@ -611,7 +654,7 @@ Deno.serve(async (req: Request) => {
           .gte("published_at", freshCutoff7);
 
         if ((midCount || 0) >= limit) {
-          console.log(`⏭ ${nicheKey}: reached 7d limit (${midCount}/${limit}), stopping`);
+          console.log(`⏭ ${nicheLabel(nicheKey)}: reached 7d limit (${midCount}/${limit}), stopping`);
           break;
         }
       }
@@ -771,7 +814,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.join(", ")}`);
+  console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.map(k => nicheLabel(k)).join(", ")}`);
 
   // Check limits before processing
   const nichesToProcess: string[] = [];
@@ -786,7 +829,7 @@ Deno.serve(async (req: Request) => {
         .gte("published_at", freshCutoff7);
 
       if ((count || 0) >= limit) {
-        console.log(`⏭ ${nicheKey}: already at 7d limit (${count}/${limit}), skipping`);
+        console.log(`⏭ ${nicheLabel(nicheKey)}: already at 7d limit (${count}/${limit}), skipping`);
         nicheStats[nicheKey] = 0;
         continue;
       }
@@ -805,9 +848,9 @@ Deno.serve(async (req: Request) => {
       const saved = await processNiche(nicheKey);
       nicheStats[nicheKey] = saved;
       totalSaved += saved;
-      console.log(`✓ ${nicheKey}: ${saved} videos`);
+      console.log(`✓ ${nicheLabel(nicheKey)}: ${saved} videos`);
     } catch (e) {
-      console.error(`✗ ${nicheKey} failed:`, (e as Error).message);
+      console.error(`✗ ${nicheLabel(nicheKey)} failed:`, (e as Error).message);
       nicheStats[nicheKey] = 0;
     }
 
