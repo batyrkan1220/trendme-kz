@@ -151,7 +151,7 @@ export default function Trends() {
       <div
         ref={containerRef}
         className="overflow-y-auto trends-dark-theme"
-        style={{ height: "100dvh", background: "#0a0a0a", color: "#ffffff" }}
+        style={{ height: "100dvh", background: "#141418", color: "#ffffff" }}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
