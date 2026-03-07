@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import trendsBg from "@/assets/trends-bg.jpg";
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
@@ -150,9 +151,20 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-y-auto trends-dark-theme"
-        style={{ height: "100dvh", background: "#1a1a20", color: "#ffffff" }}
+        className="overflow-y-auto trends-dark-theme relative"
+        style={{ height: "100dvh", color: "#ffffff" }}
       >
+        {/* Background image */}
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `url(${trendsBg})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+        <div className="fixed inset-0 bg-black/60 pointer-events-none" />
         <PullToRefreshIndicator
           pullDistance={pullDistance}
           isRefreshing={isRefreshing}
