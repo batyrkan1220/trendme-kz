@@ -94,6 +94,7 @@ export default function Library() {
                   showTier={true}
                   showAuthor={true}
                   showAnalyzeButton={true}
+                  darkMode
                 />
               );
             })}
