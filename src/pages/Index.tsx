@@ -1,11 +1,14 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import Landing from "./Landing";
 import { isNativePlatform } from "@/lib/native";
+import { MaintenancePage } from "@/components/MaintenancePage";
 
 const Index = () => {
   const { user, loading } = useAuth();
   const isNative = isNativePlatform;
+
+  // Web users see maintenance page
+  if (!isNative) return <MaintenancePage />;
 
   if (loading) {
     return (
@@ -16,11 +19,7 @@ const Index = () => {
   }
 
   if (user) return <Navigate to="/trends" replace />;
-
-  // Мобильді қосымшада лендинг көрсетпей, тікелей авторизацияға бағыттау
-  if (isNative) return <Navigate to="/auth" replace />;
-
-  return <Landing />;
+  return <Navigate to="/auth" replace />;
 };
 
 export default Index;
