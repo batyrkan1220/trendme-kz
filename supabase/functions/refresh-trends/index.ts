@@ -703,8 +703,11 @@ Deno.serve(async (req: Request) => {
             // For Kazakh mode: require at least one Kazakh-specific character
             const hasKazakhChars = /[әіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
             if (!hasKazakhChars) { nonCyrillic++; return null; }
+          } else if (targetLang === "en") {
+            // For English mode: accept any video (no script filter)
+            // lang will be assigned as "en" below
           } else {
-            // For other modes: require any Cyrillic
+            // For Russian mode: require any Cyrillic
             const hasCyrillic = /[а-яА-ЯёЁәіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
             if (!hasCyrillic) { nonCyrillic++; return null; }
           }
