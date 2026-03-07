@@ -260,3 +260,34 @@ html, body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Splash screen animations */
+@keyframes splash-glow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes splash-dot-bounce {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Staggered fade-in for page content */
+@keyframes stagger-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-stagger-fade-in {
+  animation: stagger-fade-in 0.4s ease-out both;
+}
+
+/* Bottom nav entrance */
+@keyframes bottom-nav-enter {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-bottom-nav-enter {
+  animation: bottom-nav-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
