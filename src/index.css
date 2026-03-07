@@ -165,10 +165,11 @@ body.native-app {
   overflow-x: hidden;
 }
 
-/* Prevent horizontal scroll globally on mobile */
+/* Prevent horizontal scroll and native pull-to-refresh globally */
 html, body {
   overflow-x: hidden;
   max-width: 100vw;
+  overscroll-behavior-y: contain;
 }
 
 /* Page transitions */
