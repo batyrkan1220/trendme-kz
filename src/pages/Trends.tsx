@@ -7,7 +7,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
 import { TREND_CATEGORIES, getNicheGroupsForCategory } from "@/config/trendCategories";
-import { TrendNicheRow } from "@/components/trends/TrendNicheRow";
+import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,24 +55,15 @@ export default function Trends() {
     queryFn: async () => {
       const selectFields =
         "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
-      const allRows: any[] = [];
-      let from = 0;
-      const pageSize = 1000;
       const since = new Date(Date.now() - 7 * 86400000).toISOString();
 
-      while (true) {
-        const { data: rows } = await supabase
-          .from("videos")
-          .select(selectFields)
-          .gte("published_at", since)
-          .order("trend_score", { ascending: false })
-          .range(from, from + pageSize - 1);
-        if (!rows || rows.length === 0) break;
-        allRows.push(...rows);
-        if (rows.length < pageSize) break;
-        from += pageSize;
-      }
-      return allRows;
+      const { data: rows } = await supabase
+        .from("videos")
+        .select(selectFields)
+        .gte("published_at", since)
+        .order("trend_score", { ascending: false })
+        .range(0, 999);
+      return rows || [];
     },
     staleTime: 120_000,
     placeholderData: (prev) => prev,
@@ -127,10 +118,40 @@ export default function Trends() {
     [activeCategory]
   );
 
+  // Fetch full niche data only when drilling down
+  const { data: drillNicheVideos = [] } = useQuery<any[]>({
+    queryKey: ["trends-niche", drillNiche],
+    queryFn: async () => {
+      if (!drillNiche) return [];
+      const selectFields =
+        "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
+      const since = new Date(Date.now() - 7 * 86400000).toISOString();
+      const allRows: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data: rows } = await supabase
+          .from("videos")
+          .select(selectFields)
+          .eq("niche", drillNiche)
+          .gte("published_at", since)
+          .order("trend_score", { ascending: false })
+          .range(from, from + pageSize - 1);
+        if (!rows || rows.length === 0) break;
+        allRows.push(...rows);
+        if (rows.length < pageSize) break;
+        from += pageSize;
+      }
+      return allRows;
+    },
+    enabled: !!drillNiche,
+    staleTime: 120_000,
+  });
+
   const drillVideos = useMemo(() => {
     if (!drillNiche) return [];
-    return (videosByNiche[drillNiche] || []).slice(0, visibleCount);
-  }, [drillNiche, videosByNiche, visibleCount]);
+    return drillNicheVideos.slice(0, visibleCount);
+  }, [drillNiche, drillNicheVideos, visibleCount]);
 
   const drillGroup = useMemo(
     () => NICHE_GROUPS.find((g) => g.key === drillNiche),
@@ -179,7 +200,7 @@ export default function Trends() {
                   {drillGroup.emoji} {drillGroup.label}
                 </h1>
                 <span className="text-xs text-white/50 shrink-0">
-                  {videosByNiche[drillNiche]?.length || 0} видео
+                  {drillNicheVideos.length || 0} видео
                 </span>
               </div>
               <div className="p-4 md:p-6 lg:p-8">
@@ -192,7 +213,7 @@ export default function Trends() {
                   onAnalyze={(v) => setAnalysisVideo(v)}
                   isFreePlan={isFreePlan}
                   freeLimit={FREE_LIMIT}
-                  hasMore={(videosByNiche[drillNiche]?.length || 0) > visibleCount}
+                  hasMore={drillNicheVideos.length > visibleCount}
                   onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
                   darkMode
                 />
@@ -261,7 +282,7 @@ export default function Trends() {
                 ) : (
                   <>
                     {categoryGroups.map((group) => (
-                      <TrendNicheRow
+                      <LazyNicheRow
                         key={group.key}
                         group={group}
                         videos={videosByNiche[group.key] || []}
