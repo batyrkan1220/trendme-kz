@@ -219,7 +219,7 @@ export default function Trends() {
                           "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-2 border-b-2",
                           active
                             ? "text-neon border-neon"
-                            : "text-white/40 border-transparent hover:text-white/70"
+                            : "text-white border-transparent hover:text-white/70"
                         )}
                       >
                         {cat.label}
