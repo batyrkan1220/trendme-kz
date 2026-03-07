@@ -354,24 +354,19 @@ export default function Trends() {
                   </div>
                 ) : (
                   <>
-                    {categoryGroups.map((group, idx) => (
-                      <div
+                    {categoryGroups.map((group) => (
+                      <LazyNicheRow
                         key={group.key}
-                        className="animate-stagger-fade-in"
-                        style={{ animationDelay: `${200 + idx * 80}ms` }}
-                      >
-                        <LazyNicheRow
-                          group={group}
-                          videos={videosByNiche[group.key] || []}
-                          userFavorites={userFavorites}
-                          onToggleFav={toggleFav}
-                          onAnalyze={(v) => setAnalysisVideo(v)}
-                          playingId={playingId}
-                          onPlay={setPlayingId}
-                          onViewAll={handleViewAll}
-                          darkMode
-                        />
-                      </div>
+                        group={group}
+                        videos={videosByNiche[group.key] || []}
+                        userFavorites={userFavorites}
+                        onToggleFav={toggleFav}
+                        onAnalyze={(v) => setAnalysisVideo(v)}
+                        playingId={playingId}
+                        onPlay={setPlayingId}
+                        onViewAll={handleViewAll}
+                        darkMode
+                      />
                     ))}
 
                     {categoryGroups.every((g) => !(videosByNiche[g.key]?.length)) &&
