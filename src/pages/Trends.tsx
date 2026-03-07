@@ -238,46 +238,6 @@ export default function Trends() {
                 </div>
               )}
 
-              {/* Sticky header — appears on scroll */}
-              <div
-                className="sticky top-0 z-30 pt-3 pb-1 px-4 md:px-6 lg:px-8"
-                style={{
-                  background: "rgba(10,10,10,0.55)",
-                  backdropFilter: "blur(16px)",
-                  WebkitBackdropFilter: "blur(16px)",
-                }}
-              >
-                <div className="flex items-center justify-center mb-2">
-                  <h1
-                    className="text-lg font-extrabold tracking-widest uppercase"
-                    style={{
-                      color: "hsl(var(--neon))",
-                      textShadow: "0 0 20px hsl(var(--neon) / 0.3)",
-                    }}
-                  >
-                    trendme
-                  </h1>
-                </div>
-                <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide">
-                  {TREND_CATEGORIES.map((cat) => {
-                    const active = activeCategory === cat.key;
-                    return (
-                      <button
-                        key={cat.key}
-                        onClick={() => setActiveCategory(cat.key)}
-                        className={cn(
-                          "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-2 border-b-2",
-                          active
-                            ? "text-neon border-neon"
-                            : "text-white border-transparent hover:text-white/70"
-                        )}
-                      >
-                        {cat.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
 
               {/* Content */}
               <div className="px-4 md:px-6 lg:px-8 space-y-6">
