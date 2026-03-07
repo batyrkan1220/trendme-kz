@@ -8,6 +8,13 @@ const corsHeaders = {
 
 const ENSEMBLE_BASE = "https://ensembledata.com/apis";
 
+// Sanitize user-controlled text before passing to AI prompts
+const cleanForPrompt = (s: string, max = 200) =>
+  String(s || '')
+    .replace(/system:|assistant:|user:/gi, '')
+    .replace(/ignore.*(previous|above|all)/gi, '')
+    .slice(0, max);
+
 function validateTikTokUrl(url: string): boolean {
   try {
     if (url.length > 500) return false;
