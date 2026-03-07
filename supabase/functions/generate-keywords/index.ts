@@ -164,17 +164,26 @@ Deno.serve(async (req) => {
     // === SINGLE NICHE MODE ===
     if (!niche) throw new Error("niche is required");
 
-    const langPrompt = LANG_PROMPTS[activeLang] || LANG_PROMPTS.ru;
-    const existingList = (existing_queries || []).join(", ");
+    // Sanitize user input
+    const clean = (s: string, max = 200) =>
+      s.replace(/system:|assistant:|user:/gi, '')
+       .replace(/ignore.*(previous|above|all)/gi, '')
+       .slice(0, max);
 
-    const userPrompt = seed_word
-      ? `Ниша: "${niche}"
-Ключевое слово: "${seed_word}"
+    const safeNiche = clean(String(niche), 100);
+    const safeSeedWord = seed_word ? clean(String(seed_word), 100) : null;
+
+    const langPrompt = LANG_PROMPTS[activeLang] || LANG_PROMPTS.ru;
+    const existingList = (existing_queries || []).slice(0, 50).map((q: string) => clean(String(q), 80)).join(", ");
+
+    const userPrompt = safeSeedWord
+      ? `Ниша: "${safeNiche}"
+Ключевое слово: "${safeSeedWord}"
 Существующие запросы: [${existingList}]
 
-На основе ключевого слова "${seed_word}" сгенерируй 15-25 связанных поисковых запросов и хэштегов для TikTok.
+На основе ключевого слова "${safeSeedWord}" сгенерируй 15-25 связанных поисковых запросов и хэштегов для TikTok.
 ${langPrompt.langRule}`
-      : `Ниша: "${niche}"
+      : `Ниша: "${safeNiche}"
 Существующие запросы: [${existingList}]
 
 Сгенерируй 10-15 новых уникальных поисковых запросов и хэштегов для этой ниши.

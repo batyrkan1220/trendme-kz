@@ -104,10 +104,16 @@ ${videoContext}
 Если пользователь просит доработать — корректируй сценарий по его пожеланиям.`;
 
     // If no messages, generate initial script
-    const chatMessages = messages && messages.length > 0
+    // Limit message history and sanitize
+    const sanitizedMessages = (messages || []).slice(-10).map((m: any) => ({
+      role: String(m.role) === "assistant" ? "assistant" : "user",
+      content: clean(String(m.content || ''), 2000),
+    }));
+
+    const chatMessages = sanitizedMessages.length > 0
       ? [
           { role: "system", content: systemPrompt },
-          ...messages,
+          ...sanitizedMessages,
         ]
       : [
           { role: "system", content: systemPrompt },
