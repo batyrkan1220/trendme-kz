@@ -31,16 +31,21 @@ const getTimeAgo = (published_at: string | number | null) => {
   return `${Math.floor(d / 30)} мес. назад`;
 };
 
-/** Convert TikTok origin cover URLs to smaller cropcenter variants (only for unsigned URLs) */
+/** Convert TikTok origin cover URLs to JPEG variants for iOS WebView compatibility */
 function optimizeCoverUrl(url: string | null | undefined): string | null | undefined {
   if (!url) return url;
   // Don't transform signed CDN URLs — changing the path invalidates the signature
   if (url.includes("x-signature=") || url.includes("x-expires=")) return url;
+  // Convert origin WEBP to cropped JPEG for iOS compatibility
   if (url.includes("tplv-tiktokx-origin.image")) {
     return url.replace(
       /tplv-tiktokx-origin\.image/,
       "tplv-tiktokx-cropcenter-q:300:400:q72.jpeg"
     );
+  }
+  // Convert any remaining .webp TikTok URLs to .jpeg where possible
+  if (url.includes(".webp") && (url.includes("tiktokcdn") || url.includes("tiktok"))) {
+    return url.replace(/\.webp/, ".jpeg");
   }
   return url;
 }
