@@ -34,6 +34,9 @@
 
     --radius: 0.75rem;
 
+    --neon: 72 100% 50%;
+    --neon-foreground: 0 0% 0%;
+
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 250 10% 46%;
     --sidebar-primary: 258 80% 58%;
