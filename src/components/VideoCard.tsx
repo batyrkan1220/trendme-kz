@@ -421,38 +421,17 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         </span>
       </div>
 
-      {/* Author row */}
-      {showAuthor && video.author_username && (
-        <div className="px-3 pt-3 flex items-center gap-2">
-          {video.author_avatar_url ? (
-            <img
-              src={video.author_avatar_url}
-              alt=""
-              loading="lazy"
-              className="w-8 h-8 rounded-full object-cover border-2 border-border/50 flex-shrink-0"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
-          )}
-          <span className={`text-sm font-semibold truncate ${darkMode ? "text-white" : "text-foreground"}`}>
-            @{video.author_username}
-          </span>
-        </div>
-      )}
-
-      {/* Caption */}
-      <div className="px-3 pt-1.5 pb-1">
+      {/* Caption — fixed height */}
+      <div className="px-3 pt-1.5 pb-0.5 h-[2.75rem]">
         <p className={`text-xs line-clamp-2 leading-relaxed ${darkMode ? "text-white" : "text-foreground/80"}`}>
           {caption || "Без описания"}
         </p>
       </div>
 
-      {/* Time ago */}
-      {timeAgo && (
-        <div className="px-3 pb-2">
-          <span className={`text-[11px] ${darkMode ? "text-white/60" : "text-muted-foreground"}`}>{timeAgo}</span>
-        </div>
-      )}
+      {/* Time ago — always show */}
+      <div className="px-3 pb-2">
+        <span className={`text-[11px] ${darkMode ? "text-white/60" : "text-muted-foreground"}`}>{timeAgo || " "}</span>
+      </div>
 
       {/* Analyze button */}
       {showAnalyzeButton && onAnalyze && (
