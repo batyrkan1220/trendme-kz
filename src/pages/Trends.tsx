@@ -23,7 +23,7 @@ import { ChevronLeft } from "lucide-react";
 const PAGE_SIZE = 30;
 
 export default function Trends() {
-  const [activeCategory, setActiveCategory] = useState("for_you");
+  // removed activeCategory state
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
