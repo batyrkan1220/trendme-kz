@@ -193,7 +193,63 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Sticky header — transparent with blur */}
+              {/* Hero mosaic — UNREELS style */}
+              {allVideos.length > 0 && (
+                <div className="relative w-full overflow-hidden" style={{ height: "clamp(280px, 55vw, 380px)" }}>
+                  {/* Mosaic grid of covers */}
+                  <div className="absolute inset-0 grid grid-cols-4 gap-1 p-1">
+                    {allVideos.slice(0, 8).map((v, i) => (
+                      <div key={v.id} className="relative overflow-hidden rounded-lg" style={{ aspectRatio: i < 4 ? "9/14" : "9/12" }}>
+                        {v.cover_url ? (
+                          <img
+                            src={v.cover_url}
+                            alt=""
+                            loading="eager"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-white/5" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Dark overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-[#0a0a0a]" />
+                  {/* Logo + tabs overlay */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                    <h1
+                      className="text-2xl font-black tracking-widest uppercase mb-4"
+                      style={{
+                        color: "hsl(var(--neon))",
+                        textShadow: "0 0 30px hsl(var(--neon) / 0.5)",
+                      }}
+                    >
+                      trendme
+                    </h1>
+                    <div className="flex items-center gap-5 overflow-x-auto scrollbar-hide px-4">
+                      {TREND_CATEGORIES.map((cat) => {
+                        const active = activeCategory === cat.key;
+                        return (
+                          <button
+                            key={cat.key}
+                            onClick={() => setActiveCategory(cat.key)}
+                            className={cn(
+                              "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-1 border-b-2",
+                              active
+                                ? "text-neon border-neon"
+                                : "text-white border-transparent hover:text-white/70"
+                            )}
+                          >
+                            {cat.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sticky header — appears on scroll */}
               <div
                 className="sticky top-0 z-30 pt-3 pb-1 px-4 md:px-6 lg:px-8"
                 style={{
@@ -213,8 +269,6 @@ export default function Trends() {
                     trendme
                   </h1>
                 </div>
-
-                {/* Category tabs */}
                 <div className="flex items-center justify-center gap-5 overflow-x-auto scrollbar-hide">
                   {TREND_CATEGORIES.map((cat) => {
                     const active = activeCategory === cat.key;
