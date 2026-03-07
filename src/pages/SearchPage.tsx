@@ -171,7 +171,7 @@ export default function SearchPage() {
       <>
       <div
         className="flex flex-col animate-fade-in"
-        style={{ minHeight: "calc(100dvh - 5rem)", paddingTop: "calc(env(safe-area-inset-top, 0px) + 20px)" }}
+        style={{ minHeight: "calc(100dvh - 5rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 24px)" }}
       >
         <div className="px-4 pt-2 pb-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 flex-1">
           <div className="flex-1 space-y-4 md:space-y-6 min-w-0 flex flex-col">
