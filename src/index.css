@@ -136,9 +136,13 @@
   }
 }
 
-/* Native app — status bar overlay spacing */
+/* Native app — safe area spacing */
 body.native-app {
   padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: 0;
+  /* Prevent overscroll bounce revealing background */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Page transitions */

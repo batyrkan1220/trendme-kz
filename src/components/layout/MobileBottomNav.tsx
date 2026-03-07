@@ -49,7 +49,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
   const nav = (
     <nav
       id="mobile-bottom-nav"
-      className="md:hidden safe-area-bottom"
+      className="md:hidden"
       style={{
         position: "fixed",
         bottom: 0,
@@ -60,6 +60,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         borderTop: "1px solid hsl(var(--border))",
         boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
         pointerEvents: "auto",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
       {/* Analysis popover */}
