@@ -154,7 +154,7 @@ export default function Auth() {
                     <select
                       value={phoneCode}
                       onChange={(e) => setPhoneCode(e.target.value)}
-                      className="h-12 w-full pl-9 pr-2 bg-card border border-border rounded-xl card-shadow text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className="h-12 w-full pl-9 pr-2 bg-card border border-border rounded-xl card-shadow text-base appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30"
                       disabled={loading}
                     >
                       <option value="+7">🇰🇿 +7</option>
