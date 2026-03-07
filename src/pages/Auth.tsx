@@ -146,7 +146,7 @@ export default function Auth() {
               <>
                 <div className="relative animate-fade-in">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} autoComplete="name" />
+                  <Input type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow text-base" disabled={loading} autoComplete="name" />
                 </div>
                 <div className="relative animate-fade-in flex gap-2">
                   <div className="relative shrink-0 w-[90px]">
