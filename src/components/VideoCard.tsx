@@ -236,7 +236,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
 
   return (
-    <div className="group bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col" onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel} onTouchStart={handlePreload}>
+    <div className={`group rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col ${darkMode ? "bg-[#1a1a1a] border border-white/10" : "bg-card border border-border/40"}`} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel} onTouchStart={handlePreload}>
       {/* Video area */}
       <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
         {playingId === video.id ? (
