@@ -6,9 +6,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { PageTransition } from "@/components/PageTransition";
 import { TrackingPixels } from "@/components/TrackingPixels";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
+import { SplashScreen } from "@/components/SplashScreen";
+import { isNativePlatform } from "@/lib/native";
 import Index from "./pages/Index";
 
 const NotFound = lazy(() => import("./pages/NotFound"));
