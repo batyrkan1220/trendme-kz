@@ -259,10 +259,6 @@ export default function Trends() {
                   </div>
                 </div>
               </div>
-                    );
-                  })}
-                </div>
-              </div>
 
               {/* Content below hero */}
               <div className="px-4 md:px-6 lg:px-8 space-y-6">
