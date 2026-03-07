@@ -69,9 +69,22 @@ export default function Dashboard() {
   const displayName = name || user?.email?.split("@")[0] || "";
   const greeting = displayName ? `Привет, ${displayName} 👋` : "Привет 👋";
 
+  const handleRefresh = useCallback(async () => {
+    // Re-fetch profile name
+    if (user) {
+      const { data } = await supabase.from("profiles").select("name").eq("user_id", user.id).maybeSingle();
+      setName(data?.name ?? null);
+    }
+    // Small delay for UX feel
+    await new Promise(r => setTimeout(r, 600));
+  }, [user]);
+
+  const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({ onRefresh: handleRefresh });
+
   return (
     <AppLayout>
-       <div className="px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full animate-fade-in pt-6 md:pt-8 pb-28 md:pb-12 overflow-x-hidden min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col justify-center gap-4 md:gap-8">
+      <div ref={containerRef} className="px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full pt-6 md:pt-8 pb-28 md:pb-12 overflow-x-hidden overflow-y-auto min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col justify-center gap-4 md:gap-8">
+        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} progress={progress} />
         
         {/* Greeting */}
         <div className="text-center">
