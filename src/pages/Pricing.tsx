@@ -123,7 +123,7 @@ export default function Pricing() {
                         className="inline-flex items-center gap-1.5 text-xs font-bold px-5 py-1.5 rounded-full shadow-lg"
                         style={{
                           background: "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))",
-                          color: "white",
+                          color: "black",
                         }}
                       >
                         <Sparkles className="h-3.5 w-3.5" /> Лучшая цена
