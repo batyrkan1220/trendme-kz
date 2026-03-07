@@ -1,9 +1,11 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "./Landing";
+import { Capacitor } from "@capacitor/core";
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const isNative = Capacitor.isNativePlatform();
 
   if (loading) {
     return (
@@ -14,6 +16,10 @@ const Index = () => {
   }
 
   if (user) return <Navigate to="/dashboard" replace />;
+
+  // Мобильді қосымшада лендинг көрсетпей, тікелей авторизацияға бағыттау
+  if (isNative) return <Navigate to="/auth" replace />;
+
   return <Landing />;
 };
 
