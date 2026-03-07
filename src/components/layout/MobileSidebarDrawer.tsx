@@ -7,9 +7,23 @@ import {
 } from "@/components/ui/sheet";
 import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
-  Heart, ScrollText, LogOut, Shield, Sparkles, CreditCard
+  Heart, LogOut, Shield, Sparkles, CreditCard, Trash2
 } from "lucide-react";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
+import { isNativePlatform } from "@/lib/native";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface NavItem {
   label: string;
@@ -45,11 +59,34 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
     navigate("/auth");
     onClose();
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await supabase.functions.invoke("delete-account", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (resp.error) throw resp.error;
+      toast.success("Аккаунт удалён");
+      await signOut();
+      navigate("/auth");
+    } catch {
+      toast.error("Не удалось удалить аккаунт. Попробуйте позже.");
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+      onClose();
+    }
   };
 
   const renderGroup = (label: string, items: NavItem[]) => (
@@ -80,30 +117,62 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   );
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col" style={{ maxHeight: '100dvh' }}>
-        <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5 shrink-0">
-          <TrendMeLogo size={28} />
-          <SheetTitle className="font-bold text-base tracking-tight text-foreground">trendme</SheetTitle>
-        </SheetHeader>
+    <>
+      <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+        <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col safe-area-top" style={{ maxHeight: '100dvh' }}>
+          <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5 shrink-0">
+            <TrendMeLogo size={28} />
+            <SheetTitle className="font-bold text-base tracking-tight text-foreground">trendme</SheetTitle>
+          </SheetHeader>
 
-        <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
-          {renderGroup("Поиск контента", searchItems)}
-          {renderGroup("Инструменты", toolItems)}
-          {renderGroup("Идеи", ideaItems)}
-          {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
-        </nav>
+          <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
+            {renderGroup("Поиск контента", searchItems)}
+            {renderGroup("Инструменты", toolItems)}
+            {renderGroup("Идеи", ideaItems)}
+            {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
+          </nav>
 
-        <div className="border-t border-border/50 p-3 space-y-2 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px)+80px)]">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span>Выйти</span>
-          </button>
-        </div>
-      </SheetContent>
-    </Sheet>
+          <div className="border-t border-border/50 p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px)+80px)]">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span>Выйти</span>
+            </button>
+
+            {/* Account deletion — required by App Store */}
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5 transition-colors"
+            >
+              <Trash2 className="h-4 w-4 shrink-0" />
+              <span>Удалить аккаунт</span>
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить аккаунт?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие необратимо. Все ваши данные, избранные, сценарии и история будут удалены навсегда.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Удаление..." : "Удалить навсегда"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
