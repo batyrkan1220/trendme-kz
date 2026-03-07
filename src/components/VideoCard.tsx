@@ -95,6 +95,7 @@ interface VideoCardProps {
   showTier?: boolean;
   showAuthor?: boolean;
   showAnalyzeButton?: boolean;
+  darkMode?: boolean;
 }
 
 export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function VideoCard({
