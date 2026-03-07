@@ -282,7 +282,7 @@ export default function Trends() {
                 ) : (
                   <>
                     {categoryGroups.map((group) => (
-                      <TrendNicheRow
+                      <LazyNicheRow
                         key={group.key}
                         group={group}
                         videos={videosByNiche[group.key] || []}
