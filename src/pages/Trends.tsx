@@ -198,14 +198,14 @@ export default function Trends() {
                 <div className="relative">
                   {/* Hero video cards row — sits behind the header */}
                   <div
-                    className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-3 pt-2"
+                    className="flex gap-1.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-1.5 pt-0"
                     style={{ WebkitOverflowScrolling: "touch" }}
                   >
                     {allVideos.slice(0, 6).map((video) => (
                       <div
                         key={video.id}
                         className="snap-start shrink-0"
-                        style={{ width: "min(44vw, 180px)" }}
+                        style={{ width: "calc(50vw - 8px)", maxWidth: "280px" }}
                       >
                         <VideoCard
                           video={video}
