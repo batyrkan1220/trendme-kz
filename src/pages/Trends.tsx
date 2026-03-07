@@ -223,7 +223,7 @@ export default function Trends() {
             <>
               {/* Sticky transparent header — logo + categories */}
               <div
-                className="sticky top-0 z-30 pt-4 pb-3 px-4 backdrop-blur-md"
+                className={cn("sticky top-0 z-30 pb-3 px-4 backdrop-blur-md", isNativePlatform ? "pt-2" : "pt-4")}
                 style={{ background: "rgba(10,10,10,0.4)" }}
               >
                 <div className="flex items-center justify-center mb-2">
