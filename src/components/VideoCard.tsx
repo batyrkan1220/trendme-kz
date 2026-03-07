@@ -432,7 +432,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           ) : (
             <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
           )}
-          <span className="text-sm font-semibold text-foreground truncate">
+          <span className={`text-sm font-semibold truncate ${darkMode ? "text-white" : "text-foreground"}`}>
             @{video.author_username}
           </span>
         </div>
