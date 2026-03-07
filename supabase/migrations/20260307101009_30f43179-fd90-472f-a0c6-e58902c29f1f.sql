@@ -1,0 +1,1 @@
+CREATE POLICY "Anon can read videos" ON public.videos FOR SELECT TO anon USING (true);
