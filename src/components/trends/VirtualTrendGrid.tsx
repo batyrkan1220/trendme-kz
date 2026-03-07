@@ -74,6 +74,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
               onAnalyze={onAnalyze}
               showTier={true}
               showAuthor={true}
+              darkMode={darkMode}
             />
           );
         })}

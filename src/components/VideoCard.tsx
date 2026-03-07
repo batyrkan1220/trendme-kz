@@ -460,7 +460,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               e.stopPropagation();
               onAnalyze(video);
             }}
-            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            className={`w-full py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity ${darkMode ? "bg-neon text-black" : "bg-primary text-primary-foreground"}`}
           >
             Анализ видео
           </button>
