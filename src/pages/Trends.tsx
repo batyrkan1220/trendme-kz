@@ -194,50 +194,48 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Vibrant header */}
-              <div
-                className="relative overflow-hidden pt-10 pb-6 px-4"
-                style={{
-                  background: "radial-gradient(ellipse at 20% 0%, hsl(var(--neon) / 0.25) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(139,92,246,0.2) 0%, transparent 50%), #0a0a0a",
-                }}
-              >
-                {/* Animated glow orbs */}
-                <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full blur-3xl opacity-40" style={{ background: "hsl(var(--neon))" }} />
-                <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-25" style={{ background: "#8b5cf6" }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full blur-[100px] opacity-10" style={{ background: "#06b6d4" }} />
+              {/* Header */}
+              <div className="relative pt-8 pb-5 px-4">
+                {/* Neon line accent */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] rounded-full" style={{ background: "hsl(var(--neon))", boxShadow: "0 0 20px hsl(var(--neon) / 0.6), 0 0 60px hsl(var(--neon) / 0.2)" }} />
 
                 <div className="relative z-10 flex flex-col items-center">
-                  <h1
-                    className="text-3xl font-black tracking-[0.25em] uppercase mb-5"
-                    style={{
-                      background: "linear-gradient(135deg, hsl(var(--neon)) 0%, #06b6d4 50%, #8b5cf6 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      filter: "drop-shadow(0 0 20px hsl(var(--neon) / 0.4))",
-                    }}
-                  >
-                    trendme
-                  </h1>
-                  <div className="flex items-center gap-1 bg-white/[0.07] backdrop-blur-md rounded-full p-1 border border-white/10">
-                    {TREND_CATEGORIES.map((cat) => {
-                      const active = activeCategory === cat.key;
-                      return (
-                        <button
-                          key={cat.key}
-                          onClick={() => setActiveCategory(cat.key)}
-                          className={cn(
-                            "shrink-0 text-xs font-bold transition-all whitespace-nowrap px-4 py-2 rounded-full",
-                            active
-                              ? "bg-neon text-black shadow-lg shadow-neon/30"
-                              : "text-white/70 hover:text-white hover:bg-white/10"
-                          )}
-                        >
-                          {cat.label}
-                        </button>
-                      );
-                    })}
+                  <div className="flex items-center gap-2.5 mb-5">
+                    <div className="h-8 w-1 rounded-full" style={{ background: "hsl(var(--neon))" }} />
+                    <h1
+                      className="text-2xl font-black tracking-[0.2em] uppercase"
+                      style={{ color: "hsl(var(--neon))" }}
+                    >
+                      trendme
+                    </h1>
+                    <div className="h-8 w-1 rounded-full" style={{ background: "hsl(var(--neon))" }} />
+                  </div>
+
+                  <div className="w-full overflow-x-auto scrollbar-hide">
+                    <div className="flex items-center justify-center gap-2">
+                      {TREND_CATEGORIES.map((cat) => {
+                        const active = activeCategory === cat.key;
+                        return (
+                          <button
+                            key={cat.key}
+                            onClick={() => setActiveCategory(cat.key)}
+                            className={cn(
+                              "shrink-0 text-xs font-bold transition-all whitespace-nowrap px-4 py-2 rounded-lg border",
+                              active
+                                ? "bg-neon/10 text-neon border-neon/50 shadow-[0_0_12px_hsl(var(--neon)/0.2)]"
+                                : "text-white/50 border-white/10 hover:text-white hover:border-white/20"
+                            )}
+                          >
+                            {cat.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
+
+                {/* Bottom separator */}
+                <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
               </div>
 
               {/* Content below hero */}
