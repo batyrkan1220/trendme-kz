@@ -4,6 +4,8 @@ import { isNativePlatform } from "@/lib/native";
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
