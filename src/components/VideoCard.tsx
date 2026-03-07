@@ -402,7 +402,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       </div>
 
       {/* Stats bar */}
-      <div className={`grid grid-cols-4 px-1.5 py-1.5 ${darkMode ? "border-b border-white/10" : "border-b border-border/30"}`}>
+      <div className="grid grid-cols-4 px-1.5 py-1.5">
         <span className="flex items-center justify-center gap-1">
           <Eye className={`h-3 w-3 shrink-0 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
           <span className={`text-[10px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(views)}</span>
