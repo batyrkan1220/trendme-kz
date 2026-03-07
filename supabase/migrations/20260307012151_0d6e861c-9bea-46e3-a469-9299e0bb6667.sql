@@ -1,0 +1,1 @@
+UPDATE videos SET lang = 'en' WHERE lang IS NULL AND published_at >= now() - interval '7 days' AND NOT caption ~ '[а-яА-ЯёЁәіңғүұқөһӘІҢҒҮҰҚӨҺ]';

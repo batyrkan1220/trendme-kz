@@ -749,6 +749,7 @@ Deno.serve(async (req: Request) => {
             sub_niche: resolved.sub_niche,
             categories: [resolved.niche],
             published_at: publishedAtStr,
+            ...(targetLang ? { lang: targetLang } : {}),
             ...trends,
           };
         }).filter(Boolean) as any[];
