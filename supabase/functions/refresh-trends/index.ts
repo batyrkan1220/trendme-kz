@@ -814,7 +814,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.join(", ")}`);
+  console.log(`Batch ${batchIndex}/${totalBatches}: processing ${nicheKeys.map(k => nicheLabel(k)).join(", ")}`);
 
   // Check limits before processing
   const nichesToProcess: string[] = [];
