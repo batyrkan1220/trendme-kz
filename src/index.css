@@ -83,19 +83,19 @@
 
 @layer utilities {
   .gradient-hero {
-    background: linear-gradient(135deg, hsl(258 80% 58%), hsl(280 70% 50%));
+    background: linear-gradient(135deg, hsl(72 100% 50%), hsl(82 90% 45%));
   }
 
   .gradient-card {
-    background: hsl(260 30% 98%);
-    border: 1px solid hsl(260 20% 92%);
+    background: hsl(72 30% 10%);
+    border: 1px solid hsl(72 20% 18%);
   }
 
   .gradient-card-hover:hover {
-    background: hsl(260 25% 96%);
-    border-color: hsl(258 40% 85%);
+    background: hsl(72 25% 12%);
+    border-color: hsl(72 40% 25%);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px hsl(258 80% 58% / 0.12);
+    box-shadow: 0 8px 24px hsl(72 100% 50% / 0.12);
   }
 
   .glow-primary {
@@ -107,18 +107,18 @@
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, hsl(258 80% 58%), hsl(168 76% 42%));
+    background: linear-gradient(135deg, hsl(72 100% 50%), hsl(82 90% 45%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .card-shadow {
-    box-shadow: 0 1px 3px hsl(258 30% 50% / 0.04), 0 4px 16px hsl(258 30% 50% / 0.03);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.1), 0 4px 16px hsl(0 0% 0% / 0.08);
   }
 
   .card-shadow-hover:hover {
-    box-shadow: 0 4px 12px hsl(258 30% 50% / 0.08), 0 8px 32px hsl(258 30% 50% / 0.06);
+    box-shadow: 0 4px 12px hsl(0 0% 0% / 0.15), 0 8px 32px hsl(0 0% 0% / 0.12);
   }
 
   .hover-lift {

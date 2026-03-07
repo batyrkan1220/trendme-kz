@@ -122,8 +122,8 @@ export default function Pricing() {
                       <span
                         className="inline-flex items-center gap-1.5 text-xs font-bold px-5 py-1.5 rounded-full shadow-lg"
                         style={{
-                          background: "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))",
-                          color: "white",
+                          background: "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))",
+                          color: "black",
                         }}
                       >
                         <Sparkles className="h-3.5 w-3.5" /> Лучшая цена
@@ -152,8 +152,8 @@ export default function Pricing() {
                         className="absolute -inset-[2px] rounded-2xl pointer-events-none"
                         style={{
                           background: isPopular
-                            ? "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))"
-                            : "linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(280 80% 55% / 0.5))",
+                            ? "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))"
+                            : "linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(82 90% 45% / 0.5))",
                           WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                           WebkitMaskComposite: "xor",
                           maskComposite: "exclude",
@@ -273,9 +273,9 @@ export default function Pricing() {
                           }`}
                           style={!isActive ? {
                             background: isPopular
-                              ? "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))"
-                              : "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 60%))",
-                            color: "white",
+                              ? "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))"
+                              : "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))",
+                            color: "black",
                           } : undefined}
                           disabled={isActive || loadingPlanId === plan.id}
                           onClick={() => {
