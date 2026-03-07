@@ -99,42 +99,54 @@ const SuspenseFallback = () => (
   </div>
 );
 
-const AppRoutes = () => (
-  <Suspense fallback={<SuspenseFallback />}>
-    <Routes>
-      <Route element={<PageTransition />}>
-        <Route path="/auth" element={isNativePlatform ? <Navigate to="/trends" replace /> : <Auth />} />
-        <Route path="/landing" element={<Navigate to="/" replace />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<Navigate to="/trends" replace />} />
-        <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-        <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
-        <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
-        <Route path="/ai-script" element={<ProtectedRoute><ScriptFromVideo /></ProtectedRoute>} />
-        <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
-        <Route path="/favorites" element={<Navigate to="/library" replace />} />
-        <Route path="/journal" element={<Navigate to="/trends" replace />} />
-        <Route path="/razvedka" element={<ProtectedRoute><Razvedka /></ProtectedRoute>} />
-        <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
-        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-         <Route path="/tokens" element={<Navigate to="/subscription" replace />} />
-         <Route path="/pricing" element={<Navigate to="/subscription" replace />} />
-         <Route path="/subscription" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/contacts" element={<Contacts />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-failure" element={<PaymentFailure />} />
-        <Route path="/style-guide" element={<StyleGuide />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </Routes>
-  </Suspense>
-);
+const MAINTENANCE_MODE = !isNativePlatform;
+
+const AppRoutes = () => {
+  if (MAINTENANCE_MODE) {
+    return (
+      <Routes>
+        <Route path="*" element={<MaintenancePage />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Suspense fallback={<SuspenseFallback />}>
+      <Routes>
+        <Route element={<PageTransition />}>
+          <Route path="/auth" element={isNativePlatform ? <Navigate to="/trends" replace /> : <Auth />} />
+          <Route path="/landing" element={<Navigate to="/" replace />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Navigate to="/trends" replace />} />
+          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+          <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
+          <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
+          <Route path="/ai-script" element={<ProtectedRoute><ScriptFromVideo /></ProtectedRoute>} />
+          <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
+          <Route path="/favorites" element={<Navigate to="/library" replace />} />
+          <Route path="/journal" element={<Navigate to="/trends" replace />} />
+          <Route path="/razvedka" element={<ProtectedRoute><Razvedka /></ProtectedRoute>} />
+          <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+           <Route path="/tokens" element={<Navigate to="/subscription" replace />} />
+           <Route path="/pricing" element={<Navigate to="/subscription" replace />} />
+           <Route path="/subscription" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-failure" element={<PaymentFailure />} />
+          <Route path="/style-guide" element={<StyleGuide />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </Suspense>
+  );
+};
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(() => {
