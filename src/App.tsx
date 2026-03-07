@@ -100,7 +100,7 @@ const AppRoutes = () => (
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<Navigate to="/trends" replace />} />
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
         <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
         <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
