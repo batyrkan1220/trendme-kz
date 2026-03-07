@@ -146,7 +146,7 @@ export default function Auth() {
               <>
                 <div className="relative animate-fade-in">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} autoComplete="name" />
+                  <Input type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow text-base" disabled={loading} autoComplete="name" />
                 </div>
                 <div className="relative animate-fade-in flex gap-2">
                   <div className="relative shrink-0 w-[90px]">
@@ -154,7 +154,7 @@ export default function Auth() {
                     <select
                       value={phoneCode}
                       onChange={(e) => setPhoneCode(e.target.value)}
-                      className="h-12 w-full pl-9 pr-2 bg-card border border-border rounded-xl card-shadow text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className="h-12 w-full pl-9 pr-2 bg-card border border-border rounded-xl card-shadow text-base appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30"
                       disabled={loading}
                     >
                       <option value="+7">🇰🇿 +7</option>
@@ -171,18 +171,18 @@ export default function Auth() {
                       <option value="+90">🇹🇷 +90</option>
                     </select>
                   </div>
-                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} autoComplete="tel" />
+                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-12 bg-card border-border rounded-xl card-shadow text-base" disabled={loading} autoComplete="tel" />
                 </div>
               </>
             )}
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} autoComplete="email" />
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-11 h-12 bg-card border-border rounded-xl card-shadow text-base" disabled={loading} autoComplete="email" />
             </div>
             {mode !== "forgot" && (
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type={showPassword ? "text" : "password"} placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-11 pr-11 h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} autoComplete={mode === "login" ? "current-password" : "new-password"} />
+                <Input type={showPassword ? "text" : "password"} placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-11 pr-11 h-12 bg-card border-border rounded-xl card-shadow text-base" disabled={loading} autoComplete={mode === "login" ? "current-password" : "new-password"} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" tabIndex={-1}>
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
