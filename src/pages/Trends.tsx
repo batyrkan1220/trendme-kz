@@ -1,87 +1,32 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp, ChevronDown, ChevronRight } from "lucide-react";
-import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
+import { TrendingUp } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { NICHE_GROUPS } from "@/config/niches";
+import { TREND_CATEGORIES, getNicheGroupsForCategory } from "@/config/trendCategories";
+import { TrendNicheRow } from "@/components/trends/TrendNicheRow";
+import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-
-const fmt = (n: number) => {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
-  return String(n);
-};
-
-const getTimeAgo = (published_at: string | null) => {
-  if (!published_at) return "";
-  const h = Math.floor((Date.now() - new Date(published_at).getTime()) / 3600000);
-  if (h < 1) return "только что";
-  if (h < 24) return `${h}ч назад`;
-  const d = Math.floor(h / 24);
-  if (d < 30) return `${d}д назад`;
-  return `${Math.floor(d / 30)} мес. назад`;
-};
-
-type TrendTier = "strong" | "mid" | "micro";
-
-const getTier = (views: number): TrendTier | null => {
-  if (views >= 80_000) return "strong";
-  if (views >= 15_000) return "mid";
-  if (views >= 3_000) return "micro";
-  return null;
-};
-
-const tierOrder: Record<TrendTier, number> = {
-  strong: 0,
-  mid: 1,
-  micro: 2,
-};
+import { cn } from "@/lib/utils";
+import { ChevronLeft } from "lucide-react";
 
 const PAGE_SIZE = 30;
 
-/** Detect language from caption text */
-const detectLang = (caption: string | null): "kk" | "ru" | "en" | "unknown" => {
-  if (!caption) return "unknown";
-  const kazSpecific = /[әғқңөұүһ]/i;
-  const ukrSpecific = /[єїґ]/i;
-  const cyrillic = /[а-яёА-ЯЁ]/;
-  const latin = /[a-zA-Z]/;
-  const cyrCount = (caption.match(/[а-яёА-ЯЁәғқңөұүіһєїґ]/g) || []).length;
-  const latCount = (caption.match(/[a-zA-Z]/g) || []).length;
-  if (ukrSpecific.test(caption)) return "ru";
-  if (kazSpecific.test(caption) && cyrCount > latCount) return "kk";
-  if (cyrCount > latCount) return "ru";
-  if (latCount > cyrCount) return "en";
-  return "unknown";
-};
-
 export default function Trends() {
-  const [period, setPeriod] = useState<3 | 7 | 30>(7);
+  const [activeCategory, setActiveCategory] = useState("for_you");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  const [expandedNiche, setExpandedNiche] = useState<string | null>(null);
-  const [nicheFilter, setNicheFilter] = useState("all");
-  const [langFilter, setLangFilter] = useState<"all" | "kk" | "ru" | "en">("all");
+  const [drillNiche, setDrillNiche] = useState<string | null>(null); // when user taps "Все"
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const { balance } = useTokens();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const FREE_LIMIT = 5;
 
   const { data: userSub } = useQuery({
@@ -102,36 +47,24 @@ export default function Trends() {
 
   const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
 
-  // Parse filter: "all" | "business" (main niche) | "business:crypto" (sub-niche)
-  const parsedFilter = useMemo(() => {
-    if (nicheFilter === "all") return { type: "all" as const, niche: "", subNiche: "" };
-    const parts = nicheFilter.split(":");
-    if (parts.length === 2) return { type: "sub" as const, niche: parts[0], subNiche: parts[1] };
-    return { type: "niche" as const, niche: parts[0], subNiche: "" };
-  }, [nicheFilter]);
-
-  const activeGroup = useMemo(() => NICHE_GROUPS.find(g => g.key === parsedFilter.niche), [parsedFilter.niche]);
-
-  // Fetch all videos (paginate through 1000-row Supabase limit)
+  // Fetch ALL videos for last 7 days, grouped client-side
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
-    queryKey: ["trends", period, nicheFilter],
+    queryKey: ["trends-all"],
     queryFn: async () => {
-      const selectFields = "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
+      const selectFields =
+        "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
       const allRows: any[] = [];
       let from = 0;
       const pageSize = 1000;
+      const since = new Date(Date.now() - 7 * 86400000).toISOString();
 
       while (true) {
-        let q = supabase.from("videos").select(selectFields);
-        if (period > 0) {
-          q = q.gte("published_at", new Date(Date.now() - period * 86400000).toISOString());
-        }
-        if (parsedFilter.type === "niche") {
-          q = q.eq("niche", parsedFilter.niche);
-        } else if (parsedFilter.type === "sub") {
-          q = q.eq("niche", parsedFilter.niche).eq("sub_niche", parsedFilter.subNiche);
-        }
-        const { data: rows } = await q.order("trend_score", { ascending: false }).range(from, from + pageSize - 1);
+        const { data: rows } = await supabase
+          .from("videos")
+          .select(selectFields)
+          .gte("published_at", since)
+          .order("trend_score", { ascending: false })
+          .range(from, from + pageSize - 1);
         if (!rows || rows.length === 0) break;
         allRows.push(...rows);
         if (rows.length < pageSize) break;
@@ -143,33 +76,16 @@ export default function Trends() {
     placeholderData: (prev) => prev,
   });
 
-  // Sort: Strong > Mid > Micro, then by trend_score within tier
-  const sortedVideos = useMemo(() => {
-    return [...allVideos].sort((a: any, b: any) => {
-      const tierA = getTier(Number(a.views));
-      const tierB = getTier(Number(b.views));
-      const orderA = tierA ? tierOrder[tierA] : 3;
-      const orderB = tierB ? tierOrder[tierB] : 3;
-      if (orderA !== orderB) return orderA - orderB;
-      return (b.trend_score || 0) - (a.trend_score || 0);
-    });
+  // Group videos by niche
+  const videosByNiche = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    for (const v of allVideos) {
+      const n = v.niche || "other";
+      if (!map[n]) map[n] = [];
+      map[n].push(v);
+    }
+    return map;
   }, [allVideos]);
-
-  // Apply language filter (use stored lang first, fallback to detection)
-  const langFilteredVideos = useMemo(() => {
-    if (langFilter === "all") return sortedVideos;
-    return sortedVideos.filter((v: any) => {
-      const vLang = v.lang || detectLang(v.caption);
-      return vLang === langFilter;
-    });
-  }, [sortedVideos, langFilter]);
-
-  const videos = useMemo(() => {
-    return langFilteredVideos.slice(0, visibleCount);
-  }, [langFilteredVideos, visibleCount]);
-
-  const hasMore = langFilteredVideos.length >= visibleCount;
-
 
   const { data: userFavorites = [] } = useQuery({
     queryKey: ["user-favorites", user?.id],
@@ -181,192 +97,240 @@ export default function Trends() {
     staleTime: 30_000,
   });
 
-  const toggleFav = useCallback(async (videoId: string) => {
-    if (!user) return;
-    const isFav = userFavorites.includes(videoId);
-    if (isFav) {
-      await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
-    } else {
-      await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
-      trackAddToFavorites(videoId);
-    }
-    queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
-  }, [user, userFavorites, queryClient]);
-
-
-
+  const toggleFav = useCallback(
+    async (videoId: string) => {
+      if (!user) return;
+      const isFav = userFavorites.includes(videoId);
+      if (isFav) {
+        await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+      } else {
+        await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+        trackAddToFavorites(videoId);
+      }
+      queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
+    },
+    [user, userFavorites, queryClient]
+  );
 
   const handleRefresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ["trends"] });
-    await new Promise(r => setTimeout(r, 500));
+    await queryClient.invalidateQueries({ queryKey: ["trends-all"] });
+    await new Promise((r) => setTimeout(r, 500));
   }, [queryClient]);
 
-  const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({ onRefresh: handleRefresh });
+  const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
+    onRefresh: handleRefresh,
+  });
+
+  // Niche groups for current category
+  const categoryGroups = useMemo(
+    () => getNicheGroupsForCategory(activeCategory),
+    [activeCategory]
+  );
+
+  // Drill-down: get videos for a specific niche
+  const drillVideos = useMemo(() => {
+    if (!drillNiche) return [];
+    return (videosByNiche[drillNiche] || []).slice(0, visibleCount);
+  }, [drillNiche, videosByNiche, visibleCount]);
+
+  const drillGroup = useMemo(
+    () => NICHE_GROUPS.find((g) => g.key === drillNiche),
+    [drillNiche]
+  );
+
+  const handleViewAll = (nicheKey: string) => {
+    setDrillNiche(nicheKey);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const handleBack = () => {
+    setDrillNiche(null);
+    setVisibleCount(PAGE_SIZE);
+  };
 
   return (
     <AppLayout>
-       <div ref={containerRef} className="p-4 md:p-6 lg:p-8 space-y-3 md:space-y-4 overflow-y-auto">
-        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} progress={progress} />
-        {/* Compact header: title + period + niche in one row */}
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl md:text-2xl font-bold text-foreground mr-1">Тренды 🔥</h1>
+      <div ref={containerRef} className="overflow-y-auto" style={{ height: "100dvh" }}>
+        <PullToRefreshIndicator
+          pullDistance={pullDistance}
+          isRefreshing={isRefreshing}
+          progress={progress}
+        />
 
-          {/* Period filter dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-card text-muted-foreground border-border/50 hover:text-foreground`}>
-                <span>⏱ Время тренда: {period}д</span>
-                <ChevronDown className="h-3.5 w-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {([3, 7, 30] as const).map((p) => (
-                <DropdownMenuItem
-                  key={p}
-                  onClick={() => { setPeriod(p); setVisibleCount(PAGE_SIZE); }}
-                  className={`cursor-pointer ${period === p ? "bg-primary/10 text-primary font-semibold" : ""}`}
+        <div className="p-4 md:p-6 lg:p-8 space-y-4 pb-28">
+          {/* Drill-down mode */}
+          {drillNiche && drillGroup ? (
+            <>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleBack}
+                  className="h-8 w-8 rounded-full bg-card border border-border/50 flex items-center justify-center hover:bg-muted transition-colors"
                 >
-                  {p === 3 ? "⏱ 3 дней" : p === 7 ? "⏱ 7 дней" : "⏱ 30 дней"}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                nicheFilter !== "all"
-                  ? "bg-primary/10 text-primary border-primary/30"
-                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground"
-              }`}>
-                <span>
-                  {activeGroup ? `${activeGroup.emoji} ${activeGroup.label}` : "🔥 Все ниши"}
-                  {parsedFilter.subNiche && activeGroup
-                    ? ` → ${activeGroup.subNiches.find(s => s.key === parsedFilter.subNiche)?.label || ""}`
-                    : ""}
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <h1 className="text-xl font-bold text-foreground">
+                  {drillGroup.emoji} {drillGroup.label}
+                </h1>
+                <span className="text-xs text-muted-foreground">
+                  {videosByNiche[drillNiche]?.length || 0} видео
                 </span>
-                <ChevronDown className="h-3.5 w-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="max-h-[420px] overflow-y-auto w-64">
-              <DropdownMenuItem
-                onClick={() => { setNicheFilter("all"); setVisibleCount(PAGE_SIZE); }}
-                className={`cursor-pointer font-semibold ${nicheFilter === "all" ? "bg-primary/10 text-primary" : ""}`}
-              >
-                🔥 Все ниши
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {NICHE_GROUPS.map((group) => (
-                <div key={group.key}>
-                  <DropdownMenuItem
-                    className={`cursor-pointer justify-between ${parsedFilter.niche === group.key ? "bg-primary/10 text-primary" : ""}`}
-                    onSelect={(e) => { e.preventDefault(); setExpandedNiche(prev => prev === group.key ? null : group.key); }}
+              </div>
+              <VirtualTrendGrid
+                videos={drillVideos}
+                playingId={playingId}
+                onPlay={setPlayingId}
+                userFavorites={userFavorites}
+                onToggleFav={toggleFav}
+                onAnalyze={(v) => setAnalysisVideo(v)}
+                isFreePlan={isFreePlan}
+                freeLimit={FREE_LIMIT}
+                hasMore={(videosByNiche[drillNiche]?.length || 0) > visibleCount}
+                onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              />
+            </>
+          ) : (
+            <>
+              {/* Category tabs */}
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-1">
+                {TREND_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.key}
+                    onClick={() => setActiveCategory(cat.key)}
+                    className={cn(
+                      "shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap",
+                      activeCategory === cat.key
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-card text-muted-foreground border border-border/50 hover:text-foreground"
+                    )}
                   >
-                    <span><span className="mr-2">{group.emoji}</span>{group.label}</span>
-                    <ChevronRight className={`h-3.5 w-3.5 transition-transform ${expandedNiche === group.key ? "rotate-90" : ""}`} />
-                  </DropdownMenuItem>
-                  {expandedNiche === group.key && (
-                    <div className="pl-4 border-l-2 border-primary/20 ml-3 my-1">
-                      <DropdownMenuItem
-                        onClick={() => { setNicheFilter(group.key); setVisibleCount(PAGE_SIZE); }}
-                        className={`cursor-pointer font-semibold text-xs ${nicheFilter === group.key ? "bg-primary/10 text-primary" : ""}`}
-                      >
-                        {group.emoji} Все {group.label}
-                      </DropdownMenuItem>
-                      {group.subNiches.map((sub) => (
-                        <DropdownMenuItem
-                          key={sub.key}
-                          onClick={() => { setNicheFilter(`${group.key}:${sub.key}`); setVisibleCount(PAGE_SIZE); }}
-                          className={`cursor-pointer text-xs ${parsedFilter.subNiche === sub.key && parsedFilter.niche === group.key ? "bg-primary/10 text-primary" : ""}`}
-                        >
-                          {sub.label}
-                        </DropdownMenuItem>
-                      ))}
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Loading */}
+              {isLoading ? (
+                <div className="space-y-6">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="h-5 bg-muted rounded w-32 animate-pulse" />
+                      <div className="flex gap-3">
+                        {Array.from({ length: 3 }).map((_, j) => (
+                          <div
+                            key={j}
+                            className="shrink-0 bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse"
+                            style={{ width: "min(44vw, 200px)" }}
+                          >
+                            <div className="aspect-[9/14] bg-muted m-1.5 rounded-xl" />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+              ) : (
+                <div className="space-y-5">
+                  {/* "Для тебя" shows top trending as a big row, then by niche */}
+                  {activeCategory === "for_you" && allVideos.length > 0 && (
+                    <section className="space-y-2">
+                      <h2 className="text-base font-bold text-foreground px-1">
+                        В тренде 🔥
+                      </h2>
+                      <div
+                        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+                        style={{ WebkitOverflowScrolling: "touch" }}
+                      >
+                        {allVideos.slice(0, 10).map((video) => (
+                          <div
+                            key={video.id}
+                            className="snap-start shrink-0"
+                            style={{ width: "min(44vw, 200px)" }}
+                          >
+                            <VideoCardWrapper
+                              video={video}
+                              playingId={playingId}
+                              onPlay={setPlayingId}
+                              isFavorite={userFavorites.includes(video.id)}
+                              onToggleFav={toggleFav}
+                              onAnalyze={(v) => setAnalysisVideo(v)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
 
-          {/* Language filter dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                langFilter !== "all"
-                  ? "bg-primary/10 text-primary border-primary/30"
-                  : "bg-card text-muted-foreground border-border/50 hover:text-foreground"
-              }`}>
-                <span>
-                  {langFilter === "all" ? "🌍 Все языки" : langFilter === "kk" ? "🇰🇿 Қазақша" : langFilter === "ru" ? "🇷🇺 Русский" : "🇬🇧 English"}
-                </span>
-                <ChevronDown className="h-3.5 w-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {([
-                { key: "all" as const, label: "🌍 Все языки" },
-                { key: "kk" as const, label: "🇰🇿 Қазақша" },
-                { key: "ru" as const, label: "🇷🇺 Русский" },
-                { key: "en" as const, label: "🇬🇧 English" },
-              ]).map((l) => (
-                <DropdownMenuItem
-                  key={l.key}
-                  onClick={() => { setLangFilter(l.key); setVisibleCount(PAGE_SIZE); }}
-                  className={`cursor-pointer ${langFilter === l.key ? "bg-primary/10 text-primary font-semibold" : ""}`}
-                >
-                  {l.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  {categoryGroups.map((group) => (
+                    <TrendNicheRow
+                      key={group.key}
+                      group={group}
+                      videos={videosByNiche[group.key] || []}
+                      userFavorites={userFavorites}
+                      onToggleFav={toggleFav}
+                      onAnalyze={(v) => setAnalysisVideo(v)}
+                      playingId={playingId}
+                      onPlay={setPlayingId}
+                      onViewAll={handleViewAll}
+                    />
+                  ))}
 
-          {langFilteredVideos.length > 0 && (
-            <span className="text-xs text-muted-foreground">{langFilteredVideos.length} видео</span>
+                  {categoryGroups.every((g) => !(videosByNiche[g.key]?.length)) &&
+                    activeCategory !== "for_you" && (
+                      <div className="text-center py-20">
+                        <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                          <TrendingUp className="h-10 w-10 text-muted-foreground/30" />
+                        </div>
+                        <p className="text-muted-foreground font-medium">
+                          Нет трендовых видео в этой категории
+                        </p>
+                      </div>
+                    )}
+                </div>
+              )}
+            </>
           )}
         </div>
-
-        {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl border border-border/40 overflow-hidden animate-pulse">
-                <div className="aspect-[9/14] bg-muted m-2 rounded-2xl" />
-                <div className="px-3 py-3 space-y-2">
-                  <div className="h-4 bg-muted rounded w-2/3" />
-                  <div className="h-3 bg-muted rounded w-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : videos.length > 0 ? (
-          <VirtualTrendGrid
-            videos={videos}
-            playingId={playingId}
-            onPlay={setPlayingId}
-            userFavorites={userFavorites}
-            onToggleFav={toggleFav}
-            onAnalyze={(v) => setAnalysisVideo(v)}
-            isFreePlan={isFreePlan}
-            freeLimit={FREE_LIMIT}
-            hasMore={hasMore}
-            onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
-          />
-        ) : (
-          <div className="text-center py-20">
-            <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="h-10 w-10 text-muted-foreground/30" />
-            </div>
-            <p className="text-muted-foreground font-medium">
-              Нет трендовых видео. Начните поиск, чтобы собрать данные.
-            </p>
-          </div>
-        )}
       </div>
+
       <VideoAnalysisDialog
         video={analysisVideo}
         open={!!analysisVideo}
-        onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
+        onOpenChange={(open) => {
+          if (!open) setAnalysisVideo(null);
+        }}
       />
     </AppLayout>
+  );
+}
+
+// Lightweight wrapper to avoid importing VideoCard at top level with all props
+import { VideoCard } from "@/components/VideoCard";
+
+function VideoCardWrapper({
+  video,
+  playingId,
+  onPlay,
+  isFavorite,
+  onToggleFav,
+  onAnalyze,
+}: {
+  video: any;
+  playingId: string | null;
+  onPlay: (id: string | null) => void;
+  isFavorite: boolean;
+  onToggleFav: (id: string) => void;
+  onAnalyze: (v: any) => void;
+}) {
+  return (
+    <VideoCard
+      video={video}
+      playingId={playingId}
+      onPlay={onPlay}
+      isFavorite={isFavorite}
+      onToggleFav={onToggleFav}
+      onAnalyze={onAnalyze}
+      showTier={true}
+      showAuthor={false}
+    />
   );
 }
