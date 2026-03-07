@@ -194,74 +194,40 @@ export default function Trends() {
             </div>
           ) : (
             <>
-              {/* Hero header with mosaic background */}
-              <div className="relative overflow-hidden">
-                {/* Mosaic background — tilted cover rows */}
-                {!isLoading && allVideos.length > 0 ? (
-                  <div className="relative h-[280px] overflow-hidden">
-                    {/* Row 1 — top */}
-                    <div className="absolute top-[-20px] left-[-20px] right-[-20px] flex gap-1" style={{ transform: "rotate(-8deg) scale(1.2)" }}>
-                      {allVideos.slice(0, 7).map((v: any) => (
-                        <div key={v.id} className="shrink-0 w-[24vw] aspect-[3/4] rounded-md overflow-hidden">
-                          {v.cover_url ? <img src={v.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-white/5" />}
-                        </div>
-                      ))}
-                    </div>
-                    {/* Row 2 — middle */}
-                    <div className="absolute top-[70px] left-[-40px] right-[-20px] flex gap-1" style={{ transform: "rotate(-8deg) scale(1.2)" }}>
-                      {allVideos.slice(7, 14).map((v: any) => (
-                        <div key={v.id} className="shrink-0 w-[24vw] aspect-[3/4] rounded-md overflow-hidden">
-                          {v.cover_url ? <img src={v.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-white/5" />}
-                        </div>
-                      ))}
-                    </div>
-                    {/* Row 3 — bottom */}
-                    <div className="absolute top-[160px] left-[-60px] right-[-20px] flex gap-1" style={{ transform: "rotate(-8deg) scale(1.2)" }}>
-                      {allVideos.slice(14, 21).map((v: any) => (
-                        <div key={v.id} className="shrink-0 w-[24vw] aspect-[3/4] rounded-md overflow-hidden">
-                          {v.cover_url ? <img src={v.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-white/5" />}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-[280px] bg-white/5 animate-pulse" />
-                )}
-
-                {/* Dark gradient overlay */}
-                <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.6) 75%, #0a0a0a 100%)" }} />
-
-                {/* Logo + categories centered */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+              {/* Sticky transparent header — logo + categories */}
+              <div
+                className="sticky top-0 z-30 pt-4 pb-3 px-4 backdrop-blur-md"
+                style={{ background: "rgba(10,10,10,0.4)" }}
+              >
+                <div className="flex items-center justify-center mb-2">
                   <h1
-                    className="text-2xl font-black tracking-[0.2em] uppercase mb-3"
+                    className="text-lg font-black tracking-[0.2em] uppercase"
                     style={{
                       color: "hsl(var(--neon))",
-                      textShadow: "0 0 30px hsl(var(--neon) / 0.5), 0 2px 10px rgba(0,0,0,0.8)",
+                      textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
                     }}
                   >
                     trendme
                   </h1>
-                  <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide px-4">
-                    {TREND_CATEGORIES.map((cat) => {
-                      const active = activeCategory === cat.key;
-                      return (
-                        <button
-                          key={cat.key}
-                          onClick={() => setActiveCategory(cat.key)}
-                          className={cn(
-                            "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-0.5 border-b-2",
-                            active
-                              ? "text-neon border-neon"
-                              : "text-white/80 border-transparent hover:text-white"
-                          )}
-                          style={{ textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
-                        >
-                          {cat.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide">
+                  {TREND_CATEGORIES.map((cat) => {
+                    const active = activeCategory === cat.key;
+                    return (
+                      <button
+                        key={cat.key}
+                        onClick={() => setActiveCategory(cat.key)}
+                        className={cn(
+                          "shrink-0 text-sm font-bold transition-all whitespace-nowrap pb-0.5 border-b-2",
+                          active
+                            ? "text-neon border-neon"
+                            : "text-white/70 border-transparent hover:text-white"
+                        )}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
