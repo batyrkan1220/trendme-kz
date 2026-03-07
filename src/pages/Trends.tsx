@@ -3,6 +3,8 @@ import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp, ChevronDown, ChevronRight } from "lucide-react";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { useState, useMemo, useCallback } from "react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -194,9 +196,17 @@ export default function Trends() {
 
 
 
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ["trends"] });
+    await new Promise(r => setTimeout(r, 500));
+  }, [queryClient]);
+
+  const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({ onRefresh: handleRefresh });
+
   return (
     <AppLayout>
-       <div className="p-4 md:p-6 lg:p-8 space-y-3 md:space-y-4 animate-fade-in">
+       <div ref={containerRef} className="p-4 md:p-6 lg:p-8 space-y-3 md:space-y-4 overflow-y-auto">
+        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} progress={progress} />
         {/* Compact header: title + period + niche in one row */}
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-xl md:text-2xl font-bold text-foreground mr-1">Тренды 🔥</h1>
