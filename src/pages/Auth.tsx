@@ -26,7 +26,7 @@ export default function Auth() {
   const [lastSubmitTime, setLastSubmitTime] = useState(0);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  const isNative = Capacitor.isNativePlatform();
+  const isNative = isNativePlatform;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
