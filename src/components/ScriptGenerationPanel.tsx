@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye } from "lucide-react";
+import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye, MessageCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
 import { toast } from "sonner";
@@ -21,45 +21,24 @@ type Msg = { role: "user" | "assistant"; content: string };
 const SCRIPT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`;
 
 async function streamScript({
-  transcript,
-  summary,
-  caption,
-  language,
-  messages,
-  onDelta,
-  onDone,
-  onError,
+  transcript, summary, caption, language, messages, onDelta, onDone, onError,
 }: {
-  transcript: string;
-  summary: any;
-  caption: string;
-  language?: string;
-  messages: Msg[];
-  onDelta: (text: string) => void;
-  onDone: () => void;
-  onError: (err: string) => void;
+  transcript: string; summary: any; caption: string; language?: string;
+  messages: Msg[]; onDelta: (text: string) => void; onDone: () => void; onError: (err: string) => void;
 }) {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
-    onError("Необходимо авторизоваться");
-    return;
-  }
+  if (!session?.access_token) { onError("Необходимо авторизоваться"); return; }
 
   const resp = await fetch(SCRIPT_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.access_token}`,
-    },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
     body: JSON.stringify({ transcript, summary, caption, language, messages }),
   });
 
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({ error: "Ошибка сервера" }));
-    onError(err.error || "Ошибка генерации");
-    return;
+    onError(err.error || "Ошибка генерации"); return;
   }
-
   if (!resp.body) { onError("Нет ответа"); return; }
 
   const reader = resp.body.getReader();
@@ -70,7 +49,6 @@ async function streamScript({
     const { done, value } = await reader.read();
     if (done) break;
     buf += decoder.decode(value, { stream: true });
-
     let nl: number;
     while ((nl = buf.indexOf("\n")) !== -1) {
       let line = buf.slice(0, nl);
@@ -83,10 +61,7 @@ async function streamScript({
         const parsed = JSON.parse(json);
         const c = parsed.choices?.[0]?.delta?.content;
         if (c) onDelta(c);
-      } catch {
-        buf = line + "\n" + buf;
-        break;
-      }
+      } catch { buf = line + "\n" + buf; break; }
     }
   }
   onDone();
@@ -101,11 +76,11 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [scriptContent, setScriptContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [chatInput, setChatInput] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef("");
   const savedScriptId = useRef<string | null>(null);
 
-  // Auto-generate on mount
   useEffect(() => {
     (async () => {
       const ok = await spend("script_generation", isKk ? "Сценарий генерациясы" : "Генерация сценария");
@@ -118,8 +93,6 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     setIsGenerating(true);
     setScriptContent("");
     scriptRef.current = "";
-
-    // Add initial assistant greeting if first gen
     if (chatMsgs.length === 0) {
       setMessages([{
         role: "assistant",
@@ -128,28 +101,12 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           : "Привет! 👋 Я твой AI сценарист!\n\nПомогу тебе доработать сценарий сохранив вирусность.\n\nС чего начнем?"
       }]);
     }
-
     let accumulated = "";
-
     await streamScript({
-      transcript,
-      summary,
-      caption,
-      language,
-      messages: chatMsgs,
-      onDelta: (text) => {
-        accumulated += text;
-        scriptRef.current = accumulated;
-        setScriptContent(accumulated);
-      },
-      onDone: () => {
-        setIsGenerating(false);
-        autoSaveScript();
-      },
-      onError: (err) => {
-        toast.error(err);
-        setIsGenerating(false);
-      },
+      transcript, summary, caption, language, messages: chatMsgs,
+      onDelta: (text) => { accumulated += text; scriptRef.current = accumulated; setScriptContent(accumulated); },
+      onDone: () => { setIsGenerating(false); autoSaveScript(); },
+      onError: (err) => { toast.error(err); setIsGenerating(false); },
     });
   };
 
@@ -157,42 +114,23 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     const text = chatInput.trim();
     if (!text || isGenerating) return;
     setChatInput("");
-
     const userMsg: Msg = { role: "user", content: text };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
-
     setIsGenerating(true);
     setScriptContent("");
     scriptRef.current = "";
-
     let accumulated = "";
-
-    // Build messages for API (exclude the greeting)
-    const apiMessages: Msg[] = newMessages
-      .filter((m, i) => !(i === 0 && m.role === "assistant"))
-      .map(m => ({ role: m.role, content: m.content }));
-
+    const apiMessages: Msg[] = newMessages.filter((m, i) => !(i === 0 && m.role === "assistant")).map(m => ({ role: m.role, content: m.content }));
     await streamScript({
-      transcript,
-      summary,
-      caption,
-      language,
-      messages: apiMessages,
-      onDelta: (text) => {
-        accumulated += text;
-        scriptRef.current = accumulated;
-        setScriptContent(accumulated);
-      },
+      transcript, summary, caption, language, messages: apiMessages,
+      onDelta: (text) => { accumulated += text; scriptRef.current = accumulated; setScriptContent(accumulated); },
       onDone: () => {
         setIsGenerating(false);
         autoSaveScript();
         setMessages(prev => [...prev, { role: "assistant", content: isKk ? "Сценарий жаңартылды! ✨ Тағы бірдеңе өзгерту керек пе?" : "Сценарий обновлен! ✨ Что-то ещё поменять?" }]);
       },
-      onError: (err) => {
-        toast.error(err);
-        setIsGenerating(false);
-      },
+      onError: (err) => { toast.error(err); setIsGenerating(false); },
     });
   };
 
@@ -218,24 +156,13 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     const content = scriptRef.current;
     if (!content) return;
     const title = caption?.slice(0, 80) || "Сценарий";
-
     if (savedScriptId.current) {
-      // Update existing
-      const { error } = await supabase.from("saved_scripts").update({ content }).eq("id", savedScriptId.current);
-      if (error) console.error("Auto-save update error:", error);
+      await supabase.from("saved_scripts").update({ content }).eq("id", savedScriptId.current);
     } else {
-      // Insert new
       const { data, error } = await supabase.from("saved_scripts").insert({
-        user_id: user.id,
-        title,
-        content,
-        source_video_url: videoUrl || null,
+        user_id: user.id, title, content, source_video_url: videoUrl || null,
       }).select("id").single();
-      if (error) {
-        console.error("Auto-save insert error:", error);
-      } else if (data) {
-        savedScriptId.current = data.id;
-      }
+      if (data) savedScriptId.current = data.id;
     }
   };
 
@@ -244,113 +171,55 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 bg-card">
-        <button
-          onClick={onBack}
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 text-foreground" />
-        </button>
-        <Sparkles className="h-5 w-5 text-primary" />
-        <h2 className="text-base font-bold text-foreground">{isKk ? "AI Сценарист" : "AI Сценарист"}</h2>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-card shrink-0">
+        <div className="flex items-center gap-3">
+          <button onClick={onBack} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
+            <ArrowLeft className="h-4 w-4 text-foreground" />
+          </button>
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-bold text-foreground">{isKk ? "AI Сценарист" : "AI Сценарист"}</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={copyScript} disabled={!scriptContent} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50">
+            <Copy className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{isKk ? "Көшіру" : "Скопировать"}</span>
+          </button>
+          <button
+            onClick={() => setChatOpen(!chatOpen)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${chatOpen ? "bg-primary/10 text-primary border-primary/30" : "text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted/50"}`}
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">AI чат</span>
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* Chat panel */}
-        <div className="w-full md:w-[320px] flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 flex flex-col bg-card max-h-[40vh] md:max-h-none">
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-md"
-                      : "bg-muted text-foreground rounded-bl-md"
-                  }`}
-                >
-                  {msg.content}
-                </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Regenerate + input */}
-          <div className="p-2 md:p-3 border-t border-border/50 space-y-2">
-            <button
-              onClick={handleRegenerate}
-              disabled={isGenerating}
-              className="flex items-center gap-2 px-3 py-2 w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-              {isKk ? "Қайта генерациялау" : "Перегенерировать"}
-            </button>
-            <div className="flex gap-2">
-              <input
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                placeholder={isKk ? "Сұрауыңызды жазыңыз" : "Напишите свой запрос"}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-border/50 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                disabled={isGenerating}
-              />
-              <button
-                onClick={handleSend}
-                disabled={!chatInput.trim() || isGenerating}
-                className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right — Script tabs */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-background">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Main script area — full width */}
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* Tabs */}
-          <div className="flex border-b border-border/50">
+          <div className="flex border-b border-border/50 shrink-0">
             <button
               onClick={() => setActiveTab("new")}
-              className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-colors border-b-2 ${
-                activeTab === "new"
-                  ? "text-primary border-primary"
-                  : "text-muted-foreground border-transparent hover:text-foreground"
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 ${activeTab === "new" ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground"}`}
             >
               <Sparkles className="h-4 w-4" />
               {isKk ? "Жаңа сценарий" : "Новый сценарий"}
             </button>
             <button
               onClick={() => setActiveTab("original")}
-              className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold transition-colors border-b-2 ${
-                activeTab === "original"
-                  ? "text-primary border-primary"
-                  : "text-muted-foreground border-transparent hover:text-foreground"
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors border-b-2 ${activeTab === "original" ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground"}`}
             >
-              📄 {isKk ? "Бастапқы сценарий" : "Исходный сценарий"}
+              📄 {isKk ? "Бастапқы" : "Исходный"}
             </button>
           </div>
 
-          {/* Tab content */}
-          <div className="flex-1 overflow-y-auto">
+          {/* Script content — scrollable */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6">
             {activeTab === "new" ? (
-              <div className="p-3 md:p-6">
-                {/* Copy button */}
-                <div className="flex flex-wrap justify-end gap-2 mb-3 md:mb-4">
-                  <button
-                    onClick={copyScript}
-                    disabled={!scriptContent}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
-                  >
-                    <Copy className="h-4 w-4" />
-                    {isKk ? "Көшіру" : "Скопировать"}
-                  </button>
-                </div>
-
-                {/* Script content */}
+              <>
                 {isGenerating && !scriptContent ? (
                   <div className="flex flex-col items-center justify-center py-20 gap-4">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -360,81 +229,171 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   </div>
                 ) : scriptContent ? (
-                  <div className="bg-card rounded-xl border border-border/50 p-6">
-                    <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_strong]:text-foreground [&_p]:text-foreground/80 [&_li]:text-foreground/80 [&_ol]:text-foreground/80">
-                      <ReactMarkdown>{scriptContent}</ReactMarkdown>
+                  <>
+                    <div className="bg-card rounded-xl border border-border/50 p-4 md:p-6">
+                      <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_strong]:text-foreground [&_p]:text-foreground/80 [&_li]:text-foreground/80 [&_ol]:text-foreground/80">
+                        <ReactMarkdown>{scriptContent}</ReactMarkdown>
+                      </div>
+                      {isGenerating && (
+                        <div className="mt-4 flex items-center gap-2 text-primary">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">{isKk ? "Генерация..." : "Генерация..."}</span>
+                        </div>
+                      )}
                     </div>
-                    {isGenerating && (
-                      <div className="mt-4 flex items-center gap-2 text-primary">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">{isKk ? "Генерация..." : "Генерация..."}</span>
+
+                    {/* Content analysis */}
+                    {summary && !isGenerating && (
+                      <div className="mt-6">
+                        <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
+                          🧠 {isKk ? "Контент талдауы" : "Анализ контента"}
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
+                          <div className="bg-card rounded-xl border border-border/50 p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Zap className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-bold text-foreground">Visual Hook:</span>
+                            </div>
+                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.visual_hook || summary.text_hook || "—"}</p>
+                          </div>
+                          <div className="bg-card rounded-xl border border-border/50 p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Target className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-bold text-foreground">Суть:</span>
+                            </div>
+                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.summary || "—"}</p>
+                          </div>
+                          <div className="bg-card rounded-xl border border-border/50 p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Eye className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-bold text-foreground">Приёмы:</span>
+                            </div>
+                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.hook_phrase || "—"}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
-                  </div>
+                  </>
                 ) : null}
-
-                {/* Content analysis cards */}
-                {summary && !isGenerating && scriptContent && (
-                  <div className="mt-6">
-                    <h3 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
-                      🧠 {isKk ? "Контент талдауы" : "Анализ контента"}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
-                      <div className="bg-card rounded-xl border border-border/50 p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Zap className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-bold text-foreground">Visual Hook/text:</span>
-                        </div>
-                        <p className="text-xs text-foreground/70 leading-relaxed">
-                          {summary.visual_hook || summary.text_hook || "Нет визуального хука"}
-                        </p>
-                      </div>
-                      <div className="bg-card rounded-xl border border-border/50 p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Target className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-bold text-foreground">Суть видео:</span>
-                        </div>
-                        <p className="text-xs text-foreground/70 leading-relaxed">
-                          {summary.summary || "Нет данных"}
-                        </p>
-                      </div>
-                      <div className="bg-card rounded-xl border border-border/50 p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Eye className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-bold text-foreground">Рабочие приемы:</span>
-                        </div>
-                        <p className="text-xs text-foreground/70 leading-relaxed">
-                          {summary.hook_phrase || "Нет рабочих техник"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              </>
             ) : (
-              /* Original script/transcript tab */
-              <div className="p-3 md:p-6">
-                <div className="flex justify-end mb-4">
+              <div className="bg-card rounded-xl border border-border/50 p-4 md:p-6">
+                <div className="flex justify-end mb-3">
                   <button
                     onClick={() => { navigator.clipboard.writeText(transcript || ""); toast.success(isKk ? "Көшірілді!" : "Скопировано!"); }}
                     disabled={!transcript}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50"
                   >
-                    <Copy className="h-4 w-4" />
-                    {isKk ? "Көшіру" : "Скопировать"}
+                    <Copy className="h-3.5 w-3.5" /> {isKk ? "Көшіру" : "Скопировать"}
                   </button>
                 </div>
-                <div className="bg-card rounded-xl border border-border/50 p-6">
-                  {transcript ? (
-                    <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{isKk ? "[Сөз жоқ, тек дыбыстар мен фондық шу]" : "[Речь отсутствует, только звуки и фоновый шум]"}</p>
-                  )}
-                </div>
+                {transcript ? (
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{isKk ? "[Сөз жоқ, тек дыбыстар мен фондық шу]" : "[Речь отсутствует, только звуки и фоновый шум]"}</p>
+                )}
               </div>
             )}
           </div>
         </div>
+
+        {/* AI Chat — slide-out panel */}
+        {/* Desktop: right side panel */}
+        <div
+          className={`hidden md:flex flex-col border-l border-border/50 bg-card transition-all duration-300 overflow-hidden ${chatOpen ? "w-[340px]" : "w-0 border-l-0"}`}
+        >
+          {chatOpen && (
+            <>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 shrink-0">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-bold text-foreground">AI Көмекші</span>
+                </div>
+                <button onClick={() => setChatOpen(false)} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"}`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatEndRef} />
+              </div>
+              <div className="p-3 border-t border-border/50 space-y-2 shrink-0">
+                <button onClick={handleRegenerate} disabled={isGenerating} className="flex items-center gap-2 px-3 py-2 w-full rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50">
+                  <RefreshCw className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`} />
+                  {isKk ? "Қайта генерациялау" : "Перегенерировать"}
+                </button>
+                <div className="flex gap-2">
+                  <input
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                    placeholder={isKk ? "Сұрауыңызды жазыңыз" : "Напишите запрос..."}
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-background border border-border/50 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    disabled={isGenerating}
+                  />
+                  <button onClick={handleSend} disabled={!chatInput.trim() || isGenerating} className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50">
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Mobile: bottom sheet overlay */}
+        {chatOpen && (
+          <div className="md:hidden fixed inset-0 z-[99998] flex flex-col">
+            {/* Backdrop */}
+            <div className="flex-1 bg-foreground/20" onClick={() => setChatOpen(false)} />
+            {/* Sheet */}
+            <div className="bg-card rounded-t-2xl border-t border-border/50 shadow-xl flex flex-col" style={{ maxHeight: "70vh", animation: "slide-up 0.3s ease-out" }}>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 shrink-0">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-bold text-foreground">AI Көмекші</span>
+                </div>
+                <button onClick={() => setChatOpen(false)} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"}`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatEndRef} />
+              </div>
+              <div className="p-3 border-t border-border/50 space-y-2 shrink-0 safe-area-bottom">
+                <button onClick={handleRegenerate} disabled={isGenerating} className="flex items-center gap-2 px-3 py-2 w-full rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50">
+                  <RefreshCw className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`} />
+                  {isKk ? "Қайта генерациялау" : "Перегенерировать"}
+                </button>
+                <div className="flex gap-2">
+                  <input
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                    placeholder={isKk ? "Сұрауыңызды жазыңыз" : "Напишите запрос..."}
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-background border border-border/50 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    disabled={isGenerating}
+                  />
+                  <button onClick={handleSend} disabled={!chatInput.trim() || isGenerating} className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50">
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
