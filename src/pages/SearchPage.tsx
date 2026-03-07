@@ -305,6 +305,8 @@ export default function SearchPage() {
             </>
           )}
           </div>
+        </div>
+      </div>
       <VideoAnalysisDialog
         video={analysisVideo}
         open={!!analysisVideo}
