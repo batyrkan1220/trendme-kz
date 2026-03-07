@@ -11,7 +11,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full" style={{ background: "#0a0a0a", color: "#ffffff" }}>
+    <div className="relative flex min-h-[100dvh] w-full overflow-x-hidden" style={{ background: "#0a0a0a", color: "#ffffff" }}>
       {!isMobile && !isNativePlatform && (
         <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       )}
