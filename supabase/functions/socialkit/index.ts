@@ -698,11 +698,11 @@ Deno.serve(async (req: Request) => {
         // 2. Use Lovable AI to generate structured analysis
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        const caption = body.caption || "";
+        const caption = cleanForPrompt(body.caption || "", 500);
         const analysisLang = body.language === "kk" ? "kk" : "ru";
 
         const videoStats = statsData?.statistics || statsData?.stats || {};
-        const videoTitle = statsData?.desc || caption || "";
+        const videoTitle = cleanForPrompt(statsData?.desc || caption || "", 500);
         const videoDuration = statsData?.video?.duration ? Math.round(statsData.video.duration / 1000) : "";
 
         // Build context for AI from all available data
