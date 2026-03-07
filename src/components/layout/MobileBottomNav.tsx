@@ -2,20 +2,23 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, TrendingUp, Search, Sparkles, BarChart3, Menu,
-  Video, UserCircle
+  Home, TrendingUp, Flame, UserSearch, Plus,
+  Search, Video, UserCircle, Sparkles, BookOpen, Heart
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-const navItems = [
-  { icon: LayoutDashboard, path: "/dashboard", label: "Главная" },
-  { icon: Search, path: "/search", label: "Поиск" },
-  { icon: TrendingUp, path: "/trends", label: "Тренды" },
+const mainNavItems = [
+  { icon: Home, path: "/dashboard", label: "Главная" },
+  { icon: TrendingUp, path: "/search", label: "Поиск" },
+  { icon: Flame, path: "/trends", label: "Тренды" },
+  { icon: UserSearch, path: "/account-analysis", label: "Анализ" },
 ];
 
-const analysisItems = [
+const plusMenuItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
-  { icon: UserCircle, path: "/account-analysis", label: "Анализ аккаунта" },
+  { icon: Sparkles, path: "/ai-script", label: "AI Сценарий" },
+  { icon: BookOpen, path: "/library", label: "Библиотека" },
+  { icon: Heart, path: "/library", label: "Избранное" },
 ];
 
 interface MobileBottomNavProps {
@@ -26,16 +29,14 @@ interface MobileBottomNavProps {
 
 export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: MobileBottomNavProps) {
   const location = useLocation();
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  const analysisActive = analysisItems.some(i => location.pathname === i.path);
-
   useEffect(() => {
-    if (!showAnalysis) return;
+    if (!showPlusMenu) return;
     const handle = (e: MouseEvent | TouchEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setShowAnalysis(false);
+        setShowPlusMenu(false);
       }
     };
     document.addEventListener("mousedown", handle);
@@ -44,7 +45,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       document.removeEventListener("mousedown", handle);
       document.removeEventListener("touchstart", handle);
     };
-  }, [showAnalysis]);
+  }, [showPlusMenu]);
 
   const nav = (
     <nav
@@ -56,89 +57,99 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         left: 0,
         right: 0,
         zIndex: drawerOpen ? 40 : 99999,
-        background: "hsl(var(--background))",
-        borderTop: "1px solid hsl(var(--border))",
-        boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
         pointerEvents: drawerOpen ? "none" : "auto",
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         transition: "opacity 0.2s",
         opacity: drawerOpen ? 0 : 1,
       }}
     >
-      {/* Analysis popover */}
-      {showAnalysis && (
+      {/* Plus menu popover */}
+      {showPlusMenu && (
         <div
           ref={popoverRef}
-          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-card border border-border rounded-2xl shadow-lg p-2 min-w-[200px]"
+          className="absolute bottom-full right-3 mb-3 bg-card/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-2xl p-2 min-w-[200px]"
+          style={{ animation: "slide-up 0.2s ease-out" }}
         >
-          {analysisItems.map((item) => {
+          {plusMenuItems.map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link
-                key={item.path}
+                key={item.path + item.label}
                 to={item.path}
-                onClick={() => setShowAnalysis(false)}
+                onClick={() => setShowPlusMenu(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors",
+                  "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm transition-colors active:scale-[0.97]",
                   active ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-muted"
                 )}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
-                <span>{item.label}</span>
+                <span className="font-medium">{item.label}</span>
               </Link>
             );
           })}
         </div>
       )}
 
-      <div className="flex items-center justify-around px-1 py-1.5">
-        {navItems.map((item) => {
-          const active = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => drawerOpen && onDrawerClose?.()}
-              className={cn(
-                "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
-                active ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <item.icon className={cn("h-5 w-5", active && "text-primary")} />
-              <span className="text-[10px] font-medium leading-tight">{item.label}</span>
-            </Link>
-          );
-        })}
+      <div className="flex items-center px-4 py-2 gap-2">
+        {/* Main nav pill */}
+        <div
+          className="flex-1 flex items-center justify-around rounded-2xl py-1.5 px-1"
+          style={{
+            background: "hsl(var(--card) / 0.85)",
+            backdropFilter: "blur(20px)",
+            boxShadow: "0 2px 20px hsl(var(--foreground) / 0.08), inset 0 1px 0 hsl(var(--background) / 0.5)",
+            border: "1px solid hsl(var(--border) / 0.5)",
+          }}
+        >
+          {mainNavItems.map((item) => {
+            const active = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => { drawerOpen && onDrawerClose?.(); setShowPlusMenu(false); }}
+                className={cn(
+                  "relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[52px] active:scale-[0.93]",
+                  active && "bg-primary/12"
+                )}
+              >
+                <item.icon
+                  className={cn(
+                    "h-[22px] w-[22px] transition-colors duration-200",
+                    active ? "text-primary" : "text-muted-foreground"
+                  )}
+                  strokeWidth={active ? 2.2 : 1.8}
+                />
+                {active && (
+                  <span className="text-[10px] font-semibold text-primary leading-tight">
+                    {item.label}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
 
+        {/* Plus button */}
         <button
-          onClick={() => { drawerOpen && onDrawerClose?.(); setShowAnalysis(v => !v); }}
+          onClick={() => { drawerOpen && onDrawerClose?.(); setShowPlusMenu(v => !v); }}
           className={cn(
-            "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
-            analysisActive || showAnalysis ? "text-primary" : "text-muted-foreground"
+            "shrink-0 h-12 w-12 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
+            showPlusMenu
+              ? "bg-primary text-primary-foreground shadow-lg"
+              : "bg-card/85 text-muted-foreground border border-border/50"
           )}
+          style={{
+            backdropFilter: "blur(20px)",
+            boxShadow: showPlusMenu
+              ? "0 4px 20px hsl(var(--primary) / 0.3)"
+              : "0 2px 12px hsl(var(--foreground) / 0.06)",
+          }}
         >
-          <BarChart3 className={cn("h-5 w-5", (analysisActive || showAnalysis) && "text-primary")} />
-          <span className="text-[10px] font-medium leading-tight">Анализ</span>
-        </button>
-
-        <Link
-          to="/ai-script"
-          onClick={() => drawerOpen && onDrawerClose?.()}
-          className={cn(
-            "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-[56px]",
-            location.pathname === "/ai-script" ? "text-primary" : "text-muted-foreground"
-          )}
-        >
-          <Sparkles className={cn("h-5 w-5", location.pathname === "/ai-script" && "text-primary")} />
-          <span className="text-[10px] font-medium leading-tight">Сценарий</span>
-        </Link>
-
-        <button
-          onClick={onMenuOpen}
-          className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-muted-foreground min-w-[56px]"
-        >
-          <Menu className="h-5 w-5" />
-          <span className="text-[10px] font-medium leading-tight">Меню</span>
+          <Plus
+            className={cn("h-6 w-6 transition-transform duration-200", showPlusMenu && "rotate-45")}
+            strokeWidth={2}
+          />
         </button>
       </div>
     </nav>
