@@ -241,3 +241,12 @@ body.native-app {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Hide scrollbar for horizontal scroll areas */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
