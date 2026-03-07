@@ -81,7 +81,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
       <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
-  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+  if (!isAdmin) return <Navigate to="/trends" replace />;
   return <>{children}</>;
 }
 
