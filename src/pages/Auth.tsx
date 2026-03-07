@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
-import { Capacitor } from "@capacitor/core";
+import { isNativePlatform } from "@/lib/native";
 
 type Mode = "login" | "register" | "forgot";
 
