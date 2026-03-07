@@ -11,11 +11,6 @@ export const TREND_CATEGORIES: TrendCategory[] = [
   {
     key: "for_you",
     label: "Для тебя",
-    nicheKeys: [],
-  },
-  {
-    key: "lifestyle",
-    label: "Лайфстайл",
     nicheKeys: [
       "beauty", "fashion", "food", "fitness", "home", "family",
       "animals", "travel", "medicine", "hobby", "kazakh_culture",
