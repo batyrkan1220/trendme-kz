@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
     // Fetch videos
     const { data: videos, error: fetchErr } = await adminClient
       .from("videos")
-      .select("id, caption, niche, sub_niche, author_username")
+      .select("id, caption, niche, sub_niche, lang, author_username")
       .order("created_at", { ascending: true })
       .range(offset, offset + limit - 1);
 
