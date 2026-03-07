@@ -1851,8 +1851,8 @@ function StatsSection() {
   const cleanLimits = () => {
     const clean: Record<string, LangLimits> = {};
     for (const [k, v] of Object.entries(categoryLimits)) {
-      if (v && (v.kk || v.ru || v.en)) {
-        clean[k] = { kk: v.kk || null, ru: v.ru || null, en: v.en || null };
+      if (v && (v.kk != null || v.ru != null || v.en != null)) {
+        clean[k] = { kk: v.kk ?? null, ru: v.ru ?? null, en: v.en ?? null };
       }
     }
     return clean;
