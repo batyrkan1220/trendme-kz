@@ -151,9 +151,8 @@ const AppRoutes = () => {
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(() => {
-    if (isNativePlatform) return true;
-    if (typeof sessionStorage !== "undefined" && !sessionStorage.getItem("splash_shown")) return true;
-    return false;
+    if (!isNativePlatform) return false;
+    return true;
   });
   const [showPaywall, setShowPaywall] = useState(false);
   const handleSplashComplete = useCallback(() => {
