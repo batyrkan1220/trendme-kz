@@ -207,8 +207,8 @@ export default function Trends() {
             <>
               {/* Sticky header with back + title */}
               <div
-                className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
-                style={{ background: "rgba(10,10,10,0.85)", paddingTop: "max(env(safe-area-inset-top, 16px), 16px)" }}
+                className="sticky top-0 z-30 pt-4 pb-2 px-4 backdrop-blur-md space-y-3"
+                style={{ background: "rgba(10,10,10,0.85)" }}
               >
                 <div className="flex items-center gap-3">
                   <button
@@ -293,8 +293,8 @@ export default function Trends() {
             <>
               {/* Sticky transparent header — logo + categories */}
               <div
-                className="sticky top-0 z-30 pb-3 px-4 backdrop-blur-md"
-                style={{ background: "rgba(10,10,10,0.4)", paddingTop: "max(env(safe-area-inset-top, 4px), 4px)" }}
+                className="sticky top-0 z-30 pt-1 pb-3 px-4 backdrop-blur-md"
+                style={{ background: "rgba(10,10,10,0.4)" }}
               >
                 <div className="flex items-center justify-center mb-2 mt-1">
                   <h1
