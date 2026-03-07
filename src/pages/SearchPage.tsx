@@ -169,8 +169,9 @@ export default function SearchPage() {
         </div>
       ) : (
       <>
-      <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 animate-fade-in" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
-        <div className="flex-1 space-y-4 md:space-y-6 min-w-0">
+      <div className="flex flex-col animate-fade-in" style={{ minHeight: "calc(100dvh - 5rem)", paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
+        <div className="p-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 flex-1">
+        <div className="flex-1 space-y-4 md:space-y-6 min-w-0 flex flex-col">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Поиск 🔍</h1>
 
           <div className="flex flex-col sm:flex-row gap-2">
@@ -198,7 +199,7 @@ export default function SearchPage() {
           </div>
 
           {results.length === 0 && searchResults && !isSearching && (
-            <div className="flex flex-col items-center justify-center py-16 gap-4 animate-fade-in">
+            <div className="flex-1 flex flex-col items-center justify-center py-8 gap-4 animate-fade-in">
               <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
                 <SearchIcon className="h-8 w-8 text-muted-foreground/30" />
               </div>
