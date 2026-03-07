@@ -205,22 +205,22 @@ No explanation, no markdown, just JSON.`
             continue;
           }
 
-          // Check if already correct (niche, sub_niche AND lang)
+          let lang = (result[2] as string) || null;
+          // Map Ukrainian to Russian
+          if (lang === "uk") lang = "ru";
           const resolvedLang = (lang && ["kk", "ru", "en"].includes(lang)) ? lang : null;
+
+          // Check if already correct (niche, sub_niche AND lang)
           if ((video as any).sub_niche === subNiche && video.niche === mainNiche && (video as any).lang === resolvedLang) {
             unchanged++;
             continue;
           }
 
-          let lang = (result[2] as string) || null;
-          // Map Ukrainian to Russian
-          if (lang === "uk") lang = "ru";
-
           const updateData: any = {
             niche: mainNiche,
             sub_niche: subNiche,
             categories: [mainNiche],
-            ...(lang && ["kk", "ru", "en"].includes(lang) ? { lang } : {}),
+            ...(resolvedLang ? { lang: resolvedLang } : {}),
           };
 
           const { error: upErr } = await adminClient
