@@ -222,12 +222,23 @@ export default function Trends() {
                   </h1>
                 </div>
 
-                {/* Info: date range + video count */}
-                <div className="flex items-center gap-3 text-xs text-white/50">
-                  {drillDateRange && (
-                    <span>📅 {drillDateRange}</span>
-                  )}
-                  <span>🎬 {drillTotalFiltered} видео</span>
+                {/* Period chips + video count */}
+                <div className="flex items-center gap-2 text-xs">
+                  {PERIOD_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setDrillPeriod(opt.value); setVisibleCount(PAGE_SIZE); }}
+                      className={cn(
+                        "shrink-0 px-2.5 py-1 rounded-full font-medium transition-all",
+                        drillPeriod === opt.value
+                          ? "bg-white/20 text-white"
+                          : "bg-white/5 text-white/40 hover:bg-white/10"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                  <span className="text-white/40 ml-1">· {drillTotalFiltered} видео</span>
                 </div>
 
                 {/* Sub-niche chips */}
