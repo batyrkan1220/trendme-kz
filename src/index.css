@@ -83,7 +83,7 @@
 
 @layer utilities {
   .gradient-hero {
-    background: linear-gradient(135deg, hsl(258 80% 58%), hsl(280 70% 50%));
+    background: linear-gradient(135deg, hsl(72 100% 50%), hsl(82 90% 45%));
   }
 
   .gradient-card {
