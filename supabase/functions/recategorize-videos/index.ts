@@ -166,7 +166,11 @@ ${nicheList}
 
 For each video (given as index|current_niche|caption):
 1. Determine the BEST matching sub_niche (exactly 1)
-2. Detect caption language: "kk" (Kazakh - contains ә,ғ,қ,ң,ө,ұ,ү,і,һ), "ru" (Russian/Cyrillic), "en" (English/Latin)
+2. Detect caption language precisely:
+   - "kk" = Kazakh (MUST contain Kazakh-specific letters: ә,ғ,қ,ң,ө,ұ,ү,і,һ)
+   - "ru" = Russian OR Ukrainian (standard Cyrillic without Kazakh-specific letters). Ukrainian letters like є,і,ї,ґ also map to "ru".
+   - "en" = English/Latin script
+   IMPORTANT: Ukrainian (містить є,і,ї,ґ or Ukrainian words) must be classified as "ru", NOT "kk". Only Kazakh with specific letters ә,ғ,қ,ң,ө,ұ,ү,һ should be "kk".
 
 Return ONLY a JSON array: [[idx, "sub_niche_key", "lang"], ...]
 No explanation, no markdown, just JSON.`
