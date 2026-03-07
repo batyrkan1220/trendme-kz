@@ -202,7 +202,7 @@ export default function SearchPage() {
             </div>
 
           {results.length === 0 && searchResults && !isSearching && (
-            <div className="flex-1 flex flex-col items-center justify-center min-h-[40dvh] gap-4 animate-fade-in">
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 14rem)" }}>
               <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
                 <SearchIcon className="h-8 w-8 text-muted-foreground/30" />
               </div>
