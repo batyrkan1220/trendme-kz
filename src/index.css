@@ -158,7 +158,7 @@
 
 /* Native app — safe area spacing & prevent horizontal scroll */
 body.native-app {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: 0;
   padding-bottom: 0;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
