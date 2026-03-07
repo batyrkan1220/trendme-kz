@@ -551,7 +551,7 @@ Deno.serve(async (req: Request) => {
                 const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other"];
                 for (let i = 0; i < uncategorized.length; i += 30) {
                   const batch = uncategorized.slice(i, i + 30);
-                  const videoCaptions = batch.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+                  const videoCaptions = batch.map((v: any, idx: number) => `${idx}: ${cleanForPrompt(v.caption, 150)}`).join("\n");
                   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                     method: "POST",
                     headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
