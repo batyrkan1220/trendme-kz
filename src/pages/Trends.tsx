@@ -123,12 +123,12 @@ export default function Trends() {
 
   // Fetch full niche data only when drilling down
   const { data: drillNicheVideos = [] } = useQuery<any[]>({
-    queryKey: ["trends-niche", drillNiche],
+    queryKey: ["trends-niche", drillNiche, drillPeriod],
     queryFn: async () => {
       if (!drillNiche) return [];
       const selectFields =
         "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
-      const since = new Date(Date.now() - 7 * 86400000).toISOString();
+      const since = new Date(Date.now() - drillPeriod * 86400000).toISOString();
       const allRows: any[] = [];
       let from = 0;
       const pageSize = 1000;
