@@ -47,7 +47,6 @@ export default function Library() {
     <AppLayout>
       <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl md:text-3xl font-bold text-foreground">Избранные ❤️</h1>
           <span className="text-sm text-muted-foreground">{favorites.length} видео</span>
         </div>
 
