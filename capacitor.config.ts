@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'kz.trendme.app',
+  appId: 'kz.trendme.kz',
   appName: 'trendme',
   webDir: 'dist',
   server: {
