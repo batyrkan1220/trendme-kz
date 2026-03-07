@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { VideoCard } from "@/components/VideoCard";
 import { ChevronRight } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
@@ -27,6 +27,24 @@ export function TrendNicheRow({
   darkMode,
 }: TrendNicheRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [hinted, setHinted] = useState(false);
+
+  // Auto-scroll hint: nudge right then back
+  useEffect(() => {
+    if (hinted || videos.length < 3) return;
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const timer = setTimeout(() => {
+      el.scrollTo({ left: 60, behavior: "smooth" });
+      setTimeout(() => {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+        setHinted(true);
+      }, 400);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [hinted, videos.length]);
 
   if (videos.length === 0) return null;
 
