@@ -196,40 +196,48 @@ export default function Trends() {
             <>
               {/* Hero header with mosaic background */}
               <div className="relative overflow-hidden">
-                {/* Mosaic background — 3 rows of tilted covers */}
+                {/* Mosaic background — tilted cover rows */}
                 {!isLoading && allVideos.length > 0 ? (
-                  <div className="relative h-[220px] overflow-hidden">
-                    {/* Row 1 */}
-                    <div className="absolute top-[-10px] left-[-10px] right-[-10px] flex gap-1.5" style={{ transform: "rotate(-6deg) scale(1.15)" }}>
-                      {allVideos.slice(0, 6).map((v: any) => (
-                        <div key={v.id} className="shrink-0 w-[22vw] aspect-[3/4] rounded-lg overflow-hidden">
+                  <div className="relative h-[280px] overflow-hidden">
+                    {/* Row 1 — top */}
+                    <div className="absolute top-[-20px] left-[-20px] right-[-20px] flex gap-1" style={{ transform: "rotate(-8deg) scale(1.2)" }}>
+                      {allVideos.slice(0, 7).map((v: any) => (
+                        <div key={v.id} className="shrink-0 w-[24vw] aspect-[3/4] rounded-md overflow-hidden">
                           {v.cover_url ? <img src={v.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-white/5" />}
                         </div>
                       ))}
                     </div>
-                    {/* Row 2 */}
-                    <div className="absolute top-[85px] left-[-30px] right-[-10px] flex gap-1.5" style={{ transform: "rotate(-6deg) scale(1.15)" }}>
-                      {allVideos.slice(6, 12).map((v: any) => (
-                        <div key={v.id} className="shrink-0 w-[22vw] aspect-[3/4] rounded-lg overflow-hidden">
+                    {/* Row 2 — middle */}
+                    <div className="absolute top-[70px] left-[-40px] right-[-20px] flex gap-1" style={{ transform: "rotate(-8deg) scale(1.2)" }}>
+                      {allVideos.slice(7, 14).map((v: any) => (
+                        <div key={v.id} className="shrink-0 w-[24vw] aspect-[3/4] rounded-md overflow-hidden">
+                          {v.cover_url ? <img src={v.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-white/5" />}
+                        </div>
+                      ))}
+                    </div>
+                    {/* Row 3 — bottom */}
+                    <div className="absolute top-[160px] left-[-60px] right-[-20px] flex gap-1" style={{ transform: "rotate(-8deg) scale(1.2)" }}>
+                      {allVideos.slice(14, 21).map((v: any) => (
+                        <div key={v.id} className="shrink-0 w-[24vw] aspect-[3/4] rounded-md overflow-hidden">
                           {v.cover_url ? <img src={v.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-white/5" />}
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <div className="h-[220px] bg-white/5 animate-pulse" />
+                  <div className="h-[280px] bg-white/5 animate-pulse" />
                 )}
 
                 {/* Dark gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black pointer-events-none" />
+                <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.6) 75%, #0a0a0a 100%)" }} />
 
-                {/* Logo + categories */}
+                {/* Logo + categories centered */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                   <h1
-                    className="text-2xl font-black tracking-[0.2em] uppercase mb-4"
+                    className="text-2xl font-black tracking-[0.2em] uppercase mb-3"
                     style={{
                       color: "hsl(var(--neon))",
-                      textShadow: "0 0 30px hsl(var(--neon) / 0.5)",
+                      textShadow: "0 0 30px hsl(var(--neon) / 0.5), 0 2px 10px rgba(0,0,0,0.8)",
                     }}
                   >
                     trendme
@@ -247,6 +255,7 @@ export default function Trends() {
                               ? "text-neon border-neon"
                               : "text-white/80 border-transparent hover:text-white"
                           )}
+                          style={{ textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
                         >
                           {cat.label}
                         </button>
