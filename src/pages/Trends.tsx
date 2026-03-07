@@ -190,22 +190,32 @@ export default function Trends() {
             </>
           ) : (
             <>
-              {/* Category tabs */}
-              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-1">
-                {TREND_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.key}
-                    onClick={() => setActiveCategory(cat.key)}
-                    className={cn(
-                      "shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap",
-                      activeCategory === cat.key
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-card text-muted-foreground border border-border/50 hover:text-foreground"
-                    )}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+                  Тренды
+                </h1>
+              </div>
+
+              {/* Category tabs — UNREELS neon style */}
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+                {TREND_CATEGORIES.map((cat) => {
+                  const active = activeCategory === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      onClick={() => setActiveCategory(cat.key)}
+                      className={cn(
+                        "shrink-0 px-5 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
+                        active
+                          ? "bg-neon text-neon-foreground shadow-[0_0_16px_hsl(var(--neon)/0.5)]"
+                          : "bg-transparent text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Loading */}
