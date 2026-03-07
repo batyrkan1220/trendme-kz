@@ -171,16 +171,11 @@ export default function Trends() {
     [drillNiche]
   );
 
-  const drillDateRange = useMemo(() => {
-    if (!drillNicheVideos.length) return "";
-    const dates = drillNicheVideos
-      .filter((v: any) => v.published_at)
-      .map((v: any) => new Date(v.published_at).getTime());
-    if (!dates.length) return "";
-    const min = new Date(Math.min(...dates));
-    const max = new Date(Math.max(...dates));
-    return `${format(min, "d MMM", { locale: ru })} — ${format(max, "d MMM", { locale: ru })}`;
-  }, [drillNicheVideos]);
+  const PERIOD_OPTIONS = [
+    { value: 3, label: "3 дня" },
+    { value: 7, label: "7 дней" },
+    { value: 30, label: "30 дней" },
+  ];
 
   const handleViewAll = (nicheKey: string) => {
     setDrillNiche(nicheKey);
