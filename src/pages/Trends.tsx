@@ -152,15 +152,36 @@ export default function Trends() {
     staleTime: 120_000,
   });
 
-  const drillVideos = useMemo(() => {
+  const drillVideosFiltered = useMemo(() => {
     if (!drillNiche) return [];
-    return drillNicheVideos.slice(0, visibleCount);
-  }, [drillNiche, drillNicheVideos, visibleCount]);
+    let vids = drillNicheVideos;
+    if (drillSubNiche) {
+      vids = vids.filter((v: any) => v.sub_niche === drillSubNiche);
+    }
+    return vids.slice(0, visibleCount);
+  }, [drillNiche, drillNicheVideos, drillSubNiche, visibleCount]);
+
+  const drillTotalFiltered = useMemo(() => {
+    if (!drillNiche) return 0;
+    if (drillSubNiche) return drillNicheVideos.filter((v: any) => v.sub_niche === drillSubNiche).length;
+    return drillNicheVideos.length;
+  }, [drillNiche, drillNicheVideos, drillSubNiche]);
 
   const drillGroup = useMemo(
     () => NICHE_GROUPS.find((g) => g.key === drillNiche),
     [drillNiche]
   );
+
+  const drillDateRange = useMemo(() => {
+    if (!drillNicheVideos.length) return "";
+    const dates = drillNicheVideos
+      .filter((v: any) => v.published_at)
+      .map((v: any) => new Date(v.published_at).getTime());
+    if (!dates.length) return "";
+    const min = new Date(Math.min(...dates));
+    const max = new Date(Math.max(...dates));
+    return `${format(min, "d MMM", { locale: ru })} — ${format(max, "d MMM", { locale: ru })}`;
+  }, [drillNicheVideos]);
 
   const handleViewAll = (nicheKey: string) => {
     setDrillNiche(nicheKey);
