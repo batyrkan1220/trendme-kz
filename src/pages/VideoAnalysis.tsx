@@ -200,7 +200,7 @@ export default function VideoAnalysis() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !isPending && url.trim() && handleAnalyze(language || "ru")}
-            className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-sm"
+            className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-base"
           />
           <div className="flex gap-2">
             <Button
