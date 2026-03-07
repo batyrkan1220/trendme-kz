@@ -6,15 +6,11 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     url: 'https://trendme.kz?forceHideBadge=true&native=1',
-    cleartext: true,
     allowNavigation: [
-      'trendme-kz.lovable.app',
-      '*.lovable.app',
-      '*.lovableproject.com',
-      '*.supabase.co',
-      '*.supabase.com',
       'trendme.kz',
       '*.trendme.kz',
+      '*.supabase.co',
+      '*.supabase.com',
     ],
   },
   ios: {
