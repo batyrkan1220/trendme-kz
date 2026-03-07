@@ -15,7 +15,7 @@ const Index = () => {
     );
   }
 
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to="/trends" replace />;
 
   // Мобильді қосымшада лендинг көрсетпей, тікелей авторизацияға бағыттау
   if (isNative) return <Navigate to="/auth" replace />;
