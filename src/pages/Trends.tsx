@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { isNativePlatform } from "@/lib/native";
 
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
