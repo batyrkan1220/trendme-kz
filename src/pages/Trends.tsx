@@ -4,6 +4,8 @@ import { isNativePlatform } from "@/lib/native";
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
@@ -27,6 +29,7 @@ export default function Trends() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
+  const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const { balance } = useTokens();
@@ -149,18 +152,40 @@ export default function Trends() {
     staleTime: 120_000,
   });
 
-  const drillVideos = useMemo(() => {
+  const drillVideosFiltered = useMemo(() => {
     if (!drillNiche) return [];
-    return drillNicheVideos.slice(0, visibleCount);
-  }, [drillNiche, drillNicheVideos, visibleCount]);
+    let vids = drillNicheVideos;
+    if (drillSubNiche) {
+      vids = vids.filter((v: any) => v.sub_niche === drillSubNiche);
+    }
+    return vids.slice(0, visibleCount);
+  }, [drillNiche, drillNicheVideos, drillSubNiche, visibleCount]);
+
+  const drillTotalFiltered = useMemo(() => {
+    if (!drillNiche) return 0;
+    if (drillSubNiche) return drillNicheVideos.filter((v: any) => v.sub_niche === drillSubNiche).length;
+    return drillNicheVideos.length;
+  }, [drillNiche, drillNicheVideos, drillSubNiche]);
 
   const drillGroup = useMemo(
     () => NICHE_GROUPS.find((g) => g.key === drillNiche),
     [drillNiche]
   );
 
+  const drillDateRange = useMemo(() => {
+    if (!drillNicheVideos.length) return "";
+    const dates = drillNicheVideos
+      .filter((v: any) => v.published_at)
+      .map((v: any) => new Date(v.published_at).getTime());
+    if (!dates.length) return "";
+    const min = new Date(Math.min(...dates));
+    const max = new Date(Math.max(...dates));
+    return `${format(min, "d MMM", { locale: ru })} — ${format(max, "d MMM", { locale: ru })}`;
+  }, [drillNicheVideos]);
+
   const handleViewAll = (nicheKey: string) => {
     setDrillNiche(nicheKey);
+    setDrillSubNiche(null);
     setVisibleCount(PAGE_SIZE);
   };
 
@@ -186,27 +211,66 @@ export default function Trends() {
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
             <>
-              {/* Sticky sub-niche header */}
+              {/* Sticky header with back + title */}
               <div
-                className="sticky top-0 z-30 flex items-center gap-3 pt-4 pb-3 px-4 backdrop-blur-md"
-                style={{ background: "rgba(10,10,10,0.4)" }}
+                className="sticky top-0 z-30 pt-4 pb-2 px-4 backdrop-blur-md space-y-3"
+                style={{ background: "rgba(10,10,10,0.85)" }}
               >
-                <button
-                  onClick={handleBack}
-                  className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors shrink-0"
-                >
-                  <ChevronLeft className="h-4 w-4 text-white" />
-                </button>
-                <h1 className="text-lg font-bold text-white truncate">
-                  {drillGroup.emoji} {drillGroup.label}
-                </h1>
-                <span className="text-xs text-white/50 shrink-0">
-                  {drillNicheVideos.length || 0} видео
-                </span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleBack}
+                    className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors shrink-0"
+                  >
+                    <ChevronLeft className="h-4 w-4 text-white" />
+                  </button>
+                  <h1 className="text-lg font-bold text-white truncate">
+                    {drillGroup.emoji} {drillGroup.label}
+                  </h1>
+                </div>
+
+                {/* Info: date range + video count */}
+                <div className="flex items-center gap-3 text-xs text-white/50">
+                  {drillDateRange && (
+                    <span>📅 {drillDateRange}</span>
+                  )}
+                  <span>🎬 {drillTotalFiltered} видео</span>
+                </div>
+
+                {/* Sub-niche chips */}
+                {drillGroup.subNiches.length > 0 && (
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+                    <button
+                      onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
+                      className={cn(
+                        "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        !drillSubNiche
+                          ? "bg-neon text-black"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                      )}
+                    >
+                      Все
+                    </button>
+                    {drillGroup.subNiches.map((sub) => (
+                      <button
+                        key={sub.key}
+                        onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
+                        className={cn(
+                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                          drillSubNiche === sub.key
+                            ? "bg-neon text-black"
+                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                        )}
+                      >
+                        {sub.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+
               <div className="p-4 md:p-6 lg:p-8">
                 <VirtualTrendGrid
-                  videos={drillVideos}
+                  videos={drillVideosFiltered}
                   playingId={playingId}
                   onPlay={setPlayingId}
                   userFavorites={userFavorites}
@@ -214,7 +278,7 @@ export default function Trends() {
                   onAnalyze={(v) => setAnalysisVideo(v)}
                   isFreePlan={isFreePlan}
                   freeLimit={FREE_LIMIT}
-                  hasMore={drillNicheVideos.length > visibleCount}
+                  hasMore={drillTotalFiltered > visibleCount}
                   onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
                   darkMode
                 />
