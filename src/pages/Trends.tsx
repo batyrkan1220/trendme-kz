@@ -3,6 +3,8 @@ import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp, ChevronDown, ChevronRight } from "lucide-react";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { useState, useMemo, useCallback } from "react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import {
   DropdownMenu,
   DropdownMenuContent,
