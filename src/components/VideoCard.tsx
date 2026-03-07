@@ -402,22 +402,22 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       </div>
 
       {/* Stats bar */}
-      <div className={`flex items-center justify-around px-2 py-2 ${darkMode ? "border-b border-white/10" : "border-b border-border/30"}`}>
-        <span className="flex flex-col items-center gap-0.5">
-          <Eye className={`h-4 w-4 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
-          <span className={`text-[11px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(views)}</span>
+      <div className={`grid grid-cols-4 px-1.5 py-1.5 ${darkMode ? "border-b border-white/10" : "border-b border-border/30"}`}>
+        <span className="flex items-center justify-center gap-1">
+          <Eye className={`h-3 w-3 shrink-0 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
+          <span className={`text-[10px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(views)}</span>
         </span>
-        <span className="flex flex-col items-center gap-0.5">
-          <Heart className={`h-4 w-4 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
-          <span className={`text-[11px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.likes))}</span>
+        <span className="flex items-center justify-center gap-1">
+          <Heart className={`h-3 w-3 shrink-0 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
+          <span className={`text-[10px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.likes))}</span>
         </span>
-        <span className="flex flex-col items-center gap-0.5">
-          <MessageCircle className={`h-4 w-4 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
-          <span className={`text-[11px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.comments))}</span>
+        <span className="flex items-center justify-center gap-1">
+          <MessageCircle className={`h-3 w-3 shrink-0 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
+          <span className={`text-[10px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.comments))}</span>
         </span>
-        <span className="flex flex-col items-center gap-0.5">
-          <Share2 className={`h-4 w-4 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
-          <span className={`text-[11px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.shares || 0))}</span>
+        <span className="flex items-center justify-center gap-1">
+          <Share2 className={`h-3 w-3 shrink-0 ${darkMode ? "text-white/40" : "text-muted-foreground"}`} />
+          <span className={`text-[10px] font-bold ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.shares || 0))}</span>
         </span>
       </div>
 
