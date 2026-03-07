@@ -117,7 +117,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               />
               <span className={cn(
                 "text-[10px] font-semibold leading-tight transition-colors",
-                active ? "text-neon" : "text-white/40"
+                active ? "text-neon" : "text-white"
               )}>
                 {item.label}
               </span>
