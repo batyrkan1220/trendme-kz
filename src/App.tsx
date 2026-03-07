@@ -45,12 +45,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
-  // Web users: show maintenance page everywhere
-  if (!isNativePlatform) {
-    const { MaintenancePage } = require("@/components/MaintenancePage");
-    return <MaintenancePage />;
-  }
-
   useEffect(() => {
     if (!user) {
       if (isNativePlatform) {
