@@ -116,10 +116,8 @@ export default function Trends() {
     onRefresh: handleRefresh,
   });
 
-  const categoryGroups = useMemo(
-    () => getNicheGroupsForCategory(activeCategory),
-    [activeCategory]
-  );
+  // Show all niches in one list
+  const allGroups = NICHE_GROUPS;
 
   // Fetch full niche data only when drilling down
   const { data: drillNicheVideos = [] } = useQuery<any[]>({
