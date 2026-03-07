@@ -65,18 +65,19 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       {showToolsMenu && (
         <div
           ref={popoverRef}
-          className="absolute bottom-full mb-3 rounded-2xl shadow-2xl p-2 min-w-[220px]"
+          className="absolute bottom-full mb-2 rounded-2xl shadow-2xl p-2"
           style={{
-            background: "#1a1a1a",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: "hsl(var(--card))",
+            border: "1px solid hsl(var(--border))",
             backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
             animation: "slide-up 0.2s ease-out",
-            left: "50%",
-            transform: "translateX(-50%)",
+            right: "16px",
+            left: "16px",
           }}
         >
           <div className="px-3 py-2 mb-1">
-            <span className="text-[11px] font-bold text-white/40 uppercase tracking-wider">Инструменты</span>
+            <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">Инструменты</span>
           </div>
           {toolsMenuItems.map((item) => {
             const active = location.pathname === item.path;
@@ -89,9 +90,9 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
                   "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm transition-colors active:scale-[0.97]",
                   active
                     ? "text-neon font-semibold"
-                    : "text-white/80 hover:text-white hover:bg-white/5"
+                    : "text-foreground/80 hover:text-foreground hover:bg-accent"
                 )}
-                style={active ? { background: "rgba(200,255,0,0.1)" } : undefined}
+                style={active ? { background: "hsl(var(--neon) / 0.1)" } : undefined}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 <span className="font-medium">{item.label}</span>
