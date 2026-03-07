@@ -28,6 +28,7 @@ export default function Trends() {
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
+  const [drillPeriod, setDrillPeriod] = useState<number>(7);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { user } = useAuth();
   const { balance } = useTokens();
