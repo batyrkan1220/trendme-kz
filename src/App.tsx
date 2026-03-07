@@ -81,7 +81,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
       <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
-  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+  if (!isAdmin) return <Navigate to="/trends" replace />;
   return <>{children}</>;
 }
 
@@ -100,14 +100,14 @@ const AppRoutes = () => (
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<Navigate to="/trends" replace />} />
         <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
         <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
         <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
         <Route path="/ai-script" element={<ProtectedRoute><ScriptFromVideo /></ProtectedRoute>} />
         <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
         <Route path="/favorites" element={<Navigate to="/library" replace />} />
-        <Route path="/journal" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/journal" element={<Navigate to="/trends" replace />} />
         <Route path="/razvedka" element={<ProtectedRoute><Razvedka /></ProtectedRoute>} />
         <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />

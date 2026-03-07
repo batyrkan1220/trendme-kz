@@ -19,9 +19,8 @@ interface NavItem {
 }
 
 const searchItems: NavItem[] = [
-  { label: "Главная", icon: LayoutDashboard, path: "/dashboard", iconColor: "text-amber-500" },
-  { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
   { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
+  { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
 ];
 
 const aiVideoItems: NavItem[] = [

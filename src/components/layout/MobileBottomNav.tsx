@@ -8,9 +8,8 @@ import {
 import { useState, useRef, useEffect } from "react";
 
 const mainNavItems = [
-  { icon: Home, path: "/dashboard", label: "Главная" },
-  { icon: TrendingUp, path: "/search", label: "Поиск" },
   { icon: Flame, path: "/trends", label: "Тренды" },
+  { icon: TrendingUp, path: "/search", label: "Поиск" },
   { icon: UserSearch, path: "/account-analysis", label: "Анализ" },
 ];
 
