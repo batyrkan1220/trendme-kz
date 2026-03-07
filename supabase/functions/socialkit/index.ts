@@ -990,7 +990,7 @@ Deno.serve(async (req: Request) => {
 
           if (!uncategorized || uncategorized.length === 0) break;
 
-          const videoCaptions = uncategorized.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+          const videoCaptions = uncategorized.map((v: any, idx: number) => `${idx}: ${cleanForPrompt(v.caption, 150)}`).join("\n");
 
           try {
             const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
