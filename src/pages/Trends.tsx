@@ -296,7 +296,9 @@ export default function Trends() {
                 className="sticky top-0 z-30 pb-3 px-4 backdrop-blur-md"
                 style={{ background: "rgba(10,10,10,0.4)", paddingTop: "calc(env(safe-area-inset-top, 0px) + 4px)" }}
               >
-                <div className="flex items-center justify-center mb-2 mt-1">
+                <div
+                  className="flex items-center justify-center mb-2 mt-1 animate-stagger-fade-in"
+                >
                   <h1
                     className="text-lg font-black tracking-[0.2em] uppercase"
                     style={{
@@ -307,7 +309,10 @@ export default function Trends() {
                     trendme
                   </h1>
                 </div>
-                <div className="flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide">
+                <div
+                  className="flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide animate-stagger-fade-in"
+                  style={{ animationDelay: "100ms" }}
+                >
                   {TREND_CATEGORIES.map((cat) => {
                     const active = activeCategory === cat.key;
                     return (
