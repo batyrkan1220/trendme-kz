@@ -171,7 +171,7 @@ export default function Auth() {
                       <option value="+90">🇹🇷 +90</option>
                     </select>
                   </div>
-                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-12 bg-card border-border rounded-xl card-shadow text-sm" disabled={loading} autoComplete="tel" />
+                  <Input type="tel" placeholder="Номер телефона" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-12 bg-card border-border rounded-xl card-shadow text-base" disabled={loading} autoComplete="tel" />
                 </div>
               </>
             )}
