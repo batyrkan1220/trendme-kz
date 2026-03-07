@@ -9,6 +9,9 @@ const config: CapacitorConfig = {
     allowNavigation: [
       'trendme.kz',
       '*.trendme.kz',
+      'trendme-kz.lovable.app',
+      '*.lovable.app',
+      '*.lovableproject.com',
       '*.supabase.co',
       '*.supabase.com',
     ],
