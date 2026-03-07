@@ -28,6 +28,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
   freeLimit,
   hasMore,
   onLoadMore,
+  darkMode,
 }, ref) {
   const navigate = useNavigate();
   const loaderRef = useRef<HTMLDivElement>(null);
