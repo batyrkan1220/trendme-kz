@@ -188,3 +188,10 @@ body.native-app {
   transform: translateY(-4px);
   transition: opacity 150ms ease-in, transform 150ms ease-in;
 }
+
+/* iOS: prevent auto-zoom on input focus in Capacitor / Safari */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
