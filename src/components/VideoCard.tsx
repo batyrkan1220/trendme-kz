@@ -442,7 +442,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
       {/* Caption */}
       <div className="px-3 pt-1.5 pb-1">
-        <p className={`text-xs line-clamp-2 leading-relaxed ${darkMode ? "text-white/70" : "text-foreground/80"}`}>
+        <p className={`text-xs line-clamp-2 leading-relaxed ${darkMode ? "text-white" : "text-foreground/80"}`}>
           {caption || "Без описания"}
         </p>
       </div>
