@@ -273,9 +273,9 @@ export default function Pricing() {
                           }`}
                           style={!isActive ? {
                             background: isPopular
-                              ? "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 55%), hsl(330 80% 60%))"
-                              : "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 60%))",
-                            color: "white",
+                              ? "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))"
+                              : "linear-gradient(135deg, hsl(var(--primary)), hsl(82 90% 45%))",
+                            color: "black",
                           } : undefined}
                           disabled={isActive || loadingPlanId === plan.id}
                           onClick={() => {
