@@ -364,7 +364,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 <Music className={`h-2.5 w-2.5 ${darkMode ? "text-black" : "text-foreground"}`} />
                 <span className={`text-[9px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
