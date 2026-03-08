@@ -24,6 +24,7 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const [debugTap, setDebugTap] = useState(0);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { checkAndLog, getRemaining, isFreeTrial } = useSubscription();
