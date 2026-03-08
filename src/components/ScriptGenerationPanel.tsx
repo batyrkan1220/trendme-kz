@@ -142,8 +142,10 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   };
 
   const handleRegenerate = async () => {
-    const ok = await spend("script_generation", isKk ? "Сценарийді қайта генерациялау" : "Перегенерация сценария");
-    if (!ok) return;
+    if (!isNativePlatform || user) {
+      const ok = await spend("script_generation", isKk ? "Сценарийді қайта генерациялау" : "Перегенерация сценария");
+      if (!ok) return;
+    }
     generateScript([]);
     setMessages([{
       role: "assistant",
