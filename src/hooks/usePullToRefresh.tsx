@@ -24,10 +24,21 @@ export function usePullToRefresh({ onRefresh, threshold = 80, maxPull = 120 }: U
     if (!isPulling.current || isRefreshing) return;
     const delta = e.touches[0].clientY - startY.current;
     if (delta > 0) {
-      // Dampen the pull
-      const dampened = Math.min(delta * 0.5, maxPull);
-      setPullDistance(dampened);
-      if (dampened > 10) e.preventDefault();
+      // Only prevent default scroll when actively pulling down from top
+      const el = containerRef.current;
+      if (el && el.scrollTop <= 0) {
+        const dampened = Math.min(delta * 0.5, maxPull);
+        setPullDistance(dampened);
+        if (dampened > 10) e.preventDefault();
+      } else {
+        // User scrolled down, cancel pull gesture
+        isPulling.current = false;
+        setPullDistance(0);
+      }
+    } else {
+      // Scrolling down (delta < 0), cancel pull gesture immediately
+      isPulling.current = false;
+      setPullDistance(0);
     }
   }, [isRefreshing, maxPull]);
 
