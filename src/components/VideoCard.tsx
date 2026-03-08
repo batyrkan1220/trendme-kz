@@ -143,14 +143,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     };
   }, [isMobile, playUrl, onPlay]);
 
-  // Preload play URL on desktop hover (debounced 600ms to avoid wasted calls)
+  // Preload play URL on hover (desktop) or touchstart (mobile)
   const preloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePreload = useCallback(() => {
-    if (isMobile) return; // no preload on mobile — save credits
     if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
-    if (preloadTimer.current) return; // already scheduled
+    if (preloadTimer.current) return;
 
+    // Shorter delay on mobile for faster perceived load
+    const delay = isMobile ? 100 : 600;
     preloadTimer.current = setTimeout(async () => {
       preloadTimer.current = null;
       if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
@@ -163,7 +164,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           playUrlCache.set(video.url, data.play_url);
         }
       } catch {}
-    }, 600);
+    }, delay);
   }, [isMobile, video.url]);
 
   const handlePreloadCancel = useCallback(() => {
@@ -274,6 +275,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 controls
                 autoPlay
                 playsInline
+                preload="auto"
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-3">
