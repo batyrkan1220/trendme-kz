@@ -1042,6 +1042,7 @@ Deno.serve(async (req: Request) => {
 
       case "admin_search": {
         // Admin-only: EnsembleData search with filters
+        if (!userId) return json({ error: "Auth required for admin actions" }, 401);
         const { data: roleCheck } = await adminClient
           .from("user_roles")
           .select("role")
