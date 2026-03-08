@@ -83,7 +83,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div ref={containerRef} className="px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full pt-6 md:pt-8 pb-28 md:pb-12 overflow-x-hidden flex flex-col justify-center gap-4 md:gap-8" style={{ minHeight: "calc(100dvh - 6rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 24px, 24px)" }}>
+      <div ref={containerRef} className="px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full pt-6 md:pt-8 pb-16 md:pb-12 overflow-x-hidden flex flex-col justify-center gap-4 md:gap-8" style={{ minHeight: "calc(100dvh - 6rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 24px, 24px)" }}>
         <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} progress={progress} />
         
         {/* Greeting */}

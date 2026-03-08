@@ -101,7 +101,7 @@ export default function ScriptFromVideo() {
   if (analysis && !isPending) {
     return (
       <AppLayout>
-        <div className="pb-28 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)" }}>
+        <div className="pb-16 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)" }}>
           <ScriptGenerationPanel
             transcript={transcript}
             summary={summary}
