@@ -457,6 +457,6 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       )}
     </div>
   );
-}));
+});
 
 export const MemoVideoCard = memo(VideoCard);
