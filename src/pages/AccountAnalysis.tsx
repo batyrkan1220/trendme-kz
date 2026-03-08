@@ -1,8 +1,8 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import {
   UserCircle, Users, Heart, Video, Loader2, Check, Eye, MessageCircle, Share2,
-  TrendingUp, BarChart3, Zap, ExternalLink, Play, Music, X, Sparkles, Star
-} from "lucide-react";
+  TrendingUp, BarChart3, Zap, ExternalLink, Play, Music, X, Sparkles, Star } from
+"lucide-react";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { useState, useCallback, useMemo } from "react";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
@@ -18,7 +18,7 @@ const isValidTikTokUrl = (url: string): boolean => {
   try {
     const parsed = new URL(url.trim());
     const hosts = ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "m.tiktok.com", "vt.tiktok.com", "lite.tiktok.com"];
-    return hosts.some(h => parsed.hostname === h || parsed.hostname.endsWith("." + h));
+    return hosts.some((h) => parsed.hostname === h || parsed.hostname.endsWith("." + h));
   } catch {
     return false;
   }
@@ -44,9 +44,9 @@ function getTimeAgo(ts: number): string {
 }
 
 interface TopVideo {
-  id: string; desc: string; cover: string; url: string;
-  views: number; likes: number; comments: number; shares: number;
-  duration: number; createTime: number;
+  id: string;desc: string;cover: string;url: string;
+  views: number;likes: number;comments: number;shares: number;
+  duration: number;createTime: number;
 }
 
 export default function AccountAnalysis() {
@@ -67,7 +67,7 @@ export default function AccountAnalysis() {
       return data?.map((f) => f.video_id) || [];
     },
     enabled: !!user,
-    staleTime: 30_000,
+    staleTime: 30_000
   });
 
   const toggleFav = useCallback(async (videoId: string) => {
@@ -86,7 +86,7 @@ export default function AccountAnalysis() {
   const { isPending, mutate: analyze } = useMutation({
     mutationFn: async (profileUrl: string) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "account_stats", profile_url: profileUrl },
+        body: { action: "account_stats", profile_url: profileUrl }
       });
       if (error) throw error;
       return data;
@@ -98,7 +98,7 @@ export default function AccountAnalysis() {
     },
     onError: (err: Error) => {
       toast.error("Ошибка: " + err.message);
-    },
+    }
   });
 
 
@@ -119,33 +119,33 @@ export default function AccountAnalysis() {
   return (
     <AppLayout>
       {!account && !isPending ? (
-        /* Centered empty state */
-        <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+      /* Centered empty state */
+      <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Анализ аккаунта 👤</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Анализ аккаунта </h1>
             <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на профиль TikTok для анализа</p>
             <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Input
-                placeholder="Вставьте ссылку на профиль TikTok..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-                className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-base"
-              />
+              placeholder="Вставьте ссылку на профиль TikTok..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+              className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-base" />
+            
               <Button
-                onClick={handleAnalyze}
-                disabled={isPending}
-                className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
-              >
+              onClick={handleAnalyze}
+              disabled={isPending}
+              className="h-12 gradient-hero text-primary-foreground border-0 px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm">
+              
                 <UserCircle className="h-4 w-4 mr-2" />Анализировать
               </Button>
             </div>
             {/* History section removed */}
           </div>
-        </div>
-      ) : isPending && !account ? (
-        /* Centered loading */
-        <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+        </div>) :
+      isPending && !account ? (
+      /* Centered loading */
+      <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-5">
             <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
               <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
@@ -155,8 +155,8 @@ export default function AccountAnalysis() {
             </p>
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           </div>
-        </div>
-      ) : (
+        </div>) :
+
       <>
       <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in max-w-7xl mx-auto pb-28 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">Анализ аккаунта 👤</h1>
@@ -164,51 +164,51 @@ export default function AccountAnalysis() {
         {/* Search */}
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
-            placeholder="Вставьте ссылку на профиль TikTok..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-            className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-base"
-          />
+              placeholder="Вставьте ссылку на профиль TikTok..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+              className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-base" />
+            
           <Button
-            onClick={handleAnalyze}
-            disabled={isPending}
-            className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
-          >
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+              onClick={handleAnalyze}
+              disabled={isPending}
+              className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm">
+              
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> :
               <><UserCircle className="h-4 w-4 mr-2" />Анализировать</>
-            )}
+              }
           </Button>
         </div>
 
         {/* Results */}
-        {account && (
+        {account &&
           <div className="space-y-6">
             {/* Profile Header */}
             <div className="bg-card rounded-xl md:rounded-2xl border border-border/50 p-4 md:p-6 card-shadow">
               <div className="flex items-start gap-3 md:gap-5">
-                {account.avatar_url ? (
-                  <img src={account.avatar_url} alt="" className="h-14 w-14 md:h-20 md:w-20 rounded-full object-cover ring-4 ring-primary/10 shrink-0" />
-                ) : (
-                  <div className="h-14 w-14 md:h-20 md:w-20 rounded-full gradient-hero flex items-center justify-center text-xl md:text-2xl font-bold text-primary-foreground shadow-lg shrink-0">
+                {account.avatar_url ?
+                <img src={account.avatar_url} alt="" className="h-14 w-14 md:h-20 md:w-20 rounded-full object-cover ring-4 ring-primary/10 shrink-0" /> :
+
+                <div className="h-14 w-14 md:h-20 md:w-20 rounded-full gradient-hero flex items-center justify-center text-xl md:text-2xl font-bold text-primary-foreground shadow-lg shrink-0">
                     {account.username?.charAt(0).toUpperCase()}
                   </div>
-                )}
+                }
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-lg md:text-xl font-bold text-foreground">@{account.username}</h2>
-                    {account.verified && (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    {account.verified &&
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                         <Check className="h-3 w-3" /> Верифицирован
                       </span>
-                    )}
+                    }
                   </div>
                   {account.bio && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{account.bio}</p>}
-                  {account.bio_link && (
-                    <a href={account.bio_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium mt-1">
+                  {account.bio_link &&
+                  <a href={account.bio_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium mt-1">
                       <ExternalLink className="h-3 w-3" /> {account.bio_link}
                     </a>
-                  )}
+                  }
                 </div>
               </div>
             </div>
@@ -216,17 +216,17 @@ export default function AccountAnalysis() {
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
               {[
-                { icon: Users, value: account.followers, label: "Подписчики", color: "text-primary" },
-                { icon: Heart, value: account.total_likes, label: "Лайки", color: "text-primary/80" },
-                { icon: Video, value: account.total_videos, label: "Видео", color: "text-primary/70" },
-                { icon: Users, value: account.following, label: "Подписки", color: "text-primary/60" },
-              ].map((s) => (
-                <div key={s.label} className="bg-card rounded-xl border border-border/50 p-3 md:p-4 text-center card-shadow hover-lift transition-transform">
+              { icon: Users, value: account.followers, label: "Подписчики", color: "text-primary" },
+              { icon: Heart, value: account.total_likes, label: "Лайки", color: "text-primary/80" },
+              { icon: Video, value: account.total_videos, label: "Видео", color: "text-primary/70" },
+              { icon: Users, value: account.following, label: "Подписки", color: "text-primary/60" }].
+              map((s) =>
+              <div key={s.label} className="bg-card rounded-xl border border-border/50 p-3 md:p-4 text-center card-shadow hover-lift transition-transform">
                   <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color} mx-auto mb-1 md:mb-2`} />
                   <p className="text-lg md:text-xl font-bold text-foreground">{formatNum(Number(s.value || 0))}</p>
                   <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">{s.label}</p>
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Advanced Metrics */}
@@ -266,70 +266,70 @@ export default function AccountAnalysis() {
             </div>
 
             {/* Top Videos */}
-            {topVideos.length > 0 && (
-              <div className="space-y-3">
+            {topVideos.length > 0 &&
+            <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" /> Топ видео по просмотрам
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
                   {topVideos.map((v) => {
-                    const cardData: VideoCardData = {
-                      id: v.id,
-                      platform_video_id: v.id,
-                      url: v.url,
-                      cover_url: v.cover,
-                      caption: v.desc,
-                      author_username: account?.username,
-                      author_avatar_url: account?.avatar_url,
-                      views: v.views,
-                      likes: v.likes,
-                      comments: v.comments,
-                      shares: v.shares,
-                      published_at: null,
-                      createTime: v.createTime,
-                      duration: v.duration,
-                    };
-                    return (
-                      <VideoCard
-                        key={v.id}
-                        video={cardData}
-                        playingId={playingId}
-                        onPlay={setPlayingId}
-                        isFavorite={userFavorites.includes(v.id)}
-                        onToggleFav={toggleFav}
-                        onAnalyze={(vid) => {
-                          setAnalysisVideo({
-                            id: vid.id,
-                            url: vid.url,
-                            cover_url: vid.cover_url || vid.cover,
-                            platform_video_id: vid.id,
-                            views: vid.views,
-                            likes: vid.likes,
-                            comments: vid.comments,
-                            shares: vid.shares,
-                            caption: vid.caption || vid.desc,
-                          });
-                        }}
-                        showTier={true}
-                        showAuthor={false}
-                        darkMode
-                      />
-                    );
-                  })}
+                  const cardData: VideoCardData = {
+                    id: v.id,
+                    platform_video_id: v.id,
+                    url: v.url,
+                    cover_url: v.cover,
+                    caption: v.desc,
+                    author_username: account?.username,
+                    author_avatar_url: account?.avatar_url,
+                    views: v.views,
+                    likes: v.likes,
+                    comments: v.comments,
+                    shares: v.shares,
+                    published_at: null,
+                    createTime: v.createTime,
+                    duration: v.duration
+                  };
+                  return (
+                    <VideoCard
+                      key={v.id}
+                      video={cardData}
+                      playingId={playingId}
+                      onPlay={setPlayingId}
+                      isFavorite={userFavorites.includes(v.id)}
+                      onToggleFav={toggleFav}
+                      onAnalyze={(vid) => {
+                        setAnalysisVideo({
+                          id: vid.id,
+                          url: vid.url,
+                          cover_url: vid.cover_url || vid.cover,
+                          platform_video_id: vid.id,
+                          views: vid.views,
+                          likes: vid.likes,
+                          comments: vid.comments,
+                          shares: vid.shares,
+                          caption: vid.caption || vid.desc
+                        });
+                      }}
+                      showTier={true}
+                      showAuthor={false}
+                      darkMode />);
+
+
+                })}
                 </div>
               </div>
-            )}
+            }
           </div>
-        )}
+          }
 
       </div>
       <VideoAnalysisDialog
-        video={analysisVideo}
-        open={!!analysisVideo}
-        onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
-      />
+          video={analysisVideo}
+          open={!!analysisVideo}
+          onOpenChange={(open) => {if (!open) setAnalysisVideo(null);}} />
+        
       </>
-      )}
-    </AppLayout>
-  );
+      }
+    </AppLayout>);
+
 }
