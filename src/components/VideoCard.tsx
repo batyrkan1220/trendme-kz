@@ -272,12 +272,14 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 </div>
               </div>
             ) : playUrl === "tiktok_embed_fallback" ? (
-              <div className="w-full h-full bg-black flex items-center justify-center">
+              <div className="w-full h-full bg-black overflow-hidden">
                 <iframe
                   src={`https://www.tiktok.com/embed/v2/${videoId}`}
-                  className="w-full h-full border-0"
+                  className="border-0"
+                  style={{ width: "100%", height: "100%", transform: "scale(1)", transformOrigin: "top left" }}
                   allow="accelerometer; autoplay; encrypted-media; gyroscope"
                   allowFullScreen
+                  scrolling="no"
                 />
               </div>
             ) : playUrl ? (
