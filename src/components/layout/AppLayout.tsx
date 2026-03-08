@@ -15,7 +15,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {!isMobile && !isNativePlatform && (
         <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       )}
-      <main className="flex-1 min-w-0 min-h-[100dvh] pb-24 md:pb-0 overflow-x-hidden overflow-y-auto">
+      <main className="flex-1 min-w-0 h-full pb-24 md:pb-0 overflow-x-hidden overflow-y-auto">
         {children}
       </main>
       {/* Always render on mobile via CSS, not JS condition */}
