@@ -404,10 +404,13 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
             {/* Open in TikTok */}
             <button
-              onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
-              className="absolute top-8 right-1.5 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 transition-transform border border-white/20"
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(video.url, '_blank'); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); window.open(video.url, '_blank'); }}
+              className="absolute top-8 right-1.5 z-10 w-9 h-9 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20"
+              style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
             >
-              <ExternalLink className="h-3.5 w-3.5 text-white" />
+              <ExternalLink className="h-4 w-4 text-white" />
             </button>
 
             {/* Duration badge */}
