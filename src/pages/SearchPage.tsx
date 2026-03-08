@@ -91,11 +91,12 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     const q = query.trim();
+    setDebugTap(prev => prev + 1);
+    console.log("[search] handleSearch CALLED, query:", q, "tap#:", debugTap + 1);
     if (!q) {
       toast.error("Введите запрос");
       return;
     }
-    console.log("[search] handleSearch called, query:", q);
     const ok = await checkAndLog("search", `Поиск: ${q}`);
     console.log("[search] checkAndLog result:", ok);
     if (!ok) return;
