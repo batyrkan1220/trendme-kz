@@ -178,9 +178,9 @@ export default function SearchPage() {
       <>
       <div
           className="animate-fade-in"
-          style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 56px, 24px)", paddingBottom: "6rem" }}>
+          style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)", paddingBottom: "6rem" }}>
           
-        <div className="px-4 pt-2 pb-3 md:p-6 lg:p-8">
+        <div className="px-4 pb-3 md:p-6 lg:p-8">
           <div className="space-y-4 md:space-y-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск</h1>
 
