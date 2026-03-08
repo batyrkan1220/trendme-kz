@@ -91,7 +91,7 @@ export default function Library() {
                 onToggleFav={removeFav}
                 onAnalyze={handleAnalyze}
                 showTier={true}
-                showAuthor={true}
+                showAuthor={false}
                 showAnalyzeButton={true}
                 darkMode />);
 
