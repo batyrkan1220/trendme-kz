@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, forwardRef } from "react";
+import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
   Trophy, Zap, Target, TrendingUp, Loader2, Maximize
@@ -96,6 +96,7 @@ interface VideoCardProps {
   showAuthor?: boolean;
   showAnalyzeButton?: boolean;
   darkMode?: boolean;
+  isMobileOverride?: boolean;
 }
 
 export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function VideoCard({
@@ -109,13 +110,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   showAuthor = true,
   showAnalyzeButton = true,
   darkMode = false,
+  isMobileOverride,
 }, ref) {
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
-  const isMobile = useIsMobile();
+  const isMobileFromHook = useIsMobile();
+  const isMobile = isMobileOverride ?? isMobileFromHook;
 
   // Auto-fullscreen on mobile when video is ready
   useEffect(() => {
@@ -455,3 +458,5 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     </div>
   );
 });
+
+export const MemoVideoCard = memo(VideoCard);

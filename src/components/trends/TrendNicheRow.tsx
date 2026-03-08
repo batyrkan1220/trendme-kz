@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { VideoCard } from "@/components/VideoCard";
+import { MemoVideoCard } from "@/components/VideoCard";
 import { ChevronRight } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
 
@@ -55,13 +55,13 @@ export function TrendNicheRow({
         className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {videos.slice(0, 10).map((video) => (
+        {videos.slice(0, 6).map((video) => (
           <div
             key={video.id}
             className="shrink-0"
             style={{ width: "40vw", maxWidth: "200px" }}
           >
-            <VideoCard
+            <MemoVideoCard
               video={video}
               playingId={playingId}
               onPlay={onPlay}
@@ -70,7 +70,9 @@ export function TrendNicheRow({
               onAnalyze={onAnalyze}
               showTier={true}
               showAuthor={false}
+              showAnalyzeButton={false}
               darkMode={darkMode}
+              isMobileOverride={true}
             />
           </div>
         ))}

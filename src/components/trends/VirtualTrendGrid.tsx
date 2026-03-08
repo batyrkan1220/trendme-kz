@@ -1,5 +1,5 @@
 import { useRef, useEffect, forwardRef } from "react";
-import { VideoCard } from "@/components/VideoCard";
+import { MemoVideoCard } from "@/components/VideoCard";
 import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -64,7 +64,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
           }
 
           return (
-            <VideoCard
+            <MemoVideoCard
               key={video.id}
               video={video}
               playingId={playingId}

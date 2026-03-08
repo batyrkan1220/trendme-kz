@@ -28,7 +28,7 @@ export function LazyNicheRow(props: LazyNicheRowProps) {
           observer.disconnect();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "100px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
