@@ -297,6 +297,11 @@ html, body {
   100% { width: 100%; }
 }
 
+@keyframes splash-line-shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
 /* Staggered fade-in for page content */
 @keyframes stagger-fade-in {
   from { opacity: 0; }
