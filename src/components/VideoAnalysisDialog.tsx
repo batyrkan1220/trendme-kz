@@ -52,16 +52,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   useEffect(() => {
     if (open && video) {
       trackViewContent(video.caption || video.url);
-      // Preload play_url when dialog opens
-      if (!preloadedUrlRef.current) {
-        supabase.functions.invoke("socialkit", {
-          body: { action: "get_play_url", video_url: video.url },
-        }).then(({ data, error }) => {
-          if (!error && data?.play_url) {
-            preloadedUrlRef.current = data.play_url;
-          }
-        }).catch(() => {});
-      }
+      // Preload removed to save EnsembleData credits
+      // play_url will be fetched on-demand when user clicks Play
     }
   }, [open, video]);
 
