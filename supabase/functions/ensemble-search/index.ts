@@ -21,9 +21,6 @@ Deno.serve(async (req: Request) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401);
-    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -34,16 +31,19 @@ Deno.serve(async (req: Request) => {
       return json({ error: "ENSEMBLE_DATA_TOKEN not configured" }, 500);
     }
 
-    // Verify user
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return json({ error: "Unauthorized" }, 401);
+    // Try to verify user (optional — native mobile may not have auth)
+    let userId: string | null = null;
+    let userClient: any = null;
+    if (authHeader?.startsWith("Bearer ")) {
+      userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims) {
+        userId = claimsData.claims.sub as string;
+      }
     }
-    const userId = claimsData.claims.sub as string;
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
@@ -278,20 +278,27 @@ Deno.serve(async (req: Request) => {
         };
       });
 
-    const [upsertResult, queryResult] = await Promise.all([
-      adminClient
-        .from("videos")
-        .upsert(videoRows, { onConflict: "platform,platform_video_id" })
-        .select(),
-      userClient
-        .from("search_queries")
-        .upsert(
-          { user_id: userId, query_text: trimmedQuery, last_run_at: now, total_results_saved: videoRows.length },
-          { onConflict: "user_id,query_text", ignoreDuplicates: false }
-        )
-        .select()
-        .single(),
-    ]);
+    // Upsert videos always; search_queries only if authenticated
+    const upsertPromise = adminClient
+      .from("videos")
+      .upsert(videoRows, { onConflict: "platform,platform_video_id" })
+      .select();
+
+    const promises: Promise<any>[] = [upsertPromise];
+    if (userId && userClient) {
+      promises.push(
+        userClient
+          .from("search_queries")
+          .upsert(
+            { user_id: userId, query_text: trimmedQuery, last_run_at: now, total_results_saved: videoRows.length },
+            { onConflict: "user_id,query_text", ignoreDuplicates: false }
+          )
+          .select()
+          .single()
+      );
+    }
+
+    const [upsertResult] = await Promise.all(promises);
 
     const upsertedVideos = upsertResult.data || [];
 

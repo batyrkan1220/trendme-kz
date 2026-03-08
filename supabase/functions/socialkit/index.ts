@@ -249,23 +249,23 @@ Deno.serve(async (req: Request) => {
 
       return json({ updated, failed, total: vids.length, offset, nextOffset, done: vids.length < batchSize, log_id: logId });
     }
-    if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401);
-    }
-
     if (!ensembleToken) {
       return json({ error: "ENSEMBLE_DATA_TOKEN not configured" }, 500);
     }
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return json({ error: "Unauthorized" }, 401);
+    // Try to verify user (optional — native mobile may not have auth)
+    let userId: string | null = null;
+    let userClient: any = null;
+    if (authHeader?.startsWith("Bearer ")) {
+      userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims) {
+        userId = claimsData.claims.sub as string;
+      }
     }
-    const userId = claimsData.claims.sub as string;
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
@@ -530,16 +530,17 @@ Deno.serve(async (req: Request) => {
         }).filter(Boolean);
 
         // 5. Batch upsert + save query in parallel
-        const [upsertResult, queryResult] = await Promise.all([
-          adminClient.from("videos").upsert(videoRows, { onConflict: "platform,platform_video_id" }).select(),
-          userClient.from("search_queries").upsert(
+        const upsertPromise = adminClient.from("videos").upsert(videoRows, { onConflict: "platform,platform_video_id" }).select();
+        const dbPromises: Promise<any>[] = [upsertPromise];
+        if (userId && userClient) {
+          dbPromises.push(userClient.from("search_queries").upsert(
             { user_id: userId, query_text: query, last_run_at: now, total_results_saved: videoRows.length },
             { onConflict: "user_id,query_text", ignoreDuplicates: false }
-          ).select().single(),
-        ]);
+          ).select().single());
+        }
+        const [upsertResult] = await Promise.all(dbPromises);
 
         const upsertedVideos = upsertResult.data || [];
-        const queryRow = queryResult.data;
 
         // 6. Fire-and-forget: AI categorize uncategorized videos
         const uncategorized = upsertedVideos.filter((v: any) => !v.niche);
@@ -841,17 +842,22 @@ Deno.serve(async (req: Request) => {
           comments_json: commentsData,
         };
 
-        // Save analysis
-        const { data: analysis } = await userClient
-          .from("video_analysis")
-          .insert({
-            user_id: userId,
-            video_url,
-            ...result,
-            analyzed_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
+        // Save analysis (only if authenticated)
+        let analysis = { ...result, video_url };
+        if (userId) {
+          const saveClient = userClient || adminClient;
+          const { data: saved } = await saveClient
+            .from("video_analysis")
+            .insert({
+              user_id: userId,
+              video_url,
+              ...result,
+              analyzed_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+          if (saved) analysis = saved;
+        }
 
         // activity_log is handled client-side via checkAndLog
         const analyzeCredits = (postInfoRes.status === "fulfilled" ? 1 : 0) + (commentsRes.status === "fulfilled" && awemeId ? 1 : 0);
@@ -939,36 +945,42 @@ Deno.serve(async (req: Request) => {
           top_videos: topVideos.slice(0, 12),
         };
 
-        const { data: account } = await userClient
-          .from("accounts_tracked")
-          .upsert(
-            {
-              user_id: userId,
-              profile_url,
-              username,
-              avatar_url: avatarUrl,
-              followers,
-              following,
-              total_likes: totalLikes,
-              total_videos: totalVideos,
-              verified: accountData.verification_type === 1 || accountData.verified || false,
-              bio: accountData.signature || accountData.bio || "",
-              bio_link: accountData.bio_link?.link || accountData.bioLink || null,
-              fetched_at: new Date().toISOString(),
-              analysis_json: analysisPayload,
-            },
-            { onConflict: "user_id,username" }
-          )
-          .select()
-          .single();
+        let account = null;
+        if (userId) {
+          const saveClient = userClient || adminClient;
+          const { data: saved } = await saveClient
+            .from("accounts_tracked")
+            .upsert(
+              {
+                user_id: userId,
+                profile_url,
+                username,
+                avatar_url: avatarUrl,
+                followers,
+                following,
+                total_likes: totalLikes,
+                total_videos: totalVideos,
+                verified: accountData.verification_type === 1 || accountData.verified || false,
+                bio: accountData.signature || accountData.bio || "",
+                bio_link: accountData.bio_link?.link || accountData.bioLink || null,
+                fetched_at: new Date().toISOString(),
+                analysis_json: analysisPayload,
+              },
+              { onConflict: "user_id,username" }
+            )
+            .select()
+            .single();
+          if (saved) account = saved;
+        }
 
         // activity_log is handled client-side via checkAndLog
         const accountCredits = (userInfoRes.status === "fulfilled" ? 1 : 0) + (userPostsRes.status === "fulfilled" ? 1 : 0);
         await logApiUsage("account_stats", accountCredits, { profile_url, username });
 
         return json({
-          ...account,
+          ...(account || {}),
           ...analysisPayload,
+          username, avatar_url: avatarUrl, followers, following, total_likes: totalLikes, total_videos: totalVideos,
         });
       }
 
@@ -1030,6 +1042,7 @@ Deno.serve(async (req: Request) => {
 
       case "admin_search": {
         // Admin-only: EnsembleData search with filters
+        if (!userId) return json({ error: "Auth required for admin actions" }, 401);
         const { data: roleCheck } = await adminClient
           .from("user_roles")
           .select("role")
@@ -1205,6 +1218,7 @@ Deno.serve(async (req: Request) => {
 
       case "admin_add_video": {
         // Admin-only: add single video to trends DB
+        if (!userId) return json({ error: "Auth required for admin actions" }, 401);
         const { data: roleCheck2 } = await adminClient
           .from("user_roles")
           .select("role")
