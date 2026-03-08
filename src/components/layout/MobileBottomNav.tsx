@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import {
   Flame, Search, Heart, Wrench, Video, Sparkles, BarChart3, ChevronUp
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 const mainNavItems = [
   { icon: Flame, path: "/trends", label: "Тренды" },
@@ -25,6 +25,7 @@ interface MobileBottomNavProps {
 
 export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: MobileBottomNavProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -44,6 +45,12 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       document.removeEventListener("touchstart", handle);
     };
   }, [showToolsMenu]);
+
+  const goTo = useCallback((path: string) => {
+    drawerOpen && onDrawerClose?.();
+    setShowToolsMenu(false);
+    navigate(path);
+  }, [navigate, drawerOpen, onDrawerClose]);
 
   const nav = (
     <nav
@@ -82,12 +89,11 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           {toolsMenuItems.map((item) => {
             const active = location.pathname === item.path;
             return (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
-                onClick={() => setShowToolsMenu(false)}
+                onClick={() => goTo(item.path)}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm transition-colors active:scale-[0.97]",
+                  "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm transition-colors w-full text-left",
                   active
                     ? "text-neon font-semibold"
                     : "text-foreground/80 hover:text-foreground hover:bg-accent"
@@ -96,7 +102,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 <span className="font-medium">{item.label}</span>
-              </Link>
+              </button>
             );
           })}
         </div>
@@ -108,10 +114,9 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         {mainNavItems.map((item) => {
           const active = location.pathname === item.path;
           return (
-            <Link
+            <button
               key={item.path}
-              to={item.path}
-              onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(false); }}
+              onClick={() => goTo(item.path)}
               className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] transition-opacity active:opacity-70"
             >
               <item.icon
@@ -127,7 +132,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               )}>
                 {item.label}
               </span>
-            </Link>
+            </button>
           );
         })}
 
@@ -163,9 +168,8 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         {(() => {
           const active = location.pathname === "/library";
           return (
-            <Link
-              to="/library"
-              onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(false); }}
+            <button
+              onClick={() => goTo("/library")}
               className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] transition-opacity active:opacity-70"
             >
               <Heart
@@ -181,7 +185,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               )}>
                 Избранное
               </span>
-            </Link>
+            </button>
           );
         })()}
       </div>
