@@ -530,16 +530,17 @@ Deno.serve(async (req: Request) => {
         }).filter(Boolean);
 
         // 5. Batch upsert + save query in parallel
-        const [upsertResult, queryResult] = await Promise.all([
-          adminClient.from("videos").upsert(videoRows, { onConflict: "platform,platform_video_id" }).select(),
-          userClient.from("search_queries").upsert(
+        const upsertPromise = adminClient.from("videos").upsert(videoRows, { onConflict: "platform,platform_video_id" }).select();
+        const dbPromises: Promise<any>[] = [upsertPromise];
+        if (userId && userClient) {
+          dbPromises.push(userClient.from("search_queries").upsert(
             { user_id: userId, query_text: query, last_run_at: now, total_results_saved: videoRows.length },
             { onConflict: "user_id,query_text", ignoreDuplicates: false }
-          ).select().single(),
-        ]);
+          ).select().single());
+        }
+        const [upsertResult] = await Promise.all(dbPromises);
 
         const upsertedVideos = upsertResult.data || [];
-        const queryRow = queryResult.data;
 
         // 6. Fire-and-forget: AI categorize uncategorized videos
         const uncategorized = upsertedVideos.filter((v: any) => !v.niche);
