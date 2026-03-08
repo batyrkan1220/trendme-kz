@@ -96,6 +96,13 @@ export default function Trends() {
     async (videoId: string) => {
       if (!user) return;
       const isFav = userFavorites.includes(videoId);
+
+      // Optimistic update — UI жедел жаңартылады
+      queryClient.setQueryData(
+        ["user-favorites", user.id],
+        isFav ? userFavorites.filter((id: string) => id !== videoId) : [...userFavorites, videoId]
+      );
+
       if (isFav) {
         await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
       } else {
