@@ -1218,6 +1218,7 @@ Deno.serve(async (req: Request) => {
 
       case "admin_add_video": {
         // Admin-only: add single video to trends DB
+        if (!userId) return json({ error: "Auth required for admin actions" }, 401);
         const { data: roleCheck2 } = await adminClient
           .from("user_roles")
           .select("role")
