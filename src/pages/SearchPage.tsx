@@ -182,7 +182,7 @@ export default function SearchPage() {
           
         <div className="px-4 pt-2 pb-3 md:p-6 lg:p-8">
           <div className="space-y-4 md:space-y-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск 🔍</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск</h1>
 
             <form onSubmit={(e) => {e.preventDefault();handleSearch();}} className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto w-full">
               <Input
