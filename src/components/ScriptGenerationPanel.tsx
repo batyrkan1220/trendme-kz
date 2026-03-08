@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { isNativePlatform } from "@/lib/native";
 import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye, MessageCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
@@ -27,11 +28,15 @@ async function streamScript({
   messages: Msg[]; onDelta: (text: string) => void; onDone: () => void; onError: (err: string) => void;
 }) {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) { onError("Необходимо авторизоваться"); return; }
+  const token = session?.access_token;
+  if (!token && !isNativePlatform) { onError("Необходимо авторизоваться"); return; }
 
   const resp = await fetch(SCRIPT_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ transcript, summary, caption, language, messages }),
   });
 
@@ -83,8 +88,10 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
   useEffect(() => {
     (async () => {
-      const ok = await spend("script_generation", isKk ? "Сценарий генерациясы" : "Генерация сценария");
-      if (!ok) { onBack(); return; }
+      if (!isNativePlatform || user) {
+        const ok = await spend("script_generation", isKk ? "Сценарий генерациясы" : "Генерация сценария");
+        if (!ok) { onBack(); return; }
+      }
       generateScript([]);
     })();
   }, []);
@@ -135,8 +142,10 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   };
 
   const handleRegenerate = async () => {
-    const ok = await spend("script_generation", isKk ? "Сценарийді қайта генерациялау" : "Перегенерация сценария");
-    if (!ok) return;
+    if (!isNativePlatform || user) {
+      const ok = await spend("script_generation", isKk ? "Сценарийді қайта генерациялау" : "Перегенерация сценария");
+      if (!ok) return;
+    }
     generateScript([]);
     setMessages([{
       role: "assistant",
