@@ -375,7 +375,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     className={`h-4 w-4 transition-all ${
                       isFavorite
                         ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
-                        : darkMode ? "text-white/70" : "text-primary"
+                        : "text-white"
                     }`}
                   />
                 </button>
