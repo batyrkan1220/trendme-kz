@@ -173,17 +173,17 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           return (
             <button
               onClick={() => goTo("/library")}
-              className="relative flex flex-col items-center gap-0.5 py-0.5 min-w-[52px] transition-opacity active:opacity-70"
+              className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
             >
               <Heart
                 className={cn(
-                  "h-[22px] w-[22px] transition-colors duration-200",
+                  "h-[25px] w-[25px] transition-colors duration-200",
                   active ? "text-neon fill-neon" : "text-white"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span className={cn(
-                "text-[10px] font-semibold leading-tight transition-colors",
+                "text-[11px] font-semibold leading-tight transition-colors",
                 active ? "text-neon" : "text-white"
               )}>
                 Избранное
