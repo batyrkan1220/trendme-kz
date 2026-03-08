@@ -55,7 +55,7 @@ export function TrendNicheRow({
         className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {videos.slice(0, 10).map((video) => (
+        {videos.slice(0, 6).map((video) => (
           <div
             key={video.id}
             className="shrink-0"
