@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import React from "react";
+import { isNativePlatform } from "@/lib/native";
 
 type ActionKey = "search" | "video_analysis" | "account_analysis" | "ai_script";
 
@@ -81,6 +82,8 @@ export function useSubscription() {
   };
 
   const checkAndLog = async (action: ActionKey, description?: string): Promise<boolean> => {
+    // On native platform without auth, allow all actions without logging
+    if (!user && isNativePlatform) return true;
     if (!user) return false;
 
     if (!hasActiveSubscription) {
