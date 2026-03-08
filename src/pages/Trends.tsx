@@ -199,7 +199,7 @@ export default function Trends() {
           progress={progress}
         />
 
-        <div className="space-y-4 pb-28">
+        <div className="space-y-4 pb-4">
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
             <>
