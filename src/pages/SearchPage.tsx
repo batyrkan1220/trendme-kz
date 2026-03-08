@@ -194,8 +194,9 @@ export default function SearchPage() {
               />
               <Button
                 onClick={handleSearch}
+                onTouchEnd={(e) => { e.preventDefault(); handleSearch(); }}
                 disabled={isSearching}
-                className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm"
+                className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm relative z-10"
               >
                 {isSearching ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
