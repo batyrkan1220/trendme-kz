@@ -52,7 +52,7 @@ export function TrendNicheRow({
       {/* Horizontal scroll */}
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {videos.slice(0, 10).map((video) => (
