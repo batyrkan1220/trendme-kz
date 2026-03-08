@@ -191,5 +191,5 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
     </nav>
   );
 
-  return createPortal(nav, document.body);
+  return nav;
 }
