@@ -324,21 +324,25 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         ) : (
           <>
             {activeCover && !coverFailed ? (
-              <div className="relative w-full h-full cursor-pointer" onClick={handlePlay}>
+              <div className="relative w-full h-full cursor-pointer">
                 <img
                   src={activeCover}
                   alt=""
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover"
+                  onClick={handlePlay}
                   onError={() => handleCoverError()}
                 />
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="relative">
                     {/* Outer glow ring */}
                     <div className="absolute -inset-2 rounded-full bg-white/10 group-hover:bg-white/20 blur-md transition-all duration-300" />
                     {/* Main play button */}
-                    <div className="relative h-14 w-14 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 group-hover:bg-white group-hover:border-white/80 group-hover:scale-110 transition-all duration-300">
+                    <div 
+                      className="relative h-14 w-14 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 group-hover:bg-white group-hover:border-white/80 group-hover:scale-110 transition-all duration-300 pointer-events-auto cursor-pointer"
+                      onClick={handlePlay}
+                    >
                       <Play className="h-6 w-6 text-white group-hover:text-foreground ml-0.5 transition-colors duration-300" fill="currentColor" fillOpacity={0.3} />
                     </div>
                   </div>
@@ -358,8 +362,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               </div>
             )}
 
-            {/* TikTok header bar */}
-            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-10">
+            {/* TikTok header bar - OUTSIDE of cover click area */}
+            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-20">
               <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm ${darkMode ? "bg-neon/90" : "bg-white/90"}`}>
                 <Music className={`h-2.5 w-2.5 ${darkMode ? "text-black" : "text-foreground"}`} />
                 <span className={`text-[9px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
@@ -367,15 +371,11 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onPointerDown={(e) => { 
-                    e.preventDefault(); 
-                    e.stopPropagation(); 
-                    console.log("[VideoCard] Heart pointerdown fired for:", video.id);
-                    onToggleFav(video.id); 
-                  }}
-                  onTouchStart={(e) => {
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    console.log("[VideoCard] Heart touchstart fired for:", video.id);
+                    console.log("[VideoCard] Heart touchend fired for:", video.id);
+                    onToggleFav(video.id);
                   }}
                   onClick={(e) => { 
                     e.preventDefault(); 
@@ -383,11 +383,11 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     console.log("[VideoCard] Heart click fired for:", video.id);
                     onToggleFav(video.id);
                   }}
-                  className={`w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"} z-30`}
-                  style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation", pointerEvents: "auto" }}
+                  className={`w-11 h-11 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
+                  style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 >
                   <Heart
-                    className={`h-4 w-4 transition-all ${
+                    className={`h-5 w-5 transition-all ${
                       isFavorite
                         ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
                         : "text-white"
