@@ -289,9 +289,9 @@ export default function Trends() {
             </>
           ) : (
             <>
-              {/* Sticky transparent header — logo */}
+              {/* Static header — logo (scrolls with content) */}
               <div
-                className="sticky top-0 z-30 pb-3 px-4"
+                className="pb-3 px-4"
                 style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 4px)" }}
               >
                 <div className="flex items-center justify-center mb-1 mt-1">
