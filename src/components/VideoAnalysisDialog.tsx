@@ -409,8 +409,10 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 {/* Generate Scenario Button */}
                 <button
                   onClick={async () => {
-                    const ok = await checkAndLog("ai_script", `AI Сценарий из трендов: ${video.url}`);
-                    if (!ok) return;
+                    if (!isNativePlatform) {
+                      const ok = await checkAndLog("ai_script", `AI Сценарий из трендов: ${video.url}`);
+                      if (!ok) return;
+                    }
                     setShowScript(true);
                   }}
                   className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
