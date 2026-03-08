@@ -33,15 +33,19 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
   useEffect(() => {
     if (!showToolsMenu) return;
     const handle = (e: MouseEvent | TouchEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+      // Check both the popover and the tools button itself
+      const nav = document.getElementById("mobile-bottom-nav");
+      if (
+        popoverRef.current && !popoverRef.current.contains(e.target as Node) &&
+        (!nav || !nav.contains(e.target as Node))
+      ) {
         setShowToolsMenu(false);
       }
     };
-    document.addEventListener("mousedown", handle);
-    document.addEventListener("touchstart", handle);
+    // Use click instead of mousedown/touchstart to avoid swallowing events
+    document.addEventListener("click", handle, true);
     return () => {
-      document.removeEventListener("mousedown", handle);
-      document.removeEventListener("touchstart", handle);
+      document.removeEventListener("click", handle, true);
     };
   }, [showToolsMenu]);
 
