@@ -346,33 +346,68 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           )}
         </div>
 
-        {/* Mobile: floating AI chat button */}
+        {/* Mobile: floating AI assistant button with label */}
         {!chatOpen && (
           <button
             onClick={() => setChatOpen(true)}
-            className="md:hidden fixed bottom-24 left-4 z-[99997] h-14 w-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xl active:scale-90 transition-transform"
-            style={{ boxShadow: "0 4px 20px hsl(72 100% 50% / 0.4)" }}
+            className="md:hidden fixed bottom-24 left-4 z-[99997] flex items-center gap-2.5 pl-4 pr-5 h-12 rounded-full bg-primary text-primary-foreground shadow-xl active:scale-95 transition-transform animate-fade-in"
+            style={{ boxShadow: "0 4px 24px hsl(72 100% 50% / 0.35)" }}
           >
-            <MessageCircle className="h-6 w-6" />
+            <Sparkles className="h-5 w-5 shrink-0" />
+            <span className="text-sm font-bold whitespace-nowrap">
+              {isKk ? "AI редактор" : "AI редактор"}
+            </span>
           </button>
         )}
 
-        {/* Mobile: bottom sheet overlay */}
+        {/* Mobile: bottom sheet overlay — taller for editing convenience */}
         {chatOpen && (
           <div className="md:hidden fixed inset-0 z-[99998] flex flex-col">
-            {/* Backdrop */}
-            <div className="flex-1 bg-foreground/20" onClick={() => setChatOpen(false)} />
-            {/* Sheet */}
-            <div className="bg-card rounded-t-2xl border-t border-border/50 shadow-xl flex flex-col" style={{ maxHeight: "70vh", animation: "slide-up 0.3s ease-out" }}>
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 shrink-0">
+            <div className="flex-1 bg-foreground/30 backdrop-blur-sm" onClick={() => setChatOpen(false)} />
+            <div
+              className="bg-card rounded-t-2xl border-t border-border/50 shadow-2xl flex flex-col"
+              style={{ maxHeight: "85vh", minHeight: "50vh", animation: "slide-up 0.3s ease-out" }}
+            >
+              {/* Drag handle */}
+              <div className="flex justify-center pt-2 pb-1 shrink-0">
+                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+              </div>
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 shrink-0">
                 <div className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-bold text-foreground">AI Көмекші</span>
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-bold text-foreground">{isKk ? "AI сценарий редакторы" : "AI редактор сценария"}</span>
                 </div>
-                <button onClick={() => setChatOpen(false)} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                <button onClick={() => setChatOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
+                  <X className="h-4 w-4 text-muted-foreground" />
                 </button>
               </div>
+
+              {/* Quick action chips */}
+              <div className="px-3 py-2 flex gap-2 overflow-x-auto shrink-0 border-b border-border/30">
+                {[
+                  isKk ? "Қысқарт" : "Сократи",
+                  isKk ? "Хукты күшейт" : "Усиль хук",
+                  isKk ? "Тонды өзгерт" : "Смени тон",
+                ].map((chip) => (
+                  <button
+                    key={chip}
+                    onClick={() => { setChatInput(chip); }}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors whitespace-nowrap shrink-0"
+                  >
+                    {chip}
+                  </button>
+                ))}
+                <button
+                  onClick={handleRegenerate}
+                  disabled={isGenerating}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-primary/30 text-primary hover:bg-primary/10 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3 w-3 ${isGenerating ? "animate-spin" : ""}`} />
+                  {isKk ? "Қайта" : "Заново"}
+                </button>
+              </div>
+
+              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-3 space-y-3">
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -383,21 +418,20 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 ))}
                 <div ref={chatEndRef} />
               </div>
-              <div className="p-3 border-t border-border/50 space-y-2 shrink-0 safe-area-bottom">
-                <button onClick={handleRegenerate} disabled={isGenerating} className="flex items-center gap-2 px-3 py-2 w-full rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50 disabled:opacity-50">
-                  <RefreshCw className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-                  {isKk ? "Қайта генерациялау" : "Перегенерировать"}
-                </button>
+
+              {/* Input */}
+              <div className="p-3 border-t border-border/50 shrink-0" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px) + 12px, 12px)" }}>
                 <div className="flex gap-2">
                   <input
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                    placeholder={isKk ? "Сұрауыңызды жазыңыз" : "Напишите запрос..."}
-                    className="flex-1 px-3 py-2.5 rounded-xl bg-background border border-border/50 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    placeholder={isKk ? "Мысалы: хукты күшейт..." : "Например: усиль хук..."}
+                    className="flex-1 px-3.5 py-3 rounded-xl bg-background border border-border/50 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                     disabled={isGenerating}
+                    autoFocus
                   />
-                  <button onClick={handleSend} disabled={!chatInput.trim() || isGenerating} className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50">
+                  <button onClick={handleSend} disabled={!chatInput.trim() || isGenerating} className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0">
                     <Send className="h-4 w-4" />
                   </button>
                 </div>
