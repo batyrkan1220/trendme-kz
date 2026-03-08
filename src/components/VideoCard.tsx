@@ -359,18 +359,21 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             )}
 
             {/* TikTok header bar */}
-            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-10 pointer-events-none">
+            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-10">
               <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm ${darkMode ? "bg-neon/90" : "bg-white/90"}`}>
                 <Music className={`h-2.5 w-2.5 ${darkMode ? "text-black" : "text-foreground"}`} />
                 <span className={`text-[9px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
               </div>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={(e) => { e.stopPropagation(); onToggleFav(video.id); }}
-                  className={`pointer-events-auto w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
+                  onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
+                  className={`w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
+                  style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 >
                   <Heart
-                    className={`h-3.5 w-3.5 transition-all ${
+                    className={`h-4 w-4 transition-all ${
                       isFavorite
                         ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
                         : darkMode ? "text-white/70" : "text-primary"
