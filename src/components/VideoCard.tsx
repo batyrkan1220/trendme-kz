@@ -276,12 +276,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 playsInline
               />
             ) : (
-              <iframe
-                src={`https://www.tiktok.com/player/v1/${videoId}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
-                className="w-full h-full border-0"
-                allow="autoplay; encrypted-media; fullscreen"
-                allowFullScreen
-              />
+              <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-3">
+                <p className="text-white/50 text-xs text-center px-4">Видео қолжетімсіз</p>
+                <button
+                  onClick={() => window.open(video.url, '_blank')}
+                  className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
+                >
+                  TikTok-та ашу
+                </button>
+              </div>
             )}
             <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5">
               {playUrl && (
