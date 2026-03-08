@@ -368,6 +368,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 <button
                   type="button"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
+                  onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
                   className={`w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
                   style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 >
