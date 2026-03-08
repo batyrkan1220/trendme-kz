@@ -40,7 +40,17 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentFailure = lazy(() => import("./pages/PaymentFailure"));
 const StyleGuide = lazy(() => import("./pages/StyleGuide"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,      // 5 мин — деректер "жаңа" болып саналады
+      gcTime: 30 * 60 * 1000,         // 30 мин — кэште сақталады
+      refetchOnWindowFocus: false,     // фокус кезінде қайта жүктемейді
+      refetchOnMount: false,           // бет ашқанда кэштен алады
+      retry: 1,
+    },
+  },
+});
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
