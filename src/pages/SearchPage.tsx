@@ -119,23 +119,21 @@ export default function SearchPage() {
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск 🔍</h1>
             <p className="text-muted-foreground text-sm text-center">Введите запрос для поиска видео в TikTok</p>
-            <div className="flex flex-col sm:flex-row gap-2 w-full">
+            <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex flex-col sm:flex-row gap-2 w-full">
               <Input
                 placeholder="Введите ключевое слово..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-base"
               />
               <Button
-                onClick={handleSearch}
-                onTouchEnd={(e) => { e.preventDefault(); handleSearch(); }}
+                type="submit"
                 disabled={isSearching}
                 className="h-12 gradient-hero text-primary-foreground border-0 px-7 hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm relative z-10"
               >
                 <SearchIcon className="h-4 w-4 mr-2" />Искать
               </Button>
-            </div>
+            </form>
 
             {recentQueries && recentQueries.length > 0 && (
               <div className="w-full mt-2">
@@ -184,17 +182,15 @@ export default function SearchPage() {
           <div className="space-y-4 md:space-y-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск 🔍</h1>
 
-            <div className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto w-full">
+            <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto w-full">
               <Input
                 placeholder="Введите ключевое слово..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-base"
               />
               <Button
-                onClick={handleSearch}
-                onTouchEnd={(e) => { e.preventDefault(); handleSearch(); }}
+                type="submit"
                 disabled={isSearching}
                 className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm relative z-10"
               >
@@ -207,7 +203,7 @@ export default function SearchPage() {
                   </>
                 )}
               </Button>
-            </div>
+            </form>
 
           {results.length === 0 && searchResults && !isSearching && (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 14rem)" }}>
