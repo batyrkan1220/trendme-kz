@@ -166,7 +166,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             <Link
               to="/library"
               onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(false); }}
-              className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] active:scale-[0.93] transition-transform"
+              className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] transition-opacity active:opacity-70"
             >
               <Heart
                 className={cn(
