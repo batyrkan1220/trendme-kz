@@ -70,7 +70,9 @@ export function TrendNicheRow({
               onAnalyze={onAnalyze}
               showTier={true}
               showAuthor={false}
+              showAnalyzeButton={false}
               darkMode={darkMode}
+              isMobileOverride={true}
             />
           </div>
         ))}
