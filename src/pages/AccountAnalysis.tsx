@@ -123,7 +123,7 @@ export default function AccountAnalysis() {
       <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Анализ аккаунта </h1>
-            <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на профиль TikTok для анализа</p>
+            
             <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Input
               placeholder="Вставьте ссылку на профиль TikTok..."
