@@ -27,7 +27,7 @@ export function TrendNicheRow({
   darkMode,
 }: TrendNicheRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [hinted, setHinted] = useState(false);
+  
 
   // Auto-scroll hint removed — was causing unwanted card shifting on mobile
 
