@@ -33,7 +33,10 @@ async function streamScript({
 
   const resp = await fetch(SCRIPT_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ transcript, summary, caption, language, messages }),
   });
 
