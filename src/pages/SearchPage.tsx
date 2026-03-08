@@ -89,10 +89,16 @@ export default function SearchPage() {
   }, [user, userFavorites, queryClient]);
 
   const handleSearch = async () => {
-    if (!query.trim()) return;
-    const ok = await checkAndLog("search", `Поиск: ${query.trim()}`);
+    const q = query.trim();
+    if (!q) {
+      toast.error("Введите запрос");
+      return;
+    }
+    console.log("[search] handleSearch called, query:", q);
+    const ok = await checkAndLog("search", `Поиск: ${q}`);
+    console.log("[search] checkAndLog result:", ok);
     if (!ok) return;
-    doSearch(query.trim());
+    doSearch(q);
   };
 
   const handleSearchDirect = async (q: string) => {
