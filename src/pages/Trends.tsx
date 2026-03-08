@@ -289,23 +289,8 @@ export default function Trends() {
             </>
           ) : (
             <>
-              {/* Static header — logo (scrolls with content) */}
-              <div
-                className="pb-3 px-4"
-                style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 4px)" }}
-              >
-                <div className="flex items-center justify-center mb-1 mt-1">
-                  <h1
-                    className="text-lg font-black tracking-[0.2em] uppercase"
-                    style={{
-                      color: "hsl(var(--neon))",
-                      textShadow: "0 0 20px hsl(var(--neon) / 0.4)",
-                    }}
-                  >
-                    trendme
-                  </h1>
-                </div>
-              </div>
+              {/* Spacer for safe area (below island) */}
+              <div style={{ height: "calc(env(safe-area-inset-top, 0px) + 12px)" }} />
 
               {/* Content below hero */}
               <div className="px-4 md:px-6 lg:px-8 space-y-6">
