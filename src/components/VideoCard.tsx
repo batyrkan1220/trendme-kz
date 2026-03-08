@@ -367,10 +367,24 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                  className={`w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"} z-20`}
-                  style={{ WebkitTapHighlightColor: "transparent", touchAction: "none" }}
+                  onPointerDown={(e) => { 
+                    e.preventDefault(); 
+                    e.stopPropagation(); 
+                    console.log("[VideoCard] Heart pointerdown fired for:", video.id);
+                    onToggleFav(video.id); 
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    console.log("[VideoCard] Heart touchstart fired for:", video.id);
+                  }}
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    e.stopPropagation(); 
+                    console.log("[VideoCard] Heart click fired for:", video.id);
+                    onToggleFav(video.id);
+                  }}
+                  className={`w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"} z-30`}
+                  style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation", pointerEvents: "auto" }}
                 >
                   <Heart
                     className={`h-4 w-4 transition-all ${
