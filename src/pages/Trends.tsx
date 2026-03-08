@@ -191,7 +191,7 @@ export default function Trends() {
       <div
         ref={containerRef}
         className="overflow-x-hidden trends-dark-theme relative pb-28 md:pb-8"
-        style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: "max(env(safe-area-inset-top, 0px), 0px)" }}
+        style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
@@ -289,8 +289,6 @@ export default function Trends() {
             </>
           ) : (
             <>
-              {/* Spacer for safe area (below island) */}
-              <div style={{ height: "calc(env(safe-area-inset-top, 0px) + 12px)" }} />
 
               {/* Content below hero */}
               <div className="px-4 md:px-6 lg:px-8 space-y-6">
