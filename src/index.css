@@ -181,12 +181,7 @@ body.native-app main {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Active state feedback for touch targets — exclude nav links */
-body.native-app button:not(#mobile-bottom-nav *):active,
-body.native-app [role="button"]:not(#mobile-bottom-nav *):active {
-  transform: scale(0.97);
-  transition: transform 0.1s ease;
-}
+/* No transform on active — causes touch issues in iOS WKWebView */
 
 /* Prevent horizontal scroll and native pull-to-refresh globally */
 html, body {
