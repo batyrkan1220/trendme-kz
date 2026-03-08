@@ -119,7 +119,7 @@ export default function VideoAnalysis() {
   if (showScript && analysis) {
     return (
       <AppLayout>
-        <div className="h-[calc(100vh-2rem)] m-4">
+        <div className="pb-28 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)" }}>
           <ScriptGenerationPanel
             transcript={transcript}
             summary={summary}
