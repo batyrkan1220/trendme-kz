@@ -249,23 +249,23 @@ Deno.serve(async (req: Request) => {
 
       return json({ updated, failed, total: vids.length, offset, nextOffset, done: vids.length < batchSize, log_id: logId });
     }
-    if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401);
-    }
-
     if (!ensembleToken) {
       return json({ error: "ENSEMBLE_DATA_TOKEN not configured" }, 500);
     }
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return json({ error: "Unauthorized" }, 401);
+    // Try to verify user (optional — native mobile may not have auth)
+    let userId: string | null = null;
+    let userClient: any = null;
+    if (authHeader?.startsWith("Bearer ")) {
+      userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims) {
+        userId = claimsData.claims.sub as string;
+      }
     }
-    const userId = claimsData.claims.sub as string;
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 

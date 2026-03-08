@@ -278,20 +278,27 @@ Deno.serve(async (req: Request) => {
         };
       });
 
-    const [upsertResult, queryResult] = await Promise.all([
-      adminClient
-        .from("videos")
-        .upsert(videoRows, { onConflict: "platform,platform_video_id" })
-        .select(),
-      userClient
-        .from("search_queries")
-        .upsert(
-          { user_id: userId, query_text: trimmedQuery, last_run_at: now, total_results_saved: videoRows.length },
-          { onConflict: "user_id,query_text", ignoreDuplicates: false }
-        )
-        .select()
-        .single(),
-    ]);
+    // Upsert videos always; search_queries only if authenticated
+    const upsertPromise = adminClient
+      .from("videos")
+      .upsert(videoRows, { onConflict: "platform,platform_video_id" })
+      .select();
+
+    const promises: Promise<any>[] = [upsertPromise];
+    if (userId && userClient) {
+      promises.push(
+        userClient
+          .from("search_queries")
+          .upsert(
+            { user_id: userId, query_text: trimmedQuery, last_run_at: now, total_results_saved: videoRows.length },
+            { onConflict: "user_id,query_text", ignoreDuplicates: false }
+          )
+          .select()
+          .single()
+      );
+    }
+
+    const [upsertResult] = await Promise.all(promises);
 
     const upsertedVideos = upsertResult.data || [];
 
