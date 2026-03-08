@@ -58,7 +58,7 @@ export function TrendNicheRow({
         {videos.slice(0, 10).map((video) => (
           <div
             key={video.id}
-            className="snap-start shrink-0"
+            className="shrink-0"
             style={{ width: "40vw", maxWidth: "200px" }}
           >
             <VideoCard
