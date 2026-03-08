@@ -945,25 +945,29 @@ Deno.serve(async (req: Request) => {
           top_videos: topVideos.slice(0, 12),
         };
 
-        const { data: account } = await userClient
-          .from("accounts_tracked")
-          .upsert(
-            {
-              user_id: userId,
-              profile_url,
-              username,
-              avatar_url: avatarUrl,
-              followers,
-              following,
-              total_likes: totalLikes,
-              total_videos: totalVideos,
-              verified: accountData.verification_type === 1 || accountData.verified || false,
-              bio: accountData.signature || accountData.bio || "",
-              bio_link: accountData.bio_link?.link || accountData.bioLink || null,
-              fetched_at: new Date().toISOString(),
-              analysis_json: analysisPayload,
-            },
-            { onConflict: "user_id,username" }
+        let account = null;
+        if (userId) {
+          const saveClient = userClient || adminClient;
+          const { data: saved } = await saveClient
+            .from("accounts_tracked")
+            .upsert(
+              {
+                user_id: userId,
+                profile_url,
+                username,
+                avatar_url: avatarUrl,
+                followers,
+                following,
+                total_likes: totalLikes,
+                total_videos: totalVideos,
+                verified: accountData.verification_type === 1 || accountData.verified || false,
+                bio: accountData.signature || accountData.bio || "",
+                bio_link: accountData.bio_link?.link || accountData.bioLink || null,
+                fetched_at: new Date().toISOString(),
+                analysis_json: analysisPayload,
+              },
+              { onConflict: "user_id,username" }
+            )
           )
           .select()
           .single();
