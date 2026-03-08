@@ -10,7 +10,6 @@ import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
 import { SplashScreen } from "@/components/SplashScreen";
-import { NativePaywall } from "@/components/NativePaywall";
 import { isNativePlatform } from "@/lib/native";
 import Index from "./pages/Index";
 
