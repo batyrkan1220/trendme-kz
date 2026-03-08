@@ -271,6 +271,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   <span className="text-[11px] text-white/80 font-medium tracking-wide animate-pulse">Загрузка...</span>
                 </div>
               </div>
+            ) : playUrl === "tiktok_embed_fallback" ? (
+              <div className="w-full h-full bg-black flex items-center justify-center">
+                <iframe
+                  src={`https://www.tiktok.com/embed/v2/${videoId}`}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope"
+                  allowFullScreen
+                />
+              </div>
             ) : playUrl ? (
               <video
                 ref={videoRef}
