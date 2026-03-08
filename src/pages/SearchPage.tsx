@@ -96,7 +96,7 @@ export default function SearchPage() {
       return;
     }
     const ok = await checkAndLog("search", `Поиск: ${q}`);
-    console.log("[search] checkAndLog result:", ok);
+    
     if (!ok) return;
     doSearch(q);
   };
