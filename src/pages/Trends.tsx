@@ -190,7 +190,7 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-x-hidden overflow-y-auto h-full trends-dark-theme relative pb-28 md:pb-8"
+        className="overflow-x-hidden overflow-y-auto h-full trends-dark-theme relative pb-16 md:pb-8"
         style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
         <PullToRefreshIndicator
@@ -199,7 +199,7 @@ export default function Trends() {
           progress={progress}
         />
 
-        <div className="space-y-4 pb-28">
+        <div className="space-y-4 pb-4">
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
             <>
