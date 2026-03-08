@@ -24,7 +24,7 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  const [debugTap, setDebugTap] = useState(0);
+  
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { checkAndLog, getRemaining, isFreeTrial } = useSubscription();
@@ -91,14 +91,12 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     const q = query.trim();
-    setDebugTap(prev => prev + 1);
-    console.log("[search] handleSearch CALLED, query:", q, "tap#:", debugTap + 1);
     if (!q) {
       toast.error("Введите запрос");
       return;
     }
     const ok = await checkAndLog("search", `Поиск: ${q}`);
-    console.log("[search] checkAndLog result:", ok);
+    
     if (!ok) return;
     doSearch(q);
   };
@@ -120,7 +118,7 @@ export default function SearchPage() {
         <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск 🔍</h1>
-            {debugTap > 0 && <p className="text-xs text-primary text-center">tap count: {debugTap}</p>}
+            
             <p className="text-muted-foreground text-sm text-center">Введите запрос для поиска видео в TikTok</p>
             <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex flex-col sm:flex-row gap-2 w-full">
               <Input
