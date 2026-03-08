@@ -29,27 +29,7 @@ export function TrendNicheRow({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [hinted, setHinted] = useState(false);
 
-  // Auto-scroll hint: nudge right then back
-  useEffect(() => {
-    if (hinted || videos.length < 3) return;
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const timer = setTimeout(() => {
-      // Disable snap during animation so scrollTo works
-      el.style.scrollSnapType = "none";
-      el.scrollTo({ left: 80, behavior: "smooth" });
-      setTimeout(() => {
-        el.scrollTo({ left: 0, behavior: "smooth" });
-        setTimeout(() => {
-          el.style.scrollSnapType = "";
-          setHinted(true);
-        }, 400);
-      }, 500);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [hinted, videos.length]);
+  // Auto-scroll hint removed — was causing unwanted card shifting on mobile
 
   if (videos.length === 0) return null;
 
