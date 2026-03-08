@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   Flame, Search, Heart, Wrench, Video, Sparkles, BarChart3, ChevronUp
