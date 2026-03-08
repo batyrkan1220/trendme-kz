@@ -190,8 +190,8 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-y-auto overflow-x-hidden trends-dark-theme relative"
-        style={{ height: "100dvh", background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none" }}
+        className="overflow-x-hidden trends-dark-theme relative pb-28 md:pb-8"
+        style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: "max(env(safe-area-inset-top, 0px), 0px)" }}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
