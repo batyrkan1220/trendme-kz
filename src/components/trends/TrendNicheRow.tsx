@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { VideoCard } from "@/components/VideoCard";
 import { ChevronRight } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
