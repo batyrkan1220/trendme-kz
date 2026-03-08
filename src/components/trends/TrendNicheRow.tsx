@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { VideoCard } from "@/components/VideoCard";
+import { MemoVideoCard } from "@/components/VideoCard";
 import { ChevronRight } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
 
