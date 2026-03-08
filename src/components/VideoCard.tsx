@@ -391,9 +391,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             {/* Open in TikTok */}
             <button
               onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
-              className="absolute top-8 right-1.5 z-10 w-6 h-6 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+              className="absolute top-8 right-1.5 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 transition-transform border border-white/20"
             >
-              <ExternalLink className="h-3 w-3 text-foreground" />
+              <ExternalLink className="h-3.5 w-3.5 text-white" />
             </button>
 
             {/* Duration badge */}
