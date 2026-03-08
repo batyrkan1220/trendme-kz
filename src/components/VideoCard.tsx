@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp, Loader2, Maximize
+  Trophy, Zap, Target, TrendingUp, Loader2, Maximize, Flame, Rocket
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -59,10 +59,10 @@ const getTier = (views: number): TrendTier | null => {
   return null;
 };
 
-const tierConfig: Record<TrendTier, { label: string; icon: any; className: string }> = {
-  strong: { label: "Взлетает", icon: Trophy, className: "bg-amber-500/90 text-white" },
-  mid: { label: "В тренде", icon: Zap, className: "bg-primary/80 text-white" },
-  micro: { label: "Набирает", icon: Target, className: "bg-accent/80 text-white" },
+const tierConfig: Record<TrendTier, { label: string; icon: any; className: string; glow?: string }> = {
+  strong: { label: "🔥 Взлетает", icon: Rocket, className: "bg-gradient-to-r from-red-500 to-orange-500 text-white", glow: "0 0 12px rgba(239,68,68,0.6), 0 0 24px rgba(249,115,22,0.3)" },
+  mid: { label: "⚡ В тренде", icon: Zap, className: "bg-gradient-to-r from-amber-500 to-yellow-400 text-black", glow: "0 0 10px rgba(245,158,11,0.5)" },
+  micro: { label: "📈 Набирает", icon: TrendingUp, className: "bg-gradient-to-r from-emerald-500 to-green-400 text-white", glow: "0 0 8px rgba(16,185,129,0.4)" },
 };
 
 export interface VideoCardData {
@@ -386,17 +386,27 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             {/* Tier badge */}
             {tier && (
               <div className="absolute top-10 left-1.5 z-10 flex flex-col gap-1.5 pointer-events-none">
-                <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg ${tierConfig[tier].className}`}>
+                <div
+                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 shadow-lg ${tierConfig[tier].className}`}
+                  style={{ boxShadow: tierConfig[tier].glow, animation: tier === "strong" ? "pulse 2s ease-in-out infinite" : undefined }}
+                >
                   {(() => {
                     const Icon = tierConfig[tier].icon;
                     return <Icon className="h-3.5 w-3.5" />;
                   })()}
-                  <span className="text-[10px] font-bold">{tierConfig[tier].label}</span>
+                  <span className="text-[10px] font-extrabold tracking-wide">{tierConfig[tier].label}</span>
                 </div>
                 {velViews > 10 && (
-                  <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-1">
-                    <TrendingUp className="h-3.5 w-3.5 text-white" />
-                    <span className="text-[10px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
+                  <div
+                    className="flex items-center gap-1 rounded-full px-2.5 py-1"
+                    style={{
+                      background: tier === "strong" ? "rgba(239,68,68,0.25)" : "rgba(255,255,255,0.15)",
+                      backdropFilter: "blur(12px)",
+                      border: tier === "strong" ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(255,255,255,0.2)",
+                    }}
+                  >
+                    <Flame className={`h-3.5 w-3.5 ${tier === "strong" ? "text-orange-400" : "text-white"}`} />
+                    <span className={`text-[10px] font-bold ${tier === "strong" ? "text-orange-300" : "text-white"}`}>+{fmt(Math.round(velViews))}/ч</span>
                   </div>
                 )}
               </div>
