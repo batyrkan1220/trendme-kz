@@ -968,17 +968,19 @@ Deno.serve(async (req: Request) => {
               },
               { onConflict: "user_id,username" }
             )
-          )
-          .select()
-          .single();
+            .select()
+            .single();
+          if (saved) account = saved;
+        }
 
         // activity_log is handled client-side via checkAndLog
         const accountCredits = (userInfoRes.status === "fulfilled" ? 1 : 0) + (userPostsRes.status === "fulfilled" ? 1 : 0);
         await logApiUsage("account_stats", accountCredits, { profile_url, username });
 
         return json({
-          ...account,
+          ...(account || {}),
           ...analysisPayload,
+          username, avatar_url: avatarUrl, followers, following, total_likes: totalLikes, total_videos: totalVideos,
         });
       }
 
