@@ -356,10 +356,10 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               <div className="flex items-center gap-1">
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleFav(video.id); }}
-                  className={`pointer-events-auto w-6 h-6 rounded-full backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform ${darkMode ? "bg-black/50" : "bg-white/90"}`}
+                  className={`pointer-events-auto w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
                 >
                   <Heart
-                    className={`h-3 w-3 transition-all ${
+                    className={`h-3.5 w-3.5 transition-all ${
                       isFavorite
                         ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
                         : darkMode ? "text-white/70" : "text-primary"
