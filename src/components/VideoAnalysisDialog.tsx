@@ -180,7 +180,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
         ) : (
         <div className="flex flex-col md:flex-row h-full">
           {/* Mobile: compact stats bar only (no video) */}
-          <div className="flex md:hidden items-center gap-3 p-3 border-b border-border/50 bg-card">
+          <div className="flex md:hidden items-center gap-3 p-3 border-b border-border/50 bg-card" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
             {video.cover_url && (
               <img src={video.cover_url} alt="" className="w-12 h-16 rounded-lg object-cover flex-shrink-0" />
             )}
