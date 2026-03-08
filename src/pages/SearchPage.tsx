@@ -182,17 +182,15 @@ export default function SearchPage() {
           <div className="space-y-4 md:space-y-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск 🔍</h1>
 
-            <div className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto w-full">
+            <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto w-full">
               <Input
                 placeholder="Введите ключевое слово..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-base"
               />
               <Button
-                onClick={handleSearch}
-                onTouchEnd={(e) => { e.preventDefault(); handleSearch(); }}
+                type="submit"
                 disabled={isSearching}
                 className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm relative z-10"
               >
@@ -205,7 +203,7 @@ export default function SearchPage() {
                   </>
                 )}
               </Button>
-            </div>
+            </form>
 
           {results.length === 0 && searchResults && !isSearching && (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 14rem)" }}>
