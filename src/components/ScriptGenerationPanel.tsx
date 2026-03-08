@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { isNativePlatform } from "@/lib/native";
 import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye, MessageCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
