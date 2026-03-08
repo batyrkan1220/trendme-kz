@@ -283,12 +283,18 @@ html, body {
 /* Splash screen animations */
 @keyframes splash-glow-pulse {
   0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.15); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 1; }
 }
 
-@keyframes splash-dot-bounce {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
+@keyframes splash-ring-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes splash-progress {
+  0% { width: 0%; }
+  60% { width: 70%; }
+  100% { width: 100%; }
 }
 
 /* Staggered fade-in for page content */
