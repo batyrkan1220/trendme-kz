@@ -18,9 +18,9 @@ const config: CapacitorConfig = {
     ],
   },
   ios: {
-    contentInset: 'automatic',
     preferredContentMode: 'mobile',
     backgroundColor: '#0a0a0a',
+    scrollEnabled: false,
   },
   plugins: {
     StatusBar: {
