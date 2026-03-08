@@ -385,18 +385,18 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
             {/* Tier badge */}
             {tier && (
-              <div className="absolute top-8 left-1.5 z-10 flex flex-col gap-1 pointer-events-none">
-                <div className={`flex items-center gap-0.5 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-lg ${tierConfig[tier].className}`}>
+              <div className="absolute top-10 left-1.5 z-10 flex flex-col gap-1.5 pointer-events-none">
+                <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg ${tierConfig[tier].className}`}>
                   {(() => {
                     const Icon = tierConfig[tier].icon;
-                    return <Icon className="h-2.5 w-2.5" />;
+                    return <Icon className="h-3.5 w-3.5" />;
                   })()}
-                  <span className="text-[8px] font-bold">{tierConfig[tier].label}</span>
+                  <span className="text-[10px] font-bold">{tierConfig[tier].label}</span>
                 </div>
                 {velViews > 10 && (
-                  <div className="flex items-center gap-0.5 bg-white/20 backdrop-blur-md rounded-full px-1.5 py-0.5">
-                    <TrendingUp className="h-2.5 w-2.5 text-white" />
-                    <span className="text-[8px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
+                  <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md rounded-full px-2 py-1">
+                    <TrendingUp className="h-3.5 w-3.5 text-white" />
+                    <span className="text-[10px] font-bold text-white">+{fmt(Math.round(velViews))}/ч</span>
                   </div>
                 )}
               </div>
