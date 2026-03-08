@@ -61,7 +61,7 @@ export function TrendNicheRow({
             className="shrink-0"
             style={{ width: "40vw", maxWidth: "200px" }}
           >
-            <VideoCard
+            <MemoVideoCard
               video={video}
               playingId={playingId}
               onPlay={onPlay}
