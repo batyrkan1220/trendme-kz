@@ -170,11 +170,11 @@ export default function SearchPage() {
       ) : (
       <>
       <div
-        className="flex flex-col animate-fade-in"
+        className="animate-fade-in"
         style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 24px)", paddingBottom: "6rem" }}
       >
-        <div className={`px-4 pt-2 pb-3 md:p-6 lg:p-8 flex flex-col xl:flex-row gap-4 md:gap-6 flex-1 ${results.length === 0 ? 'justify-center' : ''}`}>
-          <div className={`flex-1 space-y-4 md:space-y-6 min-w-0 flex flex-col ${results.length === 0 ? 'items-center justify-center' : ''}`}>
+        <div className="px-4 pt-2 pb-3 md:p-6 lg:p-8">
+          <div className="space-y-4 md:space-y-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск 🔍</h1>
 
             <div className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto w-full">
