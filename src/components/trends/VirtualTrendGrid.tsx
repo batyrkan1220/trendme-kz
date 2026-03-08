@@ -1,5 +1,5 @@
 import { useRef, useEffect, forwardRef } from "react";
-import { VideoCard } from "@/components/VideoCard";
+import { MemoVideoCard } from "@/components/VideoCard";
 import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
