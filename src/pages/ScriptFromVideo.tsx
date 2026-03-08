@@ -137,7 +137,7 @@ export default function ScriptFromVideo() {
 
           <>
               <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">AI Сценарий </h1>
-              <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на видео — AI проанализирует и напишет сценарий</p>
+              
             </>
           }
           <div className="flex flex-col gap-3 w-full">
