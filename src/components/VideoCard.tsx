@@ -210,20 +210,16 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         body: { action: "get_play_url", video_url: video.url },
       });
       if (error || !data?.play_url) {
-        console.warn("Play URL unavailable, opening TikTok directly:", error || data?.error);
-        // Fallback: open TikTok URL directly
-        window.open(video.url, '_blank');
-        onPlay(null);
-        setPlayUrl(null);
+        console.warn("Play URL unavailable, using TikTok embed fallback");
+        // Fallback: show TikTok embed in card
+        setPlayUrl("tiktok_embed_fallback");
       } else {
         setPlayUrl(data.play_url);
         playUrlCache.set(video.url, data.play_url);
       }
     } catch (e) {
-      console.warn("Play URL fetch error, opening TikTok:", e);
-      window.open(video.url, '_blank');
-      onPlay(null);
-      setPlayUrl(null);
+      console.warn("Play URL fetch error, using TikTok embed fallback:", e);
+      setPlayUrl("tiktok_embed_fallback");
     } finally {
       setLoadingPlay(false);
     }
@@ -274,6 +270,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   </div>
                   <span className="text-[11px] text-white/80 font-medium tracking-wide animate-pulse">Загрузка...</span>
                 </div>
+              </div>
+            ) : playUrl === "tiktok_embed_fallback" ? (
+              <div className="w-full h-full bg-black flex items-center justify-center">
+                <iframe
+                  src={`https://www.tiktok.com/embed/v2/${videoId}`}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope"
+                  allowFullScreen
+                />
               </div>
             ) : playUrl ? (
               <video
