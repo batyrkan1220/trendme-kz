@@ -96,6 +96,7 @@ interface VideoCardProps {
   showAuthor?: boolean;
   showAnalyzeButton?: boolean;
   darkMode?: boolean;
+  isMobileOverride?: boolean;
 }
 
 export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function VideoCard({
