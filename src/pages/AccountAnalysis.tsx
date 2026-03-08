@@ -120,7 +120,7 @@ export default function AccountAnalysis() {
     <AppLayout>
       {!account && !isPending ? (
         /* Centered empty state */
-        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+        <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Анализ аккаунта 👤</h1>
             <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на профиль TikTok для анализа</p>
@@ -145,7 +145,7 @@ export default function AccountAnalysis() {
         </div>
       ) : isPending && !account ? (
         /* Centered loading */
-        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+        <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-5">
             <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
               <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
@@ -158,7 +158,7 @@ export default function AccountAnalysis() {
         </div>
       ) : (
       <>
-      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in max-w-7xl mx-auto">
+      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in max-w-7xl mx-auto pb-28 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">Анализ аккаунта 👤</h1>
 
         {/* Search */}

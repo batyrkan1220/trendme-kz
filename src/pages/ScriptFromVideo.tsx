@@ -101,7 +101,7 @@ export default function ScriptFromVideo() {
   if (analysis && !isPending) {
     return (
       <AppLayout>
-        <div className="h-[calc(100vh-2rem)] m-4">
+        <div className="pb-28 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)" }}>
           <ScriptGenerationPanel
             transcript={transcript}
             summary={summary}
@@ -122,7 +122,7 @@ export default function ScriptFromVideo() {
 
   return (
     <AppLayout>
-      <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+      <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
         <div className="w-full max-w-lg flex flex-col items-center gap-6">
           {isPending ? (
             <>

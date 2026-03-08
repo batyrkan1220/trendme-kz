@@ -165,6 +165,31 @@ body.native-app {
   overflow-x: hidden;
 }
 
+/* Native performance optimizations */
+body.native-app * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.native-app img,
+body.native-app video {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* Smooth momentum scrolling for native */
+body.native-app main {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Active state feedback for touch targets */
+body.native-app button:active,
+body.native-app a:active,
+body.native-app [role="button"]:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
 /* Prevent horizontal scroll and native pull-to-refresh globally */
 html, body {
   overflow-x: hidden;

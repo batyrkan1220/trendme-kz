@@ -119,7 +119,7 @@ export default function VideoAnalysis() {
   if (showScript && analysis) {
     return (
       <AppLayout>
-        <div className="h-[calc(100vh-2rem)] m-4">
+        <div className="pb-28 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)" }}>
           <ScriptGenerationPanel
             transcript={transcript}
             summary={summary}
@@ -136,7 +136,7 @@ export default function VideoAnalysis() {
     <AppLayout>
       {!analysis || isPending ? (
         /* Centered form + loading */
-        <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col items-center justify-center p-4 animate-fade-in">
+        <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             {isPending ? (
               <>
@@ -192,7 +192,7 @@ export default function VideoAnalysis() {
           </div>
         </div>
       ) : (
-      <div className="p-3 md:p-4 lg:p-6 animate-fade-in min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-1rem)] flex flex-col">
+      <div className="p-3 md:p-4 lg:p-6 animate-fade-in pb-28 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Анализ видео 🎬</h1>
         <div className="flex flex-col sm:flex-row gap-2 mb-3 md:mb-4">
           <Input
