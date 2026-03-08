@@ -152,11 +152,9 @@ const App = () => {
     if (!isNativePlatform) return false;
     return true;
   });
-  const [showPaywall, setShowPaywall] = useState(false);
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
     if (typeof sessionStorage !== "undefined") sessionStorage.setItem("splash_shown", "1");
-    if (isNativePlatform) setShowPaywall(true);
   }, []);
 
   return (
