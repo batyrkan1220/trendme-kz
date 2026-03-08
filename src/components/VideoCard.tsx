@@ -210,14 +210,19 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         body: { action: "get_play_url", video_url: video.url },
       });
       if (error || !data?.play_url) {
-        console.error("Failed to get play URL:", error || data?.error);
+        console.warn("Play URL unavailable, opening TikTok directly:", error || data?.error);
+        // Fallback: open TikTok URL directly
+        window.open(video.url, '_blank');
+        onPlay(null);
         setPlayUrl(null);
       } else {
         setPlayUrl(data.play_url);
         playUrlCache.set(video.url, data.play_url);
       }
     } catch (e) {
-      console.error("Play URL fetch error:", e);
+      console.warn("Play URL fetch error, opening TikTok:", e);
+      window.open(video.url, '_blank');
+      onPlay(null);
       setPlayUrl(null);
     } finally {
       setLoadingPlay(false);
