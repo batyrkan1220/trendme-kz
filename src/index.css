@@ -179,13 +179,11 @@ body.native-app video {
 /* Smooth momentum scrolling for native */
 body.native-app main {
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
 }
 
-/* Active state feedback for touch targets */
-body.native-app button:active,
-body.native-app a:active,
-body.native-app [role="button"]:active {
+/* Active state feedback for touch targets — exclude nav links */
+body.native-app button:not(#mobile-bottom-nav *):active,
+body.native-app [role="button"]:not(#mobile-bottom-nav *):active {
   transform: scale(0.97);
   transition: transform 0.1s ease;
 }
