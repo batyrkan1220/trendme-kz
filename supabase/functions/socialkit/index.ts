@@ -842,17 +842,22 @@ Deno.serve(async (req: Request) => {
           comments_json: commentsData,
         };
 
-        // Save analysis
-        const { data: analysis } = await userClient
-          .from("video_analysis")
-          .insert({
-            user_id: userId,
-            video_url,
-            ...result,
-            analyzed_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
+        // Save analysis (only if authenticated)
+        let analysis = { ...result, video_url };
+        if (userId) {
+          const saveClient = userClient || adminClient;
+          const { data: saved } = await saveClient
+            .from("video_analysis")
+            .insert({
+              user_id: userId,
+              video_url,
+              ...result,
+              analyzed_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+          if (saved) analysis = saved;
+        }
 
         // activity_log is handled client-side via checkAndLog
         const analyzeCredits = (postInfoRes.status === "fulfilled" ? 1 : 0) + (commentsRes.status === "fulfilled" && awemeId ? 1 : 0);
