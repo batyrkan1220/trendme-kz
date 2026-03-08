@@ -82,6 +82,8 @@ export function useSubscription() {
   };
 
   const checkAndLog = async (action: ActionKey, description?: string): Promise<boolean> => {
+    // On native platform without auth, allow all actions without logging
+    if (!user && isNativePlatform) return true;
     if (!user) return false;
 
     if (!hasActiveSubscription) {
