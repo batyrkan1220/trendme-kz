@@ -1,4 +1,3 @@
-import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -192,5 +191,5 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
     </nav>
   );
 
-  return createPortal(nav, document.body);
+  return nav;
 }
