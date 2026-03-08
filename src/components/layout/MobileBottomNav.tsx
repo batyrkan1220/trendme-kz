@@ -142,12 +142,12 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         {/* Tools button */}
         <button
           onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(v => !v); }}
-          className="relative flex flex-col items-center gap-0.5 py-0.5 min-w-[52px] transition-opacity active:opacity-70"
+          className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
         >
           <div className="relative">
             <Wrench
               className={cn(
-                "h-[22px] w-[22px] transition-colors duration-200",
+                "h-[25px] w-[25px] transition-colors duration-200",
                 isToolsActive || showToolsMenu ? "text-neon" : "text-white"
               )}
               strokeWidth={isToolsActive || showToolsMenu ? 2.2 : 1.8}
@@ -160,7 +160,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             />
           </div>
           <span className={cn(
-            "text-[10px] font-semibold leading-tight transition-colors",
+            "text-[11px] font-semibold leading-tight transition-colors",
             isToolsActive || showToolsMenu ? "text-neon" : "text-white"
           )}>
             Инструменты
