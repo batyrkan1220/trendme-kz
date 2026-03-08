@@ -45,7 +45,7 @@ export default function Library() {
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in pb-28 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
+      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in pb-16 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
         <div className="flex items-center justify-between">
           
         </div>
