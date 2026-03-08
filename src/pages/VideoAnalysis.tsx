@@ -151,7 +151,7 @@ export default function VideoAnalysis() {
 
           <>
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Анализ видео </h1>
-                <p className="text-muted-foreground text-sm text-center">Вставьте ссылку на видео, чтобы начать анализ</p>
+                
               </>
           }
             <div className="flex flex-col gap-3 w-full">
