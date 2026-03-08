@@ -64,7 +64,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
           }
 
           return (
-            <VideoCard
+            <MemoVideoCard
               key={video.id}
               video={video}
               playingId={playingId}
