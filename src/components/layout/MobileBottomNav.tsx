@@ -112,7 +112,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       )}
 
       {/* Bottom bar */}
-      <div className="flex items-center justify-around px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "rgba(10,10,10,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
+      <div className="flex items-center justify-around px-3 py-1.5 pb-[max(6px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "rgba(10,10,10,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
         {/* Main nav items */}
         {mainNavItems.map((item) => {
           const active = location.pathname === item.path;
@@ -120,17 +120,17 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             <button
               key={item.path}
               onClick={() => goTo(item.path)}
-              className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] transition-opacity active:opacity-70"
+              className="relative flex flex-col items-center gap-0.5 py-0.5 min-w-[52px] transition-opacity active:opacity-70"
             >
               <item.icon
                 className={cn(
-                  "h-[26px] w-[26px] transition-colors duration-200",
+                  "h-[22px] w-[22px] transition-colors duration-200",
                   active ? "text-neon" : "text-white"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span className={cn(
-                "text-[11px] font-semibold leading-tight transition-colors",
+                "text-[10px] font-semibold leading-tight transition-colors",
                 active ? "text-neon" : "text-white"
               )}>
                 {item.label}
@@ -142,12 +142,12 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         {/* Tools button */}
         <button
           onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(v => !v); }}
-          className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] transition-opacity active:opacity-70"
+          className="relative flex flex-col items-center gap-0.5 py-0.5 min-w-[52px] transition-opacity active:opacity-70"
         >
           <div className="relative">
             <Wrench
               className={cn(
-                "h-[26px] w-[26px] transition-colors duration-200",
+                "h-[22px] w-[22px] transition-colors duration-200",
                 isToolsActive || showToolsMenu ? "text-neon" : "text-white"
               )}
               strokeWidth={isToolsActive || showToolsMenu ? 2.2 : 1.8}
@@ -160,7 +160,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             />
           </div>
           <span className={cn(
-            "text-[11px] font-semibold leading-tight transition-colors",
+            "text-[10px] font-semibold leading-tight transition-colors",
             isToolsActive || showToolsMenu ? "text-neon" : "text-white"
           )}>
             Инструменты
@@ -173,17 +173,17 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           return (
             <button
               onClick={() => goTo("/library")}
-              className="relative flex flex-col items-center gap-1 py-1 min-w-[60px] transition-opacity active:opacity-70"
+              className="relative flex flex-col items-center gap-0.5 py-0.5 min-w-[52px] transition-opacity active:opacity-70"
             >
               <Heart
                 className={cn(
-                  "h-[26px] w-[26px] transition-colors duration-200",
+                  "h-[22px] w-[22px] transition-colors duration-200",
                   active ? "text-neon fill-neon" : "text-white"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span className={cn(
-                "text-[11px] font-semibold leading-tight transition-colors",
+                "text-[10px] font-semibold leading-tight transition-colors",
                 active ? "text-neon" : "text-white"
               )}>
                 Избранное
