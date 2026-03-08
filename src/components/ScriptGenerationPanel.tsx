@@ -88,8 +88,10 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
   useEffect(() => {
     (async () => {
-      const ok = await spend("script_generation", isKk ? "Сценарий генерациясы" : "Генерация сценария");
-      if (!ok) { onBack(); return; }
+      if (!isNativePlatform || user) {
+        const ok = await spend("script_generation", isKk ? "Сценарий генерациясы" : "Генерация сценария");
+        if (!ok) { onBack(); return; }
+      }
       generateScript([]);
     })();
   }, []);
