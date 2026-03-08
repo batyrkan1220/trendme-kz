@@ -163,7 +163,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-        {showPaywall && <NativePaywall onDismiss={() => setShowPaywall(false)} />}
+        
         <BrowserRouter>
           <AuthProvider>
             <TrackingPixels />
