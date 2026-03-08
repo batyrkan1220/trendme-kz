@@ -275,6 +275,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 controls
                 autoPlay
                 playsInline
+                preload="auto"
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-3">
