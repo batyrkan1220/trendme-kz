@@ -28,7 +28,8 @@ async function streamScript({
   messages: Msg[]; onDelta: (text: string) => void; onDone: () => void; onError: (err: string) => void;
 }) {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) { onError("Необходимо авторизоваться"); return; }
+  const token = session?.access_token;
+  if (!token && !isNativePlatform) { onError("Необходимо авторизоваться"); return; }
 
   const resp = await fetch(SCRIPT_URL, {
     method: "POST",
