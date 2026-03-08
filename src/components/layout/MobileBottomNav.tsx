@@ -120,11 +120,11 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             <button
               key={item.path}
               onClick={() => goTo(item.path)}
-              className="relative flex flex-col items-center gap-0.5 py-0.5 min-w-[52px] transition-opacity active:opacity-70"
+              className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
             >
               <item.icon
                 className={cn(
-                  "h-[22px] w-[22px] transition-colors duration-200",
+                  "h-[25px] w-[25px] transition-colors duration-200",
                   active ? "text-neon" : "text-white"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
