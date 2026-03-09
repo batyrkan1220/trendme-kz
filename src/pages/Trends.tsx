@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { isNativePlatform } from "@/lib/native";
 import { useNavigate } from "react-router-dom";
+import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
