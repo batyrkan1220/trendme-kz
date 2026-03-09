@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { isNativePlatform } from "@/lib/native";
+import { useNavigate } from "react-router-dom";
 
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp } from "lucide-react";
@@ -33,6 +34,7 @@ export default function Trends() {
   const { user } = useAuth();
   const { balance } = useTokens();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const FREE_LIMIT = 5;
 
   const { data: userSub } = useQuery({
@@ -95,7 +97,8 @@ export default function Trends() {
   const toggleFav = useCallback(
     async (videoId: string) => {
       if (!user) {
-        console.warn("[Trends] toggleFav: No user, skipping");
+        console.warn("[Trends] toggleFav: No user, redirecting to auth");
+        navigate("/auth");
         return;
       }
       console.log("[Trends] toggleFav called:", { userId: user.id, videoId });
