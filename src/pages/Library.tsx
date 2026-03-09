@@ -81,7 +81,7 @@ export default function Library() {
           
         </div>
 
-        {favorites.length === 0 ?
+        {displayFavorites.length === 0 ?
         <div className="text-center py-20">
             <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
               <Heart className="h-10 w-10 text-muted-foreground/30" />
@@ -91,7 +91,7 @@ export default function Library() {
           </div> :
 
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4 pb-20 md:pb-0">
-            {favorites.map((fav: any) => {
+            {displayFavorites.map((fav: any) => {
             const video = fav.videos;
             if (!video) return null;
 
