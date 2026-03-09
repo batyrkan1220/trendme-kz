@@ -100,7 +100,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
               to={item.path}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all",
+                "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-[14px] transition-all",
                 active
                   ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
                   : "text-foreground/80 hover:bg-muted/50"
