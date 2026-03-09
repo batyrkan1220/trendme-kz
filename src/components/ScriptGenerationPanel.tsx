@@ -83,9 +83,13 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [chatInput, setChatInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [sheetDragY, setSheetDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef("");
   const savedScriptId = useRef<string | null>(null);
 
@@ -209,6 +213,26 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
       }, 100);
     }
   }, [keyboardHeight]);
+
+  // Drag-to-dismiss handlers for mobile bottom sheet
+  const onDragStart = useCallback((clientY: number) => {
+    dragStartY.current = clientY;
+    setIsDragging(true);
+  }, []);
+
+  const onDragMove = useCallback((clientY: number) => {
+    if (!isDragging) return;
+    const dy = clientY - dragStartY.current;
+    setSheetDragY(Math.max(0, dy)); // only allow dragging down
+  }, [isDragging]);
+
+  const onDragEnd = useCallback(() => {
+    setIsDragging(false);
+    if (sheetDragY > 100) {
+      setChatOpen(false);
+    }
+    setSheetDragY(0);
+  }, [sheetDragY]);
 
   return (
     <div className="flex flex-col h-full relative">
@@ -413,19 +437,29 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
         {/* Mobile: bottom sheet overlay — keyboard-aware */}
         {chatOpen && (
           <div className="md:hidden fixed inset-0 z-[99998] flex flex-col" style={{ height: keyboardHeight > 0 ? `${window.visualViewport?.height || window.innerHeight}px` : '100%', top: keyboardHeight > 0 ? `${window.visualViewport?.offsetTop || 0}px` : 0 }}>
-            <div className="flex-1 min-h-0 bg-foreground/30 backdrop-blur-sm" onClick={() => setChatOpen(false)} />
+            <div className="flex-1 min-h-0 bg-foreground/30 backdrop-blur-sm" style={{ opacity: isDragging ? Math.max(0, 1 - sheetDragY / 300) : 1 }} onClick={() => setChatOpen(false)} />
             <div
+              ref={sheetRef}
               className="bg-card rounded-t-2xl border-t border-border/50 shadow-2xl flex flex-col"
               style={{
                 maxHeight: keyboardHeight > 0 ? `${(window.visualViewport?.height || window.innerHeight) * 0.7}px` : "85vh",
                 minHeight: keyboardHeight > 0 ? "200px" : "50vh",
-                animation: "slide-up 0.3s ease-out",
-                transition: "max-height 0.2s ease-out",
+                animation: isDragging ? "none" : "slide-up 0.3s ease-out",
+                transition: isDragging ? "none" : "transform 0.3s ease-out, max-height 0.2s ease-out",
+                transform: `translateY(${sheetDragY}px)`,
               }}
             >
-              {/* Drag handle */}
-              <div className="flex justify-center pt-2 pb-1 shrink-0">
-                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+              {/* Drag handle — swipe down to close */}
+              <div
+                className="flex justify-center pt-3 pb-2 shrink-0 cursor-grab active:cursor-grabbing touch-none"
+                onTouchStart={(e) => onDragStart(e.touches[0].clientY)}
+                onTouchMove={(e) => onDragMove(e.touches[0].clientY)}
+                onTouchEnd={onDragEnd}
+                onMouseDown={(e) => onDragStart(e.clientY)}
+                onMouseMove={(e) => isDragging && onDragMove(e.clientY)}
+                onMouseUp={onDragEnd}
+              >
+                <div className={`w-10 h-1.5 rounded-full transition-colors ${isDragging ? "bg-primary/60" : "bg-muted-foreground/30"}`} />
               </div>
               <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 shrink-0">
                 <div className="flex items-center gap-2">
