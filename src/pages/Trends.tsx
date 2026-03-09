@@ -311,7 +311,7 @@ export default function Trends() {
                   onPlay={setPlayingId}
                   userFavorites={userFavorites}
                   onToggleFav={toggleFav}
-                  onAnalyze={(v) => setAnalysisVideo(v)}
+                  onAnalyze={(v) => navigate(`/video-analysis?url=${encodeURIComponent(v.url)}`)}
                   isFreePlan={isFreePlan}
                   freeLimit={FREE_LIMIT}
                   hasMore={drillTotalFiltered > visibleCount}
