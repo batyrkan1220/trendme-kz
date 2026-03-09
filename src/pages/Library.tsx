@@ -90,7 +90,7 @@ export default function Library() {
             <p className="text-sm text-muted-foreground">Добавьте видео через поиск или тренды</p>
           </div> :
 
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:gap-3 pb-20 md:pb-0" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(44vw, 200px), 1fr))" }}>
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4 pb-20 md:pb-0">
             {displayFavorites.map((fav: any) => {
             const video = fav.videos;
             if (!video) return null;
