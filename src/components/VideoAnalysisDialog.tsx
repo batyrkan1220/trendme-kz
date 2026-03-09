@@ -292,11 +292,10 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
           {/* Right panel — analysis + sticky button */}
           <div className="flex-1 flex flex-col overflow-hidden bg-background relative">
-            {/* Sticky close button */}
+            {/* Fixed close button - always visible */}
             <button
               onClick={() => onOpenChange(false)}
-              className="absolute top-3 right-3 md:top-6 md:right-6 z-[70] w-10 h-10 rounded-full bg-background border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors"
-              style={{ position: 'sticky', top: 12, alignSelf: 'flex-end', marginRight: 12, marginTop: 12, marginBottom: -52, flexShrink: 0 }}
+              className="absolute top-3 right-3 md:top-6 md:right-6 z-[70] w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors"
             >
               <X className="h-5 w-5 text-foreground" />
             </button>
