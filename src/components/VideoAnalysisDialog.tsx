@@ -514,6 +514,25 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           {/* Scrollable area end */}
           </div>
 
+          {/* Sticky bottom button - only after analysis */}
+          {analysis && !isPending && (
+            <div className="shrink-0 p-3 md:p-4 border-t border-border/50 bg-background" style={{ paddingBottom: isNativePlatform ? "calc(env(safe-area-inset-bottom, 0px) + 12px)" : undefined }}>
+              <button
+                onClick={async () => {
+                  if (!isNativePlatform) {
+                    const ok = await checkAndLog("ai_script", `AI Сценарий из трендов: ${video.url}`);
+                    if (!ok) return;
+                  }
+                  setShowScript(true);
+                }}
+                className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              >
+                <Sparkles className="h-5 w-5" />
+                Генерация сценария
+              </button>
+            </div>
+          )}
+
           </div>
         )}
       </SheetContent>
