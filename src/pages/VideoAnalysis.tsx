@@ -127,20 +127,41 @@ export default function VideoAnalysis() {
   const authorUsername = stats?.channelName || stats?.author?.uniqueId || stats?.author_username || "";
   const authorAvatar = stats?.author?.avatarThumb || stats?.author_avatar_url || "";
 
+  const swipeIndicator = showIndicator && (
+    <div
+      className="fixed left-0 top-1/2 -translate-y-1/2 z-[99999] pointer-events-none"
+      style={{
+        opacity: indicatorProgress,
+        transform: `translateX(${indicatorProgress * 16 - 12}px) translateY(-50%)`,
+        transition: "none",
+      }}
+    >
+      <div
+        className="w-10 h-10 rounded-full flex items-center justify-center"
+        style={{
+          background: `hsl(var(--primary) / ${0.15 + indicatorProgress * 0.25})`,
+          backdropFilter: "blur(8px)",
+          boxShadow: `0 2px 12px hsl(var(--primary) / ${indicatorProgress * 0.3})`,
+        }}
+      >
+        <ArrowLeft className="h-5 w-5 text-primary" style={{ opacity: indicatorProgress }} />
+      </div>
+    </div>
+  );
+
   if (showScript && analysis) {
     return (
       <AppLayout>
-        <div className="pb-16 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)" }}>
+        {swipeIndicator}
+        <div className="pb-16 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)", ...swipeStyle }} {...swipeProps}>
           <ScriptGenerationPanel
             transcript={transcript}
             summary={summary}
             caption=""
             language={language || "ru"}
             onBack={() => setShowScript(false)} />
-          
         </div>
       </AppLayout>);
-
   }
 
   return (
