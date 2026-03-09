@@ -118,10 +118,10 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   return (
     <>
       <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-        <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col safe-area-top" style={{ maxHeight: '100dvh' }}>
-          <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5 shrink-0">
+        <SheetContent side="left" className="w-[280px] p-0 flex flex-col safe-area-top" style={{ maxHeight: '100dvh', background: 'rgba(12,12,12,0.96)', backdropFilter: 'blur(40px) saturate(1.5)', WebkitBackdropFilter: 'blur(40px) saturate(1.5)' }}>
+          <SheetHeader className="px-4 h-14 border-b border-white/[0.06] flex flex-row items-center gap-2.5 shrink-0">
             <TrendMeLogo size={28} />
-            <SheetTitle className="font-bold text-base tracking-tight text-foreground">trendme</SheetTitle>
+            <SheetTitle className="font-extrabold text-base tracking-tight text-foreground">trendme</SheetTitle>
           </SheetHeader>
 
           <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
