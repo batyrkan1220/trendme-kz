@@ -23,7 +23,7 @@ const fmt = (n: number) => {
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const navigate = useNavigate();
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
