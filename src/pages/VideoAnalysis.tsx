@@ -44,22 +44,7 @@ export default function VideoAnalysis() {
   const [showLangPicker, setShowLangPicker] = useState(!!searchParams.get("url"));
   const { checkAndLog } = useSubscription();
 
-  // Swipe-back: script → analysis → lang picker → previous page
-  const handleSwipeBack = useCallback(() => {
-    if (showScript) {
-      setShowScript(false);
-    } else if (analysis) {
-      // Reset analysis to go back to lang picker
-      window.location.reload(); // simplest way to reset mutation
-    } else {
-      navigate(-1);
-    }
-  }, [showScript, analysis, navigate]);
-
-  const { swipeProps, swipeStyle, showIndicator, indicatorProgress } = useSwipeBack({
-    onBack: handleSwipeBack,
-  });
-  const { data: analysis, isPending, mutate: analyze } = useMutation({
+  const { data: analysis, isPending, mutate: analyze, reset: resetAnalysis } = useMutation({
     mutationFn: async ({ videoUrl, lang }: {videoUrl: string;lang: "ru" | "kk";}) => {
       // Single call — analyze_video already fetches post info + comments
       const { data, error } = await supabase.functions.invoke("socialkit", {
