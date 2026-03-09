@@ -62,7 +62,22 @@ export default function VideoAnalysis() {
     }
   });
 
-  const handleAnalyze = async (lang: "ru" | "kk") => {
+  // Swipe-back: script → analysis → lang picker → previous page
+  const handleSwipeBack = useCallback(() => {
+    if (showScript) {
+      setShowScript(false);
+    } else if (analysis) {
+      resetAnalysis();
+      setLanguage(null);
+    } else {
+      navigate(-1);
+    }
+  }, [showScript, analysis, navigate, resetAnalysis]);
+
+  const { swipeProps, swipeStyle, showIndicator, indicatorProgress } = useSwipeBack({
+    onBack: handleSwipeBack,
+  });
+
     if (!url.trim()) return;
     if (!isValidTikTokUrl(url.trim())) {
       toast.error("Используйте только ссылку на TikTok (например: https://www.tiktok.com/@user/video/...)");
