@@ -239,6 +239,43 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     setSheetDragY(0);
   }, [sheetDragY]);
 
+  // Swipe-right to go back (main script page)
+  const onSwipeStart = useCallback((e: React.TouchEvent) => {
+    if (chatOpen) return;
+    swipeStartX.current = e.touches[0].clientX;
+    swipeStartY.current = e.touches[0].clientY;
+    swipeLocked.current = null;
+    setIsSwiping(false);
+  }, [chatOpen]);
+
+  const onSwipeMove = useCallback((e: React.TouchEvent) => {
+    if (chatOpen) return;
+    const dx = e.touches[0].clientX - swipeStartX.current;
+    const dy = e.touches[0].clientY - swipeStartY.current;
+
+    // Lock direction after 10px movement
+    if (!swipeLocked.current && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      swipeLocked.current = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+    }
+    if (swipeLocked.current !== "h") return;
+
+    const swipeVal = Math.max(0, dx);
+    if (swipeVal > 0) {
+      setIsSwiping(true);
+      setSwipeX(swipeVal);
+    }
+  }, [chatOpen]);
+
+  const onSwipeEnd = useCallback(() => {
+    if (!isSwiping) return;
+    if (swipeX > 120) {
+      onBack();
+    }
+    setSwipeX(0);
+    setIsSwiping(false);
+    swipeLocked.current = null;
+  }, [isSwiping, swipeX, onBack]);
+
   return (
     <div className="flex flex-col h-full relative">
       {/* Header */}
