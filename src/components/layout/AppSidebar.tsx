@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import {
   LayoutDashboard, TrendingUp, Search,
-  Video, UserCircle, Heart, ScrollText, Sparkles,
+  Video, UserCircle, Heart, ScrollText,
   ArrowRight, Shield,
   LogOut, ChevronLeft, ChevronRight, CreditCard
 } from "lucide-react";
