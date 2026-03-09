@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  Flame, Search, Heart, Wrench, Video, BarChart3, ChevronUp
+  Flame, Search, Heart, ScanSearch, Video, BarChart3, ChevronUp
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 
@@ -146,7 +146,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
         >
           <div className="relative">
-            <Wrench
+            <ScanSearch
               className={cn(
                 "h-[25px] w-[25px] transition-colors duration-200",
                 isToolsActive || showToolsMenu ? "text-neon" : "text-white"
@@ -164,7 +164,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             "text-[11px] font-semibold leading-tight transition-colors",
             isToolsActive || showToolsMenu ? "text-neon" : "text-white"
           )}>
-            Инструменты
+            Анализ
           </span>
         </button>
 
