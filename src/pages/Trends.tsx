@@ -238,7 +238,7 @@ export default function Trends() {
                 className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
                 style={{ 
                   background: "rgba(10,10,10,0.85)", 
-                  paddingTop: "max(calc(env(safe-area-inset-top, 0px) + 24px), 92px)"
+                  paddingTop: "env(safe-area-inset-top, 0px)"
                 }}
               >
                 <div className="flex items-center gap-3">
