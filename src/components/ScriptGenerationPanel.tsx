@@ -83,9 +83,13 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [chatInput, setChatInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [sheetDragY, setSheetDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef("");
   const savedScriptId = useRef<string | null>(null);
 
