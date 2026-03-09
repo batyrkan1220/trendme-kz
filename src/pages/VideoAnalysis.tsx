@@ -36,12 +36,29 @@ const isValidTikTokUrl = (url: string): boolean => {
 
 export default function VideoAnalysis() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [url, setUrl] = useState(searchParams.get("url") || "");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
   const [showLangPicker, setShowLangPicker] = useState(!!searchParams.get("url"));
   const { checkAndLog } = useSubscription();
+
+  // Swipe-back: script → analysis → lang picker → previous page
+  const handleSwipeBack = useCallback(() => {
+    if (showScript) {
+      setShowScript(false);
+    } else if (analysis) {
+      // Reset analysis to go back to lang picker
+      window.location.reload(); // simplest way to reset mutation
+    } else {
+      navigate(-1);
+    }
+  }, [showScript, analysis, navigate]);
+
+  const { swipeProps, swipeStyle, showIndicator, indicatorProgress } = useSwipeBack({
+    onBack: handleSwipeBack,
+  });
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: {videoUrl: string;lang: "ru" | "kk";}) => {
       // Single call — analyze_video already fetches post info + comments
