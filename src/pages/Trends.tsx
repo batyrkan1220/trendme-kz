@@ -94,7 +94,11 @@ export default function Trends() {
 
   const toggleFav = useCallback(
     async (videoId: string) => {
-      if (!user) return;
+      if (!user) {
+        console.warn("[Trends] toggleFav: No user, skipping");
+        return;
+      }
+      console.log("[Trends] toggleFav called:", { userId: user.id, videoId });
       const isFav = userFavorites.includes(videoId);
 
       // Optimistic update — UI жедел жаңартылады
@@ -103,11 +107,17 @@ export default function Trends() {
         isFav ? userFavorites.filter((id: string) => id !== videoId) : [...userFavorites, videoId]
       );
 
-      if (isFav) {
-        await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
-      } else {
-        await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
-        trackAddToFavorites(videoId);
+      try {
+        if (isFav) {
+          const { error } = await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+          console.log("[Trends] Delete favorite result:", { error });
+        } else {
+          const { data, error } = await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId }).select();
+          console.log("[Trends] Insert favorite result:", { data, error });
+          if (!error) trackAddToFavorites(videoId);
+        }
+      } catch (err) {
+        console.error("[Trends] toggleFav error:", err);
       }
       queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     },
