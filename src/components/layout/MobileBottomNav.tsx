@@ -164,7 +164,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             "text-[11px] font-semibold leading-tight transition-colors",
             isToolsActive || showToolsMenu ? "text-neon" : "text-white"
           )}>
-            Инструменты
+            Анализ
           </span>
         </button>
 
