@@ -52,7 +52,7 @@ interface TopVideo {
 export default function AccountAnalysis() {
   const [url, setUrl] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { checkAndLog } = useSubscription();
