@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  Flame, Search, Heart, ScanSearch, Video, BarChart3, ChevronUp
+  Flame, Search, Heart, ScanSearch, Video, UserSearch, ChevronUp
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 
