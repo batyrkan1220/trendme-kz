@@ -277,7 +277,17 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   }, [isSwiping, swipeX, onBack]);
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div
+      className="flex flex-col h-full relative"
+      onTouchStart={onSwipeStart}
+      onTouchMove={onSwipeMove}
+      onTouchEnd={onSwipeEnd}
+      style={{
+        transform: swipeX > 0 ? `translateX(${swipeX * 0.6}px)` : undefined,
+        transition: isSwiping ? "none" : "transform 0.3s ease-out",
+        opacity: swipeX > 0 ? Math.max(0.3, 1 - swipeX / 400) : 1,
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 pt-[calc(env(safe-area-inset-top,0px)+12px)] border-b border-border/50 bg-card shrink-0">
         <div className="flex items-center gap-3">
