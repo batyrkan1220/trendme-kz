@@ -78,6 +78,7 @@ export default function VideoAnalysis() {
     onBack: handleSwipeBack,
   });
 
+  const handleAnalyze = async (lang: "ru" | "kk") => {
     if (!url.trim()) return;
     if (!isValidTikTokUrl(url.trim())) {
       toast.error("Используйте только ссылку на TikTok (например: https://www.tiktok.com/@user/video/...)");
