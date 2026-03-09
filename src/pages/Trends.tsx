@@ -1,5 +1,4 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isNativePlatform } from "@/lib/native";
 import { useNavigate } from "react-router-dom";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
@@ -216,18 +215,12 @@ export default function Trends() {
     setVisibleCount(PAGE_SIZE);
   };
 
-  const { swipeProps: drillSwipeProps, swipeStyle: drillSwipeStyle, showIndicator: drillShowIndicator, indicatorProgress: drillIndicatorProgress } = useSwipeBack({
-    onBack: handleBack,
-    disabled: !drillNiche,
-  });
-
   return (
     <AppLayout>
       <div
         ref={containerRef}
         className="overflow-x-hidden overflow-y-auto h-full trends-dark-theme relative pb-16 md:pb-8"
         style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: drillNiche ? "0px" : "12px" }}
-        {...(drillNiche ? drillSwipeProps : {})}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
@@ -235,32 +228,10 @@ export default function Trends() {
           progress={progress}
         />
 
-        <div className="space-y-4 pb-4" style={drillNiche ? drillSwipeStyle : undefined}>
+        <div className="space-y-4 pb-4">
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
             <>
-              {/* Swipe-back indicator for drill-down */}
-              {drillShowIndicator && (
-                <div
-                  className="fixed left-0 top-1/2 -translate-y-1/2 z-[99999] pointer-events-none"
-                  style={{
-                    opacity: drillIndicatorProgress,
-                    transform: `translateX(${drillIndicatorProgress * 16 - 12}px) translateY(-50%)`,
-                    transition: "none",
-                  }}
-                >
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{
-                      background: `hsl(var(--primary) / ${0.15 + drillIndicatorProgress * 0.25})`,
-                      backdropFilter: "blur(8px)",
-                      boxShadow: `0 2px 12px hsl(var(--primary) / ${drillIndicatorProgress * 0.3})`,
-                    }}
-                  >
-                    <ChevronLeft className="h-5 w-5 text-primary" style={{ opacity: drillIndicatorProgress }} />
-                  </div>
-                </div>
-              )}
               {/* Sticky header with back + title */}
               <div
                 className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
