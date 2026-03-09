@@ -34,10 +34,12 @@ const isValidTikTokUrl = (url: string): boolean => {
 };
 
 export default function VideoAnalysis() {
-  const [url, setUrl] = useState("");
+  const [searchParams] = useSearchParams();
+  const [url, setUrl] = useState(searchParams.get("url") || "");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
+  const [showLangPicker, setShowLangPicker] = useState(!!searchParams.get("url"));
   const { checkAndLog } = useSubscription();
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: {videoUrl: string;lang: "ru" | "kk";}) => {
