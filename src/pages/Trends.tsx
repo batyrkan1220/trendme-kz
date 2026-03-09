@@ -227,6 +227,7 @@ export default function Trends() {
         ref={containerRef}
         className="overflow-x-hidden overflow-y-auto h-full trends-dark-theme relative pb-16 md:pb-8"
         style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: drillNiche ? "0px" : "12px" }}
+        {...(drillNiche ? drillSwipeProps : {})}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
@@ -234,10 +235,10 @@ export default function Trends() {
           progress={progress}
         />
 
-        <div className="space-y-4 pb-4">
+        <div className="space-y-4 pb-4" style={drillNiche ? drillSwipeStyle : undefined}>
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
-            <div {...drillSwipeProps} style={drillSwipeStyle}>
+            <>
               {/* Swipe-back indicator for drill-down */}
               {drillShowIndicator && (
                 <div
