@@ -8,8 +8,8 @@ import { isNativePlatform } from "@/lib/native";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { ArrowLeft } from "lucide-react";
 
-/** Routes that handle their own swipe-back or shouldn't have it */
-const SWIPE_DISABLED_ROUTES = ["/trends", "/search", "/library", "/", "/video-analysis"];
+/** Main tab routes — no swipe-back on these */
+const MAIN_TABS = ["/trends", "/search", "/library", "/"];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -17,9 +17,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const location = useLocation();
 
-  const isSwipeDisabled = SWIPE_DISABLED_ROUTES.includes(location.pathname);
+  const isMainTab = MAIN_TABS.includes(location.pathname);
   const { swipeProps, swipeStyle, showIndicator, indicatorProgress } = useSwipeBack({
-    disabled: isSwipeDisabled || drawerOpen,
+    disabled: isMainTab || drawerOpen,
   });
 
   return (

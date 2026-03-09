@@ -1,8 +1,8 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Video, Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, Target, Copy, Play, X, ArrowLeft } from "lucide-react";
+import { Video, Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, Target, Copy, Play, X } from "lucide-react";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,6 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ScriptGenerationPanel } from "@/components/ScriptGenerationPanel";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useSwipeBack } from "@/hooks/useSwipeBack";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -36,15 +35,13 @@ const isValidTikTokUrl = (url: string): boolean => {
 
 export default function VideoAnalysis() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [url, setUrl] = useState(searchParams.get("url") || "");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
   const [showLangPicker, setShowLangPicker] = useState(!!searchParams.get("url"));
   const { checkAndLog } = useSubscription();
-
-  const { data: analysis, isPending, mutate: analyze, reset: resetAnalysis } = useMutation({
+  const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: {videoUrl: string;lang: "ru" | "kk";}) => {
       // Single call — analyze_video already fetches post info + comments
       const { data, error } = await supabase.functions.invoke("socialkit", {
@@ -60,22 +57,6 @@ export default function VideoAnalysis() {
     onError: (err: Error) => {
       toast.error(err.message || "Не удалось проанализировать видео");
     }
-  });
-
-  // Swipe-back: script → analysis → lang picker → previous page
-  const handleSwipeBack = useCallback(() => {
-    if (showScript) {
-      setShowScript(false);
-    } else if (analysis) {
-      resetAnalysis();
-      setLanguage(null);
-    } else {
-      navigate(-1);
-    }
-  }, [showScript, analysis, navigate, resetAnalysis]);
-
-  const { swipeProps, swipeStyle, showIndicator, indicatorProgress } = useSwipeBack({
-    onBack: handleSwipeBack,
   });
 
   const handleAnalyze = async (lang: "ru" | "kk") => {
@@ -127,49 +108,27 @@ export default function VideoAnalysis() {
   const authorUsername = stats?.channelName || stats?.author?.uniqueId || stats?.author_username || "";
   const authorAvatar = stats?.author?.avatarThumb || stats?.author_avatar_url || "";
 
-  const swipeIndicator = showIndicator && (
-    <div
-      className="fixed left-0 top-1/2 -translate-y-1/2 z-[99999] pointer-events-none"
-      style={{
-        opacity: indicatorProgress,
-        transform: `translateX(${indicatorProgress * 16 - 12}px) translateY(-50%)`,
-        transition: "none",
-      }}
-    >
-      <div
-        className="w-10 h-10 rounded-full flex items-center justify-center"
-        style={{
-          background: `hsl(var(--primary) / ${0.15 + indicatorProgress * 0.25})`,
-          backdropFilter: "blur(8px)",
-          boxShadow: `0 2px 12px hsl(var(--primary) / ${indicatorProgress * 0.3})`,
-        }}
-      >
-        <ArrowLeft className="h-5 w-5 text-primary" style={{ opacity: indicatorProgress }} />
-      </div>
-    </div>
-  );
-
   if (showScript && analysis) {
     return (
       <AppLayout>
-        {swipeIndicator}
-        <div className="pb-16 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)", ...swipeStyle }} {...swipeProps}>
+        <div className="pb-16 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)" }}>
           <ScriptGenerationPanel
             transcript={transcript}
             summary={summary}
             caption=""
             language={language || "ru"}
             onBack={() => setShowScript(false)} />
+          
         </div>
       </AppLayout>);
+
   }
 
   return (
     <AppLayout>
-      {swipeIndicator}
       {!analysis || isPending ? (
       /* Centered form + loading */
-      <div {...swipeProps} className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)", ...swipeStyle }}>
+      <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             {isPending ?
           <>
@@ -225,7 +184,7 @@ export default function VideoAnalysis() {
           </div>
         </div>) :
 
-      <div {...swipeProps} className="p-3 md:p-4 lg:p-6 animate-fade-in pb-16 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)", ...swipeStyle }}>
+      <div className="p-3 md:p-4 lg:p-6 animate-fade-in pb-16 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Анализ видео 🎬</h1>
         <div className="flex flex-col sm:flex-row gap-2 mb-3 md:mb-4">
           <Input
