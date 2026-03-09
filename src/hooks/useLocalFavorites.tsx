@@ -1,37 +1,41 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-// Shared in-memory cache and listener pattern for cross-component sync
-const listeners = new Set<() => void>();
-let cache: string[] = (() => {
+const STORAGE_KEY = 'native_favorites';
+
+// Global event target for cross-component sync
+const favoritesEmitter = new EventTarget();
+
+function getStoredFavorites(): string[] {
   try {
-    return JSON.parse(localStorage.getItem('native_favorites') || '[]');
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   } catch {
     return [];
   }
-})();
-
-function subscribe(callback: () => void) {
-  listeners.add(callback);
-  return () => listeners.delete(callback);
-}
-
-function getSnapshot() {
-  return cache;
-}
-
-function notify() {
-  listeners.forEach(l => l());
 }
 
 export function useLocalFavorites() {
-  const favorites = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const [favorites, setFavorites] = useState<string[]>(getStoredFavorites);
+
+  // Listen for updates from other components
+  useEffect(() => {
+    const handler = () => {
+      setFavorites(getStoredFavorites());
+    };
+    favoritesEmitter.addEventListener('update', handler);
+    return () => favoritesEmitter.removeEventListener('update', handler);
+  }, []);
 
   const toggleFavorite = useCallback((id: string) => {
-    cache = cache.includes(id) 
-      ? cache.filter(f => f !== id) 
-      : [...cache, id];
-    localStorage.setItem('native_favorites', JSON.stringify(cache));
-    notify();
+    const current = getStoredFavorites();
+    const updated = current.includes(id)
+      ? current.filter(f => f !== id)
+      : [...current, id];
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    setFavorites(updated);
+    
+    // Notify other components after state update
+    setTimeout(() => favoritesEmitter.dispatchEvent(new Event('update')), 0);
   }, []);
 
   return { favorites, toggleFavorite };
