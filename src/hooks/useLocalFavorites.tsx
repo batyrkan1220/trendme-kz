@@ -1,26 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
+
+// Shared in-memory cache and listener pattern for cross-component sync
+const listeners = new Set<() => void>();
+let cache: string[] = (() => {
+  try {
+    return JSON.parse(localStorage.getItem('native_favorites') || '[]');
+  } catch {
+    return [];
+  }
+})();
+
+function subscribe(callback: () => void) {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+}
+
+function getSnapshot() {
+  return cache;
+}
+
+function notify() {
+  listeners.forEach(l => l());
+}
 
 export function useLocalFavorites() {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const favorites = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-  useEffect(() => {
-    const stored = localStorage.getItem('native_favorites');
-    if (stored) {
-      try {
-        setFavorites(JSON.parse(stored));
-      } catch (e) {
-        console.error('Error parsing local favorites', e);
-      }
-    }
+  const toggleFavorite = useCallback((id: string) => {
+    cache = cache.includes(id) 
+      ? cache.filter(f => f !== id) 
+      : [...cache, id];
+    localStorage.setItem('native_favorites', JSON.stringify(cache));
+    notify();
   }, []);
-
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => {
-      const newFavs = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
-      localStorage.setItem('native_favorites', JSON.stringify(newFavs));
-      return newFavs;
-    });
-  };
 
   return { favorites, toggleFavorite };
 }
