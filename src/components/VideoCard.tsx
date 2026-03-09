@@ -269,7 +269,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
 
   return (
-    <div ref={ref} className={`group rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col ${darkMode ? "bg-[#1a1a1a] border border-white/10" : "bg-card border border-border/40"}`} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel} onTouchStart={handlePreload}>
+    <div ref={ref} className={`group rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col ${darkMode ? "bg-[#1a1a1a] border border-white/10" : "bg-card border border-border/40"}`} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel}>
       {/* Video area */}
       <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-xl m-1.5">
         {playingId === video.id ? (
