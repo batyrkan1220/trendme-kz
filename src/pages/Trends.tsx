@@ -346,7 +346,7 @@ export default function Trends() {
                   darkMode
                 />
               </div>
-            </>
+            </div>
           ) : (
             <>
 
