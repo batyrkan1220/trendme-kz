@@ -7,13 +7,17 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { useNavigate } from "react-router-dom";
+import { isNativePlatform } from "@/lib/native";
+import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 
 export default function Library() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const { favorites: localFavorites, toggleFavorite: toggleLocalFav } = useLocalFavorites();
 
+  // Remote favorites (only on web)
   const { data: favorites = [], isLoading, error } = useQuery({
     queryKey: ["favorites-list", user?.id],
     queryFn: async () => {
@@ -29,14 +33,34 @@ export default function Library() {
       }
       return data || [];
     },
-    enabled: !!user
+    enabled: !!user && !isNativePlatform
   });
 
-  console.log("[Library] Render state:", { userId: user?.id, favoritesCount: favorites.length, isLoading, error });
+  // Local favorites video data (native only)
+  const { data: localVideos = [] } = useQuery({
+    queryKey: ["local-favorite-videos", localFavorites],
+    queryFn: async () => {
+      if (localFavorites.length === 0) return [];
+      const { data } = await supabase.from("videos").select("*").in("id", localFavorites);
+      return data || [];
+    },
+    enabled: isNativePlatform && localFavorites.length > 0
+  });
 
-  const favVideoIds = new Set(favorites.map((f: any) => f.video_id));
+  const displayFavorites = isNativePlatform 
+    ? localVideos.map(video => ({ id: video.id, video_id: video.id, videos: video }))
+    : favorites;
+
+  console.log("[Library] Render state:", { userId: user?.id, favoritesCount: displayFavorites.length, isLoading, error, isNativePlatform });
+
+  const favVideoIds = new Set(isNativePlatform ? localFavorites : favorites.map((f: any) => f.video_id));
 
   const removeFav = async (videoId: string) => {
+    if (isNativePlatform) {
+      toggleLocalFav(videoId);
+      toast.success("Удалено из избранного");
+      return;
+    }
     const fav = favorites.find((f: any) => f.video_id === videoId);
     if (!fav) return;
     await supabase.from("favorites").delete().eq("id", fav.id);
