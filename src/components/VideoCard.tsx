@@ -368,7 +368,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 <Music className={`h-2.5 w-2.5 ${darkMode ? "text-black" : "text-foreground"}`} />
                 <span className={`text-[9px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
               </div>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onTouchEnd={(e) => {
@@ -383,11 +383,11 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     console.log("[VideoCard] Heart click fired for:", video.id);
                     onToggleFav(video.id);
                   }}
-                  className={`w-11 h-11 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
+                  className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
                   style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 >
                   <Heart
-                    className={`h-5 w-5 transition-all ${
+                    className={`h-4 w-4 transition-all ${
                       isFavorite
                         ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
                         : "text-white"
