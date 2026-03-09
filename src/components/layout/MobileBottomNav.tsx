@@ -13,7 +13,7 @@ const mainNavItems = [
 const toolsMenuItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
   
-  { icon: BarChart3, path: "/account-analysis", label: "Анализ профиля" },
+  { icon: UserSearch, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 
 interface MobileBottomNavProps {
