@@ -39,7 +39,7 @@ const searchItems: NavItem[] = [
 
 const toolItems: NavItem[] = [
   { label: "Анализ видео", icon: Video, path: "/video-analysis", iconColor: "text-orange-500" },
-  { label: "AI Сценарий", icon: Sparkles, path: "/ai-script", iconColor: "text-pink-500" },
+  
   { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
 ];
 

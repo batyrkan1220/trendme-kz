@@ -12,7 +12,7 @@ const mainNavItems = [
 
 const toolsMenuItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
-  { icon: Sparkles, path: "/ai-script", label: "AI Сценарий" },
+  
   { icon: BarChart3, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 
