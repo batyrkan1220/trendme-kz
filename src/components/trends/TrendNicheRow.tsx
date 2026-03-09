@@ -39,7 +39,7 @@ export function TrendNicheRow({
       {/* Section header */}
       <div
         className="flex items-center justify-between sticky z-20 -mx-4 px-4 py-2.5"
-        style={{ top: "0px" }}
+        style={{ top: "0px", background: "transparent" }}
       >
         <h2 className={`text-[15px] font-extrabold tracking-tight ${darkMode ? "text-white" : "text-foreground"}`}>
           {group.label} {group.emoji}
