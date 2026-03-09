@@ -222,7 +222,7 @@ export default function VideoAnalysis() {
           <div className="flex flex-col md:flex-row gap-3 md:gap-4 min-h-0 md:h-[calc(100vh-10rem)]">
             {/* Left panel — video + stats */}
             {/* Mobile: horizontal compact card; Desktop: vertical sidebar */}
-            <div className="w-full md:w-[320px] flex-shrink-0 overflow-y-auto">
+            <div className="w-[min(44vw,200px)] flex-shrink-0 overflow-y-auto">
               <VideoCard
               video={{
                 id: videoId,
