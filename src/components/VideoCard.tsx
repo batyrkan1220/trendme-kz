@@ -431,7 +431,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(video.url, '_blank'); }}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); window.open(video.url, '_blank'); }}
-              className="absolute top-12 right-1.5 z-10 w-9 h-9 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20"
+              className="absolute top-11 right-1.5 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20"
               style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
             >
               <ExternalLink className="h-4 w-4 text-white" />
