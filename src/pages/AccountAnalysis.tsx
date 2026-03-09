@@ -5,7 +5,7 @@ import {
 "lucide-react";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { useState, useCallback, useMemo } from "react";
-import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
