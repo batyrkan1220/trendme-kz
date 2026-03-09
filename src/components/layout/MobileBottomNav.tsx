@@ -146,7 +146,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
         >
           <div className="relative">
-            <Wrench
+            <ScanSearch
               className={cn(
                 "h-[25px] w-[25px] transition-colors duration-200",
                 isToolsActive || showToolsMenu ? "text-neon" : "text-white"
