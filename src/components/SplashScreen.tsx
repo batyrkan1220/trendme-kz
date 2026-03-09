@@ -12,6 +12,19 @@ const STEPS = [
 function TikTokLogo({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Cyan shadow layer */}
+      <path
+        d="M19.589 6.686a4.793 4.793 0 01-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 01-2.882 2.783 2.896 2.896 0 01-2.881-2.906 2.896 2.896 0 012.881-2.906c.316 0 .62.052.905.146V9.305a6.329 6.329 0 00-.905-.066 6.34 6.34 0 00-6.34 6.34A6.34 6.34 0 009.492 22a6.34 6.34 0 006.34-6.34V9.208a8.16 8.16 0 004.757 1.533V7.327a4.812 4.812 0 01-1-.641z"
+        fill="#25F4EE"
+        style={{ transform: "translate(-0.5px, 0.5px)" }}
+      />
+      {/* Red shadow layer */}
+      <path
+        d="M19.589 6.686a4.793 4.793 0 01-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 01-2.882 2.783 2.896 2.896 0 01-2.881-2.906 2.896 2.896 0 012.881-2.906c.316 0 .62.052.905.146V9.305a6.329 6.329 0 00-.905-.066 6.34 6.34 0 00-6.34 6.34A6.34 6.34 0 009.492 22a6.34 6.34 0 006.34-6.34V9.208a8.16 8.16 0 004.757 1.533V7.327a4.812 4.812 0 01-1-.641z"
+        fill="#FE2C55"
+        style={{ transform: "translate(0.5px, -0.5px)" }}
+      />
+      {/* Main black layer */}
       <path
         d="M19.589 6.686a4.793 4.793 0 01-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 01-2.882 2.783 2.896 2.896 0 01-2.881-2.906 2.896 2.896 0 012.881-2.906c.316 0 .62.052.905.146V9.305a6.329 6.329 0 00-.905-.066 6.34 6.34 0 00-6.34 6.34A6.34 6.34 0 009.492 22a6.34 6.34 0 006.34-6.34V9.208a8.16 8.16 0 004.757 1.533V7.327a4.812 4.812 0 01-1-.641z"
         fill="currentColor"
@@ -226,6 +239,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             background: isGreenPhase ? "hsl(72 100% 30% / 0.15)" : "hsl(0 0% 100% / 0.06)",
             border: isGreenPhase ? "1px solid hsl(72 100% 20% / 0.2)" : "1px solid hsl(0 0% 100% / 0.1)",
             backdropFilter: "blur(12px)",
+            color: isGreenPhase ? "hsl(72 100% 5%)" : "hsl(0 0% 90%)",
             opacity: phase >= 2 ? 1 : 0,
             transform: phase >= 2 ? "translateY(0) scale(1)" : "translateY(20px) scale(0.8)",
             transition: "all 700ms cubic-bezier(0.16, 1, 0.3, 1) 1100ms",
@@ -234,7 +248,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
           <TikTokLogo size={14} />
           <span
             className="text-[11px] font-bold tracking-[0.1em] uppercase"
-            style={{ color: isGreenPhase ? "hsl(72 100% 10% / 0.6)" : "hsl(0 0% 60%)" }}
+            style={{ color: isGreenPhase ? "hsl(72 100% 5% / 0.7)" : "hsl(0 0% 60%)" }}
           >
             TikTok Official Partner
           </span>
