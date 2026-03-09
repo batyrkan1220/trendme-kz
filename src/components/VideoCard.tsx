@@ -556,13 +556,14 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
       {/* Analyze button */}
       {showAnalyzeButton && onAnalyze && (
-        <div className="px-3 pb-3 mt-auto">
+        <div className="px-3 pb-3.5 mt-auto">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onAnalyze(video);
             }}
-            className={`w-full py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity ${darkMode ? "bg-neon text-black" : "bg-primary text-primary-foreground"}`}
+            className={`w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide transition-all active:scale-[0.97] ${darkMode ? "bg-neon text-black" : "bg-primary text-primary-foreground"}`}
+            style={darkMode ? { boxShadow: "0 4px 20px hsl(72 100% 50% / 0.2), 0 0 0 0.5px hsl(72 100% 50% / 0.3) inset" } : undefined}
           >
             Анализ видео
           </button>
