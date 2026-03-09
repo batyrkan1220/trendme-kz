@@ -40,27 +40,16 @@ export default function VideoAnalysis() {
   const { checkAndLog } = useSubscription();
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: {videoUrl: string;lang: "ru" | "kk";}) => {
-      const [statsRes, analysisRes] = await Promise.allSettled([
-      supabase.functions.invoke("socialkit", {
-        body: { action: "video_stats", video_url: videoUrl }
-      }),
-      supabase.functions.invoke("socialkit", {
+      // Single call — analyze_video already fetches post info + comments
+      const { data, error } = await supabase.functions.invoke("socialkit", {
         body: { action: "analyze_video", video_url: videoUrl, caption: "", language: lang }
-      })]
-      );
+      });
+      if (error) throw error;
+      if (!data) throw new Error("Не удалось получить данные о видео. Проверьте ссылку.");
 
-      const stats = statsRes.status === "fulfilled" && !statsRes.value.error ? statsRes.value.data : null;
-      const analysisData = analysisRes.status === "fulfilled" && !analysisRes.value.error ? analysisRes.value.data : null;
-
-      if (!stats && !analysisData) {
-        throw new Error("Не удалось получить данные о видео. Проверьте ссылку.");
-      }
-
-      if (!analysisData && stats) {
-        toast.warning("Статистика получена, но анализ недоступен для этого видео");
-      }
-
-      return { stats, ...(analysisData || {}) };
+      // Extract stats from summary_json (analyze_video includes stats there)
+      const summaryStats = data.summary_json?.stats || null;
+      return { stats: summaryStats, ...data };
     },
     onError: (err: Error) => {
       toast.error(err.message || "Не удалось проанализировать видео");
