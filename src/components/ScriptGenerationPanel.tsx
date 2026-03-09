@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { isNativePlatform } from "@/lib/native";
 import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye, MessageCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,7 +82,10 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [isGenerating, setIsGenerating] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
   const scriptRef = useRef("");
   const savedScriptId = useRef<string | null>(null);
 
@@ -178,6 +181,34 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // iOS keyboard detection via visualViewport API
+  useEffect(() => {
+    if (!chatOpen) { setKeyboardHeight(0); return; }
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      const kbH = window.innerHeight - vv.height;
+      setKeyboardHeight(kbH > 50 ? kbH : 0);
+    };
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    onResize();
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      vv.removeEventListener("scroll", onResize);
+    };
+  }, [chatOpen]);
+
+  // Scroll input into view when keyboard opens
+  useEffect(() => {
+    if (keyboardHeight > 0) {
+      setTimeout(() => {
+        mobileInputRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [keyboardHeight]);
 
   return (
     <div className="flex flex-col h-full relative">
@@ -369,13 +400,18 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           </button>
         )}
 
-        {/* Mobile: bottom sheet overlay — taller for editing convenience */}
+        {/* Mobile: bottom sheet overlay — keyboard-aware */}
         {chatOpen && (
-          <div className="md:hidden fixed inset-0 z-[99998] flex flex-col">
-            <div className="flex-1 bg-foreground/30 backdrop-blur-sm" onClick={() => setChatOpen(false)} />
+          <div className="md:hidden fixed inset-0 z-[99998] flex flex-col" style={{ height: keyboardHeight > 0 ? `${window.visualViewport?.height || window.innerHeight}px` : '100%', top: keyboardHeight > 0 ? `${window.visualViewport?.offsetTop || 0}px` : 0 }}>
+            <div className="flex-1 min-h-0 bg-foreground/30 backdrop-blur-sm" onClick={() => setChatOpen(false)} />
             <div
               className="bg-card rounded-t-2xl border-t border-border/50 shadow-2xl flex flex-col"
-              style={{ maxHeight: "85vh", minHeight: "50vh", animation: "slide-up 0.3s ease-out" }}
+              style={{
+                maxHeight: keyboardHeight > 0 ? `${(window.visualViewport?.height || window.innerHeight) * 0.7}px` : "85vh",
+                minHeight: keyboardHeight > 0 ? "200px" : "50vh",
+                animation: "slide-up 0.3s ease-out",
+                transition: "max-height 0.2s ease-out",
+              }}
             >
               {/* Drag handle */}
               <div className="flex justify-center pt-2 pb-1 shrink-0">
@@ -391,33 +427,35 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 </button>
               </div>
 
-              {/* Quick action chips */}
-              <div className="px-3 py-2 flex gap-2 overflow-x-auto shrink-0 border-b border-border/30">
-                {[
-                  isKk ? "Қысқарт" : "Сократи",
-                  isKk ? "Хукты күшейт" : "Усиль хук",
-                  isKk ? "Тонды өзгерт" : "Смени тон",
-                ].map((chip) => (
+              {/* Quick action chips — hide when keyboard is open to save space */}
+              {keyboardHeight === 0 && (
+                <div className="px-3 py-2 flex gap-2 overflow-x-auto shrink-0 border-b border-border/30">
+                  {[
+                    isKk ? "Қысқарт" : "Сократи",
+                    isKk ? "Хукты күшейт" : "Усиль хук",
+                    isKk ? "Тонды өзгерт" : "Смени тон",
+                  ].map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => { setChatInput(chip); }}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors whitespace-nowrap shrink-0"
+                    >
+                      {chip}
+                    </button>
+                  ))}
                   <button
-                    key={chip}
-                    onClick={() => { setChatInput(chip); }}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors whitespace-nowrap shrink-0"
+                    onClick={handleRegenerate}
+                    disabled={isGenerating}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium border border-primary/30 text-primary hover:bg-primary/10 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    {chip}
+                    <RefreshCw className={`h-3 w-3 ${isGenerating ? "animate-spin" : ""}`} />
+                    {isKk ? "Қайта" : "Заново"}
                   </button>
-                ))}
-                <button
-                  onClick={handleRegenerate}
-                  disabled={isGenerating}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-primary/30 text-primary hover:bg-primary/10 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  <RefreshCw className={`h-3 w-3 ${isGenerating ? "animate-spin" : ""}`} />
-                  {isKk ? "Қайта" : "Заново"}
-                </button>
-              </div>
+                </div>
+              )}
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"}`}>
@@ -428,17 +466,17 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Input */}
-              <div className="p-3 border-t border-border/50 shrink-0" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px) + 12px, 12px)" }}>
+              {/* Input — always visible above keyboard */}
+              <div className="p-3 border-t border-border/50 shrink-0" style={{ paddingBottom: keyboardHeight > 0 ? "8px" : "max(env(safe-area-inset-bottom, 0px) + 12px, 12px)" }}>
                 <div className="flex gap-2">
                   <input
+                    ref={mobileInputRef}
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     placeholder={isKk ? "Мысалы: хукты күшейт..." : "Например: усиль хук..."}
                     className="flex-1 px-3.5 py-3 rounded-xl bg-background border border-border/50 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                     disabled={isGenerating}
-                    autoFocus
                   />
                   <button onClick={handleSend} disabled={!chatInput.trim() || isGenerating} className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0">
                     <Send className="h-4 w-4" />
