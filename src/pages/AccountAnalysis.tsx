@@ -311,11 +311,6 @@ export default function AccountAnalysis() {
           }
 
       </div>
-      <VideoAnalysisDialog
-          video={analysisVideo}
-          open={!!analysisVideo}
-          onOpenChange={(open) => {if (!open) setAnalysisVideo(null);}} />
-        
       </>
       }
     </AppLayout>);

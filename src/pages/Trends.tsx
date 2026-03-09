@@ -27,7 +27,6 @@ const PAGE_SIZE = 30;
 export default function Trends() {
   // removed activeCategory state
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const navigate = useNavigate();
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
