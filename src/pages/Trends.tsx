@@ -97,7 +97,8 @@ export default function Trends() {
   const toggleFav = useCallback(
     async (videoId: string) => {
       if (!user) {
-        console.warn("[Trends] toggleFav: No user, skipping");
+        console.warn("[Trends] toggleFav: No user, redirecting to auth");
+        navigate("/auth");
         return;
       }
       console.log("[Trends] toggleFav called:", { userId: user.id, videoId });
