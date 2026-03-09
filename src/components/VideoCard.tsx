@@ -315,7 +315,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   return (
     <div ref={ref} className={`group rounded-[20px] overflow-hidden transition-all duration-300 relative flex flex-col ${darkMode ? "bg-[#141414] border border-white/[0.07]" : "bg-card border border-border/40"}`} style={darkMode ? { boxShadow: "0 2px 16px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.04) inset" } : undefined} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel}>
       {/* Video area */}
-      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-xl m-1.5">
+      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-[16px] m-[6px]">
         {playingId === video.id ? (
           <>
             {loadingPlay ? (
