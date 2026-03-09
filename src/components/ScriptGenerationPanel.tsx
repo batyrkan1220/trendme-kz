@@ -182,7 +182,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   return (
     <div className="flex flex-col h-full relative">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-card shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 pt-[calc(env(safe-area-inset-top,0px)+12px)] border-b border-border/50 bg-card shrink-0">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
             <ArrowLeft className="h-4 w-4 text-foreground" />
