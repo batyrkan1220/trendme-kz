@@ -269,7 +269,7 @@ export default function SearchPage() {
                         onPlay={setPlayingId}
                         isFavorite={userFavorites.includes(video.id)}
                         onToggleFav={toggleFav}
-                        onAnalyze={(v) => setAnalysisVideo(video)}
+                        onAnalyze={(v) => navigate(`/video-analysis?url=${encodeURIComponent(v.url)}`)}
                         showTier={true}
                         showAuthor={true}
                         showAnalyzeButton={true}
