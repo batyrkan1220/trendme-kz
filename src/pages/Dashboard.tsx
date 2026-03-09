@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search, TrendingUp, Video, Sparkles, UserCircle, Lock, ArrowRight, ChevronRight } from "lucide-react";
+import { Search, TrendingUp, Video, UserCircle, Lock, ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
