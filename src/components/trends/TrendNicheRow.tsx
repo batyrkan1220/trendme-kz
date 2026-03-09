@@ -36,7 +36,13 @@ export function TrendNicheRow({
   return (
     <section className="space-y-3">
       {/* Section header */}
-      <div className="flex items-center justify-between">
+      <div
+        className="flex items-center justify-between sticky z-20 -mx-4 px-4 py-2 backdrop-blur-md"
+        style={{
+          top: "0px",
+          background: darkMode ? "rgba(10,10,10,0.9)" : "rgba(255,255,255,0.9)",
+        }}
+      >
         <h2 className={`text-base font-bold ${darkMode ? "text-white" : "text-foreground"}`}>
           {group.label} {group.emoji}
         </h2>
