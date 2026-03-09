@@ -1180,56 +1180,14 @@ Deno.serve(async (req: Request) => {
       }
 
       case "refresh_cover": {
-        const { video_id, platform_video_id, author_username } = body;
-        if (!platform_video_id) return json({ error: "platform_video_id is required" }, 400);
-
-        const postUrl = `https://www.tiktok.com/@${author_username || "user"}/video/${platform_video_id}`;
-        try {
-          const data = await callEnsemble("/tt/post/info", { url: postUrl });
-          await logApiUsage("refresh_cover", 1, { platform_video_id });
-
-          const rawData = data?.data || data;
-          // EnsembleData may nest post info under various keys
-          const innerData = rawData?.aweme_detail || rawData?.aweme_details?.[0] || rawData?.["0"] || rawData;
-          const postData = unwrapVideo(innerData);
-
-          if (!postData) return json({ error: "Video not found" }, 404);
-
-          const videoInfo = postData.video || {};
-          const author = postData.author || {};
-          const newCover = videoInfo.cover?.url_list?.[0] 
-            || videoInfo.origin_cover?.url_list?.[0] 
-            || videoInfo.dynamic_cover?.url_list?.[0]
-            || postData.cover_url
-            || "";
-          const newAvatar = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
-
-          if (!newCover) {
-            console.log("No cover found in response. Keys:", JSON.stringify(Object.keys(postData)).slice(0, 300));
-            return json({ cover_url: null, error: "No cover found" }, 200);
-          }
-
-          if (video_id) {
-            const updateFields: Record<string, any> = {
-              cover_url: newCover,
-              fetched_at: new Date().toISOString(),
-            };
-            if (newAvatar) updateFields.author_avatar_url = newAvatar;
-
-            const stats = postData.statistics || {};
-            if (stats.play_count != null) updateFields.views = stats.play_count;
-            if (stats.digg_count != null) updateFields.likes = stats.digg_count;
-            if (stats.comment_count != null) updateFields.comments = stats.comment_count;
-            if (stats.share_count != null) updateFields.shares = stats.share_count;
-
-            await adminClient.from("videos").update(updateFields).eq("id", video_id);
-          }
-
-          return json({ cover_url: newCover, author_avatar_url: newAvatar });
-        } catch (e) {
-          console.error("Cover refresh failed:", (e as Error).message);
-          return json({ cover_url: null, error: "API limit or unavailable" });
-        }
+        // DISABLED: Cover refresh via EnsembleData API is disabled to save credits (~470/week)
+        // Covers are now persisted to Supabase Storage during trend refresh (0 credits)
+        // If a cover is broken, it will show a placeholder until the next trend refresh cycle
+        console.log("[refresh_cover] DISABLED - returning null to save API credits");
+        return json({ 
+          cover_url: null, 
+          error: "Cover refresh disabled to save API credits. Covers are persisted during trend refresh." 
+        });
       }
 
       case "admin_add_video": {
