@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  Flame, Search, Heart, ScanSearch, Video, BarChart3, ChevronUp
+  Flame, Search, Heart, ScanSearch, Video, UserSearch, ChevronUp
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 
@@ -13,7 +13,7 @@ const mainNavItems = [
 const toolsMenuItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
   
-  { icon: BarChart3, path: "/account-analysis", label: "Анализ аккаунта" },
+  { icon: UserSearch, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 
 interface MobileBottomNavProps {
