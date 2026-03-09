@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { isNativePlatform } from "@/lib/native";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, Zap, Target, Eye, MessageCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
@@ -85,12 +86,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [sheetDragY, setSheetDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [swipeX, setSwipeX] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
   const dragStartY = useRef(0);
-  const swipeStartX = useRef(0);
-  const swipeStartY = useRef(0);
-  const swipeLocked = useRef<"h" | "v" | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
@@ -239,54 +235,17 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     setSheetDragY(0);
   }, [sheetDragY]);
 
-  // Swipe-right to go back (main script page)
-  const onSwipeStart = useCallback((e: React.TouchEvent) => {
-    if (chatOpen) return;
-    swipeStartX.current = e.touches[0].clientX;
-    swipeStartY.current = e.touches[0].clientY;
-    swipeLocked.current = null;
-    setIsSwiping(false);
-  }, [chatOpen]);
-
-  const onSwipeMove = useCallback((e: React.TouchEvent) => {
-    if (chatOpen) return;
-    const dx = e.touches[0].clientX - swipeStartX.current;
-    const dy = e.touches[0].clientY - swipeStartY.current;
-
-    // Lock direction after 10px movement
-    if (!swipeLocked.current && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
-      swipeLocked.current = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
-    }
-    if (swipeLocked.current !== "h") return;
-
-    const swipeVal = Math.max(0, dx);
-    if (swipeVal > 0) {
-      setIsSwiping(true);
-      setSwipeX(swipeVal);
-    }
-  }, [chatOpen]);
-
-  const onSwipeEnd = useCallback(() => {
-    if (!isSwiping) return;
-    if (swipeX > 120) {
-      onBack();
-    }
-    setSwipeX(0);
-    setIsSwiping(false);
-    swipeLocked.current = null;
-  }, [isSwiping, swipeX, onBack]);
+  // Swipe-right to go back (main script page) — uses shared hook
+  const { swipeProps: backSwipeProps, swipeStyle: backSwipeStyle } = useSwipeBack({
+    onBack,
+    disabled: chatOpen,
+  });
 
   return (
     <div
       className="flex flex-col h-full relative"
-      onTouchStart={onSwipeStart}
-      onTouchMove={onSwipeMove}
-      onTouchEnd={onSwipeEnd}
-      style={{
-        transform: swipeX > 0 ? `translateX(${swipeX * 0.6}px)` : undefined,
-        transition: isSwiping ? "none" : "transform 0.3s ease-out",
-        opacity: swipeX > 0 ? Math.max(0.3, 1 - swipeX / 400) : 1,
-      }}
+      {...backSwipeProps}
+      style={backSwipeStyle}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 pt-[calc(env(safe-area-inset-top,0px)+12px)] border-b border-border/50 bg-card shrink-0">
