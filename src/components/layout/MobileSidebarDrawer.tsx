@@ -90,7 +90,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
 
   const renderGroup = (label: string, items: NavItem[]) => (
     <div className="mb-3">
-      <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider px-3 mb-1.5">{label}</p>
+      <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.14em] px-3 mb-2">{label}</p>
       <div className="space-y-0.5">
         {items.map((item) => {
           const active = location.pathname === item.path;
