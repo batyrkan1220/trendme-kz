@@ -108,14 +108,14 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
     setLoadingPlay(true);
     try {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "get_play_url", video_url: video.url },
-      });
-      if (error || !data?.play_url) {
-        console.error("Failed to get play URL:", error || data?.error);
+      // Use the shared deduped fetch from VideoCard to avoid duplicate API calls
+      const { fetchPlayUrlDeduped } = await import("./VideoCard");
+      const url = await fetchPlayUrlDeduped(video.url);
+      if (!url) {
+        console.error("Failed to get play URL");
         setPlayUrl(null);
       } else {
-        setPlayUrl(data.play_url);
+        setPlayUrl(url);
       }
     } catch (e) {
       console.error("Play URL fetch error:", e);
