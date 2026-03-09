@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sheet";
 import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
-  Heart, LogOut, Shield, Sparkles, CreditCard, Trash2
+  Heart, LogOut, Shield, CreditCard, Trash2
 } from "lucide-react";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
 import { isNativePlatform } from "@/lib/native";
@@ -39,7 +39,7 @@ const searchItems: NavItem[] = [
 
 const toolItems: NavItem[] = [
   { label: "Анализ видео", icon: Video, path: "/video-analysis", iconColor: "text-orange-500" },
-  { label: "AI Сценарий", icon: Sparkles, path: "/ai-script", iconColor: "text-pink-500" },
+  
   { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
 ];
 

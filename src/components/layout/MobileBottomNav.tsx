@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  Flame, Search, Heart, Wrench, Video, Sparkles, BarChart3, ChevronUp
+  Flame, Search, Heart, Wrench, Video, BarChart3, ChevronUp
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 
@@ -12,7 +12,7 @@ const mainNavItems = [
 
 const toolsMenuItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
-  { icon: Sparkles, path: "/ai-script", label: "AI Сценарий" },
+  
   { icon: BarChart3, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 
