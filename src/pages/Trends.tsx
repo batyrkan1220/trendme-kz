@@ -353,7 +353,7 @@ export default function Trends() {
                         videos={videosByNiche[group.key] || []}
                         userFavorites={userFavorites}
                         onToggleFav={toggleFav}
-                        onAnalyze={(v) => setAnalysisVideo(v)}
+                        onAnalyze={(v) => navigate(`/video-analysis?url=${encodeURIComponent(v.url)}`)}
                         playingId={playingId}
                         onPlay={setPlayingId}
                         onViewAll={handleViewAll}
