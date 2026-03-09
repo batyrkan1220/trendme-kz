@@ -203,6 +203,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const handleCoverError = useCallback(async () => {
     setCoverFailed(true);
     
+    // Only refresh if explicitly enabled (e.g. Trends page with cached old videos)
+    if (!enableCoverRefresh) return;
+    
     // Skip if already attempted or no video id
     const videoId = video.id;
     if (!videoId || coverRefreshAttempted.has(videoId)) return;
