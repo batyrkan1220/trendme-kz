@@ -75,6 +75,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
               showTier={true}
               showAuthor={true}
               darkMode={darkMode}
+              enableCoverRefresh={true}
             />
           );
         })}

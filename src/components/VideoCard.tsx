@@ -136,6 +136,8 @@ interface VideoCardProps {
   showAnalyzeButton?: boolean;
   darkMode?: boolean;
   isMobileOverride?: boolean;
+  /** Enable auto-refresh for broken covers (only for cached/old videos like Trends) */
+  enableCoverRefresh?: boolean;
 }
 
 export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function VideoCard({
@@ -150,6 +152,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   showAnalyzeButton = true,
   darkMode = false,
   isMobileOverride,
+  enableCoverRefresh = false,
 }, ref) {
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
@@ -199,6 +202,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   // Cover refresh on error — with strict deduplication and 24h backend cooldown
   const handleCoverError = useCallback(async () => {
     setCoverFailed(true);
+    
+    // Only refresh if explicitly enabled (e.g. Trends page with cached old videos)
+    if (!enableCoverRefresh) return;
     
     // Skip if already attempted or no video id
     const videoId = video.id;

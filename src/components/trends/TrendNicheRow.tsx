@@ -73,6 +73,7 @@ export function TrendNicheRow({
               showAnalyzeButton={true}
               darkMode={darkMode}
               isMobileOverride={true}
+              enableCoverRefresh={true}
             />
           </div>
         ))}
