@@ -239,6 +239,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             background: isGreenPhase ? "hsl(72 100% 30% / 0.15)" : "hsl(0 0% 100% / 0.06)",
             border: isGreenPhase ? "1px solid hsl(72 100% 20% / 0.2)" : "1px solid hsl(0 0% 100% / 0.1)",
             backdropFilter: "blur(12px)",
+            color: isGreenPhase ? "hsl(72 100% 5%)" : "hsl(0 0% 90%)",
             opacity: phase >= 2 ? 1 : 0,
             transform: phase >= 2 ? "translateY(0) scale(1)" : "translateY(20px) scale(0.8)",
             transition: "all 700ms cubic-bezier(0.16, 1, 0.3, 1) 1100ms",
@@ -247,7 +248,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
           <TikTokLogo size={14} />
           <span
             className="text-[11px] font-bold tracking-[0.1em] uppercase"
-            style={{ color: isGreenPhase ? "hsl(72 100% 10% / 0.6)" : "hsl(0 0% 60%)" }}
+            style={{ color: isGreenPhase ? "hsl(72 100% 5% / 0.7)" : "hsl(0 0% 60%)" }}
           >
             TikTok Official Partner
           </span>
