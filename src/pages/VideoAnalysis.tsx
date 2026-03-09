@@ -312,18 +312,6 @@ export default function VideoAnalysis() {
                 </div>
             }
 
-              {/* Generate Scenario Button */}
-              <button
-              onClick={async () => {
-                const ok = await checkAndLog("ai_script", `AI Сценарий из анализа: ${url.trim()}`);
-                if (!ok) return;
-                setShowScript(true);
-              }}
-              className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-              
-                <Sparkles className="h-5 w-5" />
-                Генерация сценария
-              </button>
 
               {/* Summary */}
               {summary?.summary &&
