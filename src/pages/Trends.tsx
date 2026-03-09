@@ -216,6 +216,11 @@ export default function Trends() {
     setVisibleCount(PAGE_SIZE);
   };
 
+  const { swipeProps: drillSwipeProps, swipeStyle: drillSwipeStyle, showIndicator: drillShowIndicator, indicatorProgress: drillIndicatorProgress } = useSwipeBack({
+    onBack: handleBack,
+    disabled: !drillNiche,
+  });
+
   return (
     <AppLayout>
       <div
