@@ -85,18 +85,27 @@ export default function Trends() {
     return map;
   }, [allVideos]);
 
-  const { data: userFavorites = [] } = useQuery({
+  const { favorites: localFavorites, toggleFavorite: toggleLocalFav } = useLocalFavorites();
+
+  const { data: remoteFavorites = [] } = useQuery({
     queryKey: ["user-favorites", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("favorites").select("video_id").eq("user_id", user!.id);
       return data?.map((f) => f.video_id) || [];
     },
-    enabled: !!user,
+    enabled: !!user && !isNativePlatform,
     staleTime: 30_000,
   });
 
+  const userFavorites = isNativePlatform ? localFavorites : remoteFavorites;
+
   const toggleFav = useCallback(
     async (videoId: string) => {
+      if (isNativePlatform) {
+        toggleLocalFav(videoId);
+        return;
+      }
+
       if (!user) {
         console.warn("[Trends] toggleFav: No user, redirecting to auth");
         navigate("/auth");
@@ -125,7 +134,7 @@ export default function Trends() {
       }
       queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     },
-    [user, userFavorites, queryClient]
+    [user, userFavorites, queryClient, isNativePlatform, toggleLocalFav]
   );
 
   const handleRefresh = useCallback(async () => {
