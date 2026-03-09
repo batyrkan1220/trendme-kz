@@ -181,31 +181,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     };
   }, [isMobile, playUrl, onPlay]);
 
-  // Preload play URL on hover (desktop only — disabled on mobile to save credits)
-  const preloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  // PRELOAD DISABLED ENTIRELY to save credits
+  // The previous hover preload was consuming ~1400 credits/week
   const handlePreload = useCallback(() => {
-    // DISABLED on mobile — no hover, only wastes credits on scroll
-    if (isMobile) return;
-    if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
-    if (preloadTimer.current) return;
-
-    // Desktop only: 600ms delay to ensure intentional hover
-    preloadTimer.current = setTimeout(async () => {
-      preloadTimer.current = null;
-      if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
-      const url = await fetchPlayUrlDeduped(video.url);
-      if (url) {
-        preloadedUrlRef.current = url;
-      }
-    }, 600);
-  }, [isMobile, video.url]);
+    // DISABLED — hover preload was consuming too many API credits
+    // Users will load video on click only
+  }, []);
 
   const handlePreloadCancel = useCallback(() => {
-    if (preloadTimer.current) {
-      clearTimeout(preloadTimer.current);
-      preloadTimer.current = null;
-    }
+    // No-op since preload is disabled
   }, []);
 
   // Cover refresh disabled on client — handled by background maintenance only
