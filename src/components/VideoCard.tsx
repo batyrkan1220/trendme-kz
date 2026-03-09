@@ -9,6 +9,41 @@ import { useIsMobile } from "@/hooks/use-mobile";
 /** Global in-memory cache for play URLs to avoid redundant API calls */
 const playUrlCache = new Map<string, string>();
 
+/** Global in-flight request tracker to prevent duplicate concurrent API calls */
+const inFlightRequests = new Map<string, Promise<string | null>>();
+
+/** Centralized function to fetch play URL with deduplication */
+async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
+  // Check cache first
+  const cached = playUrlCache.get(videoUrl);
+  if (cached) return cached;
+
+  // Check if request is already in progress
+  const existing = inFlightRequests.get(videoUrl);
+  if (existing) return existing;
+
+  // Create new request
+  const promise = (async (): Promise<string | null> => {
+    try {
+      const { data } = await supabase.functions.invoke("socialkit", {
+        body: { action: "get_play_url", video_url: videoUrl },
+      });
+      if (data?.play_url) {
+        playUrlCache.set(videoUrl, data.play_url);
+        return data.play_url;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      inFlightRequests.delete(videoUrl);
+    }
+  })();
+
+  inFlightRequests.set(videoUrl, promise);
+  return promise;
+}
+
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
