@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { MemoVideoCard } from "@/components/VideoCard";
 import { ChevronRight } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
-import { isNativePlatform } from "@/lib/native";
+
 
 interface TrendNicheRowProps {
   group: NicheGroup;
@@ -40,7 +40,7 @@ export function TrendNicheRow({
       <div
         className="flex items-center justify-between sticky z-20 -mx-4 px-4 py-2 backdrop-blur-md"
         style={{
-          top: isNativePlatform ? "env(safe-area-inset-top, 0px)" : "0px",
+          top: "0px",
           background: darkMode ? "rgba(10,10,10,0.9)" : "rgba(255,255,255,0.9)",
         }}
       >

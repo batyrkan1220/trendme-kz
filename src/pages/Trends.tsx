@@ -221,7 +221,7 @@ export default function Trends() {
       <div
         ref={containerRef}
         className="overflow-x-hidden overflow-y-auto h-full trends-dark-theme relative pb-16 md:pb-8"
-        style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: isNativePlatform ? (drillNiche ? "0px" : "calc(env(safe-area-inset-top, 54px) + 16px)") : "12px" }}
+        style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: drillNiche ? "0px" : "12px" }}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
@@ -238,7 +238,7 @@ export default function Trends() {
                 className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
                 style={{ 
                   background: "rgba(10,10,10,0.85)", 
-                  paddingTop: isNativePlatform ? "env(safe-area-inset-top, 54px)" : "8px"
+                  paddingTop: "8px"
                 }}
               >
                 <div className="flex items-center gap-3">
