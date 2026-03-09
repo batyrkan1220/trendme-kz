@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
-import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
+import { useNavigate } from "react-router-dom";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -23,7 +23,7 @@ const fmt = (n: number) => {
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const navigate = useNavigate();
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -269,7 +269,7 @@ export default function SearchPage() {
                         onPlay={setPlayingId}
                         isFavorite={userFavorites.includes(video.id)}
                         onToggleFav={toggleFav}
-                        onAnalyze={(v) => setAnalysisVideo(video)}
+                        onAnalyze={(v) => navigate(`/video-analysis?url=${encodeURIComponent(v.url)}`)}
                         showTier={true}
                         showAuthor={true}
                         showAnalyzeButton={true}
@@ -313,11 +313,6 @@ export default function SearchPage() {
           </div>
         </div>
       </div>
-      <VideoAnalysisDialog
-          video={analysisVideo}
-          open={!!analysisVideo}
-          onOpenChange={(open) => {if (!open) setAnalysisVideo(null);}} />
-        
       </>
       }
     </AppLayout>);
