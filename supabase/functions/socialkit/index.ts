@@ -1136,17 +1136,18 @@ Deno.serve(async (req: Request) => {
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
         video_url = await resolveShortUrl(video_url);
 
-        // Check if this video_url was logged in the last 5 minutes to prevent duplicate logging
-        const { data: recentLog } = await adminClient
+        // Check if this video_url was logged in the last 10 minutes to prevent duplicate logging
+        const fiveMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+        const { data: recentLogs } = await adminClient
           .from("api_usage_log")
-          .select("id")
+          .select("id, metadata")
           .eq("action", "get_play_url")
-          .eq("metadata->>video_url", video_url)
-          .gte("created_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
-          .limit(1)
-          .maybeSingle();
+          .gte("created_at", fiveMinAgo)
+          .limit(50);
         
-        const shouldLog = !recentLog;
+        const shouldLog = !(recentLogs || []).some(
+          (log: any) => log.metadata?.video_url === video_url
+        );
 
         let playUrl: string | null = null;
         try {
