@@ -14,18 +14,25 @@ export default function Library() {
   const navigate = useNavigate();
   const [playingId, setPlayingId] = useState<string | null>(null);
 
-  const { data: favorites = [] } = useQuery({
+  const { data: favorites = [], isLoading, error } = useQuery({
     queryKey: ["favorites-list", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.
+      console.log("[Library] Fetching favorites for user:", user?.id);
+      const { data, error } = await supabase.
       from("favorites").
       select("*, videos(*)").
       eq("user_id", user!.id).
       order("created_at", { ascending: false });
+      console.log("[Library] Favorites result:", { data, error });
+      if (error) {
+        console.error("[Library] Favorites error:", error);
+      }
       return data || [];
     },
     enabled: !!user
   });
+
+  console.log("[Library] Render state:", { userId: user?.id, favoritesCount: favorites.length, isLoading, error });
 
   const favVideoIds = new Set(favorites.map((f: any) => f.video_id));
 
