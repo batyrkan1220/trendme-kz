@@ -240,7 +240,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 ) : scriptContent ? (
                   <>
                     <div className="bg-card rounded-xl border border-border/50 p-4 md:p-6">
-                      <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_strong]:text-foreground [&_p]:text-foreground/80 [&_li]:text-foreground/80 [&_ol]:text-foreground/80">
+                      <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-foreground [&_h1]:text-lg [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-foreground [&_h2]:text-base [&_h2]:mt-5 [&_h2]:mb-2 [&_h3]:text-foreground [&_h3]:text-sm [&_h3]:mt-4 [&_h3]:mb-2 [&_strong]:text-foreground [&_strong]:text-primary [&_p]:text-foreground/80 [&_p]:mb-3 [&_p]:leading-relaxed [&_li]:text-foreground/80 [&_li]:mb-1.5 [&_ol]:text-foreground/80 [&_ol]:space-y-2 [&_ul]:space-y-2 [&_hr]:my-5 [&_hr]:border-border/30 [&_blockquote]:border-l-primary [&_blockquote]:bg-primary/5 [&_blockquote]:px-4 [&_blockquote]:py-2 [&_blockquote]:rounded-r-lg">
                         <ReactMarkdown>{scriptContent}</ReactMarkdown>
                       </div>
                       {isGenerating && (
