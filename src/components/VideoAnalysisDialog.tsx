@@ -290,8 +290,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             </div>
           </div>
 
-          {/* Right panel — analysis */}
-          <div className="flex-1 overflow-y-auto p-3 md:p-6 pb-28 md:pb-6 space-y-4 md:space-y-6 bg-background relative">
+          {/* Right panel — analysis + sticky button */}
+          <div className="flex-1 flex flex-col overflow-hidden bg-background relative">
+          <div className="flex-1 overflow-y-auto p-3 md:p-6 pb-4 md:pb-6 space-y-4 md:space-y-6 relative">
             <button
               onClick={() => onOpenChange(false)}
               className="absolute top-3 right-3 md:top-6 md:right-6 z-[70] w-10 h-10 rounded-full bg-background border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors"
@@ -399,20 +400,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   </div>
                 )}
 
-                {/* Generate Scenario Button */}
-                <button
-                  onClick={async () => {
-                    if (!isNativePlatform) {
-                      const ok = await checkAndLog("ai_script", `AI Сценарий из трендов: ${video.url}`);
-                      if (!ok) return;
-                    }
-                    setShowScript(true);
-                  }}
-                  className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                >
-                  <Sparkles className="h-5 w-5" />
-                  Генерация сценария
-                </button>
 
                 {/* Summary / Суть */}
                 {summary?.summary && (
@@ -537,7 +524,26 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
               </div>
             )}
           </div>
-        </div>
+          {/* Scrollable area end */}
+          </div>
+
+          {/* Sticky bottom button */}
+          <div className="shrink-0 p-3 md:p-4 border-t border-border/50 bg-background" style={{ paddingBottom: isNativePlatform ? "calc(env(safe-area-inset-bottom, 0px) + 12px)" : undefined }}>
+            <button
+              onClick={async () => {
+                if (!isNativePlatform) {
+                  const ok = await checkAndLog("ai_script", `AI Сценарий из трендов: ${video.url}`);
+                  if (!ok) return;
+                }
+                setShowScript(true);
+              }}
+              className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+            >
+              <Sparkles className="h-5 w-5" />
+              Генерация сценария
+            </button>
+          </div>
+          </div>
         )}
       </SheetContent>
     </Sheet>
