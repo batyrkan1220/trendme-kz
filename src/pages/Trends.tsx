@@ -12,7 +12,7 @@ import { NICHE_GROUPS } from "@/config/niches";
 import { TREND_CATEGORIES } from "@/config/trendCategories";
 import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
-
+import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +27,7 @@ const PAGE_SIZE = 30;
 export default function Trends() {
   // removed activeCategory state
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
@@ -310,7 +311,7 @@ export default function Trends() {
                   onPlay={setPlayingId}
                   userFavorites={userFavorites}
                   onToggleFav={toggleFav}
-                  onAnalyze={(v) => navigate(`/video-analysis?url=${encodeURIComponent(v.url)}`)}
+                  onAnalyze={(v) => setAnalysisVideo(v)}
                   isFreePlan={isFreePlan}
                   freeLimit={FREE_LIMIT}
                   hasMore={drillTotalFiltered > visibleCount}
@@ -352,7 +353,7 @@ export default function Trends() {
                         videos={videosByNiche[group.key] || []}
                         userFavorites={userFavorites}
                         onToggleFav={toggleFav}
-                        onAnalyze={(v) => navigate(`/video-analysis?url=${encodeURIComponent(v.url)}`)}
+                        onAnalyze={(v) => setAnalysisVideo(v)}
                         playingId={playingId}
                         onPlay={setPlayingId}
                         onViewAll={handleViewAll}
@@ -378,6 +379,13 @@ export default function Trends() {
         </div>
       </div>
 
+      <VideoAnalysisDialog
+        video={analysisVideo}
+        open={!!analysisVideo}
+        onOpenChange={(open) => {
+          if (!open) setAnalysisVideo(null);
+        }}
+      />
     </AppLayout>
   );
 }

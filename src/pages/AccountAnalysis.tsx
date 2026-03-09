@@ -5,7 +5,7 @@ import {
 "lucide-react";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +52,7 @@ interface TopVideo {
 export default function AccountAnalysis() {
   const [url, setUrl] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { checkAndLog } = useSubscription();
@@ -297,7 +297,19 @@ export default function AccountAnalysis() {
                       onPlay={setPlayingId}
                       isFavorite={userFavorites.includes(v.id)}
                       onToggleFav={toggleFav}
-                      onAnalyze={(vid) => navigate(`/video-analysis?url=${encodeURIComponent(vid.url)}`)}
+                      onAnalyze={(vid) => {
+                        setAnalysisVideo({
+                          id: vid.id,
+                          url: vid.url,
+                          cover_url: vid.cover_url || vid.cover,
+                          platform_video_id: vid.id,
+                          views: vid.views,
+                          likes: vid.likes,
+                          comments: vid.comments,
+                          shares: vid.shares,
+                          caption: vid.caption || vid.desc
+                        });
+                      }}
                       showTier={true}
                       showAuthor={false}
                       darkMode />);
@@ -311,6 +323,11 @@ export default function AccountAnalysis() {
           }
 
       </div>
+      <VideoAnalysisDialog
+          video={analysisVideo}
+          open={!!analysisVideo}
+          onOpenChange={(open) => {if (!open) setAnalysisVideo(null);}} />
+        
       </>
       }
     </AppLayout>);

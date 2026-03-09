@@ -1,8 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Video, Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, Target, Copy, Play, X } from "lucide-react";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
-import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,12 +33,10 @@ const isValidTikTokUrl = (url: string): boolean => {
 };
 
 export default function VideoAnalysis() {
-  const [searchParams] = useSearchParams();
-  const [url, setUrl] = useState(searchParams.get("url") || "");
+  const [url, setUrl] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
-  const [showLangPicker, setShowLangPicker] = useState(!!searchParams.get("url"));
   const { checkAndLog } = useSubscription();
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: {videoUrl: string;lang: "ru" | "kk";}) => {
