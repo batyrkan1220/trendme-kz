@@ -17,7 +17,7 @@ const coverRefreshAttempted = new Set<string>();
 const coverRefreshInFlight = new Map<string, Promise<void>>();
 
 /** Centralized function to fetch play URL with deduplication */
-async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
+export async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
   // Check cache first
   const cached = playUrlCache.get(videoUrl);
   if (cached) return cached;
