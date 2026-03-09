@@ -166,9 +166,10 @@ export default function VideoAnalysis() {
 
   return (
     <AppLayout>
+      {swipeIndicator}
       {!analysis || isPending ? (
       /* Centered form + loading */
-      <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+      <div {...swipeProps} className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)", ...swipeStyle }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             {isPending ?
           <>
