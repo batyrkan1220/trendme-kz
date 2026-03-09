@@ -313,9 +313,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
 
   return (
-    <div ref={ref} className={`group rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col ${darkMode ? "bg-[#1a1a1a] border border-white/10" : "bg-card border border-border/40"}`} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel}>
+    <div ref={ref} className={`group rounded-[20px] overflow-hidden transition-all duration-300 relative flex flex-col ${darkMode ? "bg-[#141414] border border-white/[0.07]" : "bg-card border border-border/40"}`} style={darkMode ? { boxShadow: "0 2px 16px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.04) inset" } : undefined} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel}>
       {/* Video area */}
-      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-xl m-1.5">
+      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-[16px] m-[6px]">
         {playingId === video.id ? (
           <>
             {loadingPlay ? (
@@ -556,13 +556,14 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
       {/* Analyze button */}
       {showAnalyzeButton && onAnalyze && (
-        <div className="px-3 pb-3 mt-auto">
+        <div className="px-3 pb-3.5 mt-auto">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onAnalyze(video);
             }}
-            className={`w-full py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity ${darkMode ? "bg-neon text-black" : "bg-primary text-primary-foreground"}`}
+            className={`w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide transition-all active:scale-[0.97] ${darkMode ? "bg-neon text-black" : "bg-primary text-primary-foreground"}`}
+            style={darkMode ? { boxShadow: "0 4px 20px hsl(72 100% 50% / 0.2), 0 0 0 0.5px hsl(72 100% 50% / 0.3) inset" } : undefined}
           >
             Анализ видео
           </button>

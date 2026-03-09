@@ -38,18 +38,21 @@ export function TrendNicheRow({
     <section className="space-y-3">
       {/* Section header */}
       <div
-        className="flex items-center justify-between sticky z-20 -mx-4 px-4 py-2 backdrop-blur-md"
+        className="flex items-center justify-between sticky z-20 -mx-4 px-4 py-2.5"
         style={{
           top: "0px",
-          background: darkMode ? "rgba(10,10,10,0.9)" : "rgba(255,255,255,0.9)",
+          background: darkMode ? "rgba(8,8,8,0.88)" : "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(32px) saturate(1.4)",
+          WebkitBackdropFilter: "blur(32px) saturate(1.4)",
+          borderBottom: darkMode ? "1px solid rgba(255,255,255,0.04)" : undefined,
         }}
       >
-        <h2 className={`text-base font-bold ${darkMode ? "text-white" : "text-foreground"}`}>
+        <h2 className={`text-[15px] font-extrabold tracking-tight ${darkMode ? "text-white" : "text-foreground"}`}>
           {group.label} {group.emoji}
         </h2>
         <button
           onClick={() => onViewAll(group.key)}
-          className="flex items-center gap-0.5 text-sm font-semibold text-neon hover:text-neon/80 transition-colors"
+          className="flex items-center gap-0.5 text-[13px] font-bold text-neon hover:text-neon/80 transition-colors active:scale-95"
         >
           Все
           <ChevronRight className="h-4 w-4" />
@@ -59,7 +62,7 @@ export function TrendNicheRow({
       {/* Horizontal scroll */}
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
+        className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {videos.slice(0, 6).map((video) => (

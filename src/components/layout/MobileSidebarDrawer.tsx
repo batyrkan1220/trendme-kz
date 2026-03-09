@@ -90,7 +90,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
 
   const renderGroup = (label: string, items: NavItem[]) => (
     <div className="mb-3">
-      <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider px-3 mb-1.5">{label}</p>
+      <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.14em] px-3 mb-2">{label}</p>
       <div className="space-y-0.5">
         {items.map((item) => {
           const active = location.pathname === item.path;
@@ -100,7 +100,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
               to={item.path}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all",
+                "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-[14px] transition-all",
                 active
                   ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
                   : "text-foreground/80 hover:bg-muted/50"
@@ -118,10 +118,10 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   return (
     <>
       <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-        <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col safe-area-top" style={{ maxHeight: '100dvh' }}>
-          <SheetHeader className="px-4 h-14 border-b border-border/50 flex flex-row items-center gap-2.5 shrink-0">
+        <SheetContent side="left" className="w-[280px] p-0 flex flex-col safe-area-top" style={{ maxHeight: '100dvh', background: 'rgba(12,12,12,0.96)', backdropFilter: 'blur(40px) saturate(1.5)', WebkitBackdropFilter: 'blur(40px) saturate(1.5)' }}>
+          <SheetHeader className="px-4 h-14 border-b border-white/[0.06] flex flex-row items-center gap-2.5 shrink-0">
             <TrendMeLogo size={28} />
-            <SheetTitle className="font-bold text-base tracking-tight text-foreground">trendme</SheetTitle>
+            <SheetTitle className="font-extrabold text-base tracking-tight text-foreground">trendme</SheetTitle>
           </SheetHeader>
 
           <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
@@ -131,7 +131,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
             {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
           </nav>
 
-          <div className="border-t border-border/50 p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+          <div className="border-t border-white/[0.06] p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"

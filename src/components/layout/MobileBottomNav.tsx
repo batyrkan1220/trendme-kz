@@ -75,15 +75,16 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       {showToolsMenu && (
         <div
           ref={popoverRef}
-          className="absolute bottom-full mb-2 rounded-2xl shadow-2xl p-2"
+          className="absolute bottom-full mb-3 rounded-3xl shadow-2xl p-2.5"
           style={{
-            background: "hsl(var(--card))",
-            border: "1px solid hsl(var(--border))",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            animation: "slide-up 0.2s ease-out",
+            background: "rgba(18,18,18,0.92)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(40px) saturate(1.4)",
+            WebkitBackdropFilter: "blur(40px) saturate(1.4)",
+            animation: "slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
             right: "16px",
             left: "16px",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.06) inset",
           }}
         >
           <div className="px-3 py-2 mb-1">
@@ -112,7 +113,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       )}
 
       {/* Bottom bar */}
-      <div className="flex items-center justify-around px-3 py-2 pb-[max(8px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "rgba(10,10,10,0.65)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="flex items-center justify-around px-3 py-2 pb-[max(8px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "rgba(8,8,8,0.75)", backdropFilter: "blur(32px) saturate(1.5)", WebkitBackdropFilter: "blur(32px) saturate(1.5)", borderTop: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 -8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
         {/* Main nav items */}
         {mainNavItems.map((item) => {
           const active = location.pathname === item.path;
