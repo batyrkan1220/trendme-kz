@@ -12,7 +12,7 @@ import { NICHE_GROUPS } from "@/config/niches";
 import { TREND_CATEGORIES } from "@/config/trendCategories";
 import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
-import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
