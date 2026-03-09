@@ -54,7 +54,7 @@ export default function Trends() {
     enabled: !!user,
   });
 
-  const isFreePlan = !userSub || (userSub.plans as any)?.price_rub === 0;
+  const isFreePlan = isNativePlatform ? false : (!userSub || (userSub.plans as any)?.price_rub === 0);
 
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
     queryKey: ["trends-all"],
