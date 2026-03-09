@@ -181,28 +181,24 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     };
   }, [isMobile, playUrl, onPlay]);
 
-  // Preload play URL on hover (desktop) or touchstart (mobile)
+  // Preload play URL on hover (desktop only — disabled on mobile to save credits)
   const preloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePreload = useCallback(() => {
+    // DISABLED on mobile — no hover, only wastes credits on scroll
+    if (isMobile) return;
     if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
     if (preloadTimer.current) return;
 
-    // Shorter delay on mobile for faster perceived load
-    const delay = isMobile ? 100 : 600;
+    // Desktop only: 600ms delay to ensure intentional hover
     preloadTimer.current = setTimeout(async () => {
       preloadTimer.current = null;
       if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
-      try {
-        const { data } = await supabase.functions.invoke("socialkit", {
-          body: { action: "get_play_url", video_url: video.url },
-        });
-        if (data?.play_url) {
-          preloadedUrlRef.current = data.play_url;
-          playUrlCache.set(video.url, data.play_url);
-        }
-      } catch {}
-    }, delay);
+      const url = await fetchPlayUrlDeduped(video.url);
+      if (url) {
+        preloadedUrlRef.current = url;
+      }
+    }, 600);
   }, [isMobile, video.url]);
 
   const handlePreloadCancel = useCallback(() => {
@@ -241,16 +237,13 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
     setLoadingPlay(true);
     try {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "get_play_url", video_url: video.url },
-      });
-      if (error || !data?.play_url) {
+      // Use centralized deduped fetch
+      const url = await fetchPlayUrlDeduped(video.url);
+      if (!url) {
         console.warn("Play URL unavailable, using TikTok embed fallback");
-        // Fallback: show TikTok embed in card
         setPlayUrl("tiktok_embed_fallback");
       } else {
-        setPlayUrl(data.play_url);
-        playUrlCache.set(video.url, data.play_url);
+        setPlayUrl(url);
       }
     } catch (e) {
       console.warn("Play URL fetch error, using TikTok embed fallback:", e);
