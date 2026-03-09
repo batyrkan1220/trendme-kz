@@ -12,6 +12,10 @@ const playUrlCache = new Map<string, string>();
 /** Global in-flight request tracker to prevent duplicate concurrent API calls */
 const inFlightRequests = new Map<string, Promise<string | null>>();
 
+/** Global tracker for cover refresh attempts to prevent duplicates */
+const coverRefreshAttempted = new Set<string>();
+const coverRefreshInFlight = new Map<string, Promise<void>>();
+
 /** Centralized function to fetch play URL with deduplication */
 async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
   // Check cache first
@@ -192,10 +196,60 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     // No-op since preload is disabled
   }, []);
 
-  // Cover refresh disabled on client — handled by background maintenance only
-  const handleCoverError = useCallback(() => {
+  // Cover refresh on error — with strict deduplication and 24h backend cooldown
+  const handleCoverError = useCallback(async () => {
     setCoverFailed(true);
-  }, []);
+    
+    // Skip if already attempted or no video id
+    const videoId = video.id;
+    if (!videoId || coverRefreshAttempted.has(videoId)) return;
+    
+    // Skip if cover is already in Supabase Storage (persisted)
+    const currentCover = video.cover_url || video.cover;
+    if (currentCover?.includes("supabase.co/storage")) return;
+    
+    // Mark as attempted immediately to prevent duplicates
+    coverRefreshAttempted.add(videoId);
+    
+    // Skip if already in-flight
+    if (coverRefreshInFlight.has(videoId)) {
+      await coverRefreshInFlight.get(videoId);
+      return;
+    }
+    
+    // Create refresh promise
+    const refreshPromise = (async () => {
+      try {
+        console.log(`[VideoCard] Refreshing cover for video ${videoId}`);
+        const { data, error } = await supabase.functions.invoke("socialkit", {
+          body: { action: "refresh_cover", video_id: videoId },
+        });
+        
+        if (error) {
+          console.warn(`[VideoCard] Cover refresh failed:`, error.message);
+          return;
+        }
+        
+        if (data?.skipped) {
+          console.log(`[VideoCard] Cover refresh skipped: ${data.reason}`);
+          return;
+        }
+        
+        if (data?.cover_url) {
+          console.log(`[VideoCard] Cover refreshed successfully`);
+          // Force re-render by updating state
+          setCoverFailed(false);
+        }
+      } catch (err) {
+        console.warn(`[VideoCard] Cover refresh error:`, err);
+      } finally {
+        coverRefreshInFlight.delete(videoId);
+      }
+    })();
+    
+    coverRefreshInFlight.set(videoId, refreshPromise);
+    await refreshPromise;
+  }, [video.id, video.cover_url, video.cover]);
 
   const handlePlay = async () => {
     if (playingId === video.id) {
