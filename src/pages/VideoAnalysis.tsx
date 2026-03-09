@@ -11,13 +11,6 @@ import { toast } from "sonner";
 import { ScriptGenerationPanel } from "@/components/ScriptGenerationPanel";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { ScriptGenerationPanel } from "@/components/ScriptGenerationPanel";
-import { useSubscription } from "@/hooks/useSubscription";
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
