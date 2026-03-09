@@ -17,9 +17,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const location = useLocation();
 
-  const isMainTab = MAIN_TABS.includes(location.pathname);
+  const isSwipeDisabled = SWIPE_DISABLED_ROUTES.includes(location.pathname);
   const { swipeProps, swipeStyle, showIndicator, indicatorProgress } = useSwipeBack({
-    disabled: isMainTab || drawerOpen,
+    disabled: isSwipeDisabled || drawerOpen,
   });
 
   return (
