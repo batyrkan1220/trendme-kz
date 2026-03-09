@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { isNativePlatform } from "@/lib/native";
 import { useNavigate } from "react-router-dom";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
