@@ -34,14 +34,6 @@ const actions = [
     emoji: "🎬",
   },
   {
-    icon: Sparkles,
-    title: "AI Сценарий",
-    description: "Создайте вирусный сценарий на основе тренда",
-    path: "/ai-script",
-    iconBg: "bg-violet-500",
-    emoji: "✨",
-  },
-  {
     icon: UserCircle,
     title: "Анализ профиля",
     description: "Изучите стратегию любого автора",
