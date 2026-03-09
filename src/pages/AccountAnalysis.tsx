@@ -297,19 +297,7 @@ export default function AccountAnalysis() {
                       onPlay={setPlayingId}
                       isFavorite={userFavorites.includes(v.id)}
                       onToggleFav={toggleFav}
-                      onAnalyze={(vid) => {
-                        setAnalysisVideo({
-                          id: vid.id,
-                          url: vid.url,
-                          cover_url: vid.cover_url || vid.cover,
-                          platform_video_id: vid.id,
-                          views: vid.views,
-                          likes: vid.likes,
-                          comments: vid.comments,
-                          shares: vid.shares,
-                          caption: vid.caption || vid.desc
-                        });
-                      }}
+                      onAnalyze={(vid) => navigate(`/video-analysis?url=${encodeURIComponent(vid.url)}`)}
                       showTier={true}
                       showAuthor={false}
                       darkMode />);
