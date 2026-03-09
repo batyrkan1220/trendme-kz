@@ -361,6 +361,16 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     </div>
                   </div>
                 ))}
+                {isGenerating && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-muted text-foreground rounded-bl-md flex items-center gap-2">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                      <span className="text-xs text-muted-foreground animate-pulse">
+                        {isKk ? "Сценарий өңделуде..." : "Обновляю сценарий..."}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div ref={chatEndRef} />
               </div>
               <div className="p-3 border-t border-border/50 space-y-2 shrink-0">
@@ -463,6 +473,16 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     </div>
                   </div>
                 ))}
+                {isGenerating && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-muted text-foreground rounded-bl-md flex items-center gap-2">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                      <span className="text-xs text-muted-foreground animate-pulse">
+                        {isKk ? "Сценарий өңделуде..." : "Обновляю сценарий..."}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div ref={chatEndRef} />
               </div>
 
