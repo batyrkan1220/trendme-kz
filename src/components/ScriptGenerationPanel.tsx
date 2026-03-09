@@ -182,6 +182,34 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // iOS keyboard detection via visualViewport API
+  useEffect(() => {
+    if (!chatOpen) { setKeyboardHeight(0); return; }
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      const kbH = window.innerHeight - vv.height;
+      setKeyboardHeight(kbH > 50 ? kbH : 0);
+    };
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    onResize();
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      vv.removeEventListener("scroll", onResize);
+    };
+  }, [chatOpen]);
+
+  // Scroll input into view when keyboard opens
+  useEffect(() => {
+    if (keyboardHeight > 0) {
+      setTimeout(() => {
+        mobileInputRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [keyboardHeight]);
+
   return (
     <div className="flex flex-col h-full relative">
       {/* Header */}
