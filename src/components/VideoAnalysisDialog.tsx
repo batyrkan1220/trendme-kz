@@ -173,9 +173,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
         ) : (
         <div className="flex flex-col md:flex-row h-full">
           {/* Mobile: compact stats bar only (no video) */}
-          <div className="flex md:hidden items-center gap-3 p-3 border-b border-border/50 bg-card" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
+          <div className="flex md:hidden items-center gap-3 p-3.5 border-b border-white/[0.06]" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 14px)", background: "rgba(12,12,12,0.95)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
             {video.cover_url && (
-              <img src={video.cover_url} alt="" className="w-12 h-16 rounded-lg object-cover flex-shrink-0" />
+              <img src={video.cover_url} alt="" className="w-12 h-16 rounded-xl object-cover flex-shrink-0 shadow-lg" style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }} />
             )}
             <div className="flex-1 min-w-0">
               {video.author_username && (
