@@ -9,6 +9,41 @@ import { useIsMobile } from "@/hooks/use-mobile";
 /** Global in-memory cache for play URLs to avoid redundant API calls */
 const playUrlCache = new Map<string, string>();
 
+/** Global in-flight request tracker to prevent duplicate concurrent API calls */
+const inFlightRequests = new Map<string, Promise<string | null>>();
+
+/** Centralized function to fetch play URL with deduplication */
+async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
+  // Check cache first
+  const cached = playUrlCache.get(videoUrl);
+  if (cached) return cached;
+
+  // Check if request is already in progress
+  const existing = inFlightRequests.get(videoUrl);
+  if (existing) return existing;
+
+  // Create new request
+  const promise = (async (): Promise<string | null> => {
+    try {
+      const { data } = await supabase.functions.invoke("socialkit", {
+        body: { action: "get_play_url", video_url: videoUrl },
+      });
+      if (data?.play_url) {
+        playUrlCache.set(videoUrl, data.play_url);
+        return data.play_url;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      inFlightRequests.delete(videoUrl);
+    }
+  })();
+
+  inFlightRequests.set(videoUrl, promise);
+  return promise;
+}
+
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
@@ -146,28 +181,24 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     };
   }, [isMobile, playUrl, onPlay]);
 
-  // Preload play URL on hover (desktop) or touchstart (mobile)
+  // Preload play URL on hover (desktop only — disabled on mobile to save credits)
   const preloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePreload = useCallback(() => {
+    // DISABLED on mobile — no hover, only wastes credits on scroll
+    if (isMobile) return;
     if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
     if (preloadTimer.current) return;
 
-    // Shorter delay on mobile for faster perceived load
-    const delay = isMobile ? 100 : 600;
+    // Desktop only: 600ms delay to ensure intentional hover
     preloadTimer.current = setTimeout(async () => {
       preloadTimer.current = null;
       if (playUrlCache.has(video.url) || preloadedUrlRef.current) return;
-      try {
-        const { data } = await supabase.functions.invoke("socialkit", {
-          body: { action: "get_play_url", video_url: video.url },
-        });
-        if (data?.play_url) {
-          preloadedUrlRef.current = data.play_url;
-          playUrlCache.set(video.url, data.play_url);
-        }
-      } catch {}
-    }, delay);
+      const url = await fetchPlayUrlDeduped(video.url);
+      if (url) {
+        preloadedUrlRef.current = url;
+      }
+    }, 600);
   }, [isMobile, video.url]);
 
   const handlePreloadCancel = useCallback(() => {
@@ -206,16 +237,13 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
     setLoadingPlay(true);
     try {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "get_play_url", video_url: video.url },
-      });
-      if (error || !data?.play_url) {
+      // Use centralized deduped fetch
+      const url = await fetchPlayUrlDeduped(video.url);
+      if (!url) {
         console.warn("Play URL unavailable, using TikTok embed fallback");
-        // Fallback: show TikTok embed in card
         setPlayUrl("tiktok_embed_fallback");
       } else {
-        setPlayUrl(data.play_url);
-        playUrlCache.set(video.url, data.play_url);
+        setPlayUrl(url);
       }
     } catch (e) {
       console.warn("Play URL fetch error, using TikTok embed fallback:", e);
@@ -241,7 +269,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
 
   return (
-    <div ref={ref} className={`group rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col ${darkMode ? "bg-[#1a1a1a] border border-white/10" : "bg-card border border-border/40"}`} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel} onTouchStart={handlePreload}>
+    <div ref={ref} className={`group rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-200 relative flex flex-col ${darkMode ? "bg-[#1a1a1a] border border-white/10" : "bg-card border border-border/40"}`} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel}>
       {/* Video area */}
       <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-xl m-1.5">
         {playingId === video.id ? (
