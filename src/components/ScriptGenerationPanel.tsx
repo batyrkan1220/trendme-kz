@@ -214,6 +214,26 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     }
   }, [keyboardHeight]);
 
+  // Drag-to-dismiss handlers for mobile bottom sheet
+  const onDragStart = useCallback((clientY: number) => {
+    dragStartY.current = clientY;
+    setIsDragging(true);
+  }, []);
+
+  const onDragMove = useCallback((clientY: number) => {
+    if (!isDragging) return;
+    const dy = clientY - dragStartY.current;
+    setSheetDragY(Math.max(0, dy)); // only allow dragging down
+  }, [isDragging]);
+
+  const onDragEnd = useCallback(() => {
+    setIsDragging(false);
+    if (sheetDragY > 100) {
+      setChatOpen(false);
+    }
+    setSheetDragY(0);
+  }, [sheetDragY]);
+
   return (
     <div className="flex flex-col h-full relative">
       {/* Header */}
