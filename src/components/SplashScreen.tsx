@@ -44,72 +44,41 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
     return () => timers.forEach(clearTimeout);
   }, [onComplete]);
 
-  const isGreenPhase = phase >= 1 && phase < 4;
-
-  // Color tokens for green vs dark phase
-  const c = isGreenPhase
-    ? {
-        text: "hsl(0 0% 0%)",
-        textSub: "hsl(0 0% 0% / 0.55)",
-        textMuted: "hsl(0 0% 0% / 0.35)",
-        cardBg: "hsl(0 0% 0% / 0.06)",
-        cardBorder: "hsl(0 0% 0% / 0.1)",
-        iconBg: "hsl(0 0% 0% / 0.08)",
-        iconBorder: "hsl(0 0% 0% / 0.12)",
-        iconColor: "hsl(0 0% 0% / 0.85)",
-        iconShadow: "0 4px 16px hsl(0 0% 0% / 0.08)",
-        logoBg: "hsl(0 0% 0% / 0.08)",
-        logoBorder: "2px solid hsl(0 0% 0% / 0.12)",
-        logoShadow: "0 20px 60px hsl(0 0% 0% / 0.1), inset 0 1px 0 hsl(0 0% 100% / 0.15)",
-        logoStroke: "hsl(0 0% 0%)",
-        logoFilter: "drop-shadow(0 2px 8px hsl(0 0% 0% / 0.15))",
-        badgeBg: "hsl(0 0% 0% / 0.07)",
-        badgeBorder: "1px solid hsl(0 0% 0% / 0.1)",
-        badgeText: "hsl(0 0% 0% / 0.6)",
-        progressBg: "hsl(0 0% 0% / 0.1)",
-        progressFill: "linear-gradient(90deg, hsl(0 0% 0% / 0.5), hsl(0 0% 0% / 0.2))",
-        progressShadow: "0 0 8px hsl(0 0% 0% / 0.15)",
-        accentLine: "linear-gradient(90deg, transparent 15%, hsl(0 0% 0% / 0.12) 50%, transparent 85%)",
-        ringGlow: "radial-gradient(circle, hsl(0 0% 0% / 0.08) 0%, transparent 70%)",
-        circleBorder: "2px solid hsl(0 0% 0% / 0.08)",
-        circleBorder2: "1.5px solid hsl(0 0% 0% / 0.06)",
-        textureDot1: "hsl(72 100% 70% / 0.3)",
-        textureDot2: "hsl(82 90% 40% / 0.2)",
-      }
-    : {
-        text: "hsl(0 0% 96%)",
-        textSub: "hsl(0 0% 50%)",
-        textMuted: "hsl(72 100% 50% / 0.5)",
-        cardBg: "hsl(0 0% 100% / 0.04)",
-        cardBorder: "hsl(0 0% 100% / 0.08)",
-        iconBg: "linear-gradient(135deg, hsl(72 100% 50% / 0.12), hsl(72 80% 40% / 0.05))",
-        iconBorder: "hsl(72 100% 50% / 0.15)",
-        iconColor: "hsl(72 100% 50%)",
-        iconShadow: "0 0 20px hsl(72 100% 50% / 0.08)",
-        logoBg: "linear-gradient(145deg, hsl(72 100% 50% / 0.18), hsl(72 60% 40% / 0.06))",
-        logoBorder: "1px solid hsl(72 100% 50% / 0.25)",
-        logoShadow: "0 0 60px hsl(72 100% 50% / 0.15), 0 20px 40px hsl(0 0% 0% / 0.5)",
-        logoStroke: "hsl(72 100% 50%)",
-        logoFilter: "drop-shadow(0 0 16px hsl(72 100% 50% / 0.7))",
-        badgeBg: "hsl(0 0% 100% / 0.06)",
-        badgeBorder: "1px solid hsl(0 0% 100% / 0.1)",
-        badgeText: "hsl(0 0% 60%)",
-        progressBg: "hsl(0 0% 14%)",
-        progressFill: "linear-gradient(90deg, hsl(72 100% 50% / 0.8), hsl(72 100% 50% / 0.3))",
-        progressShadow: "0 0 12px hsl(72 100% 50% / 0.5)",
-        accentLine: "linear-gradient(90deg, transparent 20%, hsl(72 100% 50% / 0.2) 50%, transparent 80%)",
-        ringGlow: "radial-gradient(circle, hsl(72 100% 50% / 0.12) 0%, transparent 70%)",
-        circleBorder: "2px solid hsl(72 100% 50% / 0.05)",
-        circleBorder2: "1.5px solid hsl(72 100% 50% / 0.03)",
-        textureDot1: "transparent",
-        textureDot2: "transparent",
-      };
+  // Always bright green — no dark phase
+  const c = {
+    text: "hsl(0 0% 0%)",
+    textSub: "hsl(0 0% 0% / 0.55)",
+    textMuted: "hsl(0 0% 0% / 0.35)",
+    cardBg: "hsl(0 0% 0% / 0.06)",
+    cardBorder: "hsl(0 0% 0% / 0.1)",
+    iconBg: "hsl(0 0% 0% / 0.08)",
+    iconBorder: "hsl(0 0% 0% / 0.12)",
+    iconColor: "hsl(0 0% 0% / 0.85)",
+    iconShadow: "0 4px 16px hsl(0 0% 0% / 0.08)",
+    logoBg: "hsl(0 0% 0% / 0.08)",
+    logoBorder: "2px solid hsl(0 0% 0% / 0.12)",
+    logoShadow: "0 20px 60px hsl(0 0% 0% / 0.1), inset 0 1px 0 hsl(0 0% 100% / 0.15)",
+    logoStroke: "hsl(0 0% 0%)",
+    logoFilter: "drop-shadow(0 2px 8px hsl(0 0% 0% / 0.15))",
+    badgeBg: "hsl(0 0% 0% / 0.07)",
+    badgeBorder: "1px solid hsl(0 0% 0% / 0.1)",
+    badgeText: "hsl(0 0% 0% / 0.6)",
+    progressBg: "hsl(0 0% 0% / 0.1)",
+    progressFill: "linear-gradient(90deg, hsl(0 0% 0% / 0.5), hsl(0 0% 0% / 0.2))",
+    progressShadow: "0 0 8px hsl(0 0% 0% / 0.15)",
+    accentLine: "linear-gradient(90deg, transparent 15%, hsl(0 0% 0% / 0.12) 50%, transparent 85%)",
+    ringGlow: "radial-gradient(circle, hsl(0 0% 0% / 0.08) 0%, transparent 70%)",
+    circleBorder: "2px solid hsl(0 0% 0% / 0.08)",
+    circleBorder2: "1.5px solid hsl(0 0% 0% / 0.06)",
+    textureDot1: "hsl(72 100% 70% / 0.3)",
+    textureDot2: "hsl(82 90% 40% / 0.2)",
+  };
 
   return (
     <div
       className="fixed inset-0 z-[999999] flex flex-col items-center justify-center overflow-hidden"
       style={{
-        background: isGreenPhase ? "hsl(72 100% 50%)" : "#050505",
+        background: "hsl(72 100% 50%)",
         opacity: phase === 4 ? 0 : 1,
         transform: phase === 4 ? "scale(1.08)" : "scale(1)",
         transition: phase === 1
@@ -124,7 +93,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `radial-gradient(circle at 30% 20%, ${c.textureDot1} 0%, transparent 50%), radial-gradient(circle at 70% 80%, ${c.textureDot2} 0%, transparent 50%)`,
-          opacity: isGreenPhase ? 1 : 0,
+          opacity: 1,
           transition: "opacity 1s ease-out",
         }}
       />
@@ -134,7 +103,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
         className="absolute inset-0 pointer-events-none mix-blend-soft-light"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")`,
-          opacity: isGreenPhase ? 0.15 : 0,
+          opacity: 0.15,
           transition: "opacity 1s ease-out",
         }}
       />
@@ -188,7 +157,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             className="relative flex items-center justify-center"
             style={{
               width: 96, height: 96, borderRadius: 28,
-              background: isGreenPhase ? c.logoBg : c.logoBg,
+              background: c.logoBg,
               border: c.logoBorder,
               boxShadow: c.logoShadow,
               transition: "all 600ms ease-out",
@@ -220,9 +189,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                 fontSize: 32,
                 letterSpacing: "0.2em",
                 color: c.text,
-                textShadow: isGreenPhase
-                  ? "0 1px 2px hsl(0 0% 100% / 0.15)"
-                  : "0 0 30px hsl(72 100% 50% / 0.4)",
+                textShadow: "0 1px 2px hsl(0 0% 100% / 0.15)",
                 opacity: phase >= 2 ? 1 : 0,
                 transform: phase >= 2 ? "translateY(0)" : "translateY(30px)",
                 transition: `all 600ms cubic-bezier(0.16, 1, 0.3, 1) ${400 + i * 60}ms`,
@@ -262,7 +229,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             transition: "all 700ms cubic-bezier(0.16, 1, 0.3, 1) 1100ms",
           }}
         >
-          <TikTokLogo size={14} dark={isGreenPhase} />
+          <TikTokLogo size={14} dark={true} />
           <span
             className="text-[11px] font-bold tracking-[0.1em] uppercase"
             style={{ color: c.badgeText }}
@@ -294,7 +261,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                 className="flex items-center justify-center shrink-0"
                 style={{
                   width: 44, height: 44, borderRadius: 14,
-                  background: isGreenPhase ? (c.iconBg as string) : c.iconBg,
+                  background: c.iconBg as string,
                   border: `1px solid ${c.iconBorder}`,
                   boxShadow: visible ? c.iconShadow : "none",
                   transition: "box-shadow 800ms ease-out",
@@ -304,7 +271,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                   className="h-[18px] w-[18px]"
                   style={{
                     color: c.iconColor,
-                    filter: isGreenPhase ? "none" : "drop-shadow(0 0 8px hsl(72 100% 50% / 0.5))",
+                    filter: "none",
                   }}
                   strokeWidth={2}
                 />
