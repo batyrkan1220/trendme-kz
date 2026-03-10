@@ -35,10 +35,10 @@ export function TrendNicheRow({
   if (videos.length === 0) return null;
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-2">
       {/* Section header */}
       <div
-        className="flex items-center justify-between sticky z-20 -mx-4 px-4 py-2.5"
+        className="sticky z-20 -mx-4 px-4 py-2.5"
         style={{
           top: "0px",
           background: "rgba(10,10,10,0.55)",
@@ -46,16 +46,36 @@ export function TrendNicheRow({
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <h2 className={`text-[15px] font-extrabold tracking-tight ${darkMode ? "text-white" : "text-foreground"}`}>
-          {group.label} {group.emoji}
-        </h2>
-        <button
-          onClick={() => onViewAll(group.key)}
-          className="flex items-center gap-0.5 text-[13px] font-bold text-neon hover:text-neon/80 transition-colors active:scale-95"
-        >
-          Все
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        <div className="flex items-center justify-between">
+          <h2 className={`text-[15px] font-extrabold tracking-tight ${darkMode ? "text-white" : "text-foreground"}`}>
+            {group.label} {group.emoji}
+          </h2>
+          <button
+            onClick={() => onViewAll(group.key)}
+            className="flex items-center gap-0.5 text-[13px] font-bold text-neon hover:text-neon/80 transition-colors active:scale-95"
+          >
+            Все
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+        {/* Sub-niche preview chips */}
+        {group.subNiches.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-1.5 overflow-x-auto scrollbar-hide">
+            {group.subNiches.slice(0, 4).map((sub) => (
+              <span
+                key={sub.key}
+                className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/8 text-white/50 border border-white/5"
+              >
+                {sub.label}
+              </span>
+            ))}
+            {group.subNiches.length > 4 && (
+              <span className="shrink-0 text-[10px] text-white/30 font-medium">
+                +{group.subNiches.length - 4}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Horizontal scroll */}
