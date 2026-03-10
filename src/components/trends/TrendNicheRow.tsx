@@ -46,7 +46,7 @@ export function TrendNicheRow({
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <h2 className={`text-[15px] font-extrabold tracking-tight ${darkMode ? "text-white" : "text-foreground"}`}>
+        <h2 className="text-[15px] font-extrabold tracking-tight text-foreground">
           {group.label} {group.emoji}
         </h2>
         <button
