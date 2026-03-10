@@ -269,7 +269,7 @@ export default function Trends() {
                       {opt.label}
                     </button>
                   ))}
-                  <span className="text-white/40 ml-1">· {drillTotalFiltered} видео</span>
+                  <span className="text-foreground/40 ml-1">· {drillTotalFiltered} видео</span>
                 </div>
 
                 {/* Sub-niche chips */}
