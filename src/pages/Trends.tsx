@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp } from "lucide-react";
-import { useState, useMemo, useCallback, useRef } from "react";
+import { TrendingUp, WifiOff } from "lucide-react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { hapticLight, hapticMedium, hapticSuccess } from "@/lib/haptics";
+import { useOnlineStatus, saveTrendsCache, loadTrendsCache } from "@/hooks/useOfflineCache";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
@@ -38,6 +40,7 @@ export default function Trends() {
   const { balance } = useTokens();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const isOnline = useOnlineStatus();
   const FREE_LIMIT = 5;
 
   const { data: userSub } = useQuery({
@@ -75,17 +78,25 @@ export default function Trends() {
     },
     staleTime: 120_000,
     placeholderData: (prev) => prev,
+    enabled: isOnline,
   });
+
+  // Cache trends data when loaded, use cache when offline
+  const cachedVideos = useMemo(() => loadTrendsCache(), []);
+  useEffect(() => {
+    if (allVideos.length > 0) saveTrendsCache(allVideos);
+  }, [allVideos]);
+  const effectiveVideos = isOnline && allVideos.length > 0 ? allVideos : (cachedVideos || allVideos);
 
   const videosByNiche = useMemo(() => {
     const map: Record<string, any[]> = {};
-    for (const v of allVideos) {
+    for (const v of effectiveVideos) {
       const n = v.niche || "other";
       if (!map[n]) map[n] = [];
       map[n].push(v);
     }
     return map;
-  }, [allVideos]);
+  }, [effectiveVideos]);
 
   const { favorites: localFavorites, toggleFavorite: toggleLocalFav } = useLocalFavorites();
 
@@ -103,6 +114,7 @@ export default function Trends() {
 
   const toggleFav = useCallback(
     async (videoId: string) => {
+      hapticLight();
       if (isNativePlatform) {
         toggleLocalFav(videoId);
         return;
@@ -249,6 +261,7 @@ export default function Trends() {
     }
     setDrillSubNiche(subNicheKeys[nextIdx]);
     setVisibleCount(PAGE_SIZE);
+    hapticMedium();
     // Clear direction after animation
     setTimeout(() => setSlideDir(null), 300);
     // Auto-scroll active chip into view
@@ -270,6 +283,14 @@ export default function Trends() {
           isRefreshing={isRefreshing}
           progress={progress}
         />
+
+        {/* Offline banner */}
+        {!isOnline && (
+          <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center gap-2 text-yellow-400 text-xs">
+            <WifiOff className="h-3.5 w-3.5 shrink-0" />
+            <span>Офлайн режим — кэштелген деректер көрсетілуде</span>
+          </div>
+        )}
 
         <div className="space-y-4 pb-4">
           {/* Drill-down mode */}
