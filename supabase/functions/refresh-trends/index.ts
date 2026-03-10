@@ -894,14 +894,17 @@ Every index must appear in exactly one array. Use ONLY keys from the list above.
 
                 // Reassign videos to correct niches
                 if (reassigned.length > 0) {
-                  for (const r of reassigned) {
-                    const video = newVideos[r.index];
-                    if (!video || !r.niche) continue;
-                    if (!SUB_NICHE_LABELS_MAP[r.niche]) {
-                      console.log(`  ⚠️ Unknown niche "${r.niche}" for reassignment, discarding`);
+                  // Filter out invalid niche keys (AI sometimes puts "discarded" as niche)
+                  const validReassigned = reassigned.filter(r => {
+                    if (!r.niche || !SUB_NICHE_LABELS_MAP[r.niche]) {
                       nicheDiscarded++;
-                      continue;
+                      return false;
                     }
+                    return true;
+                  });
+                  for (const r of validReassigned) {
+                    const video = newVideos[r.index];
+                    if (!video) continue;
                     video.niche = r.niche;
                     video.sub_niche = null;
                     video.categories = [r.niche];
