@@ -322,6 +322,9 @@ export function FullscreenVideoPlayer({
           {/* Right side — action buttons */}
           <div className="absolute right-3 bottom-16 flex flex-col items-center gap-5 pointer-events-auto"
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
           >
             <button
               onClick={(e) => { e.stopPropagation(); onToggleFav(video.id); }}
