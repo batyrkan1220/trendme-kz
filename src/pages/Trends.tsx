@@ -114,6 +114,7 @@ export default function Trends() {
 
   const toggleFav = useCallback(
     async (videoId: string) => {
+      hapticLight();
       if (isNativePlatform) {
         toggleLocalFav(videoId);
         return;
