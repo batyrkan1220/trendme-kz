@@ -271,7 +271,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                   className="h-[18px] w-[18px]"
                   style={{
                     color: c.iconColor,
-                    filter: isGreenPhase ? "none" : "drop-shadow(0 0 8px hsl(72 100% 50% / 0.5))",
+                    filter: "none",
                   }}
                   strokeWidth={2}
                 />
