@@ -12,7 +12,7 @@ interface TrendNicheRowProps {
   onAnalyze: (v: any) => void;
   playingId: string | null;
   onPlay: (id: string | null) => void;
-  onViewAll: (nicheKey: string) => void;
+  onViewAll: (nicheKey: string, subNicheKey?: string) => void;
   darkMode?: boolean;
 }
 
