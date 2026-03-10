@@ -323,6 +323,7 @@ export default function Trends() {
                     </div>
                     <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
                       <button
+                        data-active={!drillSubNiche ? "true" : undefined}
                         onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
                         className={cn(
                           "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
