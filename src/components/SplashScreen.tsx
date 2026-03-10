@@ -157,7 +157,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             className="relative flex items-center justify-center"
             style={{
               width: 96, height: 96, borderRadius: 28,
-              background: isGreenPhase ? c.logoBg : c.logoBg,
+              background: c.logoBg,
               border: c.logoBorder,
               boxShadow: c.logoShadow,
               transition: "all 600ms ease-out",
