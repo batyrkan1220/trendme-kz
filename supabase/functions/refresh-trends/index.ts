@@ -839,11 +839,15 @@ Deno.serve(async (req: Request) => {
               const parentNiche = SUB_NICHE_TO_NICHE[nicheKey] || nicheKey;
               const parentNicheLabel = SUB_NICHE_LABELS_MAP[parentNiche] || parentNiche;
 
-              // Build available niches list for reassignment — ONLY valid keys
-              const validNicheKeys = Object.keys(SUB_NICHE_LABELS_MAP);
-              const availableNiches = Object.entries(SUB_NICHE_LABELS_MAP)
-                .map(([k, v]) => `"${k}" = ${v}`)
+              // Build available sub-niches list for reassignment
+              const availableSubNiches = Object.entries(SUB_NICHE_LABELS)
+                .map(([k, v]) => {
+                  const parent = SUB_NICHE_TO_NICHE[k] || k;
+                  const parentLabel = SUB_NICHE_LABELS_MAP[parent] || parent;
+                  return `"${k}" = ${v} (${parentLabel})`;
+                })
                 .join("\n");
+              const validSubNicheKeys = Object.keys(SUB_NICHE_LABELS);
               
               const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                 method: "POST",
@@ -866,19 +870,18 @@ REJECT from this category:
 - Videos where ${nicheDisplayName} is not the main topic
 - Videos in Bulgarian, Serbian, or other non-Russian/non-Kazakh Cyrillic languages
 
-For REJECTED videos, check if they fit one of these EXACT parent niche keys:
-${availableNiches}
+For REJECTED videos, assign them to the SPECIFIC sub-niche from this list:
+${availableSubNiches}
 
-CRITICAL: You MUST use ONLY these exact niche keys for reassignment: ${validNicheKeys.join(", ")}
-Do NOT use any other values like "health", "religion", "news", etc.
+CRITICAL: For "reassigned", use ONLY exact sub_niche keys from the list above (e.g. "recipes", "home_cooking", "humor", "football").
+Do NOT use parent niche keys like "food", "entertainment", "sports".
 
-If a rejected video fits another niche, put it in "reassigned" with the EXACT key from the list above.
-If it doesn't fit ANY niche (crime, violence, spam, foreign language, nonsense), put its index in "discarded".
+If a rejected video doesn't fit ANY sub-niche (crime, violence, spam, foreign language), put it in "discarded".
 
 Return JSON:
-{"accepted": [0, 2], "reassigned": [{"index": 1, "niche": "food"}], "discarded": [3, 5]}
+{"accepted": [0, 2], "reassigned": [{"index": 1, "sub_niche": "recipes"}, {"index": 3, "sub_niche": "football"}], "discarded": [5]}
 
-Every index must appear in exactly one array. Use ONLY keys from the list above.` },
+Every index must appear in exactly one array.` },
                     { role: "user", content: captions },
                   ],
                 }),
@@ -889,7 +892,7 @@ Every index must appear in exactly one array. Use ONLY keys from the list above.
               if (jsonMatch) {
                 const result = JSON.parse(jsonMatch[0]);
                 const acceptedIndices = new Set((result.accepted || []).map(Number));
-                const reassigned: Array<{index: number; niche: string}> = result.reassigned || [];
+                const reassigned: Array<{index: number; sub_niche?: string; niche?: string}> = result.reassigned || [];
                 const discarded: number[] = result.discarded || [];
 
                 const before = verifiedNewVideos.length;
@@ -901,27 +904,40 @@ Every index must appear in exactly one array. Use ONLY keys from the list above.
                   console.log(`  🤖 AI: ✅${verifiedNewVideos.length} ♻️${reassigned.length} 🗑️${discarded.length} (total ${before})`);
                 }
 
-                // Reassign videos to correct niches
+                // Reassign videos to correct sub-niches
                 if (reassigned.length > 0) {
-                  // Filter out invalid niche keys (AI sometimes puts "discarded" as niche)
                   const validReassigned = reassigned.filter(r => {
-                    if (!r.niche || !SUB_NICHE_LABELS_MAP[r.niche]) {
-                      nicheDiscarded++;
-                      return false;
-                    }
-                    return true;
+                    // Support both sub_niche and niche keys from AI
+                    const subKey = r.sub_niche || r.niche;
+                    if (!subKey) { nicheDiscarded++; return false; }
+                    // Check if it's a valid sub_niche key
+                    if (SUB_NICHE_TO_NICHE[subKey]) return true;
+                    // Check if it's a valid parent niche key
+                    if (SUB_NICHE_LABELS_MAP[subKey]) return true;
+                    nicheDiscarded++;
+                    return false;
                   });
+
                   for (const r of validReassigned) {
                     const video = newVideos[r.index];
                     if (!video) continue;
-                    video.niche = r.niche;
-                    // Assign first sub_niche of target parent niche so video appears in frontend
-                    const subNiches = NICHE_TO_SUB_NICHES[r.niche];
-                    video.sub_niche = subNiches && subNiches.length > 0 ? subNiches[0] : null;
-                    video.categories = [r.niche];
+                    const subKey = r.sub_niche || r.niche || "";
+                    
+                    if (SUB_NICHE_TO_NICHE[subKey]) {
+                      // It's a sub_niche key → set both niche and sub_niche
+                      video.niche = SUB_NICHE_TO_NICHE[subKey];
+                      video.sub_niche = subKey;
+                    } else if (SUB_NICHE_LABELS_MAP[subKey]) {
+                      // It's a parent niche key → assign first sub_niche
+                      video.niche = subKey;
+                      const subs = NICHE_TO_SUB_NICHES[subKey];
+                      video.sub_niche = subs && subs.length > 0 ? subs[0] : null;
+                    }
+                    video.categories = [video.niche];
                   }
-                  const reassignedVideos = reassigned
-                    .filter(r => newVideos[r.index] && SUB_NICHE_LABELS_MAP[r.niche])
+
+                  const reassignedVideos = validReassigned
+                    .filter(r => newVideos[r.index])
                     .map(r => newVideos[r.index]);
 
                   if (reassignedVideos.length > 0) {
@@ -932,9 +948,11 @@ Every index must appear in exactly one array. Use ONLY keys from the list above.
                       console.error(`  Reassign insert error:`, reErr.message);
                     } else {
                       nicheReassigned += reassignedVideos.length;
-                      const reassignLog = reassigned
-                        .filter(r => SUB_NICHE_LABELS_MAP[r.niche])
-                        .map(r => `    → ${SUB_NICHE_LABELS_MAP[r.niche]}: ${(newVideos[r.index]?.caption || "").slice(0, 60)}`)
+                      const reassignLog = validReassigned
+                        .map(r => {
+                          const v = newVideos[r.index];
+                          return `    → ${v?.sub_niche || v?.niche}: ${(v?.caption || "").slice(0, 60)}`;
+                        })
                         .join("\n");
                       console.log(`  ♻️ Reassigned:\n${reassignLog}`);
                     }
