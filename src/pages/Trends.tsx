@@ -335,7 +335,7 @@ export default function Trends() {
                             <div
                               key={j}
                               className="shrink-0 rounded-2xl overflow-hidden animate-pulse"
-                              style={{ width: "min(44vw, 200px)", background: "#1a1a1a" }}
+                              style={{ width: "min(44vw, 200px)", background: "hsl(var(--muted))" }}
                             >
                               <div className="aspect-[9/14] bg-white/5 m-1.5 rounded-xl" />
                             </div>
