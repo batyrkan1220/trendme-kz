@@ -782,18 +782,43 @@ Deno.serve(async (req: Request) => {
           .in("platform_video_id", platformIds);
 
         const existingIds = new Set((existing || []).map((e: any) => e.platform_video_id));
-        const newCount = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id)).length;
+        
+        // Split: new videos get full insert (with niche), existing only get stats update (no niche overwrite)
+        const newVideos = videoRows.filter((v: any) => !existingIds.has(v.platform_video_id));
+        const existingVideos = videoRows.filter((v: any) => existingIds.has(v.platform_video_id));
+        const newCount = newVideos.length;
 
         console.log(`  💾 "${query}": ${newCount} new / ${existingIds.size} dupes`);
 
-        const { error: upsertErr } = await adminClient
-          .from("videos")
-          .upsert(videoRows, { onConflict: "platform,platform_video_id" });
+        // Insert new videos with niche assignment
+        if (newVideos.length > 0) {
+          const { error: insertErr } = await adminClient
+            .from("videos")
+            .upsert(newVideos, { onConflict: "platform,platform_video_id" });
+          if (insertErr) {
+            console.error(`Insert error for ${nicheKey}:`, insertErr.message);
+          } else {
+            nicheSaved += newCount;
+          }
+        }
 
-        if (upsertErr) {
-          console.error(`Upsert error for ${nicheKey}:`, upsertErr.message);
-        } else {
-          nicheSaved += newCount;
+        // Update existing videos: only stats, no niche/sub_niche/categories overwrite
+        for (const ev of existingVideos) {
+          await adminClient
+            .from("videos")
+            .update({
+              views: ev.views,
+              likes: ev.likes,
+              comments: ev.comments,
+              shares: ev.shares,
+              velocity_views: ev.velocity_views,
+              velocity_likes: ev.velocity_likes,
+              velocity_comments: ev.velocity_comments,
+              trend_score: ev.trend_score,
+              fetched_at: ev.fetched_at,
+            })
+            .eq("platform", "tiktok")
+            .eq("platform_video_id", ev.platform_video_id);
         }
 
       } catch (err) {
