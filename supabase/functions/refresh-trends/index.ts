@@ -912,10 +912,11 @@ Deno.serve(async (req: Request) => {
     }
 
     // =========================
-    // Refresh stale cover URLs (fetched > 2 days ago)
+    // Refresh stale cover/stats (economical: 10 videos per run, 72h stale threshold)
+    // Prioritizes high-view videos first for maximum impact with minimal credits
     // =========================
-    const COVER_STALE_HOURS = 48;
-    const COVER_REFRESH_LIMIT = 30; // max videos per run to avoid burning credits
+    const COVER_STALE_HOURS = 72;
+    const COVER_REFRESH_LIMIT = 10;
     const staleCutoff = new Date(Date.now() - COVER_STALE_HOURS * 3600000).toISOString();
 
     const { data: staleVideos } = await adminClient
@@ -923,11 +924,11 @@ Deno.serve(async (req: Request) => {
       .select("id, platform_video_id, author_username")
       .lt("fetched_at", staleCutoff)
       .gte("published_at", new Date(Date.now() - MAX_AGE_DAYS * 24 * 3600000).toISOString())
-      .order("fetched_at", { ascending: true })
+      .order("views", { ascending: false })
       .limit(COVER_REFRESH_LIMIT);
 
     if (staleVideos && staleVideos.length > 0) {
-      console.log(`🖼 Refreshing covers for ${staleVideos.length} stale videos...`);
+      console.log(`🖼 Refreshing covers for ${staleVideos.length} stale videos (economical mode)...`);
       let coverUpdated = 0;
       let coverFailed = 0;
 
@@ -958,14 +959,12 @@ Deno.serve(async (req: Request) => {
               if (newCover) updateFields.cover_url = newCover;
               if (newAvatar) updateFields.author_avatar_url = newAvatar;
 
-              // Also refresh stats while we're at it
               const stats = postData.statistics || {};
               if (stats.play_count != null) updateFields.views = stats.play_count;
               if (stats.digg_count != null) updateFields.likes = stats.digg_count;
               if (stats.comment_count != null) updateFields.comments = stats.comment_count;
               if (stats.share_count != null) updateFields.shares = stats.share_count;
 
-              // Recompute trend score
               if (updateFields.views) {
                 const pubAt = new Date((postData.create_time || 0) * 1000);
                 const trends = computeTrend(
@@ -980,25 +979,23 @@ Deno.serve(async (req: Request) => {
               await adminClient.from("videos").update(updateFields).eq("id", sv.id);
               coverUpdated++;
             } else {
-              // Mark as fetched to avoid retrying immediately
               await adminClient.from("videos").update({ fetched_at: new Date().toISOString() }).eq("id", sv.id);
               coverFailed++;
             }
           } else {
-            // Non-OK response — still mark fetched_at to avoid infinite retry
             await adminClient.from("videos").update({ fetched_at: new Date().toISOString() }).eq("id", sv.id);
             coverFailed++;
           }
 
           await logApiUsage("post_info_cover_refresh", 1, { platform_video_id: sv.platform_video_id });
-          await sleep(800);
+          await sleep(1200);
         } catch (e) {
           console.error(`Cover refresh failed for ${sv.platform_video_id}:`, (e as Error).message);
           coverFailed++;
         }
       }
 
-      console.log(`🖼 Cover refresh done: ${coverUpdated} updated, ${coverFailed} failed`);
+      console.log(`🖼 Cover refresh done: ${coverUpdated} updated, ${coverFailed} failed (max ${COVER_REFRESH_LIMIT}/run)`);
     }
 
     console.log(`Refresh COMPLETE (accumulated totalSaved=${totalSaved})`);
