@@ -32,6 +32,8 @@ export default function Trends() {
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
+  const chipScrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { balance } = useTokens();
   const queryClient = useQueryClient();
@@ -239,14 +241,21 @@ export default function Trends() {
     const currentIdx = subNicheKeys.indexOf(drillSubNiche);
     let nextIdx: number;
     if (dx < 0) {
-      // swipe left → next
       nextIdx = currentIdx + 1 >= subNicheKeys.length ? 0 : currentIdx + 1;
+      setSlideDir("left");
     } else {
-      // swipe right → prev
       nextIdx = currentIdx - 1 < 0 ? subNicheKeys.length - 1 : currentIdx - 1;
+      setSlideDir("right");
     }
     setDrillSubNiche(subNicheKeys[nextIdx]);
     setVisibleCount(PAGE_SIZE);
+    // Clear direction after animation
+    setTimeout(() => setSlideDir(null), 300);
+    // Auto-scroll active chip into view
+    setTimeout(() => {
+      const el = chipScrollRef.current?.querySelector('[data-active="true"]') as HTMLElement;
+      el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }, 50);
   }, [drillSubNiche, subNicheKeys]);
 
   return (
@@ -312,8 +321,9 @@ export default function Trends() {
                       <span className="text-[11px] font-semibold text-neon/80 uppercase tracking-wider">Под-темы ↓</span>
                       <div className="h-px flex-1 bg-gradient-to-r from-neon/20 to-transparent" />
                     </div>
-                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 animate-[shimmer_2s_ease-in-out]">
+                    <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
                       <button
+                        data-active={!drillSubNiche ? "true" : undefined}
                         onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
                         className={cn(
                           "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
@@ -329,6 +339,7 @@ export default function Trends() {
                         return (
                           <button
                             key={sub.key}
+                            data-active={drillSubNiche === sub.key ? "true" : undefined}
                             onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
                             className={cn(
                               "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
@@ -347,7 +358,12 @@ export default function Trends() {
               </div>
 
               <div
-                className="p-4 md:p-6 lg:p-8"
+                key={drillSubNiche ?? "__all"}
+                className={cn(
+                  "p-4 md:p-6 lg:p-8",
+                  slideDir === "left" && "animate-slide-in-from-right",
+                  slideDir === "right" && "animate-slide-in-from-left",
+                )}
                 onTouchStart={handleSwipeStart}
                 onTouchEnd={handleSwipeEnd}
               >
