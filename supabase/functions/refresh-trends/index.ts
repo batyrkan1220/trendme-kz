@@ -717,10 +717,16 @@ Deno.serve(async (req: Request) => {
 
           if (views < MIN_VIEWS) { lowViews++; return null; }
 
-          // Filter: reject Ukrainian content, accept Kazakh + Russian for KK mode
+          // Filter: reject non-KK/RU Cyrillic (Ukrainian, Bulgarian, Serbian, etc.)
           const caption = v.desc || "";
+          // Ukrainian chars
           const hasUkrainianChars = /[їєґЇЄҐ]/u.test(caption);
           if (hasUkrainianChars) { nonCyrillic++; return null; }
+          // Bulgarian/Serbian indicators: ъ, щ paired with Latin-only patterns, or specific Bulgarian words
+          // More reliable: reject if caption has Bulgarian-specific patterns
+          const hasBulgarianIndicators = /[ъЪ]/u.test(caption) && !/[әңғүұқөһӘҢҒҮҰҚӨҺ]/u.test(caption)
+            && /\b(на|от|за|при|към|или|има|ще|бъде|също|повече|цена|цени|може)\b/iu.test(caption);
+          if (hasBulgarianIndicators) { nonCyrillic++; return null; }
 
           if (targetLang === "kk") {
             // KK mode: accept both Kazakh and Russian videos (Cyrillic required)
@@ -733,7 +739,7 @@ Deno.serve(async (req: Request) => {
             // English mode: accept any video
             var detectedLang = "en";
           } else {
-            // Russian mode: require Cyrillic
+            // Russian mode: require Cyrillic, reject Bulgarian
             const hasCyrillic = /[а-яА-ЯёЁ]/u.test(caption);
             if (!hasCyrillic) { nonCyrillic++; return null; }
             var detectedLang = "ru";
@@ -824,10 +830,11 @@ Deno.serve(async (req: Request) => {
               const parentNiche = SUB_NICHE_TO_NICHE[nicheKey] || nicheKey;
               const parentNicheLabel = SUB_NICHE_LABELS_MAP[parentNiche] || parentNiche;
 
-              // Build available niches list for reassignment
+              // Build available niches list for reassignment — ONLY valid keys
+              const validNicheKeys = Object.keys(SUB_NICHE_LABELS_MAP);
               const availableNiches = Object.entries(SUB_NICHE_LABELS_MAP)
-                .map(([k, v]) => `${k}: ${v}`)
-                .join(", ");
+                .map(([k, v]) => `"${k}" = ${v}`)
+                .join("\n");
               
               const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                 method: "POST",
@@ -846,19 +853,23 @@ REJECT from this category:
 - Food/cooking/recipe videos — UNLESS category is food-related
 - Crime, violence, death, missing persons, accidents, tragedies
 - Videos about a DIFFERENT product category (e.g. food review in "Jewelry", car video in "Clothing")
-- Political, religious, news content — UNLESS the category is specifically about that
+- Political, religious, news content in lifestyle categories
 - Videos where ${nicheDisplayName} is not the main topic
+- Videos in Bulgarian, Serbian, or other non-Russian/non-Kazakh Cyrillic languages
 
-For REJECTED videos, check if they fit another category from this list:
+For REJECTED videos, check if they fit one of these EXACT parent niche keys:
 ${availableNiches}
 
-If a rejected video fits another category, add it to "reassigned" with the correct parent niche key.
-If it doesn't fit ANY category (crime, violence, spam, nonsense), put its index in "discarded".
+CRITICAL: You MUST use ONLY these exact niche keys for reassignment: ${validNicheKeys.join(", ")}
+Do NOT use any other values like "health", "religion", "news", etc.
 
-Return JSON object:
-{"accepted": [0, 2, 4], "reassigned": [{"index": 1, "niche": "food"}, {"index": 3, "niche": "auto"}], "discarded": [5]}
+If a rejected video fits another niche, put it in "reassigned" with the EXACT key from the list above.
+If it doesn't fit ANY niche (crime, violence, spam, foreign language, nonsense), put its index in "discarded".
 
-IMPORTANT: Every index must appear in exactly one of the three arrays.` },
+Return JSON:
+{"accepted": [0, 2], "reassigned": [{"index": 1, "niche": "food"}], "discarded": [3, 5]}
+
+Every index must appear in exactly one array. Use ONLY keys from the list above.` },
                     { role: "user", content: captions },
                   ],
                 }),
