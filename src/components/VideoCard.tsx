@@ -455,7 +455,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     console.log("[VideoCard] Heart click fired for:", video.id);
                     onToggleFav(video.id);
                   }}
-                  className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
+                  className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 bg-black/60`}
                   style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 >
                   <Heart
