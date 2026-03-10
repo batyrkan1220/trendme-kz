@@ -820,6 +820,11 @@ Deno.serve(async (req: Request) => {
               const nicheDisplayName = nicheLabel(nicheKey);
               const parentNiche = SUB_NICHE_TO_NICHE[nicheKey] || nicheKey;
               const parentNicheLabel = SUB_NICHE_LABELS_MAP[parentNiche] || parentNiche;
+
+              // Build available niches list for reassignment
+              const availableNiches = Object.entries(SUB_NICHE_LABELS_MAP)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(", ");
               
               const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                 method: "POST",
@@ -829,46 +834,90 @@ Deno.serve(async (req: Request) => {
                   messages: [
                     { role: "system", content: `You are a strict video categorization verifier. Given numbered TikTok video captions, determine which ones ACTUALLY belong to the category "${nicheDisplayName}" (parent: "${parentNicheLabel}").
 
-INCLUDE:
+INCLUDE in "accepted":
 - Videos directly about ${nicheDisplayName}: products, reviews, tutorials, tips, trends
 - Commercial content (brands, prices, unboxing) IF about ${nicheDisplayName} products
 - Lifestyle content that primarily focuses on ${nicheDisplayName}
 
-REJECT (return empty array if all are irrelevant):
+REJECT from this category:
 - Food/cooking/recipe videos — UNLESS category is food-related
 - Crime, violence, death, missing persons, accidents, tragedies
 - Videos about a DIFFERENT product category (e.g. food review in "Jewelry", car video in "Clothing")
 - Political, religious, news content — UNLESS the category is specifically about that
-- Videos where ${nicheDisplayName} is not the main topic, even if mentioned briefly
+- Videos where ${nicheDisplayName} is not the main topic
 
-EXAMPLES of what to REJECT:
-- "Shopping" category: reject cooking tutorials, fitness videos, crime stories
-- "Jewelry" category: reject food reviews, car content, family drama
-- "Clothing" category: reject food/recipe content, sports highlights, tech reviews
-- "Fashion" category: reject cooking videos even if the cook is wearing nice clothes
+For REJECTED videos, check if they fit another category from this list:
+${availableNiches}
 
-Be STRICT about category relevance. When in doubt, REJECT.
+If a rejected video fits another category, add it to "reassigned" with the correct parent niche key.
+If it doesn't fit ANY category (crime, violence, spam, nonsense), put its index in "discarded".
 
-Return ONLY a JSON array of valid indices, e.g. [0,2,4]. If none belong, return [].` },
+Return JSON object:
+{"accepted": [0, 2, 4], "reassigned": [{"index": 1, "niche": "food"}, {"index": 3, "niche": "auto"}], "discarded": [5]}
+
+IMPORTANT: Every index must appear in exactly one of the three arrays.` },
                     { role: "user", content: captions },
                   ],
                 }),
               });
               const aiData = await aiRes.json();
               const content = aiData?.choices?.[0]?.message?.content || "";
-              const match = content.match(/\[[\s\S]*?\]/);
-              if (match) {
-                const validIndices = new Set(JSON.parse(match[0]).map(Number));
+              const jsonMatch = content.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const result = JSON.parse(jsonMatch[0]);
+                const acceptedIndices = new Set((result.accepted || []).map(Number));
+                const reassigned: Array<{index: number; niche: string}> = result.reassigned || [];
+                const discarded: number[] = result.discarded || [];
+
                 const before = verifiedNewVideos.length;
-                verifiedNewVideos = newVideos.filter((_: any, idx: number) => validIndices.has(idx));
-                const rejected = before - verifiedNewVideos.length;
-                if (rejected > 0) {
-                  // Log rejected captions for debugging
-                  const rejectedCaptions = newVideos
-                    .filter((_: any, idx: number) => !validIndices.has(idx))
-                    .map((v: any) => `  ❌ ${(v.caption || "").slice(0, 80)}`)
+                verifiedNewVideos = newVideos.filter((_: any, idx: number) => acceptedIndices.has(idx));
+                
+                // Log accepted
+                if (verifiedNewVideos.length < before) {
+                  console.log(`  🤖 AI: ${verifiedNewVideos.length}/${before} accepted for ${nicheDisplayName}`);
+                }
+
+                // Reassign videos to correct niches
+                if (reassigned.length > 0) {
+                  for (const r of reassigned) {
+                    const video = newVideos[r.index];
+                    if (!video || !r.niche) continue;
+                    // Validate that the niche exists in our system
+                    if (!SUB_NICHE_LABELS_MAP[r.niche]) {
+                      console.log(`  ⚠️ Unknown niche "${r.niche}" for reassignment, discarding`);
+                      continue;
+                    }
+                    // Update video's niche/sub_niche to the reassigned one
+                    video.niche = r.niche;
+                    video.sub_niche = null; // AI only assigns parent niche
+                    video.categories = [r.niche];
+                  }
+                  const reassignedVideos = reassigned
+                    .filter(r => newVideos[r.index] && SUB_NICHE_LABELS_MAP[r.niche])
+                    .map(r => newVideos[r.index]);
+
+                  if (reassignedVideos.length > 0) {
+                    const { error: reErr } = await adminClient
+                      .from("videos")
+                      .upsert(reassignedVideos, { onConflict: "platform,platform_video_id" });
+                    if (reErr) {
+                      console.error(`  Reassign insert error:`, reErr.message);
+                    } else {
+                      const reassignLog = reassigned
+                        .filter(r => SUB_NICHE_LABELS_MAP[r.niche])
+                        .map(r => `  ♻️ [${r.index}] → ${r.niche}: ${(newVideos[r.index]?.caption || "").slice(0, 60)}`)
+                        .join("\n");
+                      console.log(`  ♻️ Reassigned ${reassignedVideos.length} videos:\n${reassignLog}`);
+                    }
+                  }
+                }
+
+                // Log discarded
+                if (discarded.length > 0) {
+                  const discardLog = discarded
+                    .map(idx => `  🗑️ [${idx}]: ${(newVideos[idx]?.caption || "").slice(0, 60)}`)
                     .join("\n");
-                  console.log(`  🤖 AI verified: ${verifiedNewVideos.length}/${before} passed, ${rejected} rejected:\n${rejectedCaptions}`);
+                  console.log(`  🗑️ Discarded ${discarded.length} (no matching niche):\n${discardLog}`);
                 }
               }
             } catch (aiErr) {
