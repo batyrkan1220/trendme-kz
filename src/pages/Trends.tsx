@@ -248,7 +248,7 @@ export default function Trends() {
                   >
                     <ChevronLeft className="h-4 w-4 text-foreground" />
                   </button>
-                  <h1 className="text-lg font-bold text-white truncate">
+                  <h1 className="text-lg font-bold text-foreground truncate">
                     {drillGroup.emoji} {drillGroup.label}
                   </h1>
                 </div>
