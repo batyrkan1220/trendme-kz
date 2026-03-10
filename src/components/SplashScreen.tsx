@@ -78,7 +78,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
     <div
       className="fixed inset-0 z-[999999] flex flex-col items-center justify-center overflow-hidden"
       style={{
-        background: isGreenPhase ? "hsl(72 100% 50%)" : "#050505",
+        background: "hsl(72 100% 50%)",
         opacity: phase === 4 ? 0 : 1,
         transform: phase === 4 ? "scale(1.08)" : "scale(1)",
         transition: phase === 1
