@@ -306,7 +306,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
   const views = Number(video.views) || 0;
   const tier = showTier ? getTier(views) : null;
-  const velViews = video.velocity_views || 0;
+
+  // Live velocity: views / hours since published (instead of stale DB value)
+  const velViews = (() => {
+    const pub = video.published_at || video.createTime;
+    if (!pub || !views) return 0;
+    const pubMs = typeof pub === "number" ? (pub > 1e12 ? pub : pub * 1000) : new Date(pub).getTime();
+    const hoursAlive = Math.max((Date.now() - pubMs) / 3600000, 1);
+    return views / hoursAlive;
+  })();
   const activeCover = optimizeCoverUrl(video.cover_url || video.cover);
   const caption = video.caption || video.desc || "";
   const videoId = video.platform_video_id || video.id;
