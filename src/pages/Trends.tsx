@@ -216,6 +216,39 @@ export default function Trends() {
     setVisibleCount(PAGE_SIZE);
   };
 
+  // Swipe between sub-niches
+  const swipeRef = useRef<{ startX: number; startY: number } | null>(null);
+  const subNicheKeys = useMemo(() => {
+    if (!drillGroup) return [];
+    return [null, ...drillGroup.subNiches.map(s => s.key)];
+  }, [drillGroup]);
+
+  const handleSwipeStart = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    swipeRef.current = { startX: t.clientX, startY: t.clientY };
+  }, []);
+
+  const handleSwipeEnd = useCallback((e: React.TouchEvent) => {
+    if (!swipeRef.current || subNicheKeys.length <= 1) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipeRef.current.startX;
+    const dy = t.clientY - swipeRef.current.startY;
+    swipeRef.current = null;
+    if (Math.abs(dx) < 80 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+
+    const currentIdx = subNicheKeys.indexOf(drillSubNiche);
+    let nextIdx: number;
+    if (dx < 0) {
+      // swipe left → next
+      nextIdx = currentIdx + 1 >= subNicheKeys.length ? 0 : currentIdx + 1;
+    } else {
+      // swipe right → prev
+      nextIdx = currentIdx - 1 < 0 ? subNicheKeys.length - 1 : currentIdx - 1;
+    }
+    setDrillSubNiche(subNicheKeys[nextIdx]);
+    setVisibleCount(PAGE_SIZE);
+  }, [drillSubNiche, subNicheKeys]);
+
   return (
     <AppLayout>
       <div
