@@ -169,7 +169,7 @@ export function FullscreenVideoPlayer({
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
       >
         <button
-          onClick={onClose}
+          onClick={closeOverlay}
           className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
         >
           <X className="h-5 w-5 text-white/90" />
