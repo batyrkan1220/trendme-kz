@@ -113,7 +113,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       )}
 
       {/* Bottom bar */}
-      <div className="flex items-center justify-around px-3 py-2 pb-[max(8px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "rgba(8,8,8,0.75)", backdropFilter: "blur(32px) saturate(1.5)", WebkitBackdropFilter: "blur(32px) saturate(1.5)", borderTop: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 -8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
+      <div className="flex items-center justify-around px-3 py-2 pb-[max(8px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "hsl(var(--background) / 0.88)", backdropFilter: "blur(32px) saturate(1.5)", WebkitBackdropFilter: "blur(32px) saturate(1.5)", borderTop: "1px solid hsl(var(--border))", boxShadow: "0 -8px 32px rgba(0,0,0,0.06)" }}>
         {/* Main nav items */}
         {mainNavItems.map((item) => {
           const active = location.pathname === item.path;
