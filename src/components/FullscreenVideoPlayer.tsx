@@ -218,6 +218,17 @@ export function FullscreenVideoPlayer({
                 {video.caption}
               </p>
             )}
+
+            {/* Analyze button */}
+            {onAnalyze && (
+              <button
+                onClick={() => { onAnalyze(video); onClose(); }}
+                className="mt-3 w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide bg-neon text-neon-foreground active:scale-[0.97] transition-transform"
+                style={{ boxShadow: "0 4px 20px hsl(72 100% 50% / 0.25)" }}
+              >
+                Анализ видео
+              </button>
+            )}
           </div>
         </div>
       </div>
