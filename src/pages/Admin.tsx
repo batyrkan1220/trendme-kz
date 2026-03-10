@@ -955,7 +955,7 @@ function RefreshSection() {
   const queryClient = useQueryClient();
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
-  const [refreshLang, setRefreshLang] = useState<string>("all");
+  const [refreshLangs, setRefreshLangs] = useState<string[]>(["all"]);
   const [expandedRefreshGroup, setExpandedRefreshGroup] = useState<string | null>(null);
 
   const { data: nicheQueries = {} } = useQuery({
@@ -1058,6 +1058,21 @@ function RefreshSection() {
     setSelectedNiches(prev => prev.includes(niche) ? prev.filter(n => n !== niche) : [...prev, niche]);
   };
 
+  const toggleRefreshLang = (key: string) => {
+    if (key === "all") {
+      setRefreshLangs(["all"]);
+      return;
+    }
+    setRefreshLangs(prev => {
+      const without = prev.filter(l => l !== "all");
+      if (without.includes(key)) {
+        const next = without.filter(l => l !== key);
+        return next.length === 0 ? ["all"] : next;
+      }
+      return [...without, key];
+    });
+  };
+
   const triggerRefresh = async () => {
     const niches = selectAll ? null : selectedNiches;
     if (!selectAll && selectedNiches.length === 0) {
@@ -1066,18 +1081,23 @@ function RefreshSection() {
     }
     const langLabels: Record<string, string> = { all: "все языки", kk: "🇰🇿 қазақша", ru: "🇷🇺 русский", en: "🇬🇧 English" };
     const label = selectAll ? "все категории" : `${selectedNiches.length} категорий`;
-    toast.info(`Обновление запущено: ${label}, ${langLabels[refreshLang]}`);
-    supabase.functions.invoke("refresh-trends", { 
-      body: { 
-        mode: "mass", 
-        ...(niches ? { target_niches: niches } : {}),
-        ...(refreshLang !== "all" ? { lang: refreshLang } : {}),
-      } 
-    }).then(() => {
-      queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
-    }).catch(() => {
-      queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
-    });
+    const langLabel = refreshLangs.includes("all") ? langLabels.all : refreshLangs.map(l => langLabels[l] || l).join(", ");
+    toast.info(`Обновление запущено: ${label}, ${langLabel}`);
+
+    const langsToRun = refreshLangs.includes("all") ? [null] : refreshLangs;
+    for (const lang of langsToRun) {
+      supabase.functions.invoke("refresh-trends", { 
+        body: { 
+          mode: "mass", 
+          ...(niches ? { target_niches: niches } : {}),
+          ...(lang ? { lang } : {}),
+        } 
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
+      }).catch(() => {
+        queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
+      });
+    }
     setTimeout(() => queryClient.invalidateQueries({ queryKey: ["refresh-logs"] }), 2000);
   };
 
@@ -1219,9 +1239,9 @@ function RefreshSection() {
               ].map(l => (
                 <Button
                   key={l.key}
-                  variant={refreshLang === l.key ? "default" : "outline"}
+                  variant={refreshLangs.includes(l.key) ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setRefreshLang(l.key)}
+                  onClick={() => toggleRefreshLang(l.key)}
                 >
                   {l.label}
                 </Button>
@@ -1239,8 +1259,8 @@ function RefreshSection() {
             {isRunning 
               ? "⏳ Обновление идёт на сервере..." 
               : selectAll 
-                ? `🚀 Запустить (все категории, ${refreshLang === "all" ? "все языки" : refreshLang.toUpperCase()})`
-                : `🚀 Запустить (${selectedNiches.length} категорий, ${refreshLang === "all" ? "все языки" : refreshLang.toUpperCase()})`
+                ? `🚀 Запустить (все категории, ${refreshLangs.includes("all") ? "все языки" : refreshLangs.map(l => l.toUpperCase()).join("+")})`
+                : `🚀 Запустить (${selectedNiches.length} категорий, ${refreshLangs.includes("all") ? "все языки" : refreshLangs.map(l => l.toUpperCase()).join("+")})`
             }
           </Button>
           {isRunning && (
