@@ -81,11 +81,13 @@ export function FullscreenVideoPlayer({
   const touchStartRef = useRef<{ y: number; time: number } | null>(null);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
+    e.stopPropagation();
     touchStartRef.current = { y: e.touches[0].clientY, time: Date.now() };
     setDragging(true);
   }, []);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
+    e.stopPropagation();
     if (!touchStartRef.current) return;
     const dy = e.touches[0].clientY - touchStartRef.current.y;
     if (dy > 0) setDragY(dy);
