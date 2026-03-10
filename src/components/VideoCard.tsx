@@ -436,9 +436,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
             {/* TikTok header bar - OUTSIDE of cover click area */}
             <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-20">
-              <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm ${darkMode ? "bg-neon/90" : "bg-white/90"}`}>
-                <Music className={`h-2.5 w-2.5 ${darkMode ? "text-black" : "text-foreground"}`} />
-                <span className={`text-[9px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
+              <div className="flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm bg-white/90">
+                <Music className="h-2.5 w-2.5 text-foreground" />
+                <span className="text-[9px] font-bold text-foreground">Tik-Tok</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
