@@ -955,7 +955,7 @@ function RefreshSection() {
   const queryClient = useQueryClient();
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
-  const [refreshLang, setRefreshLang] = useState<string>("all");
+  const [refreshLangs, setRefreshLangs] = useState<string[]>(["all"]);
   const [expandedRefreshGroup, setExpandedRefreshGroup] = useState<string | null>(null);
 
   const { data: nicheQueries = {} } = useQuery({
