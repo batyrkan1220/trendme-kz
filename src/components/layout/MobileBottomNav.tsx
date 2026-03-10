@@ -156,7 +156,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             <ChevronUp
               className={cn(
                 "absolute -top-1.5 -right-1.5 h-3 w-3 transition-all duration-200",
-                showToolsMenu ? "text-neon rotate-180" : "text-white/50"
+                showToolsMenu ? "text-neon rotate-180" : "text-foreground/30"
               )}
             />
           </div>
