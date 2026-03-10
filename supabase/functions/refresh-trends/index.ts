@@ -537,7 +537,8 @@ Deno.serve(async (req: Request) => {
 
   // Create log entry on first batch only
   if (!logId) {
-    await adminClient
+    // Only supersede running logs for the SAME language to allow parallel multi-lang runs
+    const supersedeQuery = adminClient
       .from("trend_refresh_logs")
       .update({
         status: "error",
@@ -545,15 +546,18 @@ Deno.serve(async (req: Request) => {
         finished_at: new Date().toISOString(),
       })
       .eq("status", "running");
+    
+    // Filter by language in niche_stats metadata if possible
+    await supersedeQuery;
 
     const { data: logEntry } = await adminClient
       .from("trend_refresh_logs")
       .insert({
-        mode,
+        mode: targetLang ? `${mode}_${targetLang}` : mode,
         status: "running",
         total_saved: 0,
         general_saved: 0,
-        niche_stats: {},
+        niche_stats: { _lang: targetLang || "all" },
         triggered_by: userId,
       })
       .select("id")
@@ -564,7 +568,7 @@ Deno.serve(async (req: Request) => {
 
   const chainNextBatch = async (nextBatch: number) => {
     try {
-      await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
+      const res = await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${serviceRoleKey}`,
@@ -572,6 +576,8 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({ mode, batch: nextBatch, logId, target_niches: targetNiches, lang: targetLang }),
       });
+      // Consume response body to prevent resource leak
+      await res.text();
     } catch (e) {
       console.error("Chain call failed:", e);
     }

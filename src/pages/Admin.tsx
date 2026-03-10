@@ -1084,20 +1084,27 @@ function RefreshSection() {
     const langLabel = refreshLangs.includes("all") ? langLabels.all : refreshLangs.map(l => langLabels[l] || l).join(", ");
     toast.info(`Обновление запущено: ${label}, ${langLabel}`);
 
-    const langsToRun = refreshLangs.includes("all") ? [null] : refreshLangs;
-    for (const lang of langsToRun) {
-      supabase.functions.invoke("refresh-trends", { 
-        body: { 
-          mode: "mass", 
-          ...(niches ? { target_niches: niches } : {}),
-          ...(lang ? { lang } : {}),
-        } 
-      }).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
-      }).catch(() => {
-        queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
-      });
-    }
+    const langsToRun = refreshLangs.includes("all") ? [null] : [...refreshLangs];
+    // Fire sequentially with delay to avoid superseding each other's logs
+    const fireNext = async (idx: number) => {
+      if (idx >= langsToRun.length) return;
+      const lang = langsToRun[idx];
+      try {
+        await supabase.functions.invoke("refresh-trends", { 
+          body: { 
+            mode: "mass", 
+            ...(niches ? { target_niches: niches } : {}),
+            ...(lang ? { lang } : {}),
+          } 
+        });
+      } catch { /* ignore */ }
+      queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
+      // Wait 3s before firing next language to let first run create its log
+      if (idx + 1 < langsToRun.length) {
+        setTimeout(() => fireNext(idx + 1), 3000);
+      }
+    };
+    fireNext(0);
     setTimeout(() => queryClient.invalidateQueries({ queryKey: ["refresh-logs"] }), 2000);
   };
 
