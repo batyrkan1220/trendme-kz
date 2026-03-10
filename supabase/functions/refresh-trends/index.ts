@@ -652,6 +652,9 @@ Deno.serve(async (req: Request) => {
     console.log(`  🔑 ${nicheLabel(nicheKey)}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (cursor=${nicheRotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
 
     let nicheSaved = 0;
+    let nicheAccepted = 0;
+    let nicheReassigned = 0;
+    let nicheDiscarded = 0;
 
     // EnsembleData sorting: "2" = date, "1" = likes
     const sortTypes = ["2", "1"];
