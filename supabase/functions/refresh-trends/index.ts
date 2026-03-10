@@ -802,7 +802,7 @@ Deno.serve(async (req: Request) => {
           const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
           if (LOVABLE_API_KEY) {
             try {
-              const captions = newVideos.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 120)}`).join("\n");
+              const captions = newVideos.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 200)}`).join("\n");
               const nicheDisplayName = nicheLabel(nicheKey);
               const parentNiche = SUB_NICHE_TO_NICHE[nicheKey] || nicheKey;
               
@@ -812,7 +812,16 @@ Deno.serve(async (req: Request) => {
                 body: JSON.stringify({
                   model: "google/gemini-2.5-flash-lite",
                   messages: [
-                    { role: "system", content: `You are a video categorization verifier. Given a list of video captions (numbered), determine which ones ACTUALLY belong to the category "${nicheDisplayName}" (parent: "${parentNiche}"). A video belongs if its content is directly related to this topic. Return ONLY a JSON array of indices that belong, e.g. [0,2,5]. Be strict — reject videos about unrelated topics like politics, news, religion etc. unless the category is specifically about those topics.` },
+                    { role: "system", content: `You are a lenient video categorization verifier for TikTok. Given numbered video captions, determine which ones could REASONABLY belong to the category "${nicheDisplayName}" (parent category: "${parentNiche}").
+
+IMPORTANT RULES:
+- Be INCLUSIVE, not strict. If a video is even loosely related to the category, INCLUDE it.
+- TikTok videos often mix topics — a fashion video may mention lifestyle, shopping, brands, prices, reviews etc. This is NORMAL and should be INCLUDED.
+- Commercial/promotional content (selling products, reviews, unboxings) related to the category should be INCLUDED.
+- Only REJECT videos that are COMPLETELY unrelated (e.g. a cooking recipe in a "Sports" category, or political news in a "Beauty" category).
+- When in doubt, INCLUDE the video.
+
+Return ONLY a JSON array of indices that belong, e.g. [0,1,2,3,5].` },
                     { role: "user", content: captions },
                   ],
                 }),
