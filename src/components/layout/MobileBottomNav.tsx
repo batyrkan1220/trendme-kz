@@ -124,17 +124,10 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
             >
               {item.path === "/trends" && active ? (
-                <div className="relative">
-                  <item.icon
-                    className="h-[25px] w-[25px] text-neon fill-neon"
-                    strokeWidth={2.2}
-                    style={{ filter: "drop-shadow(0 0 5px hsl(var(--neon) / 0.7)) drop-shadow(0 0 10px hsl(var(--neon) / 0.4))" }}
-                  />
-                  <div
-                    className="absolute inset-0 rounded-full animate-flame-glow"
-                    style={{ background: "radial-gradient(circle, hsl(var(--neon) / 0.3) 0%, transparent 70%)", filter: "blur(5px)" }}
-                  />
-                </div>
+                <item.icon
+                  className="h-[25px] w-[25px] text-neon"
+                  strokeWidth={2.2}
+                />
               ) : (
                 <item.icon
                   className={cn(
