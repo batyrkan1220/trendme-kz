@@ -220,7 +220,7 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-x-hidden overflow-y-auto h-full trends-dark-theme relative pb-16 md:pb-8"
+        className="overflow-x-hidden overflow-y-auto h-full relative pb-16 md:pb-8"
         style={{ overscrollBehavior: "none", paddingTop: drillNiche ? "0px" : "12px" }}
       >
         <PullToRefreshIndicator
