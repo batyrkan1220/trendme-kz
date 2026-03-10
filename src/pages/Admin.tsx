@@ -1239,9 +1239,9 @@ function RefreshSection() {
               ].map(l => (
                 <Button
                   key={l.key}
-                  variant={refreshLang === l.key ? "default" : "outline"}
+                  variant={refreshLangs.includes(l.key) ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setRefreshLang(l.key)}
+                  onClick={() => toggleRefreshLang(l.key)}
                 >
                   {l.label}
                 </Button>
@@ -1259,8 +1259,8 @@ function RefreshSection() {
             {isRunning 
               ? "⏳ Обновление идёт на сервере..." 
               : selectAll 
-                ? `🚀 Запустить (все категории, ${refreshLang === "all" ? "все языки" : refreshLang.toUpperCase()})`
-                : `🚀 Запустить (${selectedNiches.length} категорий, ${refreshLang === "all" ? "все языки" : refreshLang.toUpperCase()})`
+                ? `🚀 Запустить (все категории, ${refreshLangs.includes("all") ? "все языки" : refreshLangs.map(l => l.toUpperCase()).join("+")})`
+                : `🚀 Запустить (${selectedNiches.length} категорий, ${refreshLangs.includes("all") ? "все языки" : refreshLangs.map(l => l.toUpperCase()).join("+")})`
             }
           </Button>
           {isRunning && (
