@@ -294,7 +294,7 @@ export default function Trends() {
                           "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                           drillSubNiche === sub.key
                             ? "bg-neon text-black"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                            : "bg-foreground/10 text-foreground/70 hover:bg-foreground/20"
                         )}
                       >
                         {sub.label}
