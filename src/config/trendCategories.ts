@@ -12,22 +12,22 @@ export const TREND_CATEGORIES: TrendCategory[] = [
     key: "for_you",
     label: "Для тебя",
     nicheKeys: [
-      "beauty", "fashion", "food", "fitness", "home", "family",
-      "animals", "travel", "medicine", "hobby", "kazakh_culture", "lifestyle",
+      "entertainment", "beauty", "fashion", "food", "lifestyle", "media",
+      "animals", "travel", "fitness", "hobby", "kazakh_culture",
+    ],
+  },
+  {
+    key: "lifestyle",
+    label: "Лайфстайл",
+    nicheKeys: [
+      "psychology", "family", "home", "medicine", "sports", "auto",
     ],
   },
   {
     key: "business",
     label: "Бизнес",
     nicheKeys: [
-      "business", "tech", "ai", "realestate", "blogging", "education",
-    ],
-  },
-  {
-    key: "entertainment",
-    label: "Развлечения",
-    nicheKeys: [
-      "entertainment", "media", "gaming", "sports", "psychology", "auto",
+      "business", "tech", "ai", "realestate", "blogging", "education", "gaming",
     ],
   },
 ];
