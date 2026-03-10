@@ -1026,13 +1026,18 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
     }
 
     try {
-      const saved = await processNiche(nicheKey);
-      nicheStats[nicheKey] = saved;
-      totalSaved += saved;
-      console.log(`✓ ${nicheLabel(nicheKey)}: ${saved} videos`);
+      const result = await processNiche(nicheKey);
+      nicheStats[nicheKey] = {
+        saved: result.saved,
+        accepted: result.accepted,
+        reassigned: result.reassigned,
+        discarded: result.discarded,
+      };
+      totalSaved += result.saved;
+      console.log(`✓ ${nicheLabel(nicheKey)}: ✅${result.accepted} saved, ♻️${result.reassigned} reassigned, 🗑️${result.discarded} discarded`);
     } catch (e) {
       console.error(`✗ ${nicheLabel(nicheKey)} failed:`, (e as Error).message);
-      nicheStats[nicheKey] = 0;
+      nicheStats[nicheKey] = { saved: 0, accepted: 0, reassigned: 0, discarded: 0 };
     }
 
     await sleep(1000);
