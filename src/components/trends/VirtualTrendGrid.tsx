@@ -96,7 +96,7 @@ function LockedCard({ video, freeLimit, onNavigate }: { video: any; freeLimit: n
       className="group bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col cursor-pointer"
       onClick={onNavigate}
     >
-      <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-2xl m-2">
+      <div className="relative aspect-[9/16] bg-black overflow-hidden rounded-2xl m-2">
         {video.cover_url ? (
           <img
             src={video.cover_url}
