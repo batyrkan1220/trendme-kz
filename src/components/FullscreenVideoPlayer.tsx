@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
   X, Eye, Heart, MessageCircle, Share2,
@@ -75,6 +75,35 @@ export function FullscreenVideoPlayer({
     return views / hoursAlive;
   })();
 
+  // Swipe down to close
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const touchStartRef = useRef<{ y: number; time: number } | null>(null);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartRef.current = { y: e.touches[0].clientY, time: Date.now() };
+    setDragging(true);
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const dy = e.touches[0].clientY - touchStartRef.current.y;
+    if (dy > 0) setDragY(dy);
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    const start = touchStartRef.current;
+    if (start) {
+      const velocity = dragY / (Date.now() - start.time);
+      if (dragY > 120 || velocity > 0.5) {
+        onClose();
+      }
+    }
+    setDragY(0);
+    setDragging(false);
+    touchStartRef.current = null;
+  }, [dragY, onClose]);
+
   // Lock body scroll
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -89,10 +118,23 @@ export function FullscreenVideoPlayer({
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const opacity = Math.max(1 - dragY / 300, 0.3);
+
   const content = (
     <div
       className="fixed inset-0 z-[9999] bg-black flex flex-col"
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      style={{
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        transform: dragY > 0 ? `translateY(${dragY}px) scale(${1 - dragY / 1500})` : undefined,
+        opacity,
+        transition: dragging ? "none" : "transform 0.3s ease, opacity 0.3s ease",
+        borderRadius: dragY > 20 ? `${Math.min(dragY / 4, 24)}px` : undefined,
+        overflow: "hidden",
+      }}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
     >
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 pt-2"
