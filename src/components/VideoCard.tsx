@@ -148,7 +148,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   showAnalyzeButton = true,
   darkMode = false,
   isMobileOverride,
-  enableCoverRefresh = false,
+  
 }, ref) {
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
