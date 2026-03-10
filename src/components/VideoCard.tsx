@@ -165,12 +165,13 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const isMobile = isMobileOverride ?? isMobileFromHook;
 
   // On mobile: open fullscreen overlay instead of in-card player
+  // On mobile, open fullscreen immediately when play starts (don't wait for URL)
   useEffect(() => {
-    if (!isMobile || !playUrl) return;
+    if (!isMobile) return;
     if (!showFullscreen && playingId === video.id) {
       setShowFullscreen(true);
     }
-  }, [isMobile, playUrl, playingId, video.id, showFullscreen]);
+  }, [isMobile, playingId, video.id, showFullscreen]);
 
   // PRELOAD DISABLED ENTIRELY to save credits
   // The previous hover preload was consuming ~1400 credits/week
