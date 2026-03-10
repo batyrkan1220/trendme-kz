@@ -40,6 +40,7 @@ export default function Trends() {
   const { balance } = useTokens();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const isOnline = useOnlineStatus();
   const FREE_LIMIT = 5;
 
   const { data: userSub } = useQuery({
