@@ -127,6 +127,9 @@ const SUB_NICHE_LABELS: Record<string, string> = {
   monetization: "Монетизация", personal_brand: "Личный бренд",
   kazakh_cuisine: "Қазақ ас", kazakh_history: "ҚР тарихы", kazakh_traditions: "Дәстүрлер",
   kazakh_language: "Қазақ тілі", kazakh_music: "Қазақ музыка", kazakh_celebrities: "Қазақ жұлдыздар",
+  // lifestyle
+  daily_routines: "Рутины дня", morning_routine: "Утренний ритуал", life_hacks: "Лайфхаки",
+  minimalism: "Минимализм", aesthetic: "Эстетика", self_care: "Селф-кер",
 };
 
 const nicheLabel = (key: string) => SUB_NICHE_LABELS[key] || key;
@@ -140,6 +143,7 @@ const SUB_NICHE_LABELS_MAP: Record<string, string> = {
   entertainment: "Развлечения", media: "Медиа", animals: "Животные",
   travel: "Путешествия", ai: "AI", hobby: "Хобби", medicine: "Медицина",
   realestate: "Недвижимость", blogging: "Блогинг", kazakh_culture: "Казахская культура",
+  lifestyle: "Лайфстайл",
 };
 
 // Reverse map: parent niche → list of sub-niches
@@ -207,6 +211,9 @@ const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // kazakh_culture
   kazakh_cuisine: "kazakh_culture", kazakh_history: "kazakh_culture", kazakh_traditions: "kazakh_culture",
   kazakh_language: "kazakh_culture", kazakh_music: "kazakh_culture", kazakh_celebrities: "kazakh_culture",
+  // lifestyle
+  daily_routines: "lifestyle", morning_routine: "lifestyle", life_hacks: "lifestyle",
+  minimalism: "lifestyle", aesthetic: "lifestyle", self_care: "lifestyle",
 };
 
 // Build reverse map
@@ -221,7 +228,7 @@ const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   business: "business", cinema: "media", comedy: "entertainment", dance: "media",
   diy: "home", education: "education", entertainment: "entertainment", family: "family",
   fashion: "fashion", fitness: "fitness", food: "food", gaming: "gaming",
-  lifestyle: "beauty", marketing: "business", medicine: "medicine", music: "media",
+  lifestyle: "lifestyle", marketing: "business", medicine: "medicine", music: "media",
   news: "entertainment", podcast: "media", psychology: "psychology", realestate: "realestate",
   religion: "psychology", shopping: "fashion", sports: "sports", tech: "tech", travel: "travel",
 };
