@@ -96,7 +96,7 @@ export default function Trends() {
       map[n].push(v);
     }
     return map;
-  }, [allVideos]);
+  }, [effectiveVideos]);
 
   const { favorites: localFavorites, toggleFavorite: toggleLocalFav } = useLocalFavorites();
 
