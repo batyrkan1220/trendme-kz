@@ -557,6 +557,22 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           </button>
         </div>
       )}
+
+      {/* Fullscreen video player overlay (mobile) */}
+      {showFullscreen && isMobile && (
+        <FullscreenVideoPlayer
+          video={video}
+          playUrl={playUrl}
+          loading={loadingPlay}
+          onClose={() => {
+            setShowFullscreen(false);
+            onPlay(null);
+            setPlayUrl(null);
+          }}
+          isFavorite={isFavorite}
+          onToggleFav={onToggleFav}
+        />
+      )}
     </div>
   );
 });
