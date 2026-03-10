@@ -79,6 +79,17 @@ export function FullscreenVideoPlayer({
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
   const touchStartRef = useRef<{ y: number; time: number } | null>(null);
+  const closingViaHistoryRef = useRef(false);
+
+  const closeOverlay = useCallback(() => {
+    if (closingViaHistoryRef.current) return;
+    if (window.history.state?.__videoOverlay) {
+      closingViaHistoryRef.current = true;
+      window.history.back();
+      return;
+    }
+    onClose();
+  }, [onClose]);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     e.stopPropagation();
@@ -98,13 +109,28 @@ export function FullscreenVideoPlayer({
     if (start) {
       const velocity = dragY / (Date.now() - start.time);
       if (dragY > 120 || velocity > 0.5) {
-        onClose();
+        closeOverlay();
       }
     }
     setDragY(0);
     setDragging(false);
     touchStartRef.current = null;
-  }, [dragY, onClose]);
+  }, [dragY, closeOverlay]);
+
+  // Push history marker so back gesture closes overlay first
+  useEffect(() => {
+    window.history.pushState({ ...(window.history.state || {}), __videoOverlay: true, __videoId: video.id }, "");
+
+    const onPopState = () => {
+      onClose();
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+      closingViaHistoryRef.current = false;
+    };
+  }, [video.id, onClose]);
 
   // Lock body scroll
   useEffect(() => {
@@ -113,12 +139,12 @@ export function FullscreenVideoPlayer({
     return () => { document.body.style.overflow = prev; };
   }, []);
 
-  // Handle back button / escape
+  // Handle escape
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeOverlay(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [closeOverlay]);
 
   const opacity = Math.max(1 - dragY / 300, 0.3);
 
@@ -143,7 +169,7 @@ export function FullscreenVideoPlayer({
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
       >
         <button
-          onClick={onClose}
+          onClick={closeOverlay}
           className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
         >
           <X className="h-5 w-5 text-white/90" />
