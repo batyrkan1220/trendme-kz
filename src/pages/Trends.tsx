@@ -261,6 +261,7 @@ export default function Trends() {
     }
     setDrillSubNiche(subNicheKeys[nextIdx]);
     setVisibleCount(PAGE_SIZE);
+    hapticMedium();
     // Clear direction after animation
     setTimeout(() => setSlideDir(null), 300);
     // Auto-scroll active chip into view
