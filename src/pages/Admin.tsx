@@ -1360,7 +1360,7 @@ function RefreshSection() {
         </CardContent>
       </Card>
 
-      <CoverRefreshCard />
+      
 
       {logs.length > 0 && (
         <Card>
