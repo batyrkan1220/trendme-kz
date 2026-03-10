@@ -126,13 +126,13 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               {item.path === "/trends" && active ? (
                 <div className="relative">
                   <item.icon
-                    className="h-[25px] w-[25px] text-neon animate-flame-flicker"
+                    className="h-[25px] w-[25px] text-orange-400 fill-orange-500"
                     strokeWidth={2.2}
-                    style={{ filter: "drop-shadow(0 0 6px hsl(var(--neon) / 0.6)) drop-shadow(0 0 12px hsl(var(--neon) / 0.3))" }}
+                    style={{ filter: "drop-shadow(0 0 5px rgba(255,140,0,0.7)) drop-shadow(0 0 10px rgba(255,80,0,0.4))" }}
                   />
                   <div
                     className="absolute inset-0 rounded-full animate-flame-glow"
-                    style={{ background: "radial-gradient(circle, hsl(var(--neon) / 0.25) 0%, transparent 70%)", filter: "blur(4px)" }}
+                    style={{ background: "radial-gradient(circle, rgba(255,140,0,0.3) 0%, transparent 70%)", filter: "blur(5px)" }}
                   />
                 </div>
               ) : (
