@@ -262,8 +262,8 @@ export default function Trends() {
                       className={cn(
                         "shrink-0 px-2.5 py-1 rounded-full font-medium transition-all",
                         drillPeriod === opt.value
-                          ? "bg-white/20 text-white"
-                          : "bg-white/5 text-white/40 hover:bg-white/10"
+                          ? "bg-primary/20 text-foreground"
+                          : "bg-foreground/5 text-foreground/40 hover:bg-foreground/10"
                       )}
                     >
                       {opt.label}
