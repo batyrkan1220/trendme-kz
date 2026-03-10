@@ -93,7 +93,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `radial-gradient(circle at 30% 20%, ${c.textureDot1} 0%, transparent 50%), radial-gradient(circle at 70% 80%, ${c.textureDot2} 0%, transparent 50%)`,
-          opacity: isGreenPhase ? 1 : 0,
+          opacity: 1,
           transition: "opacity 1s ease-out",
         }}
       />
