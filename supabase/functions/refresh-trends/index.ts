@@ -210,6 +210,9 @@ const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // kazakh_culture
   kazakh_cuisine: "kazakh_culture", kazakh_history: "kazakh_culture", kazakh_traditions: "kazakh_culture",
   kazakh_language: "kazakh_culture", kazakh_music: "kazakh_culture", kazakh_celebrities: "kazakh_culture",
+  // lifestyle
+  daily_routines: "lifestyle", morning_routine: "lifestyle", life_hacks: "lifestyle",
+  minimalism: "lifestyle", aesthetic: "lifestyle", self_care: "lifestyle",
 };
 
 // Build reverse map
