@@ -143,6 +143,7 @@ const SUB_NICHE_LABELS_MAP: Record<string, string> = {
   entertainment: "Развлечения", media: "Медиа", animals: "Животные",
   travel: "Путешествия", ai: "AI", hobby: "Хобби", medicine: "Медицина",
   realestate: "Недвижимость", blogging: "Блогинг", kazakh_culture: "Казахская культура",
+  lifestyle: "Лайфстайл",
 };
 
 // Reverse map: parent niche → list of sub-niches
