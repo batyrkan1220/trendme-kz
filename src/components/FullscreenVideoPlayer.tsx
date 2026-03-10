@@ -229,6 +229,8 @@ export function FullscreenVideoPlayer({
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 pt-2"
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
       >
         <button
           onClick={(e) => { e.stopPropagation(); closeOverlay(); }}
@@ -322,6 +324,9 @@ export function FullscreenVideoPlayer({
           {/* Right side — action buttons */}
           <div className="absolute right-3 bottom-16 flex flex-col items-center gap-5 pointer-events-auto"
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
           >
             <button
               onClick={(e) => { e.stopPropagation(); onToggleFav(video.id); }}
@@ -341,7 +346,11 @@ export function FullscreenVideoPlayer({
           </div>
 
           {/* Left side — text info */}
-          <div className="pr-16 pointer-events-auto">
+          <div className="pr-16 pointer-events-auto"
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
             {/* Tier badge */}
             {tier && (
               <div className="flex items-center gap-2 mb-2">
