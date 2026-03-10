@@ -1016,45 +1016,6 @@ Deno.serve(async (req: Request) => {
         return json({ play_url: playUrl });
       }
 
-      case "refresh_cover": {
-        // DISABLED: Cover refresh via EnsembleData API is disabled to save credits (~470/week)
-        // Covers are now persisted to Supabase Storage during trend refresh (0 credits)
-        // If a cover is broken, it will show a placeholder until the next trend refresh cycle
-        console.log("[refresh_cover] DISABLED - returning null to save API credits");
-        return json({ 
-          cover_url: null, 
-          error: "Cover refresh disabled to save API credits. Covers are persisted during trend refresh." 
-        });
-      }
-
-      case "admin_add_video": {
-        // Admin-only: add single video to trends DB
-        if (!userId) return json({ error: "Auth required for admin actions" }, 401);
-        const { data: roleCheck2 } = await adminClient
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId)
-          .eq("role", "admin")
-          .maybeSingle();
-        if (!roleCheck2) return json({ error: "Admin access required" }, 403);
-
-        const { video: videoRow } = body;
-        if (!videoRow || !videoRow.platform_video_id) return json({ error: "video data required" }, 400);
-
-        const { error: upsertErr } = await adminClient
-          .from("videos")
-          .upsert(videoRow, { onConflict: "platform,platform_video_id" });
-
-        if (upsertErr) {
-          console.error("Admin add video error:", upsertErr);
-          return json({ error: upsertErr.message }, 500);
-        }
-
-        return json({ success: true });
-      }
-
-      // persist_covers handled before auth check (for cron support)
-
       default:
         return json({ error: `Unknown action: ${action}` }, 400);
     }
