@@ -303,7 +303,7 @@ export function FullscreenVideoPlayer({
           </>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <p className="text-white/50 text-xs">Видео қолжетімсіз</p>
+            <p className="text-white/50 text-xs">Видео недоступно</p>
             <button
               onClick={() => window.open(video.url, '_blank')}
               className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium"
