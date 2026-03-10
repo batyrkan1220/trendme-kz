@@ -308,7 +308,7 @@ export function FullscreenVideoPlayer({
               onClick={() => window.open(video.url, '_blank')}
               className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium"
             >
-              TikTok-та ашу
+              Открыть в TikTok
             </button>
           </div>
         )}
