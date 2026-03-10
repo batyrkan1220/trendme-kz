@@ -874,10 +874,11 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
 
                 const before = verifiedNewVideos.length;
                 verifiedNewVideos = newVideos.filter((_: any, idx: number) => acceptedIndices.has(idx));
+                nicheAccepted += verifiedNewVideos.length;
                 
                 // Log accepted
                 if (verifiedNewVideos.length < before) {
-                  console.log(`  🤖 AI: ${verifiedNewVideos.length}/${before} accepted for ${nicheDisplayName}`);
+                  console.log(`  🤖 AI: ✅${verifiedNewVideos.length} ♻️${reassigned.length} 🗑️${discarded.length} (total ${before})`);
                 }
 
                 // Reassign videos to correct niches
@@ -885,14 +886,13 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
                   for (const r of reassigned) {
                     const video = newVideos[r.index];
                     if (!video || !r.niche) continue;
-                    // Validate that the niche exists in our system
                     if (!SUB_NICHE_LABELS_MAP[r.niche]) {
                       console.log(`  ⚠️ Unknown niche "${r.niche}" for reassignment, discarding`);
+                      nicheDiscarded++;
                       continue;
                     }
-                    // Update video's niche/sub_niche to the reassigned one
                     video.niche = r.niche;
-                    video.sub_niche = null; // AI only assigns parent niche
+                    video.sub_niche = null;
                     video.categories = [r.niche];
                   }
                   const reassignedVideos = reassigned
@@ -906,21 +906,23 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
                     if (reErr) {
                       console.error(`  Reassign insert error:`, reErr.message);
                     } else {
+                      nicheReassigned += reassignedVideos.length;
                       const reassignLog = reassigned
                         .filter(r => SUB_NICHE_LABELS_MAP[r.niche])
-                        .map(r => `  ♻️ [${r.index}] → ${r.niche}: ${(newVideos[r.index]?.caption || "").slice(0, 60)}`)
+                        .map(r => `    → ${SUB_NICHE_LABELS_MAP[r.niche]}: ${(newVideos[r.index]?.caption || "").slice(0, 60)}`)
                         .join("\n");
-                      console.log(`  ♻️ Reassigned ${reassignedVideos.length} videos:\n${reassignLog}`);
+                      console.log(`  ♻️ Reassigned:\n${reassignLog}`);
                     }
                   }
                 }
 
                 // Log discarded
+                nicheDiscarded += discarded.length;
                 if (discarded.length > 0) {
                   const discardLog = discarded
-                    .map(idx => `  🗑️ [${idx}]: ${(newVideos[idx]?.caption || "").slice(0, 60)}`)
+                    .map(idx => `    ${(newVideos[idx]?.caption || "").slice(0, 60)}`)
                     .join("\n");
-                  console.log(`  🗑️ Discarded ${discarded.length} (no matching niche):\n${discardLog}`);
+                  console.log(`  🗑️ Discarded:\n${discardLog}`);
                 }
               }
             } catch (aiErr) {
