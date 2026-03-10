@@ -237,7 +237,7 @@ export default function Trends() {
               <div
                 className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
                 style={{ 
-                  background: "rgba(10,10,10,0.85)", 
+                  background: "hsl(var(--background) / 0.85)", 
                   paddingTop: "8px"
                 }}
               >
