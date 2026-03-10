@@ -131,6 +131,17 @@ const SUB_NICHE_LABELS: Record<string, string> = {
 
 const nicheLabel = (key: string) => SUB_NICHE_LABELS[key] || key;
 
+// Parent niche labels for AI prompt context
+const SUB_NICHE_LABELS_MAP: Record<string, string> = {
+  business: "Бизнес и деньги", beauty: "Бьюти", fashion: "Мода",
+  food: "Еда и рестораны", fitness: "Фитнес и здоровье", sports: "Спорт",
+  education: "Образование", gaming: "Гейминг", tech: "IT/Технологии",
+  auto: "Авто", home: "Дом", family: "Семья", psychology: "Психология",
+  entertainment: "Развлечения", media: "Медиа", animals: "Животные",
+  travel: "Путешествия", ai: "AI", hobby: "Хобби", medicine: "Медицина",
+  realestate: "Недвижимость", blogging: "Блогинг", kazakh_culture: "Казахская культура",
+};
+
 // Sub-niche to main niche mapping (must match src/config/niches.ts)
 const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // business
@@ -805,32 +816,40 @@ Deno.serve(async (req: Request) => {
           const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
           if (LOVABLE_API_KEY) {
             try {
-              const captions = newVideos.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 200)}`).join("\n");
+              const captions = newVideos.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 300)}`).join("\n");
               const nicheDisplayName = nicheLabel(nicheKey);
               const parentNiche = SUB_NICHE_TO_NICHE[nicheKey] || nicheKey;
+              const parentNicheLabel = SUB_NICHE_LABELS_MAP[parentNiche] || parentNiche;
               
               const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                 method: "POST",
                 headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  model: "google/gemini-2.5-flash-lite",
+                  model: "google/gemini-2.5-flash",
                   messages: [
-                    { role: "system", content: `You are a video categorization verifier for TikTok. Given numbered video captions, determine which ones belong to the category "${nicheDisplayName}" (parent category: "${parentNiche}").
+                    { role: "system", content: `You are a strict video categorization verifier. Given numbered TikTok video captions, determine which ones ACTUALLY belong to the category "${nicheDisplayName}" (parent: "${parentNicheLabel}").
 
-RULES:
-- INCLUDE videos that are directly or loosely related to the category topic.
-- INCLUDE commercial content (reviews, unboxings, shopping, prices, brands) if it's about the category's products.
-- TikTok videos mix topics — a fashion video mentioning lifestyle or shopping is fine. INCLUDE it.
+INCLUDE:
+- Videos directly about ${nicheDisplayName}: products, reviews, tutorials, tips, trends
+- Commercial content (brands, prices, unboxing) IF about ${nicheDisplayName} products
+- Lifestyle content that primarily focuses on ${nicheDisplayName}
 
-REJECT these types of unrelated content:
-- Crime, violence, death, missing persons, accidents — unless the category is specifically about news/crime.
-- Food/cooking videos in non-food categories (fashion, jewelry, tech, etc.).
-- Political/religious content in lifestyle categories.
-- Videos from a completely different domain (e.g. car repair in "Jewelry", fitness in "Music").
+REJECT (return empty array if all are irrelevant):
+- Food/cooking/recipe videos — UNLESS category is food-related
+- Crime, violence, death, missing persons, accidents, tragedies
+- Videos about a DIFFERENT product category (e.g. food review in "Jewelry", car video in "Clothing")
+- Political, religious, news content — UNLESS the category is specifically about that
+- Videos where ${nicheDisplayName} is not the main topic, even if mentioned briefly
 
-Be moderately strict: include related content, but reject clearly off-topic videos.
+EXAMPLES of what to REJECT:
+- "Shopping" category: reject cooking tutorials, fitness videos, crime stories
+- "Jewelry" category: reject food reviews, car content, family drama
+- "Clothing" category: reject food/recipe content, sports highlights, tech reviews
+- "Fashion" category: reject cooking videos even if the cook is wearing nice clothes
 
-Return ONLY a JSON array of indices that belong, e.g. [0,1,2,3,5].` },
+Be STRICT about category relevance. When in doubt, REJECT.
+
+Return ONLY a JSON array of valid indices, e.g. [0,2,4]. If none belong, return [].` },
                     { role: "user", content: captions },
                   ],
                 }),
@@ -844,7 +863,12 @@ Return ONLY a JSON array of indices that belong, e.g. [0,1,2,3,5].` },
                 verifiedNewVideos = newVideos.filter((_: any, idx: number) => validIndices.has(idx));
                 const rejected = before - verifiedNewVideos.length;
                 if (rejected > 0) {
-                  console.log(`  🤖 AI verified: ${verifiedNewVideos.length}/${before} passed, ${rejected} rejected as irrelevant`);
+                  // Log rejected captions for debugging
+                  const rejectedCaptions = newVideos
+                    .filter((_: any, idx: number) => !validIndices.has(idx))
+                    .map((v: any) => `  ❌ ${(v.caption || "").slice(0, 80)}`)
+                    .join("\n");
+                  console.log(`  🤖 AI verified: ${verifiedNewVideos.length}/${before} passed, ${rejected} rejected:\n${rejectedCaptions}`);
                 }
               }
             } catch (aiErr) {
