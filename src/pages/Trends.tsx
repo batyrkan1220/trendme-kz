@@ -32,6 +32,8 @@ export default function Trends() {
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
+  const chipScrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { balance } = useTokens();
   const queryClient = useQueryClient();
