@@ -59,13 +59,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         }}
         {...swipeProps}
       >
-        {/* Safe-area spacer for native — transparent, lets page background show through */}
-        {isNativePlatform && (
-          <div
-            className="w-full shrink-0 pointer-events-none"
-            style={{ height: 'env(safe-area-inset-top, 0px)' }}
-          />
-        )}
         {children}
       </main>
       {/* Always render on mobile via CSS, not JS condition */}
