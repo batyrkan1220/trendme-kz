@@ -703,23 +703,26 @@ Deno.serve(async (req: Request) => {
 
           if (views < MIN_VIEWS) { lowViews++; return null; }
 
-          // Filter: only keep videos with appropriate language content
+          // Filter: reject Ukrainian content, accept Kazakh + Russian for KK mode
           const caption = v.desc || "";
+          const hasUkrainianChars = /[їєґЇЄҐ]/u.test(caption);
+          if (hasUkrainianChars) { nonCyrillic++; return null; }
+
           if (targetLang === "kk") {
-            // Reject if caption has Ukrainian-specific characters (ї, є, ґ)
-            const hasUkrainianChars = /[їєґЇЄҐ]/u.test(caption);
-            if (hasUkrainianChars) { nonCyrillic++; return null; }
-            // Require at least 2 Kazakh-specific characters (excluding і which is shared with Ukrainian)
-            const kazakhOnlyChars = caption.match(/[әңғүұқөһӘҢҒҮҰҚӨҺ]/gu);
-            if (!kazakhOnlyChars || kazakhOnlyChars.length < 2) { nonCyrillic++; return null; }
+            // KK mode: accept both Kazakh and Russian videos (Cyrillic required)
+            const hasCyrillic = /[а-яА-ЯёЁәңғүұқөһӘҢҒҮҰҚӨҺ]/u.test(caption);
+            if (!hasCyrillic) { nonCyrillic++; return null; }
+            // Auto-detect actual lang for DB storage
+            const kazakhChars = caption.match(/[әңғүұқөһӘҢҒҮҰҚӨҺ]/gu);
+            var detectedLang = (kazakhChars && kazakhChars.length >= 2) ? "kk" : "ru";
           } else if (targetLang === "en") {
-            // For English mode: accept any video (no script filter)
+            // English mode: accept any video
+            var detectedLang = "en";
           } else {
-            // For Russian mode: require Cyrillic, reject Ukrainian-specific chars
-            const hasUkrainianChars = /[їєґЇЄҐ]/u.test(caption);
-            if (hasUkrainianChars) { nonCyrillic++; return null; }
+            // Russian mode: require Cyrillic
             const hasCyrillic = /[а-яА-ЯёЁ]/u.test(caption);
             if (!hasCyrillic) { nonCyrillic++; return null; }
+            var detectedLang = "ru";
           }
 
           const publishedAtStr = getPublishedAt(v.create_time || v.createTime || 0);
