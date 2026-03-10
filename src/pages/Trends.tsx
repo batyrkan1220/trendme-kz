@@ -339,6 +339,7 @@ export default function Trends() {
                         return (
                           <button
                             key={sub.key}
+                            data-active={drillSubNiche === sub.key ? "true" : undefined}
                             onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
                             className={cn(
                               "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
