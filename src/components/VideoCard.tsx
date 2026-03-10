@@ -490,7 +490,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   })()}
                   <span className="text-[10px] font-extrabold tracking-wide">{tierConfig[tier].label}</span>
                 </div>
-                {velViews > 10 && (
+                {velViews >= 500 && (
                   <div
                     className="flex items-center gap-1 rounded-full px-2.5 py-1"
                     style={{
