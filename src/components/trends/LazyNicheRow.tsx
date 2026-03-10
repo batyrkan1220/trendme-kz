@@ -46,7 +46,7 @@ export function LazyNicheRow(props: LazyNicheRowProps) {
               className="shrink-0 rounded-2xl overflow-hidden"
               style={{ width: "44vw", maxWidth: "200px", background: "#1a1a1a" }}
             >
-              <div className="aspect-[9/14] bg-white/5 m-1.5 rounded-xl" />
+              <div className="aspect-[9/16] bg-white/5 m-1.5 rounded-xl" />
             </div>
           ))}
         </div>

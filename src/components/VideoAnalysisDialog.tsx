@@ -199,7 +199,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
           {/* Desktop: full video + stats sidebar */}
           <div className="hidden md:flex md:w-[280px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card flex-col">
-            <div className="aspect-[9/14] bg-black relative rounded-2xl overflow-hidden m-2">
+            <div className="aspect-[9/16] bg-black relative rounded-2xl overflow-hidden m-2">
               {isPlaying ? (
                 <>
                   {loadingPlay ? (
