@@ -971,15 +971,17 @@ function RefreshSection() {
     queryFn: async () => {
       const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
       const raw = (data?.value as Record<string, any>) || {};
-      // Normalize: if value is {kk, ru, en} object, sum them; if number, use as-is
+      // Normalize: if value is {kk, ru, en} object, use max single-language limit (not sum)
+      // Because refresh runs per-language, each lang has its own limit
       const normalized: Record<string, number> = {};
       for (const [k, v] of Object.entries(raw)) {
         if (typeof v === "number") {
           normalized[k] = v;
         } else if (v && typeof v === "object") {
           const obj = v as Record<string, number | null>;
-          const sum = (obj.kk ?? 0) + (obj.ru ?? 0) + (obj.en ?? 0);
-          normalized[k] = sum > 0 ? sum : 100;
+          // Use the max of individual language limits as the display value
+          const vals = [obj.kk ?? 0, obj.ru ?? 0, obj.en ?? 0].filter(n => n > 0);
+          normalized[k] = vals.length > 0 ? Math.max(...vals) : 100;
         }
       }
       return normalized;
