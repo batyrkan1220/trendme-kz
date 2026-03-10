@@ -244,7 +244,7 @@ export default function Trends() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleBack}
-                    className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors shrink-0"
+                    className="h-8 w-8 rounded-full bg-foreground/10 flex items-center justify-center hover:bg-foreground/20 transition-colors shrink-0"
                   >
                     <ChevronLeft className="h-4 w-4 text-white" />
                   </button>
