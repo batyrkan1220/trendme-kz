@@ -90,7 +90,7 @@ export default function Trends() {
 
   const videosByNiche = useMemo(() => {
     const map: Record<string, any[]> = {};
-    for (const v of allVideos) {
+    for (const v of effectiveVideos) {
       const n = v.niche || "other";
       if (!map[n]) map[n] = [];
       map[n].push(v);
