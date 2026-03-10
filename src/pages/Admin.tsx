@@ -995,15 +995,14 @@ function RefreshSection() {
       while (true) {
         const { data, error } = await supabase
           .from("videos")
-          .select("categories")
+          .select("sub_niche")
           .gte("published_at", sevenDaysAgo)
+          .not("sub_niche", "is", null)
           .range(from, from + PAGE - 1);
         if (error || !data || data.length === 0) break;
         for (const row of data) {
-          const cats = (row as any).categories as string[] | null;
-          if (cats) {
-            for (const c of cats) counts[c] = (counts[c] || 0) + 1;
-          }
+          const sn = (row as any).sub_niche as string | null;
+          if (sn) counts[sn] = (counts[sn] || 0) + 1;
         }
         if (data.length < PAGE) break;
         from += PAGE;
