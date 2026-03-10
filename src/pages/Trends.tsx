@@ -78,7 +78,15 @@ export default function Trends() {
     },
     staleTime: 120_000,
     placeholderData: (prev) => prev,
+    enabled: isOnline,
   });
+
+  // Cache trends data when loaded, use cache when offline
+  const cachedVideos = useMemo(() => loadTrendsCache(), []);
+  useEffect(() => {
+    if (allVideos.length > 0) saveTrendsCache(allVideos);
+  }, [allVideos]);
+  const effectiveVideos = isOnline && allVideos.length > 0 ? allVideos : (cachedVideos || allVideos);
 
   const videosByNiche = useMemo(() => {
     const map: Record<string, any[]> = {};
