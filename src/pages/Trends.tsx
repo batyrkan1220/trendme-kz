@@ -246,7 +246,7 @@ export default function Trends() {
                     onClick={handleBack}
                     className="h-8 w-8 rounded-full bg-foreground/10 flex items-center justify-center hover:bg-foreground/20 transition-colors shrink-0"
                   >
-                    <ChevronLeft className="h-4 w-4 text-white" />
+                    <ChevronLeft className="h-4 w-4 text-foreground" />
                   </button>
                   <h1 className="text-lg font-bold text-white truncate">
                     {drillGroup.emoji} {drillGroup.label}
