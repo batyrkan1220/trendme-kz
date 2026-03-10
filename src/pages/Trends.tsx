@@ -358,7 +358,12 @@ export default function Trends() {
               </div>
 
               <div
-                className="p-4 md:p-6 lg:p-8"
+                key={drillSubNiche ?? "__all"}
+                className={cn(
+                  "p-4 md:p-6 lg:p-8",
+                  slideDir === "left" && "animate-slide-in-from-right",
+                  slideDir === "right" && "animate-slide-in-from-left",
+                )}
                 onTouchStart={handleSwipeStart}
                 onTouchEnd={handleSwipeEnd}
               >
