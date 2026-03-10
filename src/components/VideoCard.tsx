@@ -13,9 +13,6 @@ const playUrlCache = new Map<string, string>();
 /** Global in-flight request tracker to prevent duplicate concurrent API calls */
 const inFlightRequests = new Map<string, Promise<string | null>>();
 
-/** Global tracker for cover refresh attempts to prevent duplicates */
-const coverRefreshAttempted = new Set<string>();
-const coverRefreshInFlight = new Map<string, Promise<void>>();
 
 /** Centralized function to fetch play URL with deduplication */
 export async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
