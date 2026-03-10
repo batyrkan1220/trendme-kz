@@ -415,16 +415,11 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   onError={() => handleCoverError()}
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="relative">
-                    {/* Outer glow ring */}
-                    <div className="absolute -inset-2 rounded-full bg-white/10 group-hover:bg-white/20 blur-md transition-all duration-300" />
-                    {/* Main play button */}
-                    <div 
-                      className="relative h-10 w-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 opacity-70 group-hover:bg-white group-hover:border-white/80 group-hover:scale-110 group-hover:opacity-100 transition-all duration-300 pointer-events-auto cursor-pointer"
-                      onClick={handlePlay}
-                    >
-                      <Play className="h-4 w-4 text-white group-hover:text-foreground ml-0.5 transition-colors duration-300" fill="currentColor" fillOpacity={0.3} />
-                    </div>
+                  <div 
+                    className="h-9 w-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center border border-white/10 opacity-60 pointer-events-auto cursor-pointer transition-opacity duration-200 hover:opacity-90"
+                    onClick={handlePlay}
+                  >
+                    <Play className="h-3.5 w-3.5 text-white/80 ml-0.5" fill="currentColor" fillOpacity={0.2} />
                   </div>
                 </div>
               </div>
