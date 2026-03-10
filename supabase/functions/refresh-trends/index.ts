@@ -568,7 +568,7 @@ Deno.serve(async (req: Request) => {
 
   const chainNextBatch = async (nextBatch: number) => {
     try {
-      await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
+      const res = await fetch(`${supabaseUrl}/functions/v1/refresh-trends`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${serviceRoleKey}`,
@@ -576,6 +576,8 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({ mode, batch: nextBatch, logId, target_niches: targetNiches, lang: targetLang }),
       });
+      // Consume response body to prevent resource leak
+      await res.text();
     } catch (e) {
       console.error("Chain call failed:", e);
     }
