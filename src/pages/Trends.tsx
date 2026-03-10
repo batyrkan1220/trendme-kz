@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp } from "lucide-react";
-import { useState, useMemo, useCallback, useRef } from "react";
+import { TrendingUp, WifiOff } from "lucide-react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { hapticLight, hapticMedium, hapticSuccess } from "@/lib/haptics";
+import { useOnlineStatus, saveTrendsCache, loadTrendsCache } from "@/hooks/useOfflineCache";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
