@@ -974,7 +974,7 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
         { onConflict: "niche" }
       );
 
-    return nicheSaved;
+    return { saved: nicheSaved, accepted: nicheAccepted, reassigned: nicheReassigned, discarded: nicheDiscarded };
   };
 
   // =========================
