@@ -815,14 +815,20 @@ Deno.serve(async (req: Request) => {
                 body: JSON.stringify({
                   model: "google/gemini-2.5-flash-lite",
                   messages: [
-                    { role: "system", content: `You are a lenient video categorization verifier for TikTok. Given numbered video captions, determine which ones could REASONABLY belong to the category "${nicheDisplayName}" (parent category: "${parentNiche}").
+                    { role: "system", content: `You are a video categorization verifier for TikTok. Given numbered video captions, determine which ones belong to the category "${nicheDisplayName}" (parent category: "${parentNiche}").
 
-IMPORTANT RULES:
-- Be INCLUSIVE, not strict. If a video is even loosely related to the category, INCLUDE it.
-- TikTok videos often mix topics — a fashion video may mention lifestyle, shopping, brands, prices, reviews etc. This is NORMAL and should be INCLUDED.
-- Commercial/promotional content (selling products, reviews, unboxings) related to the category should be INCLUDED.
-- Only REJECT videos that are COMPLETELY unrelated (e.g. a cooking recipe in a "Sports" category, or political news in a "Beauty" category).
-- When in doubt, INCLUDE the video.
+RULES:
+- INCLUDE videos that are directly or loosely related to the category topic.
+- INCLUDE commercial content (reviews, unboxings, shopping, prices, brands) if it's about the category's products.
+- TikTok videos mix topics — a fashion video mentioning lifestyle or shopping is fine. INCLUDE it.
+
+REJECT these types of unrelated content:
+- Crime, violence, death, missing persons, accidents — unless the category is specifically about news/crime.
+- Food/cooking videos in non-food categories (fashion, jewelry, tech, etc.).
+- Political/religious content in lifestyle categories.
+- Videos from a completely different domain (e.g. car repair in "Jewelry", fitness in "Music").
+
+Be moderately strict: include related content, but reject clearly off-topic videos.
 
 Return ONLY a JSON array of indices that belong, e.g. [0,1,2,3,5].` },
                     { role: "user", content: captions },
