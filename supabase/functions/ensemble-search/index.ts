@@ -321,7 +321,7 @@ Deno.serve(async (req: Request) => {
       if (LOVABLE_API_KEY) {
         (async () => {
           try {
-            const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other"];
+            const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other","daily_routines","morning_routine","life_hacks","minimalism","aesthetic","self_care"];
             for (let i = 0; i < uncategorized.length; i += 30) {
               const batch = uncategorized.slice(i, i + 30);
               const captions = batch.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");

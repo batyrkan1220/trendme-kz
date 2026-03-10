@@ -31,6 +31,7 @@ const NICHE_GROUPS: Record<string, string[]> = {
   realestate: ["apartments", "mortgage", "new_buildings", "construction"],
   blogging: ["content_creation", "video_editing", "promotion", "monetization", "personal_brand"],
   kazakh_culture: ["kazakh_cuisine", "kazakh_history", "kazakh_traditions", "kazakh_language", "kazakh_music", "kazakh_celebrities"],
+  lifestyle: ["daily_routines", "morning_routine", "life_hacks", "minimalism", "aesthetic", "self_care"],
 };
 
 // Build reverse map: sub_niche → niche
