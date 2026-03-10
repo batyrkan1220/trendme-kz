@@ -1325,11 +1325,27 @@ function RefreshSection() {
                 : "—";
               const nicheStatsRaw: Record<string, any> = (log.niche_stats as any) || {};
               const nicheEntries = Object.entries(nicheStatsRaw)
-                .filter(([key, val]) => key !== "_rotation" && typeof val === "number")
-                .sort(([, a], [, b]) => (b as number) - (a as number));
+                .filter(([key]) => key !== "_rotation" && key !== "_lang")
+                .filter(([, val]) => typeof val === "number" || (typeof val === "object" && val !== null))
+                .sort(([, a], [, b]) => {
+                  const aVal = typeof a === "number" ? a : (a?.saved || 0);
+                  const bVal = typeof b === "number" ? b : (b?.saved || 0);
+                  return bVal - aVal;
+                });
               const totalNiche = log.total_saved || 0;
               const totalGeneral = log.general_saved || 0;
               const grandTotal = totalNiche + totalGeneral;
+
+              // Calculate AI totals
+              let totalAccepted = 0, totalReassigned = 0, totalDiscarded = 0;
+              for (const [, val] of nicheEntries) {
+                if (typeof val === "object" && val !== null) {
+                  totalAccepted += val.accepted || 0;
+                  totalReassigned += val.reassigned || 0;
+                  totalDiscarded += val.discarded || 0;
+                }
+              }
+              const hasAiStats = totalAccepted > 0 || totalReassigned > 0 || totalDiscarded > 0;
 
 
               return (
@@ -1351,7 +1367,7 @@ function RefreshSection() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className={`grid ${hasAiStats ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-3"} gap-2 text-center`}>
                     <div className="bg-muted/40 rounded-md p-2">
                       <p className="text-lg font-bold text-foreground">{grandTotal}</p>
                       <p className="text-xs text-muted-foreground">Этот запуск</p>
@@ -1364,6 +1380,22 @@ function RefreshSection() {
                       <p className="text-lg font-bold text-primary">{totalVideos7d}</p>
                       <p className="text-xs text-muted-foreground">За 7 дней</p>
                     </div>
+                    {hasAiStats && (
+                      <>
+                        <div className="bg-emerald-500/10 rounded-md p-2">
+                          <p className="text-lg font-bold text-emerald-500">✅ {totalAccepted}</p>
+                          <p className="text-xs text-muted-foreground">Accepted</p>
+                        </div>
+                        <div className="bg-blue-500/10 rounded-md p-2">
+                          <p className="text-lg font-bold text-blue-500">♻️ {totalReassigned}</p>
+                          <p className="text-xs text-muted-foreground">Reassigned</p>
+                        </div>
+                        <div className="bg-red-500/10 rounded-md p-2">
+                          <p className="text-lg font-bold text-red-500">🗑️ {totalDiscarded}</p>
+                          <p className="text-xs text-muted-foreground">Discarded</p>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {nicheEntries.length > 0 && (
@@ -1372,17 +1404,31 @@ function RefreshSection() {
                         📊 По категориям ({nicheEntries.length})
                       </summary>
                       <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
-                        {nicheEntries.map(([niche, count]) => {
+                        {nicheEntries.map(([niche, val]) => {
                           const total7d = videoCounts[niche] || 0;
+                          const isObj = typeof val === "object" && val !== null;
+                          const saved = isObj ? (val.saved || 0) : (val as number);
+                          const accepted = isObj ? (val.accepted || 0) : null;
+                          const reassigned = isObj ? (val.reassigned || 0) : null;
+                          const discarded = isObj ? (val.discarded || 0) : null;
                           return (
-                            <div key={niche} className="flex items-center justify-between bg-muted/30 rounded px-2 py-1 text-xs">
-                              <span className="truncate font-medium">{niche}</span>
-                              <span className="ml-1 flex items-center gap-1 shrink-0">
-                                <Badge variant={Number(count) > 0 ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
-                                  +{count as number}
-                                </Badge>
-                                <span className="text-[10px] text-muted-foreground">/ {total7d}</span>
-                              </span>
+                            <div key={niche} className="flex flex-col bg-muted/30 rounded px-2 py-1 text-xs">
+                              <div className="flex items-center justify-between">
+                                <span className="truncate font-medium">{niche}</span>
+                                <span className="ml-1 flex items-center gap-1 shrink-0">
+                                  <Badge variant={saved > 0 ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                                    +{saved}
+                                  </Badge>
+                                  <span className="text-[10px] text-muted-foreground">/ {total7d}</span>
+                                </span>
+                              </div>
+                              {isObj && (accepted !== null) && (
+                                <div className="flex gap-2 mt-0.5 text-[10px] text-muted-foreground">
+                                  <span className="text-emerald-500">✅{accepted}</span>
+                                  {reassigned! > 0 && <span className="text-blue-500">♻️{reassigned}</span>}
+                                  {discarded! > 0 && <span className="text-red-500">🗑️{discarded}</span>}
+                                </div>
+                              )}
                             </div>
                           );
                         })}

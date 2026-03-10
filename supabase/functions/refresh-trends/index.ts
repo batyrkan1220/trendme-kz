@@ -652,6 +652,9 @@ Deno.serve(async (req: Request) => {
     console.log(`  🔑 ${nicheLabel(nicheKey)}: picked ${selectedKeywords.length}/${allKeywords.length} keywords (cursor=${nicheRotationIndex}): ${selectedKeywords.slice(0, 5).join(", ")}${selectedKeywords.length > 5 ? "..." : ""}`);
 
     let nicheSaved = 0;
+    let nicheAccepted = 0;
+    let nicheReassigned = 0;
+    let nicheDiscarded = 0;
 
     // EnsembleData sorting: "2" = date, "1" = likes
     const sortTypes = ["2", "1"];
@@ -871,10 +874,11 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
 
                 const before = verifiedNewVideos.length;
                 verifiedNewVideos = newVideos.filter((_: any, idx: number) => acceptedIndices.has(idx));
+                nicheAccepted += verifiedNewVideos.length;
                 
                 // Log accepted
                 if (verifiedNewVideos.length < before) {
-                  console.log(`  🤖 AI: ${verifiedNewVideos.length}/${before} accepted for ${nicheDisplayName}`);
+                  console.log(`  🤖 AI: ✅${verifiedNewVideos.length} ♻️${reassigned.length} 🗑️${discarded.length} (total ${before})`);
                 }
 
                 // Reassign videos to correct niches
@@ -882,14 +886,13 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
                   for (const r of reassigned) {
                     const video = newVideos[r.index];
                     if (!video || !r.niche) continue;
-                    // Validate that the niche exists in our system
                     if (!SUB_NICHE_LABELS_MAP[r.niche]) {
                       console.log(`  ⚠️ Unknown niche "${r.niche}" for reassignment, discarding`);
+                      nicheDiscarded++;
                       continue;
                     }
-                    // Update video's niche/sub_niche to the reassigned one
                     video.niche = r.niche;
-                    video.sub_niche = null; // AI only assigns parent niche
+                    video.sub_niche = null;
                     video.categories = [r.niche];
                   }
                   const reassignedVideos = reassigned
@@ -903,21 +906,23 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
                     if (reErr) {
                       console.error(`  Reassign insert error:`, reErr.message);
                     } else {
+                      nicheReassigned += reassignedVideos.length;
                       const reassignLog = reassigned
                         .filter(r => SUB_NICHE_LABELS_MAP[r.niche])
-                        .map(r => `  ♻️ [${r.index}] → ${r.niche}: ${(newVideos[r.index]?.caption || "").slice(0, 60)}`)
+                        .map(r => `    → ${SUB_NICHE_LABELS_MAP[r.niche]}: ${(newVideos[r.index]?.caption || "").slice(0, 60)}`)
                         .join("\n");
-                      console.log(`  ♻️ Reassigned ${reassignedVideos.length} videos:\n${reassignLog}`);
+                      console.log(`  ♻️ Reassigned:\n${reassignLog}`);
                     }
                   }
                 }
 
                 // Log discarded
+                nicheDiscarded += discarded.length;
                 if (discarded.length > 0) {
                   const discardLog = discarded
-                    .map(idx => `  🗑️ [${idx}]: ${(newVideos[idx]?.caption || "").slice(0, 60)}`)
+                    .map(idx => `    ${(newVideos[idx]?.caption || "").slice(0, 60)}`)
                     .join("\n");
-                  console.log(`  🗑️ Discarded ${discarded.length} (no matching niche):\n${discardLog}`);
+                  console.log(`  🗑️ Discarded:\n${discardLog}`);
                 }
               }
             } catch (aiErr) {
@@ -974,7 +979,7 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
         { onConflict: "niche" }
       );
 
-    return nicheSaved;
+    return { saved: nicheSaved, accepted: nicheAccepted, reassigned: nicheReassigned, discarded: nicheDiscarded };
   };
 
   // =========================
@@ -1021,13 +1026,18 @@ IMPORTANT: Every index must appear in exactly one of the three arrays.` },
     }
 
     try {
-      const saved = await processNiche(nicheKey);
-      nicheStats[nicheKey] = saved;
-      totalSaved += saved;
-      console.log(`✓ ${nicheLabel(nicheKey)}: ${saved} videos`);
+      const result = await processNiche(nicheKey);
+      nicheStats[nicheKey] = {
+        saved: result.saved,
+        accepted: result.accepted,
+        reassigned: result.reassigned,
+        discarded: result.discarded,
+      };
+      totalSaved += result.saved;
+      console.log(`✓ ${nicheLabel(nicheKey)}: ✅${result.accepted} saved, ♻️${result.reassigned} reassigned, 🗑️${result.discarded} discarded`);
     } catch (e) {
       console.error(`✗ ${nicheLabel(nicheKey)} failed:`, (e as Error).message);
-      nicheStats[nicheKey] = 0;
+      nicheStats[nicheKey] = { saved: 0, accepted: 0, reassigned: 0, discarded: 0 };
     }
 
     await sleep(1000);
