@@ -62,17 +62,21 @@ export function TrendNicheRow({
         {group.subNiches.length > 0 && (
           <div className="flex items-center gap-1.5 mt-1.5 overflow-x-auto scrollbar-hide">
             {group.subNiches.slice(0, 4).map((sub) => (
-              <span
+              <button
                 key={sub.key}
-                className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/8 text-white/50 border border-white/5"
+                onClick={() => onViewAll(group.key, sub.key)}
+                className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/8 text-white/50 border border-white/5 hover:bg-white/15 hover:text-white/70 active:scale-95 transition-all"
               >
                 {sub.label}
-              </span>
+              </button>
             ))}
             {group.subNiches.length > 4 && (
-              <span className="shrink-0 text-[10px] text-white/30 font-medium">
+              <button
+                onClick={() => onViewAll(group.key)}
+                className="shrink-0 text-[10px] text-white/30 font-medium hover:text-white/50 transition-colors"
+              >
                 +{group.subNiches.length - 4}
-              </span>
+              </button>
             )}
           </div>
         )}
