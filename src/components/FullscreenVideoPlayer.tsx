@@ -82,6 +82,7 @@ export function FullscreenVideoPlayer({
   const closingViaHistoryRef = useRef(false);
 
   const closeOverlay = useCallback(() => {
+    if (closingViaHistoryRef.current) return;
     if (window.history.state?.__videoOverlay) {
       closingViaHistoryRef.current = true;
       window.history.back();
