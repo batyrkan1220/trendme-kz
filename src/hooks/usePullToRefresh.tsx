@@ -49,8 +49,10 @@ export function usePullToRefresh({ onRefresh, threshold = 80, maxPull = 120 }: U
     if (pullDistance >= threshold && !isRefreshing) {
       setIsRefreshing(true);
       setPullDistance(threshold * 0.6);
+      hapticMedium();
       try {
         await onRefresh();
+        hapticSuccess();
       } finally {
         setIsRefreshing(false);
         setPullDistance(0);
