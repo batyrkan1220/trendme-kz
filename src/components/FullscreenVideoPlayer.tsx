@@ -344,7 +344,11 @@ export function FullscreenVideoPlayer({
           </div>
 
           {/* Left side — text info */}
-          <div className="pr-16 pointer-events-auto">
+          <div className="pr-16 pointer-events-auto"
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
             {/* Tier badge */}
             {tier && (
               <div className="flex items-center gap-2 mb-2">
