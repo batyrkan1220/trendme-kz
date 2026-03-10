@@ -254,7 +254,7 @@ export function FullscreenVideoPlayer({
             <div className="relative z-10 h-14 w-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
               <Loader2 className="h-6 w-6 text-white animate-spin" />
             </div>
-            <span className="relative z-10 text-white/50 text-xs animate-pulse">Жүктелуде...</span>
+            <span className="relative z-10 text-white/50 text-xs animate-pulse">Загрузка...</span>
           </div>
         ) : playUrl === "tiktok_embed_fallback" ? (
           <iframe
