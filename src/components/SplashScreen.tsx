@@ -229,7 +229,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             transition: "all 700ms cubic-bezier(0.16, 1, 0.3, 1) 1100ms",
           }}
         >
-          <TikTokLogo size={14} dark={isGreenPhase} />
+          <TikTokLogo size={14} dark={true} />
           <span
             className="text-[11px] font-bold tracking-[0.1em] uppercase"
             style={{ color: c.badgeText }}
