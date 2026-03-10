@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FullscreenVideoPlayer } from "@/components/FullscreenVideoPlayer";
 
 /** Global in-memory cache for play URLs to avoid redundant API calls */
 const playUrlCache = new Map<string, string>();
