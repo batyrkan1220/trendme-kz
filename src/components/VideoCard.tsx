@@ -313,7 +313,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
 
   return (
-    <div ref={ref} className={`group rounded-[20px] overflow-hidden transition-all duration-300 relative flex flex-col bg-card border border-border/40`} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel}>
+    <div ref={ref} className={`group rounded-[20px] overflow-hidden transition-all duration-300 relative flex flex-col ${darkMode ? "bg-[#141414] border border-white/[0.07]" : "bg-card border border-border/40"}`} style={darkMode ? { boxShadow: "0 2px 16px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.04) inset" } : undefined} onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel}>
       {/* Video area */}
       <div className="relative aspect-[9/14] bg-black overflow-hidden rounded-[16px] m-[6px]">
         {playingId === video.id ? (
@@ -436,9 +436,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
             {/* TikTok header bar - OUTSIDE of cover click area */}
             <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-20">
-              <div className="flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm bg-white/90">
-                <Music className="h-2.5 w-2.5 text-foreground" />
-                <span className="text-[9px] font-bold text-foreground">Tik-Tok</span>
+              <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm ${darkMode ? "bg-neon/90" : "bg-white/90"}`}>
+                <Music className={`h-2.5 w-2.5 ${darkMode ? "text-black" : "text-foreground"}`} />
+                <span className={`text-[9px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
@@ -455,12 +455,14 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     console.log("[VideoCard] Heart click fired for:", video.id);
                     onToggleFav(video.id);
                   }}
-                  className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 bg-black/60`}
+                  className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
                   style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 >
                   <Heart
                     className={`h-4 w-4 transition-all ${
-                      isFavorite ? "text-primary fill-primary" : "text-white"
+                      isFavorite
+                        ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
+                        : "text-white"
                     }`}
                   />
                 </button>
@@ -523,33 +525,33 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       {/* Stats bar */}
       <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 px-3 py-1.5">
         <span className="flex items-center gap-1">
-          <Eye className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-bold truncate text-foreground">{fmt(views)}</span>
+          <Eye className={`h-3.5 w-3.5 shrink-0 ${darkMode ? "text-white/50" : "text-muted-foreground"}`} />
+          <span className={`text-[11px] font-bold truncate ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(views)}</span>
         </span>
         <span className="flex items-center gap-1">
-          <Heart className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-bold truncate text-foreground">{fmt(Number(video.likes))}</span>
+          <Heart className={`h-3.5 w-3.5 shrink-0 ${darkMode ? "text-white/50" : "text-muted-foreground"}`} />
+          <span className={`text-[11px] font-bold truncate ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.likes))}</span>
         </span>
         <span className="flex items-center gap-1">
-          <MessageCircle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-bold truncate text-foreground">{fmt(Number(video.comments))}</span>
+          <MessageCircle className={`h-3.5 w-3.5 shrink-0 ${darkMode ? "text-white/50" : "text-muted-foreground"}`} />
+          <span className={`text-[11px] font-bold truncate ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.comments))}</span>
         </span>
         <span className="flex items-center gap-1">
-          <Share2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-bold truncate text-foreground">{fmt(Number(video.shares || 0))}</span>
+          <Share2 className={`h-3.5 w-3.5 shrink-0 ${darkMode ? "text-white/50" : "text-muted-foreground"}`} />
+          <span className={`text-[11px] font-bold truncate ${darkMode ? "text-white" : "text-foreground"}`}>{fmt(Number(video.shares || 0))}</span>
         </span>
       </div>
 
       {/* Caption — fixed height */}
       <div className="px-3 pt-1.5 pb-0.5 h-[2.75rem]">
-        <p className="text-xs line-clamp-2 leading-relaxed text-foreground/80">
+        <p className={`text-xs line-clamp-2 leading-relaxed ${darkMode ? "text-white" : "text-foreground/80"}`}>
           {caption || "Без описания"}
         </p>
       </div>
 
       {/* Time ago — always show */}
       <div className="px-3 pb-2">
-        <span className="text-[11px] text-muted-foreground">{timeAgo || " "}</span>
+        <span className={`text-[11px] ${darkMode ? "text-white/60" : "text-muted-foreground"}`}>{timeAgo || " "}</span>
       </div>
 
       {/* Analyze button */}
@@ -560,7 +562,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               e.stopPropagation();
               onAnalyze(video);
             }}
-            className="w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide transition-all active:scale-[0.97] bg-primary text-primary-foreground"
+            className={`w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide transition-all active:scale-[0.97] ${darkMode ? "bg-neon text-black" : "bg-primary text-primary-foreground"}`}
+            style={darkMode ? { boxShadow: "0 4px 20px hsl(72 100% 50% / 0.2), 0 0 0 0.5px hsl(72 100% 50% / 0.3) inset" } : undefined}
           >
             Анализ видео
           </button>

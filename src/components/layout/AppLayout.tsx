@@ -23,7 +23,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <div className="relative flex h-[100dvh] w-full overflow-hidden bg-background text-foreground">
+    <div className="relative flex h-[100dvh] w-full overflow-hidden" style={{ background: "#0a0a0a", color: "#ffffff" }}>
       {!isMobile && !isNativePlatform && (
         <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       )}
