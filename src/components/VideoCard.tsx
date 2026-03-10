@@ -134,8 +134,6 @@ interface VideoCardProps {
   showAnalyzeButton?: boolean;
   darkMode?: boolean;
   isMobileOverride?: boolean;
-  /** Enable auto-refresh for broken covers (only for cached/old videos like Trends) */
-  enableCoverRefresh?: boolean;
 }
 
 export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function VideoCard({
