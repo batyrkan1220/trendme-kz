@@ -321,7 +321,7 @@ export default function Trends() {
                       <span className="text-[11px] font-semibold text-neon/80 uppercase tracking-wider">Под-темы ↓</span>
                       <div className="h-px flex-1 bg-gradient-to-r from-neon/20 to-transparent" />
                     </div>
-                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 animate-[shimmer_2s_ease-in-out]">
+                    <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
                       <button
                         onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
                         className={cn(
