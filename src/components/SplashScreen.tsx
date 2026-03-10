@@ -79,13 +79,12 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
       className="fixed inset-0 z-[999999] flex flex-col items-center justify-center overflow-hidden"
       style={{
         background: "hsl(72 100% 50%)",
-        opacity: phase === 4 ? 0 : 1,
-        transform: phase === 4 ? "scale(1.08)" : "scale(1)",
-        transition: phase === 1
-          ? "background 800ms cubic-bezier(0.16, 1, 0.3, 1)"
-          : phase === 4
-            ? "opacity 700ms ease-out, transform 700ms ease-out, background 500ms ease-out"
-            : "background 600ms ease-out",
+      opacity: phase === 4 ? 0 : 1,
+        transform: phase === 4 ? "scale(1.02)" : "scale(1)",
+        filter: phase === 4 ? "blur(6px)" : "blur(0px)",
+        transition: phase === 4
+          ? "opacity 600ms cubic-bezier(0.4, 0, 1, 1), transform 600ms cubic-bezier(0.4, 0, 1, 1), filter 400ms ease-out"
+          : "none",
       }}
     >
       {/* Texture overlay on green */}
