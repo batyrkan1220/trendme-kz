@@ -269,6 +269,19 @@ export const NICHE_GROUPS: NicheGroup[] = [
     ],
   },
   {
+    key: "lifestyle",
+    label: "Лайфстайл",
+    emoji: "✨",
+    subNiches: [
+      { key: "daily_routines", label: "Рутины дня" },
+      { key: "morning_routine", label: "Утренний ритуал" },
+      { key: "life_hacks", label: "Лайфхаки" },
+      { key: "minimalism", label: "Минимализм" },
+      { key: "aesthetic", label: "Эстетика" },
+      { key: "self_care", label: "Селф-кер" },
+    ],
+  },
+  {
     key: "kazakh_culture",
     label: "Казахская культура",
     emoji: "🇰🇿",
@@ -314,7 +327,7 @@ export const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   fitness: "fitness",
   food: "food",
   gaming: "gaming",
-  lifestyle: "beauty",
+  lifestyle: "lifestyle",
   marketing: "business",
   medicine: "medicine",
   music: "media",
