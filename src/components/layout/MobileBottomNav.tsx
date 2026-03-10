@@ -77,14 +77,14 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           ref={popoverRef}
           className="absolute bottom-full mb-3 rounded-3xl shadow-2xl p-2.5"
           style={{
-            background: "rgba(18,18,18,0.92)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "hsl(var(--background) / 0.96)",
+            border: "1px solid hsl(var(--border))",
             backdropFilter: "blur(40px) saturate(1.4)",
             WebkitBackdropFilter: "blur(40px) saturate(1.4)",
             animation: "slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
             right: "16px",
             left: "16px",
-            boxShadow: "0 24px 64px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.06) inset",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.1), 0 0 0 0.5px hsl(var(--border)) inset",
           }}
         >
           <div className="px-3 py-2 mb-1">
@@ -113,7 +113,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       )}
 
       {/* Bottom bar */}
-      <div className="flex items-center justify-around px-3 py-2 pb-[max(8px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "rgba(8,8,8,0.75)", backdropFilter: "blur(32px) saturate(1.5)", WebkitBackdropFilter: "blur(32px) saturate(1.5)", borderTop: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 -8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
+      <div className="flex items-center justify-around px-3 py-2 pb-[max(8px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "hsl(var(--background) / 0.88)", backdropFilter: "blur(32px) saturate(1.5)", WebkitBackdropFilter: "blur(32px) saturate(1.5)", borderTop: "1px solid hsl(var(--border))", boxShadow: "0 -8px 32px rgba(0,0,0,0.06)" }}>
         {/* Main nav items */}
         {mainNavItems.map((item) => {
           const active = location.pathname === item.path;
@@ -126,13 +126,13 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               <item.icon
                 className={cn(
                   "h-[25px] w-[25px] transition-colors duration-200",
-                  active ? "text-neon" : "text-white"
+                  active ? "text-neon" : "text-foreground/60"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span className={cn(
                 "text-[11px] font-semibold leading-tight transition-colors",
-                active ? "text-neon" : "text-white"
+                active ? "text-neon" : "text-foreground/60"
               )}>
                 {item.label}
               </span>
@@ -149,20 +149,20 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             <ScanSearch
               className={cn(
                 "h-[25px] w-[25px] transition-colors duration-200",
-                isToolsActive || showToolsMenu ? "text-neon" : "text-white"
+                isToolsActive || showToolsMenu ? "text-neon" : "text-foreground/60"
               )}
               strokeWidth={isToolsActive || showToolsMenu ? 2.2 : 1.8}
             />
             <ChevronUp
               className={cn(
                 "absolute -top-1.5 -right-1.5 h-3 w-3 transition-all duration-200",
-                showToolsMenu ? "text-neon rotate-180" : "text-white/50"
+                showToolsMenu ? "text-neon rotate-180" : "text-foreground/30"
               )}
             />
           </div>
           <span className={cn(
             "text-[11px] font-semibold leading-tight transition-colors",
-            isToolsActive || showToolsMenu ? "text-neon" : "text-white"
+            isToolsActive || showToolsMenu ? "text-neon" : "text-foreground/60"
           )}>
             Анализ
           </span>
@@ -179,13 +179,13 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               <Heart
                 className={cn(
                   "h-[25px] w-[25px] transition-colors duration-200",
-                  active ? "text-neon fill-neon" : "text-white"
+                  active ? "text-neon fill-neon" : "text-foreground/60"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span className={cn(
                 "text-[11px] font-semibold leading-tight transition-colors",
-                active ? "text-neon" : "text-white"
+                active ? "text-neon" : "text-foreground/60"
               )}>
                 Избранное
               </span>

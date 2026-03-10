@@ -220,8 +220,8 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-x-hidden overflow-y-auto h-full trends-dark-theme relative pb-16 md:pb-8"
-        style={{ background: "#0a0a0a", color: "#ffffff", overscrollBehavior: "none", paddingTop: drillNiche ? "0px" : "12px" }}
+        className="overflow-x-hidden overflow-y-auto h-full relative pb-16 md:pb-8"
+        style={{ overscrollBehavior: "none", paddingTop: drillNiche ? "0px" : "12px" }}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
@@ -237,18 +237,18 @@ export default function Trends() {
               <div
                 className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
                 style={{ 
-                  background: "rgba(10,10,10,0.85)", 
+                  background: "hsl(var(--background) / 0.85)", 
                   paddingTop: "8px"
                 }}
               >
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleBack}
-                    className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors shrink-0"
+                    className="h-8 w-8 rounded-full bg-foreground/10 flex items-center justify-center hover:bg-foreground/20 transition-colors shrink-0"
                   >
-                    <ChevronLeft className="h-4 w-4 text-white" />
+                    <ChevronLeft className="h-4 w-4 text-foreground" />
                   </button>
-                  <h1 className="text-lg font-bold text-white truncate">
+                  <h1 className="text-lg font-bold text-foreground truncate">
                     {drillGroup.emoji} {drillGroup.label}
                   </h1>
                 </div>
@@ -262,14 +262,14 @@ export default function Trends() {
                       className={cn(
                         "shrink-0 px-2.5 py-1 rounded-full font-medium transition-all",
                         drillPeriod === opt.value
-                          ? "bg-white/20 text-white"
-                          : "bg-white/5 text-white/40 hover:bg-white/10"
+                          ? "bg-primary/20 text-foreground"
+                          : "bg-foreground/5 text-foreground/40 hover:bg-foreground/10"
                       )}
                     >
                       {opt.label}
                     </button>
                   ))}
-                  <span className="text-white/40 ml-1">· {drillTotalFiltered} видео</span>
+                  <span className="text-foreground/40 ml-1">· {drillTotalFiltered} видео</span>
                 </div>
 
                 {/* Sub-niche chips */}
@@ -281,7 +281,7 @@ export default function Trends() {
                         "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                         !drillSubNiche
                           ? "bg-neon text-black"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                          : "bg-foreground/10 text-foreground/70 hover:bg-foreground/20"
                       )}
                     >
                       Все
@@ -294,7 +294,7 @@ export default function Trends() {
                           "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                           drillSubNiche === sub.key
                             ? "bg-neon text-black"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                            : "bg-foreground/10 text-foreground/70 hover:bg-foreground/20"
                         )}
                       >
                         {sub.label}
@@ -329,15 +329,15 @@ export default function Trends() {
                   <div className="space-y-6">
                     {Array.from({ length: 3 }).map((_, i) => (
                       <div key={i} className="space-y-2">
-                        <div className="h-5 bg-white/10 rounded w-32 animate-pulse" />
+                        <div className="h-5 bg-foreground/10 rounded w-32 animate-pulse" />
                         <div className="flex gap-3">
                           {Array.from({ length: 3 }).map((_, j) => (
                             <div
                               key={j}
                               className="shrink-0 rounded-2xl overflow-hidden animate-pulse"
-                              style={{ width: "min(44vw, 200px)", background: "#1a1a1a" }}
+                              style={{ width: "min(44vw, 200px)", background: "hsl(var(--muted))" }}
                             >
-                              <div className="aspect-[9/14] bg-white/5 m-1.5 rounded-xl" />
+                              <div className="aspect-[9/14] bg-foreground/5 m-1.5 rounded-xl" />
                             </div>
                           ))}
                         </div>
@@ -363,10 +363,10 @@ export default function Trends() {
 
                     {allGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
                       <div className="text-center py-20">
-                        <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                          <TrendingUp className="h-10 w-10 text-white/20" />
+                        <div className="h-20 w-20 rounded-full bg-foreground/5 flex items-center justify-center mx-auto mb-4">
+                          <TrendingUp className="h-10 w-10 text-foreground/20" />
                         </div>
-                        <p className="text-white/50 font-medium">
+                        <p className="text-foreground/50 font-medium">
                           Нет трендовых видео
                         </p>
                       </div>
