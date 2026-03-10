@@ -571,6 +571,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           }}
           isFavorite={isFavorite}
           onToggleFav={onToggleFav}
+          onAnalyze={onAnalyze}
         />
       )}
     </div>

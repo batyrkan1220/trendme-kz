@@ -30,6 +30,7 @@ interface FullscreenVideoPlayerProps {
   onClose: () => void;
   isFavorite: boolean;
   onToggleFav: (id: string) => void;
+  onAnalyze?: (video: VideoInfo) => void;
 }
 
 const fmt = (n: number) => {
@@ -59,6 +60,7 @@ export function FullscreenVideoPlayer({
   onClose,
   isFavorite,
   onToggleFav,
+  onAnalyze,
 }: FullscreenVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const views = Number(video.views) || 0;
@@ -215,6 +217,17 @@ export function FullscreenVideoPlayer({
               <p className="text-white/70 text-xs leading-relaxed line-clamp-3">
                 {video.caption}
               </p>
+            )}
+
+            {/* Analyze button */}
+            {onAnalyze && (
+              <button
+                onClick={() => { onAnalyze(video); onClose(); }}
+                className="mt-3 w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide bg-neon text-neon-foreground active:scale-[0.97] transition-transform"
+                style={{ boxShadow: "0 4px 20px hsl(72 100% 50% / 0.25)" }}
+              >
+                Анализ видео
+              </button>
             )}
           </div>
         </div>
