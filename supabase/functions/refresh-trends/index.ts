@@ -142,7 +142,10 @@ const SUB_NICHE_LABELS_MAP: Record<string, string> = {
   realestate: "Недвижимость", blogging: "Блогинг", kazakh_culture: "Казахская культура",
 };
 
-// Sub-niche to main niche mapping (must match src/config/niches.ts)
+// Reverse map: parent niche → list of sub-niches
+const NICHE_TO_SUB_NICHES: Record<string, string[]> = {};
+
+
 const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // business
   finance: "business", crypto: "business", business_ideas: "business",
@@ -206,7 +209,13 @@ const SUB_NICHE_TO_NICHE: Record<string, string> = {
   kazakh_language: "kazakh_culture", kazakh_music: "kazakh_culture", kazakh_celebrities: "kazakh_culture",
 };
 
-// Old category → new main niche mapping (for backward compatibility)
+// Build reverse map
+for (const [sub, parent] of Object.entries(SUB_NICHE_TO_NICHE)) {
+  if (!NICHE_TO_SUB_NICHES[parent]) NICHE_TO_SUB_NICHES[parent] = [];
+  NICHE_TO_SUB_NICHES[parent].push(sub);
+}
+
+
 const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   animals: "animals", art: "hobby", auto: "auto", beauty: "beauty", books: "education",
   business: "business", cinema: "media", comedy: "entertainment", dance: "media",
@@ -906,7 +915,9 @@ Every index must appear in exactly one array. Use ONLY keys from the list above.
                     const video = newVideos[r.index];
                     if (!video) continue;
                     video.niche = r.niche;
-                    video.sub_niche = null;
+                    // Assign first sub_niche of target parent niche so video appears in frontend
+                    const subNiches = NICHE_TO_SUB_NICHES[r.niche];
+                    video.sub_niche = subNiches && subNiches.length > 0 ? subNiches[0] : null;
                     video.categories = [r.niche];
                   }
                   const reassignedVideos = reassigned
