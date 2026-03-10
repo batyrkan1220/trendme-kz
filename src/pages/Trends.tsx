@@ -274,32 +274,41 @@ export default function Trends() {
 
                 {/* Sub-niche chips */}
                 {drillGroup.subNiches.length > 0 && (
-                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-                    <button
-                      onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
-                      className={cn(
-                        "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                        !drillSubNiche
-                          ? "bg-neon text-black"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      )}
-                    >
-                      Все
-                    </button>
-                    {drillGroup.subNiches.map((sub) => (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-neon/80 uppercase tracking-wider">Под-темы ↓</span>
+                      <div className="h-px flex-1 bg-gradient-to-r from-neon/20 to-transparent" />
+                    </div>
+                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 animate-[shimmer_2s_ease-in-out]">
                       <button
-                        key={sub.key}
-                        onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
+                        onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
                         className={cn(
-                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
-                          drillSubNiche === sub.key
+                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                          !drillSubNiche
                             ? "bg-neon text-black"
                             : "bg-white/10 text-white/70 hover:bg-white/20"
                         )}
                       >
-                        {sub.label}
+                        Все
                       </button>
-                    ))}
+                      {drillGroup.subNiches.map((sub) => {
+                        const count = drillNicheVideos.filter((v: any) => v.sub_niche === sub.key).length;
+                        return (
+                          <button
+                            key={sub.key}
+                            onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
+                            className={cn(
+                              "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                              drillSubNiche === sub.key
+                                ? "bg-neon text-black"
+                                : "bg-white/10 text-white/70 hover:bg-white/20"
+                            )}
+                          >
+                            {sub.label}{count > 0 && <span className="ml-1 opacity-60">{count}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
