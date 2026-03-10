@@ -969,7 +969,19 @@ function RefreshSection() {
     queryKey: ["trend-settings", "category_limits"],
     queryFn: async () => {
       const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
-      return (data?.value as Record<string, number>) || {};
+      const raw = (data?.value as Record<string, any>) || {};
+      // Normalize: if value is {kk, ru, en} object, sum them; if number, use as-is
+      const normalized: Record<string, number> = {};
+      for (const [k, v] of Object.entries(raw)) {
+        if (typeof v === "number") {
+          normalized[k] = v;
+        } else if (v && typeof v === "object") {
+          const obj = v as Record<string, number | null>;
+          const sum = (obj.kk ?? 0) + (obj.ru ?? 0) + (obj.en ?? 0);
+          normalized[k] = sum > 0 ? sum : 100;
+        }
+      }
+      return normalized;
     },
   });
 
