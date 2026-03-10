@@ -241,14 +241,21 @@ export default function Trends() {
     const currentIdx = subNicheKeys.indexOf(drillSubNiche);
     let nextIdx: number;
     if (dx < 0) {
-      // swipe left → next
       nextIdx = currentIdx + 1 >= subNicheKeys.length ? 0 : currentIdx + 1;
+      setSlideDir("left");
     } else {
-      // swipe right → prev
       nextIdx = currentIdx - 1 < 0 ? subNicheKeys.length - 1 : currentIdx - 1;
+      setSlideDir("right");
     }
     setDrillSubNiche(subNicheKeys[nextIdx]);
     setVisibleCount(PAGE_SIZE);
+    // Clear direction after animation
+    setTimeout(() => setSlideDir(null), 300);
+    // Auto-scroll active chip into view
+    setTimeout(() => {
+      const el = chipScrollRef.current?.querySelector('[data-active="true"]') as HTMLElement;
+      el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }, 50);
   }, [drillSubNiche, subNicheKeys]);
 
   return (
