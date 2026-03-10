@@ -127,6 +127,9 @@ const SUB_NICHE_LABELS: Record<string, string> = {
   monetization: "Монетизация", personal_brand: "Личный бренд",
   kazakh_cuisine: "Қазақ ас", kazakh_history: "ҚР тарихы", kazakh_traditions: "Дәстүрлер",
   kazakh_language: "Қазақ тілі", kazakh_music: "Қазақ музыка", kazakh_celebrities: "Қазақ жұлдыздар",
+  // lifestyle
+  daily_routines: "Рутины дня", morning_routine: "Утренний ритуал", life_hacks: "Лайфхаки",
+  minimalism: "Минимализм", aesthetic: "Эстетика", self_care: "Селф-кер",
 };
 
 const nicheLabel = (key: string) => SUB_NICHE_LABELS[key] || key;
