@@ -254,7 +254,7 @@ export function FullscreenVideoPlayer({
             <div className="relative z-10 h-14 w-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
               <Loader2 className="h-6 w-6 text-white animate-spin" />
             </div>
-            <span className="relative z-10 text-white/50 text-xs animate-pulse">Жүктелуде...</span>
+            <span className="relative z-10 text-white/50 text-xs animate-pulse">Загрузка...</span>
           </div>
         ) : playUrl === "tiktok_embed_fallback" ? (
           <iframe
@@ -303,12 +303,12 @@ export function FullscreenVideoPlayer({
           </>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <p className="text-white/50 text-xs">Видео қолжетімсіз</p>
+            <p className="text-white/50 text-xs">Видео недоступно</p>
             <button
               onClick={() => window.open(video.url, '_blank')}
               className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium"
             >
-              TikTok-та ашу
+              Открыть в TikTok
             </button>
           </div>
         )}
@@ -371,7 +371,7 @@ export function FullscreenVideoPlayer({
             {/* Views */}
             <div className="flex items-center gap-1 mb-1.5">
               <Eye className="h-3.5 w-3.5 text-white/60" />
-              <span className="text-white/80 text-xs font-semibold">{fmt(views)} қаралым</span>
+              <span className="text-white/80 text-xs font-semibold">{fmt(views)} просмотров</span>
             </div>
 
             {/* Caption */}
@@ -388,7 +388,7 @@ export function FullscreenVideoPlayer({
                 className="mt-3 w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide bg-neon text-neon-foreground active:scale-[0.97] transition-transform"
                 style={{ boxShadow: "0 4px 20px hsl(72 100% 50% / 0.25)" }}
               >
-                Анализ видео
+                Анализировать видео
               </button>
             )}
           </div>
