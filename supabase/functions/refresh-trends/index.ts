@@ -142,7 +142,10 @@ const SUB_NICHE_LABELS_MAP: Record<string, string> = {
   realestate: "Недвижимость", blogging: "Блогинг", kazakh_culture: "Казахская культура",
 };
 
-// Sub-niche to main niche mapping (must match src/config/niches.ts)
+// Reverse map: parent niche → list of sub-niches
+const NICHE_TO_SUB_NICHES: Record<string, string[]> = {};
+
+
 const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // business
   finance: "business", crypto: "business", business_ideas: "business",
