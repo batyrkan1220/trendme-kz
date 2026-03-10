@@ -77,14 +77,14 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           ref={popoverRef}
           className="absolute bottom-full mb-3 rounded-3xl shadow-2xl p-2.5"
           style={{
-            background: "rgba(18,18,18,0.92)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "hsl(var(--background) / 0.96)",
+            border: "1px solid hsl(var(--border))",
             backdropFilter: "blur(40px) saturate(1.4)",
             WebkitBackdropFilter: "blur(40px) saturate(1.4)",
             animation: "slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
             right: "16px",
             left: "16px",
-            boxShadow: "0 24px 64px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.06) inset",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.1), 0 0 0 0.5px hsl(var(--border)) inset",
           }}
         >
           <div className="px-3 py-2 mb-1">
