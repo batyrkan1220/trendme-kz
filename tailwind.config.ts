@@ -107,6 +107,16 @@ export default {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "flame-flicker": {
+          "0%, 100%": { transform: "scaleY(1) scaleX(1)", opacity: "1" },
+          "25%": { transform: "scaleY(1.08) scaleX(0.96)", opacity: "0.9" },
+          "50%": { transform: "scaleY(0.95) scaleX(1.04)", opacity: "1" },
+          "75%": { transform: "scaleY(1.05) scaleX(0.98)", opacity: "0.92" },
+        },
+        "flame-glow": {
+          "0%, 100%": { opacity: "0.5", transform: "scale(1)" },
+          "50%": { opacity: "0.8", transform: "scale(1.15)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -119,6 +129,8 @@ export default {
         "bounce-soft": "bounce-soft 2s ease-in-out infinite",
         "shimmer": "shimmer 2s linear infinite",
         "enter": "fade-in 0.3s ease-out, scale-in 0.2s ease-out",
+        "flame-flicker": "flame-flicker 1.5s ease-in-out infinite",
+        "flame-glow": "flame-glow 2s ease-in-out infinite",
       },
     },
   },
