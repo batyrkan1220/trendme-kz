@@ -2,7 +2,8 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
   X, Eye, Heart, MessageCircle, Share2,
-  Flame, Rocket, Zap, TrendingUp, Loader2, ExternalLink
+  Flame, Rocket, Zap, TrendingUp, Loader2, ExternalLink,
+  Play, RotateCcw
 } from "lucide-react";
 
 interface VideoInfo {
@@ -75,10 +76,17 @@ export function FullscreenVideoPlayer({
     return views / hoursAlive;
   })();
 
+  // Paused state & ended state for tap-to-pause TikTok style
+  const [paused, setPaused] = useState(false);
+  const [ended, setEnded] = useState(false);
+  const [showPauseIcon, setShowPauseIcon] = useState(false);
+  const pauseIconTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Swipe down to close
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const touchStartRef = useRef<{ y: number; time: number } | null>(null);
+  const touchStartRef = useRef<{ y: number; x: number; time: number } | null>(null);
+  const isSwiping = useRef(false);
   const closingViaHistoryRef = useRef(false);
 
   const closeOverlay = useCallback(() => {
@@ -91,9 +99,38 @@ export function FullscreenVideoPlayer({
     onClose();
   }, [onClose]);
 
+  // Tap to pause/play (TikTok style)
+  const handleVideoTap = useCallback(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+
+    if (ended) {
+      // Replay
+      vid.currentTime = 0;
+      vid.play();
+      setEnded(false);
+      setPaused(false);
+      return;
+    }
+
+    if (vid.paused) {
+      vid.play();
+      setPaused(false);
+    } else {
+      vid.pause();
+      setPaused(true);
+    }
+
+    // Flash pause/play icon
+    setShowPauseIcon(true);
+    if (pauseIconTimer.current) clearTimeout(pauseIconTimer.current);
+    pauseIconTimer.current = setTimeout(() => setShowPauseIcon(false), 600);
+  }, [ended]);
+
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     e.stopPropagation();
-    touchStartRef.current = { y: e.touches[0].clientY, time: Date.now() };
+    touchStartRef.current = { y: e.touches[0].clientY, x: e.touches[0].clientX, time: Date.now() };
+    isSwiping.current = false;
     setDragging(true);
   }, []);
 
@@ -101,21 +138,46 @@ export function FullscreenVideoPlayer({
     e.stopPropagation();
     if (!touchStartRef.current) return;
     const dy = e.touches[0].clientY - touchStartRef.current.y;
+    const dx = Math.abs(e.touches[0].clientX - touchStartRef.current.x);
+    if (dy > 10 || dx > 10) isSwiping.current = true;
     if (dy > 0) setDragY(dy);
   }, []);
 
-  const onTouchEnd = useCallback(() => {
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
     const start = touchStartRef.current;
     if (start) {
       const velocity = dragY / (Date.now() - start.time);
       if (dragY > 120 || velocity > 0.5) {
         closeOverlay();
+      } else if (!isSwiping.current && dragY < 5) {
+        // It was a tap, not a swipe
+        handleVideoTap();
       }
     }
     setDragY(0);
     setDragging(false);
     touchStartRef.current = null;
-  }, [dragY, closeOverlay]);
+  }, [dragY, closeOverlay, handleVideoTap]);
+
+  // Auto-play when URL is ready & loop
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid || !playUrl || playUrl === "tiktok_embed_fallback") return;
+
+    const onEnded = () => {
+      setEnded(true);
+      setPaused(true);
+    };
+
+    vid.addEventListener("ended", onEnded);
+
+    // Try auto-play
+    vid.play().catch(() => {});
+
+    return () => {
+      vid.removeEventListener("ended", onEnded);
+    };
+  }, [playUrl]);
 
   // Push history marker so back gesture closes overlay first
   useEffect(() => {
@@ -169,27 +231,30 @@ export function FullscreenVideoPlayer({
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
       >
         <button
-          onClick={closeOverlay}
-          className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
+          onClick={(e) => { e.stopPropagation(); closeOverlay(); }}
+          className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
         >
           <X className="h-5 w-5 text-white/90" />
         </button>
         <button
-          onClick={() => window.open(video.url, '_blank')}
-          className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
+          onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
+          className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
         >
           <ExternalLink className="h-4 w-4 text-white/90" />
         </button>
       </div>
 
-      {/* Video area */}
-      <div className="flex-1 flex items-center justify-center relative">
+      {/* Video area — full screen, no controls */}
+      <div className="absolute inset-0 flex items-center justify-center">
         {loading ? (
           <div className="flex flex-col items-center gap-3">
-            <div className="h-14 w-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
+            {video.cover_url && (
+              <img src={video.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm" />
+            )}
+            <div className="relative z-10 h-14 w-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
               <Loader2 className="h-6 w-6 text-white animate-spin" />
             </div>
-            <span className="text-white/50 text-xs animate-pulse">Загрузка...</span>
+            <span className="relative z-10 text-white/50 text-xs animate-pulse">Жүктелуде...</span>
           </div>
         ) : playUrl === "tiktok_embed_fallback" ? (
           <iframe
@@ -200,15 +265,42 @@ export function FullscreenVideoPlayer({
             scrolling="no"
           />
         ) : playUrl ? (
-          <video
-            ref={videoRef}
-            src={playUrl}
-            className="w-full h-full object-contain"
-            controls
-            autoPlay
-            playsInline
-            preload="auto"
-          />
+          <>
+            <video
+              ref={videoRef}
+              src={playUrl}
+              className="w-full h-full object-contain"
+              autoPlay
+              playsInline
+              preload="auto"
+              loop={false}
+            />
+            {/* Tap pause/play indicator */}
+            {showPauseIcon && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                <div className="h-20 w-20 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+                  {ended ? (
+                    <RotateCcw className="h-10 w-10 text-white" />
+                  ) : paused ? (
+                    <Play className="h-10 w-10 text-white ml-1" />
+                  ) : (
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-8 bg-white rounded-sm" />
+                      <div className="w-2.5 h-8 bg-white rounded-sm" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* Ended — replay overlay */}
+            {ended && !showPauseIcon && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                <div className="h-20 w-20 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                  <RotateCcw className="h-10 w-10 text-white" />
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="flex flex-col items-center gap-3">
             <p className="text-white/50 text-xs">Видео қолжетімсіз</p>
@@ -232,7 +324,7 @@ export function FullscreenVideoPlayer({
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
             <button
-              onClick={() => onToggleFav(video.id)}
+              onClick={(e) => { e.stopPropagation(); onToggleFav(video.id); }}
               className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
             >
               <Heart className={`h-7 w-7 ${isFavorite ? "text-red-500 fill-red-500" : "text-white"}`} />
@@ -284,7 +376,7 @@ export function FullscreenVideoPlayer({
 
             {/* Caption */}
             {video.caption && (
-              <p className="text-white/70 text-xs leading-relaxed line-clamp-3">
+              <p className="text-white/70 text-xs leading-relaxed line-clamp-2">
                 {video.caption}
               </p>
             )}
@@ -292,7 +384,7 @@ export function FullscreenVideoPlayer({
             {/* Analyze button */}
             {onAnalyze && (
               <button
-                onClick={() => { onAnalyze(video); onClose(); }}
+                onClick={(e) => { e.stopPropagation(); onAnalyze(video); onClose(); }}
                 className="mt-3 w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide bg-neon text-neon-foreground active:scale-[0.97] transition-transform"
                 style={{ boxShadow: "0 4px 20px hsl(72 100% 50% / 0.25)" }}
               >
