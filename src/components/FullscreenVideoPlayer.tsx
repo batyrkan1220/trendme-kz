@@ -60,6 +60,7 @@ export function FullscreenVideoPlayer({
   onClose,
   isFavorite,
   onToggleFav,
+  onAnalyze,
 }: FullscreenVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const views = Number(video.views) || 0;
