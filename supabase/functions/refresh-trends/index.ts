@@ -915,7 +915,9 @@ Every index must appear in exactly one array. Use ONLY keys from the list above.
                     const video = newVideos[r.index];
                     if (!video) continue;
                     video.niche = r.niche;
-                    video.sub_niche = null;
+                    // Assign first sub_niche of target parent niche so video appears in frontend
+                    const subNiches = NICHE_TO_SUB_NICHES[r.niche];
+                    video.sub_niche = subNiches && subNiches.length > 0 ? subNiches[0] : null;
                     video.categories = [r.niche];
                   }
                   const reassignedVideos = reassigned
