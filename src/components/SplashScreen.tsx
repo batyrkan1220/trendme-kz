@@ -189,9 +189,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                 fontSize: 32,
                 letterSpacing: "0.2em",
                 color: c.text,
-                textShadow: isGreenPhase
-                  ? "0 1px 2px hsl(0 0% 100% / 0.15)"
-                  : "0 0 30px hsl(72 100% 50% / 0.4)",
+                textShadow: "0 1px 2px hsl(0 0% 100% / 0.15)",
                 opacity: phase >= 2 ? 1 : 0,
                 transform: phase >= 2 ? "translateY(0)" : "translateY(30px)",
                 transition: `all 600ms cubic-bezier(0.16, 1, 0.3, 1) ${400 + i * 60}ms`,
