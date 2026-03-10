@@ -1058,6 +1058,21 @@ function RefreshSection() {
     setSelectedNiches(prev => prev.includes(niche) ? prev.filter(n => n !== niche) : [...prev, niche]);
   };
 
+  const toggleRefreshLang = (key: string) => {
+    if (key === "all") {
+      setRefreshLangs(["all"]);
+      return;
+    }
+    setRefreshLangs(prev => {
+      const without = prev.filter(l => l !== "all");
+      if (without.includes(key)) {
+        const next = without.filter(l => l !== key);
+        return next.length === 0 ? ["all"] : next;
+      }
+      return [...without, key];
+    });
+  };
+
   const triggerRefresh = async () => {
     const niches = selectAll ? null : selectedNiches;
     if (!selectAll && selectedNiches.length === 0) {
@@ -1066,18 +1081,23 @@ function RefreshSection() {
     }
     const langLabels: Record<string, string> = { all: "все языки", kk: "🇰🇿 қазақша", ru: "🇷🇺 русский", en: "🇬🇧 English" };
     const label = selectAll ? "все категории" : `${selectedNiches.length} категорий`;
-    toast.info(`Обновление запущено: ${label}, ${langLabels[refreshLang]}`);
-    supabase.functions.invoke("refresh-trends", { 
-      body: { 
-        mode: "mass", 
-        ...(niches ? { target_niches: niches } : {}),
-        ...(refreshLang !== "all" ? { lang: refreshLang } : {}),
-      } 
-    }).then(() => {
-      queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
-    }).catch(() => {
-      queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
-    });
+    const langLabel = refreshLangs.includes("all") ? langLabels.all : refreshLangs.map(l => langLabels[l] || l).join(", ");
+    toast.info(`Обновление запущено: ${label}, ${langLabel}`);
+
+    const langsToRun = refreshLangs.includes("all") ? [null] : refreshLangs;
+    for (const lang of langsToRun) {
+      supabase.functions.invoke("refresh-trends", { 
+        body: { 
+          mode: "mass", 
+          ...(niches ? { target_niches: niches } : {}),
+          ...(lang ? { lang } : {}),
+        } 
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
+      }).catch(() => {
+        queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
+      });
+    }
     setTimeout(() => queryClient.invalidateQueries({ queryKey: ["refresh-logs"] }), 2000);
   };
 
