@@ -131,6 +131,17 @@ const SUB_NICHE_LABELS: Record<string, string> = {
 
 const nicheLabel = (key: string) => SUB_NICHE_LABELS[key] || key;
 
+// Parent niche labels for AI prompt context
+const SUB_NICHE_LABELS_MAP: Record<string, string> = {
+  business: "Бизнес и деньги", beauty: "Бьюти", fashion: "Мода",
+  food: "Еда и рестораны", fitness: "Фитнес и здоровье", sports: "Спорт",
+  education: "Образование", gaming: "Гейминг", tech: "IT/Технологии",
+  auto: "Авто", home: "Дом", family: "Семья", psychology: "Психология",
+  entertainment: "Развлечения", media: "Медиа", animals: "Животные",
+  travel: "Путешествия", ai: "AI", hobby: "Хобби", medicine: "Медицина",
+  realestate: "Недвижимость", blogging: "Блогинг", kazakh_culture: "Казахская культура",
+};
+
 // Sub-niche to main niche mapping (must match src/config/niches.ts)
 const SUB_NICHE_TO_NICHE: Record<string, string> = {
   // business
