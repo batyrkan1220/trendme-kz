@@ -346,7 +346,11 @@ export default function Trends() {
                 )}
               </div>
 
-              <div className="p-4 md:p-6 lg:p-8">
+              <div
+                className="p-4 md:p-6 lg:p-8"
+                onTouchStart={handleSwipeStart}
+                onTouchEnd={handleSwipeEnd}
+              >
                 <VirtualTrendGrid
                   videos={drillVideosFiltered}
                   playingId={playingId}
