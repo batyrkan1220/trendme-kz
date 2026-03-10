@@ -560,8 +560,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               e.stopPropagation();
               onAnalyze(video);
             }}
-            className={`w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide transition-all active:scale-[0.97] ${darkMode ? "bg-neon text-black" : "bg-primary text-primary-foreground"}`}
-            style={darkMode ? { boxShadow: "0 4px 20px hsl(72 100% 50% / 0.2), 0 0 0 0.5px hsl(72 100% 50% / 0.3) inset" } : undefined}
+            className="w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide transition-all active:scale-[0.97] bg-primary text-primary-foreground"
           >
             Анализ видео
           </button>

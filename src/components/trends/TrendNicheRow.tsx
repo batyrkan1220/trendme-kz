@@ -41,7 +41,7 @@ export function TrendNicheRow({
         className="flex items-center justify-between sticky z-20 -mx-4 px-4 py-2.5"
         style={{
           top: "0px",
-          background: "rgba(10,10,10,0.55)",
+          background: "hsl(var(--background) / 0.85)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
         }}
