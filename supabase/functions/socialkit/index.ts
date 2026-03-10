@@ -84,7 +84,6 @@ Deno.serve(async (req: Request) => {
     const ensembleToken = Deno.env.get("ENSEMBLE_DATA_TOKEN")!;
 
     const authHeader = req.headers.get("authorization") || "";
-    }
     if (!ensembleToken) {
       return json({ error: "ENSEMBLE_DATA_TOKEN not configured" }, 500);
     }
