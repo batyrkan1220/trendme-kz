@@ -162,7 +162,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           </div>
           <span className={cn(
             "text-[11px] font-semibold leading-tight transition-colors",
-            isToolsActive || showToolsMenu ? "text-neon" : "text-white"
+            isToolsActive || showToolsMenu ? "text-neon" : "text-foreground/60"
           )}>
             Анализ
           </span>
