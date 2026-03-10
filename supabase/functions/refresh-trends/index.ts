@@ -717,10 +717,16 @@ Deno.serve(async (req: Request) => {
 
           if (views < MIN_VIEWS) { lowViews++; return null; }
 
-          // Filter: reject Ukrainian content, accept Kazakh + Russian for KK mode
+          // Filter: reject non-KK/RU Cyrillic (Ukrainian, Bulgarian, Serbian, etc.)
           const caption = v.desc || "";
+          // Ukrainian chars
           const hasUkrainianChars = /[їєґЇЄҐ]/u.test(caption);
           if (hasUkrainianChars) { nonCyrillic++; return null; }
+          // Bulgarian/Serbian indicators: ъ, щ paired with Latin-only patterns, or specific Bulgarian words
+          // More reliable: reject if caption has Bulgarian-specific patterns
+          const hasBulgarianIndicators = /[ъЪ]/u.test(caption) && !/[әңғүұқөһӘҢҒҮҰҚӨҺ]/u.test(caption)
+            && /\b(на|от|за|при|към|или|има|ще|бъде|също|повече|цена|цени|може)\b/iu.test(caption);
+          if (hasBulgarianIndicators) { nonCyrillic++; return null; }
 
           if (targetLang === "kk") {
             // KK mode: accept both Kazakh and Russian videos (Cyrillic required)
@@ -733,7 +739,7 @@ Deno.serve(async (req: Request) => {
             // English mode: accept any video
             var detectedLang = "en";
           } else {
-            // Russian mode: require Cyrillic
+            // Russian mode: require Cyrillic, reject Bulgarian
             const hasCyrillic = /[а-яА-ЯёЁ]/u.test(caption);
             if (!hasCyrillic) { nonCyrillic++; return null; }
             var detectedLang = "ru";
