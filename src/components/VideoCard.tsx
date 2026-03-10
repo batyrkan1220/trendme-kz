@@ -542,7 +542,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
       {/* Caption — fixed height */}
       <div className="px-3 pt-1.5 pb-0.5 h-[2.75rem]">
-        <p className={`text-xs line-clamp-2 leading-relaxed ${darkMode ? "text-white" : "text-foreground/80"}`}>
+        <p className="text-xs line-clamp-2 leading-relaxed text-foreground/80">
           {caption || "Без описания"}
         </p>
       </div>
