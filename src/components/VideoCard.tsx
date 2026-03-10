@@ -420,10 +420,10 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     <div className="absolute -inset-2 rounded-full bg-white/10 group-hover:bg-white/20 blur-md transition-all duration-300" />
                     {/* Main play button */}
                     <div 
-                      className="relative h-14 w-14 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 group-hover:bg-white group-hover:border-white/80 group-hover:scale-110 transition-all duration-300 pointer-events-auto cursor-pointer"
+                      className="relative h-10 w-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 opacity-70 group-hover:bg-white group-hover:border-white/80 group-hover:scale-110 group-hover:opacity-100 transition-all duration-300 pointer-events-auto cursor-pointer"
                       onClick={handlePlay}
                     >
-                      <Play className="h-6 w-6 text-white group-hover:text-foreground ml-0.5 transition-colors duration-300" fill="currentColor" fillOpacity={0.3} />
+                      <Play className="h-4 w-4 text-white group-hover:text-foreground ml-0.5 transition-colors duration-300" fill="currentColor" fillOpacity={0.3} />
                     </div>
                   </div>
                 </div>
