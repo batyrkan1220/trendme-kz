@@ -164,10 +164,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const isMobileFromHook = useIsMobile();
   const isMobile = isMobileOverride ?? isMobileFromHook;
 
-  // On mobile: open fullscreen overlay instead of native fullscreen API
+  // On mobile: open fullscreen overlay instead of in-card player
   useEffect(() => {
-    if (!isMobile || !playUrl || playUrl === "tiktok_embed_fallback") return;
-    // When play URL is ready on mobile, show fullscreen overlay
+    if (!isMobile || !playUrl) return;
     if (!showFullscreen && playingId === video.id) {
       setShowFullscreen(true);
     }
