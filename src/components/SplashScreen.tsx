@@ -261,7 +261,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                 className="flex items-center justify-center shrink-0"
                 style={{
                   width: 44, height: 44, borderRadius: 14,
-                  background: isGreenPhase ? (c.iconBg as string) : c.iconBg,
+                  background: c.iconBg as string,
                   border: `1px solid ${c.iconBorder}`,
                   boxShadow: visible ? c.iconShadow : "none",
                   transition: "box-shadow 800ms ease-out",
