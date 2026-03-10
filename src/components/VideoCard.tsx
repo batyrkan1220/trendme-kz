@@ -158,36 +158,20 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
+  const [showFullscreen, setShowFullscreen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
   const isMobileFromHook = useIsMobile();
   const isMobile = isMobileOverride ?? isMobileFromHook;
 
-  // Auto-fullscreen on mobile when video is ready
+  // On mobile: open fullscreen overlay instead of native fullscreen API
   useEffect(() => {
-    if (!isMobile || !playUrl || !videoRef.current) return;
-    const el = videoRef.current;
-    const goFull = () => {
-      try {
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if ((el as any).webkitEnterFullscreen) (el as any).webkitEnterFullscreen();
-      } catch {}
-    };
-    el.addEventListener("loadeddata", goFull, { once: true });
-
-    const onFsChange = () => {
-      if (!document.fullscreenElement) {
-        onPlay(null);
-        setPlayUrl(null);
-      }
-    };
-    document.addEventListener("fullscreenchange", onFsChange);
-
-    return () => {
-      el.removeEventListener("loadeddata", goFull);
-      document.removeEventListener("fullscreenchange", onFsChange);
-    };
-  }, [isMobile, playUrl, onPlay]);
+    if (!isMobile || !playUrl || playUrl === "tiktok_embed_fallback") return;
+    // When play URL is ready on mobile, show fullscreen overlay
+    if (!showFullscreen && playingId === video.id) {
+      setShowFullscreen(true);
+    }
+  }, [isMobile, playUrl, playingId, video.id, showFullscreen]);
 
   // PRELOAD DISABLED ENTIRELY to save credits
   // The previous hover preload was consuming ~1400 credits/week
