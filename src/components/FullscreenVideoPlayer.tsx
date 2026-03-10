@@ -371,7 +371,7 @@ export function FullscreenVideoPlayer({
             {/* Views */}
             <div className="flex items-center gap-1 mb-1.5">
               <Eye className="h-3.5 w-3.5 text-white/60" />
-              <span className="text-white/80 text-xs font-semibold">{fmt(views)} қаралым</span>
+              <span className="text-white/80 text-xs font-semibold">{fmt(views)} просмотров</span>
             </div>
 
             {/* Caption */}
