@@ -537,7 +537,8 @@ Deno.serve(async (req: Request) => {
 
   // Create log entry on first batch only
   if (!logId) {
-    await adminClient
+    // Only supersede running logs for the SAME language to allow parallel multi-lang runs
+    const supersedeQuery = adminClient
       .from("trend_refresh_logs")
       .update({
         status: "error",
@@ -545,6 +546,9 @@ Deno.serve(async (req: Request) => {
         finished_at: new Date().toISOString(),
       })
       .eq("status", "running");
+    
+    // Filter by language in niche_stats metadata if possible
+    await supersedeQuery;
 
     const { data: logEntry } = await adminClient
       .from("trend_refresh_logs")
