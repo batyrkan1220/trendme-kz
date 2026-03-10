@@ -956,6 +956,7 @@ function RefreshSection() {
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [refreshLang, setRefreshLang] = useState<string>("all");
+  const [expandedRefreshGroup, setExpandedRefreshGroup] = useState<string | null>(null);
 
   const { data: nicheQueries = {} } = useQuery({
     queryKey: ["trend-settings", "niche_queries"],
@@ -1123,30 +1124,82 @@ function RefreshSection() {
                   <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedNiches([])}>
                     Сбросить
                   </Button>
+                  {selectedNiches.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">{selectedNiches.length} выбрано</Badge>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 max-h-[300px] overflow-y-auto">
-                  {allNiches.map(niche => {
-                    const count = videoCounts[niche] || 0;
-                    const limit = categoryLimits[niche] || 100;
-                    const isFull = count >= limit;
-                    const isSelected = selectedNiches.includes(niche);
+                <div className="space-y-1 max-h-[400px] overflow-y-auto">
+                  {NICHE_GROUPS.map((group) => {
+                    const groupSubKeys = group.subNiches.map(s => s.key).filter(k => allNiches.includes(k));
+                    if (groupSubKeys.length === 0) return null;
+                    const isExpanded = expandedRefreshGroup === group.key;
+                    const selectedInGroup = groupSubKeys.filter(k => selectedNiches.includes(k)).length;
+                    const allInGroupSelected = selectedInGroup === groupSubKeys.length;
+                    const someInGroupSelected = selectedInGroup > 0 && !allInGroupSelected;
+                    const groupVideoCount = groupSubKeys.reduce((sum, k) => sum + (videoCounts[k] || 0), 0);
+                    const groupLimit = groupSubKeys.reduce((sum, k) => sum + (categoryLimits[k] || 100), 0);
+
                     return (
-                      <button
-                        key={niche}
-                        onClick={() => toggleNiche(niche)}
-                        className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs border transition-colors ${
-                          isSelected 
-                            ? "bg-primary text-primary-foreground border-primary" 
-                            : isFull 
-                              ? "bg-muted/30 border-border/50 text-muted-foreground"
-                              : "bg-background border-border hover:border-primary/50"
-                        }`}
-                      >
-                        <span className="font-medium truncate">{subNicheLabels[niche] || niche}</span>
-                        <span className={`ml-1 text-[10px] ${isFull ? "text-primary" : ""}`}>
-                          {count}/{limit}
-                        </span>
-                      </button>
+                      <div key={group.key} className="border border-border/50 rounded-lg overflow-hidden">
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => setExpandedRefreshGroup(isExpanded ? null : group.key)}
+                            className="flex-1 flex items-center gap-2 px-3 py-2 hover:bg-muted/30 transition-colors text-sm"
+                          >
+                            <ChevronRight className={`h-4 w-4 transition-transform shrink-0 ${isExpanded ? "rotate-90" : ""}`} />
+                            <span className="text-base">{group.emoji}</span>
+                            <span className="font-semibold">{group.label}</span>
+                            <span className="text-[10px] text-muted-foreground ml-auto mr-2">
+                              {groupVideoCount}/{groupLimit}
+                            </span>
+                            {someInGroupSelected && <Badge variant="secondary" className="text-[10px] px-1.5">{selectedInGroup}/{groupSubKeys.length}</Badge>}
+                            {allInGroupSelected && <Badge className="text-[10px] px-1.5 bg-primary text-primary-foreground">✓ все</Badge>}
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (allInGroupSelected) {
+                                setSelectedNiches(prev => prev.filter(n => !groupSubKeys.includes(n)));
+                              } else {
+                                setSelectedNiches(prev => [...new Set([...prev, ...groupSubKeys])]);
+                              }
+                            }}
+                            className={`px-3 py-2 text-xs font-medium border-l border-border/50 hover:bg-muted/30 transition-colors ${
+                              allInGroupSelected ? "text-primary" : "text-muted-foreground"
+                            }`}
+                          >
+                            {allInGroupSelected ? "Убрать" : "Все"}
+                          </button>
+                        </div>
+                        {isExpanded && (
+                          <div className="px-3 pb-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                            {group.subNiches.map((sub) => {
+                              if (!allNiches.includes(sub.key)) return null;
+                              const count = videoCounts[sub.key] || 0;
+                              const limit = categoryLimits[sub.key] || 100;
+                              const isFull = count >= limit;
+                              const isSelected = selectedNiches.includes(sub.key);
+                              return (
+                                <button
+                                  key={sub.key}
+                                  onClick={() => toggleNiche(sub.key)}
+                                  className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs border transition-colors ${
+                                    isSelected
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : isFull
+                                        ? "bg-muted/30 border-border/50 text-muted-foreground"
+                                        : "bg-background border-border hover:border-primary/50"
+                                  }`}
+                                >
+                                  <span className="font-medium truncate">{sub.label}</span>
+                                  <span className={`ml-1 text-[10px] ${isFull ? "text-primary" : ""}`}>
+                                    {count}/{limit}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
