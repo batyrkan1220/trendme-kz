@@ -700,15 +700,19 @@ Deno.serve(async (req: Request) => {
           // Filter: only keep videos with appropriate language content
           const caption = v.desc || "";
           if (targetLang === "kk") {
-            // For Kazakh mode: require at least one Kazakh-specific character
-            const hasKazakhChars = /[әіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
-            if (!hasKazakhChars) { nonCyrillic++; return null; }
+            // Reject if caption has Ukrainian-specific characters (ї, є, ґ)
+            const hasUkrainianChars = /[їєґЇЄҐ]/u.test(caption);
+            if (hasUkrainianChars) { nonCyrillic++; return null; }
+            // Require at least 2 Kazakh-specific characters (excluding і which is shared with Ukrainian)
+            const kazakhOnlyChars = caption.match(/[әңғүұқөһӘҢҒҮҰҚӨҺ]/gu);
+            if (!kazakhOnlyChars || kazakhOnlyChars.length < 2) { nonCyrillic++; return null; }
           } else if (targetLang === "en") {
             // For English mode: accept any video (no script filter)
-            // lang will be assigned as "en" below
           } else {
-            // For Russian mode: require any Cyrillic
-            const hasCyrillic = /[а-яА-ЯёЁәіңғүұқөһӘІҢҒҮҰҚӨҺ]/u.test(caption);
+            // For Russian mode: require Cyrillic, reject Ukrainian-specific chars
+            const hasUkrainianChars = /[їєґЇЄҐ]/u.test(caption);
+            if (hasUkrainianChars) { nonCyrillic++; return null; }
+            const hasCyrillic = /[а-яА-ЯёЁ]/u.test(caption);
             if (!hasCyrillic) { nonCyrillic++; return null; }
           }
 
