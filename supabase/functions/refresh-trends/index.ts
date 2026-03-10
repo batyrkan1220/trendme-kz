@@ -553,11 +553,11 @@ Deno.serve(async (req: Request) => {
     const { data: logEntry } = await adminClient
       .from("trend_refresh_logs")
       .insert({
-        mode,
+        mode: targetLang ? `${mode}_${targetLang}` : mode,
         status: "running",
         total_saved: 0,
         general_saved: 0,
-        niche_stats: {},
+        niche_stats: { _lang: targetLang || "all" },
         triggered_by: userId,
       })
       .select("id")
