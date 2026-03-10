@@ -123,13 +123,27 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               onClick={() => goTo(item.path)}
               className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
             >
-              <item.icon
-                className={cn(
-                  "h-[25px] w-[25px] transition-colors duration-200",
-                  active ? "text-neon" : "text-white"
-                )}
-                strokeWidth={active ? 2.2 : 1.8}
-              />
+              {item.path === "/trends" && active ? (
+                <div className="relative">
+                  <item.icon
+                    className="h-[25px] w-[25px] text-neon animate-flame-flicker"
+                    strokeWidth={2.2}
+                    style={{ filter: "drop-shadow(0 0 6px hsl(var(--neon) / 0.6)) drop-shadow(0 0 12px hsl(var(--neon) / 0.3))" }}
+                  />
+                  <div
+                    className="absolute inset-0 rounded-full animate-flame-glow"
+                    style={{ background: "radial-gradient(circle, hsl(var(--neon) / 0.25) 0%, transparent 70%)", filter: "blur(4px)" }}
+                  />
+                </div>
+              ) : (
+                <item.icon
+                  className={cn(
+                    "h-[25px] w-[25px] transition-colors duration-200",
+                    active ? "text-neon" : "text-white"
+                  )}
+                  strokeWidth={active ? 2.2 : 1.8}
+                />
+              )}
               <span className={cn(
                 "text-[11px] font-semibold leading-tight transition-colors",
                 active ? "text-neon" : "text-white"
