@@ -892,7 +892,7 @@ Every index must appear in exactly one array.` },
               if (jsonMatch) {
                 const result = JSON.parse(jsonMatch[0]);
                 const acceptedIndices = new Set((result.accepted || []).map(Number));
-                const reassigned: Array<{index: number; niche: string}> = result.reassigned || [];
+                const reassigned: Array<{index: number; sub_niche?: string; niche?: string}> = result.reassigned || [];
                 const discarded: number[] = result.discarded || [];
 
                 const before = verifiedNewVideos.length;
@@ -904,27 +904,40 @@ Every index must appear in exactly one array.` },
                   console.log(`  🤖 AI: ✅${verifiedNewVideos.length} ♻️${reassigned.length} 🗑️${discarded.length} (total ${before})`);
                 }
 
-                // Reassign videos to correct niches
+                // Reassign videos to correct sub-niches
                 if (reassigned.length > 0) {
-                  // Filter out invalid niche keys (AI sometimes puts "discarded" as niche)
                   const validReassigned = reassigned.filter(r => {
-                    if (!r.niche || !SUB_NICHE_LABELS_MAP[r.niche]) {
-                      nicheDiscarded++;
-                      return false;
-                    }
-                    return true;
+                    // Support both sub_niche and niche keys from AI
+                    const subKey = r.sub_niche || r.niche;
+                    if (!subKey) { nicheDiscarded++; return false; }
+                    // Check if it's a valid sub_niche key
+                    if (SUB_NICHE_TO_NICHE[subKey]) return true;
+                    // Check if it's a valid parent niche key
+                    if (SUB_NICHE_LABELS_MAP[subKey]) return true;
+                    nicheDiscarded++;
+                    return false;
                   });
+
                   for (const r of validReassigned) {
                     const video = newVideos[r.index];
                     if (!video) continue;
-                    video.niche = r.niche;
-                    // Assign first sub_niche of target parent niche so video appears in frontend
-                    const subNiches = NICHE_TO_SUB_NICHES[r.niche];
-                    video.sub_niche = subNiches && subNiches.length > 0 ? subNiches[0] : null;
-                    video.categories = [r.niche];
+                    const subKey = r.sub_niche || r.niche || "";
+                    
+                    if (SUB_NICHE_TO_NICHE[subKey]) {
+                      // It's a sub_niche key → set both niche and sub_niche
+                      video.niche = SUB_NICHE_TO_NICHE[subKey];
+                      video.sub_niche = subKey;
+                    } else if (SUB_NICHE_LABELS_MAP[subKey]) {
+                      // It's a parent niche key → assign first sub_niche
+                      video.niche = subKey;
+                      const subs = NICHE_TO_SUB_NICHES[subKey];
+                      video.sub_niche = subs && subs.length > 0 ? subs[0] : null;
+                    }
+                    video.categories = [video.niche];
                   }
-                  const reassignedVideos = reassigned
-                    .filter(r => newVideos[r.index] && SUB_NICHE_LABELS_MAP[r.niche])
+
+                  const reassignedVideos = validReassigned
+                    .filter(r => newVideos[r.index])
                     .map(r => newVideos[r.index]);
 
                   if (reassignedVideos.length > 0) {
@@ -935,9 +948,11 @@ Every index must appear in exactly one array.` },
                       console.error(`  Reassign insert error:`, reErr.message);
                     } else {
                       nicheReassigned += reassignedVideos.length;
-                      const reassignLog = reassigned
-                        .filter(r => SUB_NICHE_LABELS_MAP[r.niche])
-                        .map(r => `    → ${SUB_NICHE_LABELS_MAP[r.niche]}: ${(newVideos[r.index]?.caption || "").slice(0, 60)}`)
+                      const reassignLog = validReassigned
+                        .map(r => {
+                          const v = newVideos[r.index];
+                          return `    → ${v?.sub_niche || v?.niche}: ${(v?.caption || "").slice(0, 60)}`;
+                        })
                         .join("\n");
                       console.log(`  ♻️ Reassigned:\n${reassignLog}`);
                     }
