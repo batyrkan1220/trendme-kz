@@ -205,9 +205,9 @@ export default function Trends() {
     { value: 30, label: "30 дней" },
   ];
 
-  const handleViewAll = (nicheKey: string) => {
+  const handleViewAll = (nicheKey: string, subNicheKey?: string) => {
     setDrillNiche(nicheKey);
-    setDrillSubNiche(null);
+    setDrillSubNiche(subNicheKey || null);
     setVisibleCount(PAGE_SIZE);
   };
 
