@@ -327,7 +327,7 @@ export const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   fitness: "fitness",
   food: "food",
   gaming: "gaming",
-  lifestyle: "beauty",
+  lifestyle: "lifestyle",
   marketing: "business",
   medicine: "medicine",
   music: "media",
