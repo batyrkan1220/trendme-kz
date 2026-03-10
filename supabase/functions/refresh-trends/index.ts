@@ -209,7 +209,13 @@ const SUB_NICHE_TO_NICHE: Record<string, string> = {
   kazakh_language: "kazakh_culture", kazakh_music: "kazakh_culture", kazakh_celebrities: "kazakh_culture",
 };
 
-// Old category → new main niche mapping (for backward compatibility)
+// Build reverse map
+for (const [sub, parent] of Object.entries(SUB_NICHE_TO_NICHE)) {
+  if (!NICHE_TO_SUB_NICHES[parent]) NICHE_TO_SUB_NICHES[parent] = [];
+  NICHE_TO_SUB_NICHES[parent].push(sub);
+}
+
+
 const OLD_CATEGORY_TO_NICHE: Record<string, string> = {
   animals: "animals", art: "hobby", auto: "auto", beauty: "beauty", books: "education",
   business: "business", cinema: "media", comedy: "entertainment", dance: "media",
