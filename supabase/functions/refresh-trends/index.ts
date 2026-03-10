@@ -790,15 +790,54 @@ Deno.serve(async (req: Request) => {
 
         console.log(`  💾 "${query}": ${newCount} new / ${existingIds.size} dupes`);
 
-        // Insert new videos with niche assignment
+        // AI verification: check if new videos actually belong to target niche
+        let verifiedNewVideos = newVideos;
         if (newVideos.length > 0) {
+          const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+          if (LOVABLE_API_KEY) {
+            try {
+              const captions = newVideos.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 120)}`).join("\n");
+              const nicheDisplayName = nicheLabel(nicheKey);
+              const parentNiche = SUB_NICHE_TO_NICHE[nicheKey] || nicheKey;
+              
+              const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  model: "google/gemini-2.5-flash-lite",
+                  messages: [
+                    { role: "system", content: `You are a video categorization verifier. Given a list of video captions (numbered), determine which ones ACTUALLY belong to the category "${nicheDisplayName}" (parent: "${parentNiche}"). A video belongs if its content is directly related to this topic. Return ONLY a JSON array of indices that belong, e.g. [0,2,5]. Be strict — reject videos about unrelated topics like politics, news, religion etc. unless the category is specifically about those topics.` },
+                    { role: "user", content: captions },
+                  ],
+                }),
+              });
+              const aiData = await aiRes.json();
+              const content = aiData?.choices?.[0]?.message?.content || "";
+              const match = content.match(/\[[\s\S]*?\]/);
+              if (match) {
+                const validIndices = new Set(JSON.parse(match[0]).map(Number));
+                const before = verifiedNewVideos.length;
+                verifiedNewVideos = newVideos.filter((_: any, idx: number) => validIndices.has(idx));
+                const rejected = before - verifiedNewVideos.length;
+                if (rejected > 0) {
+                  console.log(`  🤖 AI verified: ${verifiedNewVideos.length}/${before} passed, ${rejected} rejected as irrelevant`);
+                }
+              }
+            } catch (aiErr) {
+              console.warn("AI verification failed, accepting all:", (aiErr as Error).message);
+            }
+          }
+        }
+
+        // Insert verified new videos with niche assignment
+        if (verifiedNewVideos.length > 0) {
           const { error: insertErr } = await adminClient
             .from("videos")
-            .upsert(newVideos, { onConflict: "platform,platform_video_id" });
+            .upsert(verifiedNewVideos, { onConflict: "platform,platform_video_id" });
           if (insertErr) {
             console.error(`Insert error for ${nicheKey}:`, insertErr.message);
           } else {
-            nicheSaved += newCount;
+            nicheSaved += verifiedNewVideos.length;
           }
         }
 
