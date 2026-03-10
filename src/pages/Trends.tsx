@@ -329,7 +329,7 @@ export default function Trends() {
                   <div className="space-y-6">
                     {Array.from({ length: 3 }).map((_, i) => (
                       <div key={i} className="space-y-2">
-                        <div className="h-5 bg-white/10 rounded w-32 animate-pulse" />
+                        <div className="h-5 bg-foreground/10 rounded w-32 animate-pulse" />
                         <div className="flex gap-3">
                           {Array.from({ length: 3 }).map((_, j) => (
                             <div
