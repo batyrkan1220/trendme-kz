@@ -152,9 +152,13 @@ const App = () => {
     if (!isNativePlatform) return false;
     return true;
   });
+  const [splashJustFinished, setSplashJustFinished] = useState(false);
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
+    setSplashJustFinished(true);
     if (typeof sessionStorage !== "undefined") sessionStorage.setItem("splash_shown", "1");
+    // Remove reveal class after animation completes
+    setTimeout(() => setSplashJustFinished(false), 700);
   }, []);
 
   return (
@@ -167,7 +171,9 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <TrackingPixels />
-            <AppRoutes />
+            <div className={splashJustFinished ? "animate-post-splash-reveal" : ""}>
+              <AppRoutes />
+            </div>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
