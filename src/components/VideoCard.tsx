@@ -460,9 +460,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 >
                   <Heart
                     className={`h-4 w-4 transition-all ${
-                      isFavorite
-                        ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
-                        : "text-white"
+                      isFavorite ? "text-primary fill-primary" : "text-white"
                     }`}
                   />
                 </button>
