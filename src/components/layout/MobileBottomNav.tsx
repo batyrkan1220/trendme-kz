@@ -149,7 +149,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             <ScanSearch
               className={cn(
                 "h-[25px] w-[25px] transition-colors duration-200",
-                isToolsActive || showToolsMenu ? "text-neon" : "text-white"
+                isToolsActive || showToolsMenu ? "text-neon" : "text-foreground/60"
               )}
               strokeWidth={isToolsActive || showToolsMenu ? 2.2 : 1.8}
             />
