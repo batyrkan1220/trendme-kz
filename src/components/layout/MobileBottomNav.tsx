@@ -179,7 +179,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
               <Heart
                 className={cn(
                   "h-[25px] w-[25px] transition-colors duration-200",
-                  active ? "text-neon fill-neon" : "text-white"
+                  active ? "text-neon fill-neon" : "text-foreground/60"
                 )}
                 strokeWidth={active ? 2.2 : 1.8}
               />
