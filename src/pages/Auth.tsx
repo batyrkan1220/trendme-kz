@@ -102,6 +102,10 @@ export default function Auth() {
         }
         else {
           trackRegistrationEvent();
+          // Record EULA acceptance
+          if (user) {
+            supabase.from("eula_acceptances" as any).insert({ user_id: user.id, version: "1.0" } as any).then(() => {});
+          }
           toast.success("Проверьте email для подтверждения регистрации");
         }
       }
