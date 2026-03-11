@@ -57,7 +57,7 @@ export default function Auth() {
         });
 
         if (error) {
-          toast.error("Apple кіру қатесі. Қайталап көріңіз.");
+          toast.error("Ошибка входа через Apple. Попробуйте снова.");
           console.error("[Apple Sign In] signInWithIdToken error:", error);
         } else {
           navigate("/trends");
