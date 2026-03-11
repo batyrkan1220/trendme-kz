@@ -157,15 +157,7 @@ export default function VideoAnalysis() {
       <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
             {isPending ?
-          <>
-                <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
-                  <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
-                </div>
-                <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
-                  Анализируем, транскрибируем и переводим видео...
-                </p>
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              </> :
+              <MagicAnalysisLoader /> :
 
           <>
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Анализ видео </h1>
