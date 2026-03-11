@@ -1,0 +1,2 @@
+ALTER TABLE public.videos ADD COLUMN IF NOT EXISTS play_url TEXT;
+ALTER TABLE public.videos ADD COLUMN IF NOT EXISTS play_url_fetched_at TIMESTAMPTZ;

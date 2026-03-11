@@ -7,18 +7,53 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FullscreenVideoPlayer } from "@/components/FullscreenVideoPlayer";
 
-/** Global in-memory cache for play URLs to avoid redundant API calls */
+/** Persistent play URL cache — survives page reloads on native mobile */
+const PLAY_CACHE_KEY = "playUrlCache";
+const PLAY_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours
+const ERROR_CACHE_TTL = 5 * 60 * 1000; // 5 min for failed URLs
+
+interface CachedEntry { url: string; ts: number }
+
+// Load from localStorage on startup
 const playUrlCache = new Map<string, string>();
+const errorCache = new Map<string, number>(); // videoUrl → timestamp of failure
+
+try {
+  const stored = localStorage.getItem(PLAY_CACHE_KEY);
+  if (stored) {
+    const entries: Record<string, CachedEntry> = JSON.parse(stored);
+    const now = Date.now();
+    for (const [key, val] of Object.entries(entries)) {
+      if (now - val.ts < PLAY_CACHE_TTL) {
+        playUrlCache.set(key, val.url);
+      }
+    }
+  }
+} catch { /* ignore */ }
+
+function persistCache() {
+  try {
+    const obj: Record<string, CachedEntry> = {};
+    const now = Date.now();
+    for (const [key, url] of playUrlCache.entries()) {
+      obj[key] = { url, ts: now };
+    }
+    localStorage.setItem(PLAY_CACHE_KEY, JSON.stringify(obj));
+  } catch { /* quota exceeded — ignore */ }
+}
 
 /** Global in-flight request tracker to prevent duplicate concurrent API calls */
 const inFlightRequests = new Map<string, Promise<string | null>>();
 
-
 /** Centralized function to fetch play URL with deduplication */
 export async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
-  // Check cache first
+  // Check memory cache first
   const cached = playUrlCache.get(videoUrl);
   if (cached) return cached;
+
+  // Check error cache — skip if recently failed
+  const failedAt = errorCache.get(videoUrl);
+  if (failedAt && Date.now() - failedAt < ERROR_CACHE_TTL) return null;
 
   // Check if request is already in progress
   const existing = inFlightRequests.get(videoUrl);
@@ -32,10 +67,14 @@ export async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | nu
       });
       if (data?.play_url) {
         playUrlCache.set(videoUrl, data.play_url);
+        persistCache();
         return data.play_url;
       }
+      // No play_url returned — mark as error
+      errorCache.set(videoUrl, Date.now());
       return null;
     } catch {
+      errorCache.set(videoUrl, Date.now());
       return null;
     } finally {
       inFlightRequests.delete(videoUrl);

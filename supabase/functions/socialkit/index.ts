@@ -971,27 +971,29 @@ Deno.serve(async (req: Request) => {
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
         video_url = await resolveShortUrl(video_url);
 
-        // Check if this video_url was logged in the last 10 minutes to prevent duplicate logging
-        const fiveMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-        const { data: recentLogs } = await adminClient
-          .from("api_usage_log")
-          .select("id, metadata")
-          .eq("action", "get_play_url")
-          .gte("created_at", fiveMinAgo)
-          .limit(50);
-        
-        const shouldLog = !(recentLogs || []).some(
-          (log: any) => log.metadata?.video_url === video_url
-        );
+        // 1. Check DB cache first — play_url valid for 2 hours
+        const awemeIdForPlay = extractAwemeId(video_url);
+        if (awemeIdForPlay) {
+          const { data: cached } = await adminClient
+            .from("videos")
+            .select("play_url, play_url_fetched_at")
+            .eq("platform_video_id", String(awemeIdForPlay))
+            .maybeSingle();
+          
+          if (cached?.play_url && cached?.play_url_fetched_at) {
+            const age = Date.now() - new Date(cached.play_url_fetched_at).getTime();
+            if (age < 2 * 60 * 60 * 1000) { // 2 hours
+              console.log("get_play_url: DB cache hit for", awemeIdForPlay);
+              return json({ play_url: cached.play_url, cached: true });
+            }
+          }
+        }
 
+        // 2. Fetch from EnsembleData
         let playUrl: string | null = null;
         try {
           const data = await callEnsemble("/tt/post/info", { url: video_url });
-          
-          // Only log if not recently logged for this URL
-          if (shouldLog) {
-            await logApiUsage("get_play_url", 1, { video_url });
-          }
+          await logApiUsage("get_play_url", 1, { video_url });
 
           const rawData = data?.data || data;
           const innerData = rawData?.aweme_detail || rawData?.aweme_details?.[0] || rawData?.["0"] || rawData;
@@ -1004,8 +1006,14 @@ Deno.serve(async (req: Request) => {
             const h264Urls = videoInfo.play_addr_h264?.url_list || [];
             playUrl = playUrls[0] || downloadUrls[0] || h264Urls[0] || null;
 
-            if (!playUrl) {
-              console.log("No play URL found. Video info keys:", JSON.stringify(Object.keys(videoInfo)));
+            // 3. Save to DB for future requests
+            if (playUrl && awemeIdForPlay) {
+              adminClient
+                .from("videos")
+                .update({ play_url: playUrl, play_url_fetched_at: new Date().toISOString() })
+                .eq("platform_video_id", String(awemeIdForPlay))
+                .then(() => {})
+                .catch(() => {});
             }
           }
         } catch (e) {
