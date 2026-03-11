@@ -192,6 +192,28 @@ export default function Auth() {
             )}
           </div>
 
+          {mode === "register" && (
+            <label className="flex items-start gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={eulaAccepted}
+                onChange={(e) => setEulaAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-border accent-primary shrink-0"
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                Я принимаю{" "}
+                <a href="/terms" target="_blank" className="text-primary hover:underline font-medium">
+                  Пользовательское соглашение
+                </a>{" "}
+                и{" "}
+                <a href="/privacy" target="_blank" className="text-primary hover:underline font-medium">
+                  Политику конфиденциальности
+                </a>
+                . Я понимаю, что нетерпимый, оскорбительный контент запрещён.
+              </span>
+            </label>
+          )}
+
           {mode === "login" && (
             <div className="text-right">
               <button type="button" onClick={() => setMode("forgot")} className="text-xs text-primary hover:underline">
