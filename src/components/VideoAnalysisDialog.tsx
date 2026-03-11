@@ -341,7 +341,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 <MagicAnalysisLoader />
               </div>
             ) : analysis ? (
-              <div className="animate-magic-reveal contents">
+              <div className="animate-magic-reveal space-y-4 md:space-y-6">
                 {/* Topic */}
                 {summary?.topic && (
                   <div>
