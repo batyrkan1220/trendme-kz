@@ -120,7 +120,7 @@ export function MagicAnalysisLoader({ isComplete }: Props) {
           />
         </div>
         <p className="text-xs text-muted-foreground animate-fade-in" style={{ animationDelay: "0.5s" }}>
-          Транскрибация · AI анализ · Аударма
+          Транскрибация · AI анализ · Перевод
         </p>
 
         {/* Progress dots */}
