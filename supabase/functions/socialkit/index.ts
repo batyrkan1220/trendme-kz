@@ -499,32 +499,48 @@ Deno.serve(async (req: Request) => {
       }
 
       case "analyze_video": {
-        let video_url = body.video_url;
-        if (!video_url) return json({ error: "video_url is required" }, 400);
-        if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
-        video_url = await resolveShortUrl(video_url);
+        let video_url = typeof body.video_url === "string" ? body.video_url.trim() : "";
+        const fallbackVideoId = String(body.platform_video_id || "").trim();
+        const fallbackUsername = normalizeTikTokUsername(body.author_username || "");
 
-        const awemeId = extractAwemeId(video_url);
-        console.log("analyze_video: resolved URL =", video_url, "awemeId =", awemeId);
+        if ((!video_url || !validateTikTokUrl(video_url)) && fallbackVideoId) {
+          const builtUrl = buildFallbackVideoUrl(fallbackVideoId, fallbackUsername);
+          if (builtUrl) video_url = builtUrl;
+        }
+
+        const isValidVideoUrl = !!video_url && validateTikTokUrl(video_url);
+        if (isValidVideoUrl) {
+          video_url = await resolveShortUrl(video_url);
+        } else {
+          console.warn("analyze_video: invalid or missing TikTok URL, using caption-only fallback");
+        }
+
+        const awemeId = (isValidVideoUrl ? extractAwemeId(video_url) : null) || fallbackVideoId || null;
+        console.log("analyze_video: resolved URL =", video_url || "[missing]", "awemeId =", awemeId);
 
         // 1. Fetch post info and comments from EnsembleData in parallel
+        const postInfoFetch = isValidVideoUrl
+          ? callEnsemble("/tt/post/info", { url: video_url })
+          : Promise.resolve(null);
+
         const commentsFetch = awemeId
           ? callEnsemble("/tt/post/comments", { aweme_id: awemeId })
           : Promise.resolve(null);
+
         const [postInfoRes, commentsRes] = await Promise.allSettled([
-          callEnsemble("/tt/post/info", { url: video_url }),
+          postInfoFetch,
           commentsFetch,
         ]);
 
         // Extract post info (stats, description, etc.)
         let statsData: any = null;
         let transcriptText = "";
-        if (postInfoRes.status === "fulfilled") {
+        if (postInfoRes.status === "fulfilled" && postInfoRes.value) {
           const raw = postInfoRes.value?.data || postInfoRes.value;
           const inner = raw?.["0"] || raw;
           statsData = unwrapVideo(inner);
           console.log("Post info keys:", JSON.stringify(Object.keys(statsData || {})));
-        } else {
+        } else if (postInfoRes.status === "rejected") {
           console.error("Post info fetch failed:", postInfoRes.reason);
         }
 
@@ -566,7 +582,7 @@ Deno.serve(async (req: Request) => {
         }
         if (topCommentsText) contextParts.push(`Топ комментарии:\n${topCommentsText.slice(0, 2000)}`);
 
-        const hasContent = contextParts.length > 1;
+        const hasContent = contextParts.length > 0;
 
         if (LOVABLE_API_KEY && hasContent) {
           try {
@@ -592,8 +608,8 @@ Deno.serve(async (req: Request) => {
                   {
                     role: "user",
                     content: analysisLang === "kk"
-                      ? `Осы TikTok бейнесін талда.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
-                      : `Проанализируй это TikTok видео.\n\nURL: ${video_url}\n\n${contextParts.join("\n\n")}`
+                      ? `Осы TikTok бейнесін талда.\n\nURL: ${video_url || "N/A"}\n\n${contextParts.join("\n\n")}`
+                      : `Проанализируй это TikTok видео.\n\nURL: ${video_url || "N/A"}\n\n${contextParts.join("\n\n")}`
                   }
                 ],
                 tools: [
@@ -689,15 +705,17 @@ Deno.serve(async (req: Request) => {
           comments_json: commentsData,
         };
 
-        // Save analysis (only if authenticated)
-        let analysis = { ...result, video_url };
-        if (userId) {
+        const normalizedVideoUrl = video_url || buildFallbackVideoUrl(fallbackVideoId, fallbackUsername) || "";
+
+        // Save analysis (only if authenticated and URL is available)
+        let analysis = { ...result, video_url: normalizedVideoUrl || null };
+        if (userId && normalizedVideoUrl) {
           const saveClient = userClient || adminClient;
           const { data: saved } = await saveClient
             .from("video_analysis")
             .insert({
               user_id: userId,
-              video_url,
+              video_url: normalizedVideoUrl,
               ...result,
               analyzed_at: new Date().toISOString(),
             })
@@ -707,8 +725,13 @@ Deno.serve(async (req: Request) => {
         }
 
         // activity_log is handled client-side via checkAndLog
-        const analyzeCredits = (postInfoRes.status === "fulfilled" ? 1 : 0) + (commentsRes.status === "fulfilled" && awemeId ? 1 : 0);
-        await logApiUsage("analyze_video", analyzeCredits, { video_url });
+        const analyzeCredits =
+          (postInfoRes.status === "fulfilled" && !!postInfoRes.value ? 1 : 0) +
+          (commentsRes.status === "fulfilled" && awemeId ? 1 : 0);
+        await logApiUsage("analyze_video", analyzeCredits, {
+          video_url: normalizedVideoUrl || null,
+          fallback: !isValidVideoUrl,
+        });
 
         return json(analysis);
       }
