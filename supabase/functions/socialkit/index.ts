@@ -193,6 +193,7 @@ Deno.serve(async (req: Request) => {
 
     /** Unwrap aweme_info wrapper from EnsembleData keyword search results */
     const unwrapVideo = (item: any): any => {
+      if (!item) return null;
       return item.aweme_info || item.itemInfos || item;
     };
 
