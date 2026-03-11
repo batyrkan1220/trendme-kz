@@ -508,7 +508,14 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             ) : (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Sparkles className="h-10 w-10 text-muted-foreground/20" />
-                <p className="text-muted-foreground text-sm">Анализ қолжетімсіз</p>
+                <p className="text-muted-foreground text-sm">Анализ әлі жасалмады</p>
+                <button
+                  onClick={() => setShowLangPicker(true)}
+                  className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity flex items-center gap-2"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Анализ жасау
+                </button>
               </div>
             )}
           </div>
