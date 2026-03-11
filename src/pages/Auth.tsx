@@ -33,29 +33,60 @@ export default function Auth() {
   const handleAppleSignIn = async () => {
     setAppleLoading(true);
     try {
-      const redirectUri = isNative
-        ? window.location.href
-        : window.location.origin;
+      if (isNative) {
+        // Native iOS: use native Apple Sign In SDK
+        const { SignInWithApple } = await import("@capacitor-community/apple-sign-in");
+        const result = await SignInWithApple.authorize({
+          clientId: "com.trendme.kz",
+          redirectURI: "https://trendme-kz.lovable.app",
+          scopes: "email name",
+        });
 
-      console.log("[Apple Sign In] redirectUri:", redirectUri);
+        console.log("[Apple Sign In] Native result:", JSON.stringify(result));
 
-      const result = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: redirectUri,
-      });
+        const identityToken = result.response?.identityToken;
+        if (!identityToken) {
+          toast.error("Apple кіру қатесі. Токен алынбады.");
+          return;
+        }
 
-      if (result.error) {
-        toast.error("Apple кіру қатесі. Қайталап көріңіз.");
-        console.error("[Apple Sign In]", result.error);
-        return;
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: "apple",
+          token: identityToken,
+          nonce: "", // Apple native sign-in doesn't require nonce with Supabase
+        });
+
+        if (error) {
+          toast.error("Apple кіру қатесі. Қайталап көріңіз.");
+          console.error("[Apple Sign In] signInWithIdToken error:", error);
+        } else {
+          navigate("/trends");
+        }
+      } else {
+        // Web: use Lovable OAuth flow
+        const result = await lovable.auth.signInWithOAuth("apple", {
+          redirect_uri: window.location.origin,
+        });
+
+        if (result.error) {
+          toast.error("Apple кіру қатесі. Қайталап көріңіз.");
+          console.error("[Apple Sign In]", result.error);
+          return;
+        }
+
+        if (!result.redirected) {
+          toast.error("Apple кіру басталмады. Қайталап көріңіз.");
+          console.warn("[Apple Sign In] No redirect and no error", result);
+        }
       }
-
-      if (!result.redirected) {
-        toast.error("Apple кіру басталмады. Қайталап көріңіз.");
-        console.warn("[Apple Sign In] No redirect and no error", result);
+    } catch (err: any) {
+      // User cancelled native dialog — not an error
+      if (err?.message?.includes("canceled") || err?.code === "ERR_CANCELED") {
+        console.log("[Apple Sign In] User cancelled");
+      } else {
+        toast.error("Apple кіру қатесі.");
+        console.error("[Apple Sign In]", err);
       }
-    } catch (err) {
-      toast.error("Apple кіру қатесі.");
-      console.error("[Apple Sign In]", err);
     } finally {
       setAppleLoading(false);
     }
