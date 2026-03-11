@@ -8,6 +8,8 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { isNativePlatform } from "@/lib/native";
+import { MagicAnalysisLoader } from "./MagicAnalysisLoader";
+import { hapticSuccess } from "@/lib/haptics";
 
 interface VideoData {
   id: string;
