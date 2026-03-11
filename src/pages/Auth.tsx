@@ -104,7 +104,7 @@ export default function Auth() {
             <TrendMeLogo size={56} className="mx-auto" />
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-foreground">trendme</h1>
-              <p className="text-base text-muted-foreground mt-1.5">Трендтерді бірінші біл</p>
+              <p className="text-base text-muted-foreground mt-1.5">Узнай тренд первым</p>
             </div>
           </div>
 
