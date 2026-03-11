@@ -85,7 +85,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user && isNativePlatform) return <>{children}</>;
   if (!user) return <Navigate to="/auth" replace />;
   if (!onboardingDone && !isNativePlatform) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
