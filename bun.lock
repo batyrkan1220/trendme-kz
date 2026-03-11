@@ -10,7 +10,6 @@
         "@capacitor/haptics": "^8.0.1",
         "@capacitor/ios": "^8.2.0",
         "@capacitor/status-bar": "^8.0.1",
-        "@capgo/capacitor-social-login": "^8",
         "@hookform/resolvers": "^3.10.0",
         "@lovable.dev/cloud-auth-js": "^0.0.3",
         "@radix-ui/react-accordion": "^1.2.11",
@@ -291,8 +290,6 @@
     "@capacitor/ios": ["@capacitor/ios@8.2.0", "", { "peerDependencies": { "@capacitor/core": "^8.2.0" } }, "sha512-X2/VtM4qP/R1SM0VQ5W/VotEc6PS/KTooD33EijsfAHWBdee+xmBapW8SeNLnu16wJ+tsfWlvtipaJEyfKbRKQ=="],
 
     "@capacitor/status-bar": ["@capacitor/status-bar@8.0.1", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-OR59dlbwvmrV5dKsC9lvwv48QaGbqcbSTBpk+9/WXWxXYSdXXdzJZU9p8oyNPAkuJhCdnSa3XmU43fZRPBJJ5w=="],
-
-    "@capgo/capacitor-social-login": ["@capgo/capacitor-social-login@8.3.8", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-daj3mTkFjrP3Z1S0ZaMHQ8rfZRdTyPUnxj8Nu32pejMsksG1TCekvmC1bqarKvSVA+R9iNPJaDMrFHRH0HLG8A=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.25.0", "", { "os": "aix", "cpu": "ppc64" }, "sha512-O7vun9Sf8DFjH2UtqK8Ku3LkquL9SZL8OLY1T5NZkA34+wG3OQF7cl4Ql8vdNzM6fzBbYfLaiRLIOZ+2FOCgBQ=="],
 
