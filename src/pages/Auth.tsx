@@ -27,7 +27,65 @@ export default function Auth() {
   const [lastSubmitTime, setLastSubmitTime] = useState(0);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const [appleLoading, setAppleLoading] = useState(false);
   const isNative = isNativePlatform;
+
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error("Apple кіру қатесі. Қайталап көріңіз.");
+        console.error("[Apple Sign In]", result.error);
+      }
+    } catch (err) {
+      toast.error("Apple кіру қатесі.");
+      console.error("[Apple Sign In]", err);
+    } finally {
+      setAppleLoading(false);
+    }
+  };
+
+  // Native: show only Apple Sign In
+  if (isNative) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-5 py-8 relative overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[400px] max-h-[400px] rounded-full blur-3xl opacity-[0.08]" style={{ background: "hsl(var(--primary))" }} />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[400px] max-h-[400px] rounded-full blur-3xl opacity-[0.06]" style={{ background: "hsl(var(--primary))" }} />
+
+        <div className="w-full max-w-sm space-y-8 animate-fade-in relative">
+          <div className="text-center space-y-3 pt-4">
+            <TrendMeLogo size={56} className="mx-auto" />
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">trendme</h1>
+              <p className="text-base text-muted-foreground mt-1.5">Трендтерді бірінші біл</p>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleAppleSignIn}
+            disabled={appleLoading}
+            className="w-full h-14 rounded-2xl text-base font-semibold bg-white text-black hover:bg-white/90 shadow-lg"
+          >
+            {appleLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <>
+                <svg className="h-5 w-5 mr-2.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                </svg>
+                Apple арқылы кіру
+              </>
+            )}
+          </Button>
+
+          <div className="h-8" />
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
