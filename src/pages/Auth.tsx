@@ -75,7 +75,7 @@ export default function Auth() {
         }
 
         if (!result.redirected) {
-          toast.error("Apple кіру басталмады. Қайталап көріңіз.");
+          toast.error("Вход через Apple не начался. Попробуйте снова.");
           console.warn("[Apple Sign In] No redirect and no error", result);
         }
       }
