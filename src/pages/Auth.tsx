@@ -69,7 +69,7 @@ export default function Auth() {
         });
 
         if (result.error) {
-          toast.error("Apple кіру қатесі. Қайталап көріңіз.");
+          toast.error("Ошибка входа через Apple. Попробуйте снова.");
           console.error("[Apple Sign In]", result.error);
           return;
         }
