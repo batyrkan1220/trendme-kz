@@ -8,6 +8,8 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { isNativePlatform } from "@/lib/native";
+import { MagicAnalysisLoader } from "./MagicAnalysisLoader";
+import { hapticSuccess } from "@/lib/haptics";
 
 interface VideoData {
   id: string;
@@ -71,6 +73,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
       });
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => {
+      hapticSuccess();
     },
     onError: (err: Error) => {
       toast.error("Не удалось проанализировать: " + err.message);
@@ -332,19 +337,11 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 </div>
               </div>
             ) : isPending ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <div className="relative">
-                  <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
-                    <Sparkles className="h-8 w-8 text-primary-foreground animate-pulse" />
-                  </div>
-                </div>
-                <p className="text-muted-foreground font-medium text-center">
-                  Анализируем, транскрибируем и переводим видео...
-                </p>
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div className="flex flex-col items-center justify-center py-12">
+                <MagicAnalysisLoader />
               </div>
             ) : analysis ? (
-              <>
+              <div className="animate-magic-reveal space-y-4 md:space-y-6">
                 {/* Topic */}
                 {summary?.topic && (
                   <div>
@@ -511,7 +508,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                     </pre>
                   </div>
                 )}
-              </>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Sparkles className="h-10 w-10 text-muted-foreground/20" />
