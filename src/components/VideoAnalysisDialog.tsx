@@ -168,6 +168,12 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     } catch { /* keep as is */ }
   }
 
+  const isUnknownValue = (value: unknown) => {
+    if (typeof value !== "string") return false;
+    const normalized = value.trim().toLowerCase();
+    return ["белгісіз", "неизвестно", "unknown", "n/a", "жоқ", "нет", "-"].includes(normalized);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined} style={{ zIndex: 99998 }}>
@@ -449,27 +455,37 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   </div>
                 )}
 
-                {/* Hook phrase */}
-                {summary?.hook_phrase && (
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-2">Хук фраза</h3>
-                    <p className="text-sm text-foreground/80">{summary.hook_phrase}</p>
-                  </div>
-                )}
+                {/* Hooks */}
+                {!!(summary?.hook_phrase || summary?.visual_hook || summary?.text_hook) && (
+                  <div className="space-y-3">
+                    {summary?.hook_phrase && !isUnknownValue(summary.hook_phrase) && (
+                      <div>
+                        <h3 className="text-lg font-bold text-foreground mb-2">Хук фраза</h3>
+                        <p className="text-sm text-foreground/80">{summary.hook_phrase}</p>
+                      </div>
+                    )}
 
-                {/* Visual hook */}
-                {summary?.visual_hook && (
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-2">Визуальный хук</h3>
-                    <p className="text-sm text-foreground/80">{summary.visual_hook}</p>
-                  </div>
-                )}
+                    {summary?.visual_hook && !isUnknownValue(summary.visual_hook) && (
+                      <div>
+                        <h3 className="text-lg font-bold text-foreground mb-2">Визуальный хук</h3>
+                        <p className="text-sm text-foreground/80">{summary.visual_hook}</p>
+                      </div>
+                    )}
 
-                {/* Text hook */}
-                {summary?.text_hook && (
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-2">Текстовый хук</h3>
-                    <p className="text-sm text-foreground/80">{summary.text_hook}</p>
+                    {summary?.text_hook && !isUnknownValue(summary.text_hook) && (
+                      <div>
+                        <h3 className="text-lg font-bold text-foreground mb-2">Текстовый хук</h3>
+                        <p className="text-sm text-foreground/80">{summary.text_hook}</p>
+                      </div>
+                    )}
+
+                    {isUnknownValue(summary?.hook_phrase) && isUnknownValue(summary?.text_hook) && (
+                      <div className="rounded-xl border border-border/50 bg-card p-3">
+                        <p className="text-xs text-muted-foreground">
+                          Хук фраза және мәтіндік хук табылмады (видеода сөйлеу/экран мәтіні анық емес).
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
