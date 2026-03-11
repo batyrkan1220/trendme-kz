@@ -46,7 +46,7 @@ export default function Auth() {
 
         const identityToken = result.response?.identityToken;
         if (!identityToken) {
-          toast.error("Apple кіру қатесі. Токен алынбады.");
+          toast.error("Ошибка Apple. Токен не получен.");
           return;
         }
 
