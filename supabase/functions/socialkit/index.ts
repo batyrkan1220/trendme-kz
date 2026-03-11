@@ -956,7 +956,8 @@ ${contextParts.join("\n\n")}`;
 
         // 3. Combine everything
         const unknownText = analysisLang === "kk" ? "белгісіз" : "неизвестно";
-        const hasStrongSpeechSource = transcriptText.length >= 120;
+        const transcriptQuality = getTranscriptQuality(transcriptText);
+        const hasStrongSpeechSource = transcriptQuality === "high";
 
         if (aiAnalysis && !hasStrongSpeechSource) {
           aiAnalysis.hook_phrase = unknownText;
@@ -966,7 +967,7 @@ ${contextParts.join("\n\n")}`;
 
         const summaryJson = {
           ...(aiAnalysis || {}),
-          source_quality: hasStrongSpeechSource ? "high" : "low",
+          source_quality: transcriptQuality,
           stats: statsData ? {
             views: videoStats.play_count ?? videoStats.views ?? 0,
             likes: videoStats.digg_count ?? videoStats.likes ?? 0,
