@@ -112,7 +112,7 @@ export function MagicAnalysisLoader({ isComplete }: Props) {
             className="text-sm font-semibold text-foreground"
             style={{ animation: "magic-text-glow 2s ease-in-out infinite" }}
           >
-            Сиқырлы анализ жасалуда...
+            Магия анализа...
           </p>
           <Sparkles
             className="h-4 w-4 text-primary"
@@ -120,7 +120,7 @@ export function MagicAnalysisLoader({ isComplete }: Props) {
           />
         </div>
         <p className="text-xs text-muted-foreground animate-fade-in" style={{ animationDelay: "0.5s" }}>
-          Транскрибация · AI анализ · Аударма
+          Транскрибация · AI анализ · Перевод
         </p>
 
         {/* Progress dots */}
