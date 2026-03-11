@@ -75,6 +75,193 @@ function extractUsername(url: string): string {
   return match ? match[1] : url.split("@").pop()?.split("?")[0]?.split("/")[0] || "";
 }
 
+const normalizeTextLine = (value: string) =>
+  String(value || "")
+    .replace(/\s+/g, " ")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim();
+
+const joinUniqueLines = (lines: string[], maxChars = 7000): string => {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  let total = 0;
+
+  for (const rawLine of lines) {
+    const line = normalizeTextLine(rawLine);
+    if (!line || line.length < 2) continue;
+    const key = line.toLowerCase();
+    if (seen.has(key)) continue;
+    if (total + line.length + 1 > maxChars) break;
+    seen.add(key);
+    out.push(line);
+    total += line.length + 1;
+  }
+
+  return out.join("\n");
+};
+
+const collectTextValues = (value: any, maxDepth = 6, depth = 0): string[] => {
+  if (depth > maxDepth || value == null) return [];
+  if (typeof value === "string") return [value];
+  if (typeof value === "number" || typeof value === "boolean") return [String(value)];
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectTextValues(item, maxDepth, depth + 1));
+  }
+
+  if (typeof value === "object") {
+    const preferredKeys = [
+      "text", "value", "content", "sentence", "transcript", "caption", "utterance", "words", "line",
+    ];
+    const preferred: string[] = [];
+    for (const key of preferredKeys) {
+      if (key in value) preferred.push(...collectTextValues(value[key], maxDepth, depth + 1));
+    }
+    if (preferred.length > 0) return preferred;
+
+    return Object.values(value).flatMap((item) => collectTextValues(item, maxDepth, depth + 1));
+  }
+
+  return [];
+};
+
+const parseCaptionPayload = (raw: string): string => {
+  const text = String(raw || "").trim();
+  if (!text) return "";
+
+  // JSON caption payloads
+  if (text.startsWith("{") || text.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(text);
+      return joinUniqueLines(collectTextValues(parsed), 6000);
+    } catch {
+      // fall through
+    }
+  }
+
+  // WEBVTT payloads
+  if (/^WEBVTT/i.test(text) || text.includes("-->")) {
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) =>
+        line &&
+        !/^WEBVTT/i.test(line) &&
+        !/^NOTE\b/i.test(line) &&
+        !/^\d+$/.test(line) &&
+        !line.includes("-->")
+      );
+    const parsedVtt = joinUniqueLines(lines, 6000);
+    if (parsedVtt) return parsedVtt;
+  }
+
+  // XML/TTML payloads
+  if (text.includes("<") && text.includes(">")) {
+    const xmlLines = Array.from(text.matchAll(/<(?:p|span|text)[^>]*>([\s\S]*?)<\/(?:p|span|text)>/gi)).map((m) =>
+      m[1]
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;|&#160;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .trim()
+    );
+    const parsedXml = joinUniqueLines(xmlLines, 6000);
+    if (parsedXml) return parsedXml;
+  }
+
+  return joinUniqueLines(text.split(/\r?\n/), 6000);
+};
+
+const extractCaptionUrlsFromPostInfo = (video: any): string[] => {
+  const containers = [
+    video?.video?.cla_info?.caption_infos,
+    video?.video?.caption_infos,
+    video?.cla_info?.caption_infos,
+    video?.caption_infos,
+    video?.video?.subtitle_infos,
+    video?.subtitle_infos,
+  ];
+
+  const urls = new Set<string>();
+  for (const container of containers) {
+    if (!container) continue;
+    const items = Array.isArray(container) ? container : [container];
+    for (const item of items) {
+      if (!item) continue;
+      if (typeof item === "string") {
+        if (/^https?:\/\//i.test(item)) urls.add(item);
+        continue;
+      }
+
+      const candidates = [
+        item.url,
+        item.caption_url,
+        item.captionUrl,
+        item.sub_url,
+        item.subtitle_url,
+        item.subtitleUrl,
+        item.vtt_url,
+        ...(Array.isArray(item.url_list) ? item.url_list : []),
+      ].filter((v) => typeof v === "string" && /^https?:\/\//i.test(v));
+
+      for (const candidate of candidates) urls.add(candidate);
+    }
+  }
+
+  return Array.from(urls);
+};
+
+const extractTranscriptFromPostInfo = (video: any): string => {
+  const directSources = [
+    video?.original_client_text,
+    video?.desc,
+    video?.caption,
+    video?.video_text,
+    video?.video?.text,
+    video?.video?.caption,
+    video?.video?.subtitle_infos,
+    video?.video?.cla_info?.caption_infos,
+  ];
+
+  const lines = directSources.flatMap((source) => collectTextValues(source));
+  return joinUniqueLines(lines, 6000);
+};
+
+const fetchCaptionTranscript = async (urls: string[]): Promise<string> => {
+  for (const url of urls.slice(0, 3)) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) continue;
+      const payload = await response.text();
+      const parsed = parseCaptionPayload(payload);
+      if (parsed && parsed.length > 20) return parsed;
+    } catch (e) {
+      console.error("Caption fetch failed:", url, e);
+    }
+  }
+  return "";
+};
+
+async function buildTranscriptText(video: any): Promise<string> {
+  if (!video) return "";
+
+  const metadataTranscript = extractTranscriptFromPostInfo(video);
+  const captionUrls = extractCaptionUrlsFromPostInfo(video);
+  const captionTranscript = captionUrls.length > 0 ? await fetchCaptionTranscript(captionUrls) : "";
+
+  const finalTranscript = joinUniqueLines([captionTranscript, metadataTranscript], 7000);
+  console.log("Transcript extraction:", {
+    hasCaptionUrls: captionUrls.length > 0,
+    captionUrlsCount: captionUrls.length,
+    metadataChars: metadataTranscript.length,
+    captionChars: captionTranscript.length,
+    finalChars: finalTranscript.length,
+  });
+
+  return finalTranscript;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
