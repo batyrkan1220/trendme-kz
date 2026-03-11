@@ -294,9 +294,13 @@ Deno.serve(async (req: Request) => {
         global: { headers: { Authorization: authHeader } },
       });
       const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-      if (!claimsError && claimsData?.claims) {
-        userId = claimsData.claims.sub as string;
+      try {
+        const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+        if (!claimsError && claimsData?.claims) {
+          userId = claimsData.claims.sub as string;
+        }
+      } catch (e) {
+        console.warn("Auth token is invalid/expired, continuing without user context");
       }
     }
 
