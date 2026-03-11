@@ -84,7 +84,7 @@ export default function Auth() {
       if (err?.message?.includes("canceled") || err?.code === "ERR_CANCELED") {
         console.log("[Apple Sign In] User cancelled");
       } else {
-        toast.error("Apple кіру қатесі.");
+        toast.error("Ошибка входа через Apple.");
         console.error("[Apple Sign In]", err);
       }
     } finally {
