@@ -567,6 +567,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           onAnalyze={onAnalyze}
         />
       )}
+
+      {/* Report dialog */}
+      <ReportContentDialog
+        open={showReport}
+        onClose={() => setShowReport(false)}
+        videoId={video.id}
+        videoUrl={video.url}
+        authorUsername={video.author_username}
+      />
     </div>
   );
 });
