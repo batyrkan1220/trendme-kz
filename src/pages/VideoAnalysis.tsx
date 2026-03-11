@@ -18,8 +18,24 @@ const fmt = (n: number) => {
 
 // Extract video ID from TikTok URL
 const extractVideoId = (url: string): string => {
-  const match = url.match(/video\/(\d+)/);
-  return match ? match[1] : "";
+  const patterns = [/\/video\/(\d+)/, /\/photo\/(\d+)/, /(\d{15,})/];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return "";
+};
+
+const normalizeTikTokUrlInput = (input: string): string => {
+  const trimmed = input.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  if (/^(www\.)?(tiktok\.com|vm\.tiktok\.com|m\.tiktok\.com|vt\.tiktok\.com|lite\.tiktok\.com)\//i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+
+  return trimmed;
 };
 
 const isValidTikTokUrl = (url: string): boolean => {
@@ -42,7 +58,13 @@ export default function VideoAnalysis() {
     mutationFn: async ({ videoUrl, lang }: {videoUrl: string;lang: "ru" | "kk";}) => {
       // Single call — analyze_video already fetches post info + comments
       const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "analyze_video", video_url: videoUrl, caption: "", language: lang }
+        body: {
+          action: "analyze_video",
+          video_url: videoUrl,
+          platform_video_id: extractVideoId(videoUrl),
+          caption: "",
+          language: lang,
+        }
       });
       if (error) throw error;
       if (!data) throw new Error("Не удалось получить данные о видео. Проверьте ссылку.");
@@ -57,25 +79,30 @@ export default function VideoAnalysis() {
   });
 
   const handleAnalyze = async (lang: "ru" | "kk") => {
-    if (!url.trim()) return;
-    if (!isValidTikTokUrl(url.trim())) {
+    const normalizedUrl = normalizeTikTokUrlInput(url);
+    if (!normalizedUrl) return;
+
+    if (!isValidTikTokUrl(normalizedUrl)) {
       toast.error("Используйте только ссылку на TikTok (например: https://www.tiktok.com/@user/video/...)");
       return;
     }
+
     // Check if it's a profile URL instead of a video URL
-    const trimmed = url.trim();
-    const hasVideoPath = /\/video\/\d+/.test(trimmed) || /\/photo\/\d+/.test(trimmed) || /\/v\/\d+/.test(trimmed) || /vm\.tiktok\.com/.test(trimmed) || /vt\.tiktok\.com/.test(trimmed);
-    const isProfileUrl = /@[\w.]+\/?(\?|$)/.test(trimmed) && !hasVideoPath;
+    const hasVideoPath = /\/video\/\d+/.test(normalizedUrl) || /\/photo\/\d+/.test(normalizedUrl) || /\/v\/\d+/.test(normalizedUrl) || /vm\.tiktok\.com/.test(normalizedUrl) || /vt\.tiktok\.com/.test(normalizedUrl);
+    const isProfileUrl = /@[\w.]+\/?(\?|$)/.test(normalizedUrl) && !hasVideoPath;
     if (isProfileUrl) {
       toast.error("Это ссылка на профиль 👤\nВставьте ссылку на видео (например: https://www.tiktok.com/@user/video/123...)", { duration: 5000 });
       return;
     }
-    const ok = await checkAndLog("video_analysis", `Анализ видео: ${url.trim()}`);
+
+    const ok = await checkAndLog("video_analysis", `Анализ видео: ${normalizedUrl}`);
     if (!ok) return;
+
     setLanguage(lang);
+    setUrl(normalizedUrl);
     setIsPlaying(false);
     setShowScript(false);
-    analyze({ videoUrl: url.trim(), lang });
+    analyze({ videoUrl: normalizedUrl, lang });
   };
 
   const stats = analysis?.stats;

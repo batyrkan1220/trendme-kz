@@ -60,7 +60,14 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: { action: "analyze_video", video_url: v.url, caption: v.caption || "", language: lang },
+        body: {
+          action: "analyze_video",
+          video_url: v.url,
+          platform_video_id: v.platform_video_id,
+          author_username: v.author_username || "",
+          caption: v.caption || "",
+          language: lang,
+        },
       });
       if (error) throw error;
       return data;
