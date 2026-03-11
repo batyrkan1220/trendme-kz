@@ -33,12 +33,25 @@ export default function Auth() {
   const handleAppleSignIn = async () => {
     setAppleLoading(true);
     try {
+      const redirectUri = isNative
+        ? window.location.href
+        : window.location.origin;
+
+      console.log("[Apple Sign In] redirectUri:", redirectUri);
+
       const result = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: window.location.origin,
+        redirect_uri: redirectUri,
       });
+
       if (result.error) {
         toast.error("Apple кіру қатесі. Қайталап көріңіз.");
         console.error("[Apple Sign In]", result.error);
+        return;
+      }
+
+      if (!result.redirected) {
+        toast.error("Apple кіру басталмады. Қайталап көріңіз.");
+        console.warn("[Apple Sign In] No redirect and no error", result);
       }
     } catch (err) {
       toast.error("Apple кіру қатесі.");
