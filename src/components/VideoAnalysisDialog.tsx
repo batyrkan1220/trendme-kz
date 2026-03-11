@@ -168,6 +168,12 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     } catch { /* keep as is */ }
   }
 
+  const isUnknownValue = (value: unknown) => {
+    if (typeof value !== "string") return false;
+    const normalized = value.trim().toLowerCase();
+    return ["белгісіз", "неизвестно", "unknown", "n/a", "жоқ", "нет", "-"] .includes(normalized);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-4xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden" aria-describedby={undefined} style={{ zIndex: 99998 }}>
