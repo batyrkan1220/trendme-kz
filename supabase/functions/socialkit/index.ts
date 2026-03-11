@@ -998,11 +998,20 @@ ${contextParts.join("\n\n")}`;
         const unknownText = analysisLang === "kk" ? "белгісіз" : "неизвестно";
         const transcriptQuality = getTranscriptQuality(transcriptText);
         const hasStrongSpeechSource = transcriptQuality === "high";
+        const hasActionSignals = actionSignalsText.trim().length >= 30;
 
         if (aiAnalysis && !hasStrongSpeechSource) {
-          aiAnalysis.hook_phrase = unknownText;
-          aiAnalysis.text_hook = unknownText;
-          if (!aiAnalysis.visual_hook) aiAnalysis.visual_hook = unknownText;
+          // Do not overwrite model output blindly on low transcript quality.
+          // Keep existing hooks if model extracted them from reliable visual/text metadata.
+          if (!aiAnalysis.hook_phrase || !String(aiAnalysis.hook_phrase).trim()) {
+            aiAnalysis.hook_phrase = unknownText;
+          }
+          if ((!aiAnalysis.text_hook || !String(aiAnalysis.text_hook).trim()) && !hasActionSignals) {
+            aiAnalysis.text_hook = unknownText;
+          }
+          if (!aiAnalysis.visual_hook || !String(aiAnalysis.visual_hook).trim()) {
+            aiAnalysis.visual_hook = unknownText;
+          }
         }
 
         const summaryJson = {
