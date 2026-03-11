@@ -171,6 +171,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <TrackingPixels />
+            <ProfileCompletionDialog />
             <div className={splashJustFinished ? "animate-post-splash-reveal" : ""}>
               <AppRoutes />
             </div>
