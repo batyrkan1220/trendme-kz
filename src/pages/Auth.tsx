@@ -34,26 +34,27 @@ export default function Auth() {
     setAppleLoading(true);
     try {
       if (isNative) {
-        // Native iOS: use native Apple Sign In SDK
-        const { SignInWithApple } = await import("@capacitor-community/apple-sign-in");
-        const result = await SignInWithApple.authorize({
-          clientId: "com.trendme.kz",
-          redirectURI: "https://trendme-kz.lovable.app",
-          scopes: "email name",
+        // Native iOS: use @capgo/capacitor-social-login
+        const { SocialLogin } = await import("@capgo/capacitor-social-login");
+
+        const result = await SocialLogin.login({
+          provider: "apple",
+          options: {
+            scopes: ["email", "name"],
+          },
         });
 
         console.log("[Apple Sign In] Native result:", JSON.stringify(result));
 
-        const identityToken = result.response?.identityToken;
-        if (!identityToken) {
+        const idToken = (result?.result as any)?.idToken;
+        if (!idToken) {
           toast.error("Ошибка Apple. Токен не получен.");
           return;
         }
 
         const { error } = await supabase.auth.signInWithIdToken({
           provider: "apple",
-          token: identityToken,
-          nonce: "", // Apple native sign-in doesn't require nonce with Supabase
+          token: idToken,
         });
 
         if (error) {
