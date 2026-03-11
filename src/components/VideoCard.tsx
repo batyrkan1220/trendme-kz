@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp, Loader2, Maximize, Flame, Rocket
+  Trophy, Zap, Target, TrendingUp, Loader2, Maximize, Flame, Rocket, Flag
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FullscreenVideoPlayer } from "@/components/FullscreenVideoPlayer";
+import { ReportContentDialog } from "@/components/ReportContentDialog";
 
 /** Persistent play URL cache — survives page reloads on native mobile */
 const PLAY_CACHE_KEY = "playUrlCache";
