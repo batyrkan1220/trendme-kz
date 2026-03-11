@@ -772,7 +772,9 @@ Deno.serve(async (req: Request) => {
           contextParts.push(`Статистика: ${v} просмотров, ${l} лайков, ${c} комментариев, ${s} репостов`);
         }
         if (topCommentsText) contextParts.push(`Топ комментарии:\n${topCommentsText.slice(0, 2000)}`);
-        if (transcriptText) contextParts.push(`Транскрипт (речь из видео):\n${transcriptText.slice(0, 3000)}`);
+        if (actionSignalsText) contextParts.push(`Текст/сцены из видео-метаданных:\n${actionSignalsText.slice(0, 1200)}`);
+        if (transcriptText) contextParts.push(`Транскрипт (речь из видео):\n${transcriptText.slice(0, 5000)}`);
+        contextParts.push(`Надежность источника речи: ${transcriptText.length >= 120 ? "высокая" : "низкая"}`);
 
         const hasContent = contextParts.length > 0;
 
