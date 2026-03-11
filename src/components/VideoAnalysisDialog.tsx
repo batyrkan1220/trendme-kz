@@ -171,7 +171,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const isUnknownValue = (value: unknown) => {
     if (typeof value !== "string") return false;
     const normalized = value.trim().toLowerCase();
-    return ["белгісіз", "неизвестно", "unknown", "n/a", "жоқ", "нет", "-"] .includes(normalized);
+    return ["белгісіз", "неизвестно", "unknown", "n/a", "жоқ", "нет", "-"].includes(normalized);
   };
 
   return (
