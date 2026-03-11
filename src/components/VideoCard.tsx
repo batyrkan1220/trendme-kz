@@ -194,6 +194,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const [loadingPlay, setLoadingPlay] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
   const isMobileFromHook = useIsMobile();
