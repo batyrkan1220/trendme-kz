@@ -40,7 +40,7 @@ export function TrendNicheRow({
       <div
         className="sticky z-20 -mx-4 px-4 py-2.5"
         style={{
-          top: "env(safe-area-inset-top, 0px)",
+          top: "max(env(safe-area-inset-top, 0px), 47px)",
           background: "rgba(10,10,10,0.55)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
