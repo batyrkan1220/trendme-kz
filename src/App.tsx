@@ -85,6 +85,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
+  if (!user && isNativePlatform) return <>{children}</>;
   if (!user) return <Navigate to="/auth" replace />;
   if (!onboardingDone && !isNativePlatform) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
@@ -112,7 +113,7 @@ const AppRoutes = () => {
     <Suspense fallback={<SuspenseFallback />}>
       <Routes>
         <Route element={<PageTransition />}>
-          <Route path="/auth" element={<Auth />} />
+          <Route path="/auth" element={isNativePlatform ? <Navigate to="/trends" replace /> : <Auth />} />
           <Route path="/landing" element={<Navigate to="/" replace />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/reset-password" element={<ResetPassword />} />
