@@ -85,9 +85,14 @@ const sanitizeTranscriptLine = (value: string) =>
   normalizeTextLine(value)
     .replace(/<\/?h[^>]*>/gi, " ")
     .replace(/<[^>]+>/g, " ")
+    .replace(/\{[^{}]*\}/g, " ")
+    .replace(/\[[^\[\]]*\]/g, " ")
     .replace(/#\S+/g, " ")
-    .replace(/\b(?:true|false|null)\b/gi, " ")
-    .replace(/\b\d{2,}\b/g, " ")
+    .replace(/\b(?:true|false|null|nan|undefined)\b/gi, " ")
+    .replace(/["':]/g, " ")
+    .replace(/\b(?:x|y|w|h|s|r|start_time|end_time|isRatioCoord)\b/gi, " ")
+    .replace(/\b\d+(?:\.\d+)?\b/g, " ")
+    .replace(/[\/|]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -98,10 +103,12 @@ const getTranscriptQuality = (transcript: string): "high" | "low" => {
   const words = text.split(" ").filter(Boolean);
   const hashtagCount = (text.match(/#/g) || []).length;
   const tagLikeCount = (text.match(/<[^>]+>/g) || []).length;
+  const jsonArtifactCount = (text.match(/[\[\]{}]{2,}|"\w+"\s*:/g) || []).length;
 
-  if (words.length < 25) return "low";
-  if (hashtagCount > Math.max(2, Math.floor(words.length * 0.15))) return "low";
+  if (words.length < 35) return "low";
+  if (hashtagCount > Math.max(2, Math.floor(words.length * 0.12))) return "low";
   if (tagLikeCount > 0) return "low";
+  if (jsonArtifactCount > 0) return "low";
 
   return "high";
 };
