@@ -24,6 +24,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [lastSubmitTime, setLastSubmitTime] = useState(0);
+  const [eulaAccepted, setEulaAccepted] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const isNative = isNativePlatform;
