@@ -931,6 +931,31 @@ ${contextParts.join("\n\n")}`;
                           hook_phrase: { type: "string", description: analysisLang === "kk" ? "Видеодағы бірінші фраза-хук — ДӘЛМЕ-ДӘЛ видеодан ал" : "Первая фраза-хук — бери ДОСЛОВНО из видео" },
                           visual_hook: { type: "string", description: analysisLang === "kk" ? "Визуалды хуктің сипаттамасы — нақты көрінетін нәрсені жаз" : "Описание визуального хука — опиши что реально видно" },
                           text_hook: { type: "string", description: analysisLang === "kk" ? "Алғашқы секундтардағы экрандағы мәтін — ДӘЛМЕ-ДӘЛ видеодан ал" : "Текст на экране в первые секунды — бери ДОСЛОВНО" },
+                          why_viral: { type: "string", description: analysisLang === "kk" ? "Бұл видео НЕГЕ атты (немесе неге аттырмас): статистика, контент сапасы, тренд, хук, аудитория реакциясы негізінде 3-5 сөйлеммен түсіндір" : "ПОЧЕМУ это видео выстрелило (или не выстрелило): объясни в 3-5 предложениях на основе статистики, качества контента, тренда, хука, реакции аудитории" },
+                          target_audience: { type: "string", description: analysisLang === "kk" ? "Мақсатты аудитория: жасы, жынысы, қызығушылықтары, бұл видео кімге арналған" : "Целевая аудитория: возраст, пол, интересы, для кого это видео" },
+                          emotions: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: analysisLang === "kk" ? "Видеодағы эмоциялық триггерлер (мыс: қызығушылық, таңқалу, күлкі, FOMO, шабыт)" : "Эмоциональные триггеры видео (напр: любопытство, удивление, юмор, FOMO, вдохновение)"
+                          },
+                          content_format: { type: "string", description: analysisLang === "kk" ? "Контент форматы: talking head, voiceover, монтаж, POV, сториталлинг, т.б." : "Формат контента: talking head, voiceover, монтаж, POV, сторителлинг и т.д." },
+                          cta_analysis: { type: "string", description: analysisLang === "kk" ? "CTA (іс-әрекетке шақыру) талдауы: видеода қандай CTA бар, оның тиімділігі" : "Анализ CTA (призыв к действию): какой CTA есть, насколько эффективен" },
+                          strengths: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: analysisLang === "kk" ? "Видеоның күшті жақтары (3-5 пункт)" : "Сильные стороны видео (3-5 пунктов)"
+                          },
+                          weaknesses: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: analysisLang === "kk" ? "Видеоның әлсіз жақтары немесе жақсарту нүктелері (2-4 пункт)" : "Слабые стороны или точки роста (2-4 пункта)"
+                          },
+                          recommendations: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: analysisLang === "kk" ? "Осындай контент жасау үшін нақты ұсыныстар (3-5 пункт)" : "Конкретные рекомендации для создания похожего контента (3-5 пунктов)"
+                          },
+                          virality_score: { type: "number", description: analysisLang === "kk" ? "Вирустық әлеует бағасы 1-ден 10-ға дейін (статистика мен контент сапасы негізінде)" : "Оценка вирусного потенциала от 1 до 10 (на основе статистики и качества контента)" },
                           funnel: {
                             type: "object",
                             properties: {
@@ -940,7 +965,7 @@ ${contextParts.join("\n\n")}`;
                             required: ["direction", "goal"]
                           }
                         },
-                        required: ["topic", "language", "tags", "niches", "summary", "structure", "hook_phrase", "visual_hook", "text_hook", "funnel"]
+                        required: ["topic", "language", "tags", "niches", "summary", "structure", "hook_phrase", "visual_hook", "text_hook", "why_viral", "target_audience", "emotions", "content_format", "cta_analysis", "strengths", "weaknesses", "recommendations", "virality_score", "funnel"]
                       }
                     }
                   }
