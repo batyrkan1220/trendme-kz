@@ -262,18 +262,3 @@ export default function VideoAnalysis() {
 }
 
               {/* Fallback raw */}
-              {!summary?.topic && !summary?.summary && analysis?.summary_json &&
-            <div>
-                  <h3 className="text-lg font-bold text-foreground mb-3">Анализ (raw)</h3>
-                  <pre className="text-sm text-foreground/80 whitespace-pre-wrap bg-muted/50 rounded-xl p-4 max-h-96 overflow-y-auto">
-                    {typeof analysis.summary_json === "string" ? analysis.summary_json : JSON.stringify(analysis.summary_json, null, 2)}
-                  </pre>
-                </div>
-            }
-            </div>
-          </div>
-        </div>
-      }
-    </AppLayout>);
-
-}
