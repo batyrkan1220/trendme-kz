@@ -737,8 +737,16 @@ Deno.serve(async (req: Request) => {
       }
 
       case "account_stats": {
-        const { profile_url } = body;
+        let profile_url = typeof body.profile_url === "string" ? body.profile_url.trim() : "";
         if (!profile_url) return json({ error: "profile_url is required" }, 400);
+
+        if (!/^https?:\/\//i.test(profile_url)) {
+          const normalizedUsername = normalizeTikTokUsername(profile_url);
+          if (normalizedUsername) {
+            profile_url = `https://www.tiktok.com/@${normalizedUsername}`;
+          }
+        }
+
         if (!validateTikTokUrl(profile_url)) return json({ error: "Invalid TikTok URL" }, 400);
 
         const usernameFromUrl = extractUsername(profile_url);
