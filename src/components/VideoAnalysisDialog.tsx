@@ -74,6 +74,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
       if (error) throw error;
       return data;
     },
+    onSuccess: () => {
+      hapticSuccess();
+    },
     onError: (err: Error) => {
       toast.error("Не удалось проанализировать: " + err.message);
     },

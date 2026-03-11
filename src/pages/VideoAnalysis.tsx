@@ -75,6 +75,9 @@ export default function VideoAnalysis() {
       const summaryStats = data.summary_json?.stats || null;
       return { stats: summaryStats, ...data };
     },
+    onSuccess: () => {
+      hapticSuccess();
+    },
     onError: (err: Error) => {
       toast.error(err.message || "Не удалось проанализировать видео");
     }
