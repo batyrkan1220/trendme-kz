@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
 import {
   Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp, Loader2, Maximize, Flame, Rocket
+  Trophy, Zap, Target, TrendingUp, Loader2, Maximize, Flame, Rocket, Flag
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FullscreenVideoPlayer } from "@/components/FullscreenVideoPlayer";
+import { ReportContentDialog } from "@/components/ReportContentDialog";
 
 /** Persistent play URL cache — survives page reloads on native mobile */
 const PLAY_CACHE_KEY = "playUrlCache";
@@ -193,6 +194,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const [loadingPlay, setLoadingPlay] = useState(false);
   const [coverFailed, setCoverFailed] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
   const isMobileFromHook = useIsMobile();
@@ -477,6 +479,17 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               <ExternalLink className="h-4 w-4 text-white" />
             </button>
 
+            {/* Report content */}
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowReport(true); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setShowReport(true); }}
+              className="absolute top-[5.25rem] right-1.5 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20"
+              style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+            >
+              <Flag className="h-3.5 w-3.5 text-white/70" />
+            </button>
+
             {/* Duration badge */}
             {video.duration && video.duration > 0 && (
               <div className="absolute bottom-2.5 left-2.5 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
@@ -554,6 +567,15 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           onAnalyze={onAnalyze}
         />
       )}
+
+      {/* Report dialog */}
+      <ReportContentDialog
+        open={showReport}
+        onClose={() => setShowReport(false)}
+        videoId={video.id}
+        videoUrl={video.url}
+        authorUsername={video.author_username}
+      />
     </div>
   );
 });

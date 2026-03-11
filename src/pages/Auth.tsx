@@ -24,6 +24,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [lastSubmitTime, setLastSubmitTime] = useState(0);
+  const [eulaAccepted, setEulaAccepted] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const isNative = isNativePlatform;
@@ -63,6 +64,7 @@ export default function Auth() {
       if (!name.trim()) { toast.error("Введите имя"); return; }
       if (!phone.trim()) { toast.error("Введите номер телефона"); return; }
       if (password.length < 6) { toast.error("Пароль должен быть не менее 6 символов"); return; }
+      if (!eulaAccepted) { toast.error("Необходимо принять пользовательское соглашение"); return; }
     }
 
     setLoading(true);
@@ -189,6 +191,28 @@ export default function Auth() {
               </div>
             )}
           </div>
+
+          {mode === "register" && (
+            <label className="flex items-start gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={eulaAccepted}
+                onChange={(e) => setEulaAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-border accent-primary shrink-0"
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                Я принимаю{" "}
+                <a href="/terms" target="_blank" className="text-primary hover:underline font-medium">
+                  Пользовательское соглашение
+                </a>{" "}
+                и{" "}
+                <a href="/privacy" target="_blank" className="text-primary hover:underline font-medium">
+                  Политику конфиденциальности
+                </a>
+                . Я понимаю, что нетерпимый, оскорбительный контент запрещён.
+              </span>
+            </label>
+          )}
 
           {mode === "login" && (
             <div className="text-right">

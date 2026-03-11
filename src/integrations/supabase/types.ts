@@ -119,6 +119,63 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_users: {
+        Row: {
+          blocked_username: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          blocked_username: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          blocked_username?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      content_reports: {
+        Row: {
+          author_username: string | null
+          created_at: string
+          details: string | null
+          id: string
+          reason: string
+          status: string
+          user_id: string
+          video_id: string
+          video_url: string
+        }
+        Insert: {
+          author_username?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason: string
+          status?: string
+          user_id: string
+          video_id: string
+          video_url: string
+        }
+        Update: {
+          author_username?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason?: string
+          status?: string
+          user_id?: string
+          video_id?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       cover_refresh_logs: {
         Row: {
           current_offset: number
@@ -155,6 +212,27 @@ export type Database = {
           total_updated?: number
           total_videos?: number
           triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      eula_acceptances: {
+        Row: {
+          accepted_at: string
+          id: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          accepted_at?: string
+          id?: string
+          user_id: string
+          version?: string
+        }
+        Update: {
+          accepted_at?: string
+          id?: string
+          user_id?: string
+          version?: string
         }
         Relationships: []
       }
