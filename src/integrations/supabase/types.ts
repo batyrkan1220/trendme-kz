@@ -689,6 +689,8 @@ export type Database = {
           niche: string | null
           platform: string
           platform_video_id: string
+          play_url: string | null
+          play_url_fetched_at: string | null
           published_at: string | null
           region: string
           shares: number | null
@@ -718,6 +720,8 @@ export type Database = {
           niche?: string | null
           platform?: string
           platform_video_id: string
+          play_url?: string | null
+          play_url_fetched_at?: string | null
           published_at?: string | null
           region?: string
           shares?: number | null
@@ -747,6 +751,8 @@ export type Database = {
           niche?: string | null
           platform?: string
           platform_video_id?: string
+          play_url?: string | null
+          play_url_fetched_at?: string | null
           published_at?: string | null
           region?: string
           shares?: number | null
