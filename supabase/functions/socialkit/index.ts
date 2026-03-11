@@ -238,18 +238,21 @@ const extractCaptionUrlsFromPostInfo = (video: any): string[] => {
 };
 
 const extractTranscriptFromPostInfo = (video: any): string => {
-  const directSources = [
-    video?.original_client_text,
-    video?.desc,
-    video?.caption,
+  // Only speech/subtitle-related fields. Do NOT use desc/original_client_text (they are caption metadata, not spoken transcript).
+  const transcriptSources = [
     video?.video_text,
     video?.video?.text,
-    video?.video?.caption,
     video?.video?.subtitle_infos,
     video?.video?.cla_info?.caption_infos,
+    video?.video?.caption_infos,
+    video?.interaction_stickers,
   ];
 
-  const lines = directSources.flatMap((source) => collectTextValues(source));
+  const lines = transcriptSources
+    .flatMap((source) => collectTextValues(source))
+    .map((line) => sanitizeTranscriptLine(line))
+    .filter((line) => line.length >= 3);
+
   return joinUniqueLines(lines, 6000);
 };
 
