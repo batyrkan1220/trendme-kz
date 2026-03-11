@@ -34,12 +34,8 @@ export default function Auth() {
     setAppleLoading(true);
     try {
       if (isNative) {
-        // Native iOS: use initialized @capgo/capacitor-social-login
+        // Native iOS: use @capgo/capacitor-social-login
         const { SocialLogin } = await import("@capgo/capacitor-social-login");
-
-        await SocialLogin.initialize({
-          apple: {},
-        });
 
         const result = await SocialLogin.login({
           provider: "apple",
