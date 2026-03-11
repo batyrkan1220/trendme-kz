@@ -158,7 +158,10 @@ const parseCaptionPayload = (raw: string): string => {
   if (text.startsWith("{") || text.startsWith("[")) {
     try {
       const parsed = JSON.parse(text);
-      return joinUniqueLines(collectTextValues(parsed), 6000);
+      const jsonLines = collectTextValues(parsed)
+        .map((line) => sanitizeTranscriptLine(line))
+        .filter((line) => line.length >= 3);
+      return joinUniqueLines(jsonLines, 6000);
     } catch {
       // fall through
     }
@@ -175,27 +178,36 @@ const parseCaptionPayload = (raw: string): string => {
         !/^NOTE\b/i.test(line) &&
         !/^\d+$/.test(line) &&
         !line.includes("-->")
-      );
+      )
+      .map((line) => sanitizeTranscriptLine(line))
+      .filter((line) => line.length >= 3);
     const parsedVtt = joinUniqueLines(lines, 6000);
     if (parsedVtt) return parsedVtt;
   }
 
   // XML/TTML payloads
   if (text.includes("<") && text.includes(">")) {
-    const xmlLines = Array.from(text.matchAll(/<(?:p|span|text)[^>]*>([\s\S]*?)<\/(?:p|span|text)>/gi)).map((m) =>
-      m[1]
-        .replace(/<[^>]+>/g, " ")
-        .replace(/&nbsp;|&#160;/gi, " ")
-        .replace(/&amp;/gi, "&")
-        .replace(/&lt;/gi, "<")
-        .replace(/&gt;/gi, ">")
-        .trim()
-    );
+    const xmlLines = Array.from(text.matchAll(/<(?:p|span|text)[^>]*>([\s\S]*?)<\/(?:p|span|text)>/gi))
+      .map((m) =>
+        m[1]
+          .replace(/<[^>]+>/g, " ")
+          .replace(/&nbsp;|&#160;/gi, " ")
+          .replace(/&amp;/gi, "&")
+          .replace(/&lt;/gi, "<")
+          .replace(/&gt;/gi, ">")
+      )
+      .map((line) => sanitizeTranscriptLine(line))
+      .filter((line) => line.length >= 3);
     const parsedXml = joinUniqueLines(xmlLines, 6000);
     if (parsedXml) return parsedXml;
   }
 
-  return joinUniqueLines(text.split(/\r?\n/), 6000);
+  const fallbackLines = text
+    .split(/\r?\n/)
+    .map((line) => sanitizeTranscriptLine(line))
+    .filter((line) => line.length >= 3);
+
+  return joinUniqueLines(fallbackLines, 6000);
 };
 
 const extractCaptionUrlsFromPostInfo = (video: any): string[] => {
