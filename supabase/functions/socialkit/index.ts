@@ -635,23 +635,25 @@ Deno.serve(async (req: Request) => {
                     type: "function",
                     function: {
                       name: "video_analysis",
-                      description: "Структурированный анализ TikTok видео",
+                      description: analysisLang === "kk" 
+                        ? "TikTok бейнесінің құрылымдалған талдауы — мазмұнды дәл сақтап жаз" 
+                        : "Структурированный анализ TikTok видео — точно сохрани оригинальный смысл",
                       parameters: {
                         type: "object",
                         properties: {
-                          topic: { type: "string", description: "Тема видео — краткий заголовок 5-15 слов" },
-                          language: { type: "string", description: "Язык видео (Русский, English, etc.)" },
+                          topic: { type: "string", description: analysisLang === "kk" ? "Видео тақырыбы — 5-15 сөзден тұратын дәл тақырып, видеодағы нақты мазмұнға негізделген" : "Тема видео — точный заголовок 5-15 слов, основанный на реальном содержании видео" },
+                          language: { type: "string", description: "Язык видео (Русский, Қазақша, English, etc.)" },
                           tags: {
                             type: "array",
                             items: { type: "string" },
-                            description: "2-4 формата/типа контента"
+                            description: analysisLang === "kk" ? "2-4 контент форматы/түрі" : "2-4 формата/типа контента"
                           },
                           niches: {
                             type: "array",
                             items: { type: "string" },
-                            description: "2-4 ниши с эмодзи"
+                            description: analysisLang === "kk" ? "2-4 ниша эмодзимен" : "2-4 ниши с эмодзи"
                           },
-                          summary: { type: "string", description: "Суть видео — подробное описание в 2-4 предложениях" },
+                          summary: { type: "string", description: analysisLang === "kk" ? "Видео мазмұны — 2-4 сөйлем, ТУРА видеодағы ақпаратты бер, ештеңе қоспа" : "Суть видео — 2-4 предложения, ТОЧНО передай содержание видео, ничего не добавляй от себя" },
                           structure: {
                             type: "array",
                             items: {
@@ -663,11 +665,11 @@ Deno.serve(async (req: Request) => {
                               },
                               required: ["time", "title", "description"]
                             },
-                            description: "3-5 сегментов структуры видео с таймкодами"
+                            description: analysisLang === "kk" ? "3-5 бейне құрылымының сегменті таймкодтармен" : "3-5 сегментов структуры видео с таймкодами"
                           },
-                          hook_phrase: { type: "string", description: "Первая фраза-хук" },
-                          visual_hook: { type: "string", description: "Описание визуального хука" },
-                          text_hook: { type: "string", description: "Текст на экране в первые секунды" },
+                          hook_phrase: { type: "string", description: analysisLang === "kk" ? "Видеодағы бірінші фраза-хук — ДӘЛМЕ-ДӘЛ видеодан ал" : "Первая фраза-хук — бери ДОСЛОВНО из видео" },
+                          visual_hook: { type: "string", description: analysisLang === "kk" ? "Визуалды хуктің сипаттамасы — нақты көрінетін нәрсені жаз" : "Описание визуального хука — опиши что реально видно" },
+                          text_hook: { type: "string", description: analysisLang === "kk" ? "Алғашқы секундтардағы экрандағы мәтін — ДӘЛМЕ-ДӘЛ видеодан ал" : "Текст на экране в первые секунды — бери ДОСЛОВНО" },
                           funnel: {
                             type: "object",
                             properties: {
