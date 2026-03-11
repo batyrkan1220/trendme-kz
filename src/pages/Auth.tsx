@@ -46,7 +46,7 @@ export default function Auth() {
 
         console.log("[Apple Sign In] Native result:", JSON.stringify(result));
 
-        const idToken = result?.result?.identityToken;
+        const idToken = (result?.result as any)?.idToken;
         if (!idToken) {
           toast.error("Ошибка Apple. Токен не получен.");
           return;
