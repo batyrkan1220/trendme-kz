@@ -33,6 +33,17 @@ function validateTikTokUsername(username: string): boolean {
   return /^[a-zA-Z0-9_.]+$/.test(cleaned);
 }
 
+function normalizeTikTokUsername(username: string): string {
+  const cleaned = String(username || "").trim().replace(/^@/, "");
+  return validateTikTokUsername(cleaned) ? cleaned : "";
+}
+
+function buildFallbackVideoUrl(videoId: string, username?: string): string | null {
+  if (!/^\d{8,}$/.test(String(videoId || ""))) return null;
+  const safeUsername = normalizeTikTokUsername(username || "") || "user";
+  return `https://www.tiktok.com/@${safeUsername}/video/${videoId}`;
+}
+
 /** Resolve short TikTok URLs (vm.tiktok.com, vt.tiktok.com) to full URLs */
 async function resolveShortUrl(url: string): Promise<string> {
   try {
