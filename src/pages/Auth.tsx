@@ -46,7 +46,7 @@ export default function Auth() {
 
         const identityToken = result.response?.identityToken;
         if (!identityToken) {
-          toast.error("Ошибка Apple. Токен не получен.");
+          toast.error("Apple кіру қатесі. Токен алынбады.");
           return;
         }
 
@@ -57,7 +57,7 @@ export default function Auth() {
         });
 
         if (error) {
-          toast.error("Ошибка входа через Apple. Попробуйте снова.");
+          toast.error("Apple кіру қатесі. Қайталап көріңіз.");
           console.error("[Apple Sign In] signInWithIdToken error:", error);
         } else {
           navigate("/trends");
@@ -69,13 +69,13 @@ export default function Auth() {
         });
 
         if (result.error) {
-          toast.error("Ошибка входа через Apple. Попробуйте снова.");
+          toast.error("Apple кіру қатесі. Қайталап көріңіз.");
           console.error("[Apple Sign In]", result.error);
           return;
         }
 
         if (!result.redirected) {
-          toast.error("Вход через Apple не начался. Попробуйте снова.");
+          toast.error("Apple кіру басталмады. Қайталап көріңіз.");
           console.warn("[Apple Sign In] No redirect and no error", result);
         }
       }
@@ -84,7 +84,7 @@ export default function Auth() {
       if (err?.message?.includes("canceled") || err?.code === "ERR_CANCELED") {
         console.log("[Apple Sign In] User cancelled");
       } else {
-        toast.error("Ошибка входа через Apple.");
+        toast.error("Apple кіру қатесі.");
         console.error("[Apple Sign In]", err);
       }
     } finally {
@@ -104,7 +104,7 @@ export default function Auth() {
             <TrendMeLogo size={56} className="mx-auto" />
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-foreground">trendme</h1>
-              <p className="text-base text-muted-foreground mt-1.5">Узнай тренд первым</p>
+              <p className="text-base text-muted-foreground mt-1.5">Трендтерді бірінші біл</p>
             </div>
           </div>
 
@@ -120,7 +120,7 @@ export default function Auth() {
                 <svg className="h-5 w-5 mr-2.5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                 </svg>
-                Войти через Apple
+                Apple арқылы кіру
               </>
             )}
           </Button>
