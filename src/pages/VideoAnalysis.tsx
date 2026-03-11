@@ -205,7 +205,7 @@ export default function VideoAnalysis() {
           </div>
         </div>) :
 
-      <div className="p-3 md:p-4 lg:p-6 animate-fade-in pb-16 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
+      <div className="p-3 md:p-4 lg:p-6 animate-magic-reveal pb-16 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Анализ видео 🎬</h1>
         <div className="flex flex-col sm:flex-row gap-2 mb-3 md:mb-4">
           <Input
