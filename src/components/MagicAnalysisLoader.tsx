@@ -112,7 +112,7 @@ export function MagicAnalysisLoader({ isComplete }: Props) {
             className="text-sm font-semibold text-foreground"
             style={{ animation: "magic-text-glow 2s ease-in-out infinite" }}
           >
-            Сиқырлы анализ жасалуда...
+            Магия анализа...
           </p>
           <Sparkles
             className="h-4 w-4 text-primary"
