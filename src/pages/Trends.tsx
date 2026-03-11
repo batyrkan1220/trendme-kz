@@ -298,10 +298,11 @@ export default function Trends() {
             <>
               {/* Sticky header with back + title */}
               <div
-                className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
+                className="sticky z-30 pb-2 px-4 backdrop-blur-md space-y-3"
                 style={{
+                  top: "env(safe-area-inset-top, 0px)",
                   background: "rgba(10,10,10,0.85)",
-                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)"
+                  paddingTop: "8px"
                 }}
               >
                 <div className="flex items-center gap-3">
