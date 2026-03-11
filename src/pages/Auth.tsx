@@ -64,6 +64,7 @@ export default function Auth() {
       if (!name.trim()) { toast.error("Введите имя"); return; }
       if (!phone.trim()) { toast.error("Введите номер телефона"); return; }
       if (password.length < 6) { toast.error("Пароль должен быть не менее 6 символов"); return; }
+      if (!eulaAccepted) { toast.error("Необходимо принять пользовательское соглашение"); return; }
     }
 
     setLoading(true);
