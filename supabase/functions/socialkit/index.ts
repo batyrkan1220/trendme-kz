@@ -75,6 +75,240 @@ function extractUsername(url: string): string {
   return match ? match[1] : url.split("@").pop()?.split("?")[0]?.split("/")[0] || "";
 }
 
+const normalizeTextLine = (value: string) =>
+  String(value || "")
+    .replace(/\s+/g, " ")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim();
+
+const sanitizeTranscriptLine = (value: string) =>
+  normalizeTextLine(value)
+    .replace(/<\/?h[^>]*>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\{[^{}]*\}/g, " ")
+    .replace(/\[[^\[\]]*\]/g, " ")
+    .replace(/#\S+/g, " ")
+    .replace(/\b(?:true|false|null|nan|undefined)\b/gi, " ")
+    .replace(/["':]/g, " ")
+    .replace(/\b(?:x|y|w|h|s|r|start_time|end_time|isRatioCoord)\b/gi, " ")
+    .replace(/\b\d+(?:\.\d+)?\b/g, " ")
+    .replace(/[\/|]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const getTranscriptQuality = (transcript: string): "high" | "low" => {
+  const text = normalizeTextLine(transcript);
+  if (!text) return "low";
+
+  const words = text.split(" ").filter(Boolean);
+  const hashtagCount = (text.match(/#/g) || []).length;
+  const tagLikeCount = (text.match(/<[^>]+>/g) || []).length;
+  const jsonArtifactCount = (text.match(/[\[\]{}]{2,}|"\w+"\s*:/g) || []).length;
+
+  if (words.length < 35) return "low";
+  if (hashtagCount > Math.max(2, Math.floor(words.length * 0.12))) return "low";
+  if (tagLikeCount > 0) return "low";
+  if (jsonArtifactCount > 0) return "low";
+
+  return "high";
+};
+
+const joinUniqueLines = (lines: string[], maxChars = 7000): string => {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  let total = 0;
+
+  for (const rawLine of lines) {
+    const line = normalizeTextLine(rawLine);
+    if (!line || line.length < 2) continue;
+    const key = line.toLowerCase();
+    if (seen.has(key)) continue;
+    if (total + line.length + 1 > maxChars) break;
+    seen.add(key);
+    out.push(line);
+    total += line.length + 1;
+  }
+
+  return out.join("\n");
+};
+
+const collectTextValues = (value: any, maxDepth = 6, depth = 0): string[] => {
+  if (depth > maxDepth || value == null) return [];
+  if (typeof value === "string") return [value];
+  if (typeof value === "number" || typeof value === "boolean") return [String(value)];
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectTextValues(item, maxDepth, depth + 1));
+  }
+
+  if (typeof value === "object") {
+    const preferredKeys = [
+      "text", "value", "content", "sentence", "transcript", "caption", "utterance", "words", "line",
+    ];
+    const preferred: string[] = [];
+    for (const key of preferredKeys) {
+      if (key in value) preferred.push(...collectTextValues(value[key], maxDepth, depth + 1));
+    }
+    if (preferred.length > 0) return preferred;
+
+    return Object.values(value).flatMap((item) => collectTextValues(item, maxDepth, depth + 1));
+  }
+
+  return [];
+};
+
+const parseCaptionPayload = (raw: string): string => {
+  const text = String(raw || "").trim();
+  if (!text) return "";
+
+  // JSON caption payloads
+  if (text.startsWith("{") || text.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(text);
+      const jsonLines = collectTextValues(parsed)
+        .map((line) => sanitizeTranscriptLine(line))
+        .filter((line) => line.length >= 3);
+      return joinUniqueLines(jsonLines, 6000);
+    } catch {
+      // fall through
+    }
+  }
+
+  // WEBVTT payloads
+  if (/^WEBVTT/i.test(text) || text.includes("-->")) {
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) =>
+        line &&
+        !/^WEBVTT/i.test(line) &&
+        !/^NOTE\b/i.test(line) &&
+        !/^\d+$/.test(line) &&
+        !line.includes("-->")
+      )
+      .map((line) => sanitizeTranscriptLine(line))
+      .filter((line) => line.length >= 3);
+    const parsedVtt = joinUniqueLines(lines, 6000);
+    if (parsedVtt) return parsedVtt;
+  }
+
+  // XML/TTML payloads
+  if (text.includes("<") && text.includes(">")) {
+    const xmlLines = Array.from(text.matchAll(/<(?:p|span|text)[^>]*>([\s\S]*?)<\/(?:p|span|text)>/gi))
+      .map((m) =>
+        m[1]
+          .replace(/<[^>]+>/g, " ")
+          .replace(/&nbsp;|&#160;/gi, " ")
+          .replace(/&amp;/gi, "&")
+          .replace(/&lt;/gi, "<")
+          .replace(/&gt;/gi, ">")
+      )
+      .map((line) => sanitizeTranscriptLine(line))
+      .filter((line) => line.length >= 3);
+    const parsedXml = joinUniqueLines(xmlLines, 6000);
+    if (parsedXml) return parsedXml;
+  }
+
+  const fallbackLines = text
+    .split(/\r?\n/)
+    .map((line) => sanitizeTranscriptLine(line))
+    .filter((line) => line.length >= 3);
+
+  return joinUniqueLines(fallbackLines, 6000);
+};
+
+const extractCaptionUrlsFromPostInfo = (video: any): string[] => {
+  const containers = [
+    video?.video?.cla_info?.caption_infos,
+    video?.video?.caption_infos,
+    video?.cla_info?.caption_infos,
+    video?.caption_infos,
+    video?.video?.subtitle_infos,
+    video?.subtitle_infos,
+  ];
+
+  const urls = new Set<string>();
+  for (const container of containers) {
+    if (!container) continue;
+    const items = Array.isArray(container) ? container : [container];
+    for (const item of items) {
+      if (!item) continue;
+      if (typeof item === "string") {
+        if (/^https?:\/\//i.test(item)) urls.add(item);
+        continue;
+      }
+
+      const candidates = [
+        item.url,
+        item.caption_url,
+        item.captionUrl,
+        item.sub_url,
+        item.subtitle_url,
+        item.subtitleUrl,
+        item.vtt_url,
+        ...(Array.isArray(item.url_list) ? item.url_list : []),
+      ].filter((v) => typeof v === "string" && /^https?:\/\//i.test(v));
+
+      for (const candidate of candidates) urls.add(candidate);
+    }
+  }
+
+  return Array.from(urls);
+};
+
+const extractTranscriptFromPostInfo = (video: any): string => {
+  // Only speech/subtitle-related fields. Do NOT use desc/original_client_text (they are caption metadata, not spoken transcript).
+  const transcriptSources = [
+    video?.video_text,
+    video?.video?.text,
+    video?.video?.subtitle_infos,
+    video?.video?.cla_info?.caption_infos,
+    video?.video?.caption_infos,
+    video?.interaction_stickers,
+  ];
+
+  const lines = transcriptSources
+    .flatMap((source) => collectTextValues(source))
+    .map((line) => sanitizeTranscriptLine(line))
+    .filter((line) => line.length >= 3);
+
+  return joinUniqueLines(lines, 6000);
+};
+
+const fetchCaptionTranscript = async (urls: string[]): Promise<string> => {
+  for (const url of urls.slice(0, 3)) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) continue;
+      const payload = await response.text();
+      const parsed = parseCaptionPayload(payload);
+      if (parsed && parsed.length > 20) return parsed;
+    } catch (e) {
+      console.error("Caption fetch failed:", url, e);
+    }
+  }
+  return "";
+};
+
+async function buildTranscriptText(video: any): Promise<string> {
+  if (!video) return "";
+
+  const metadataTranscript = extractTranscriptFromPostInfo(video);
+  const captionUrls = extractCaptionUrlsFromPostInfo(video);
+  const captionTranscript = captionUrls.length > 0 ? await fetchCaptionTranscript(captionUrls) : "";
+
+  const finalTranscript = joinUniqueLines([captionTranscript, metadataTranscript], 7000);
+  console.log("Transcript extraction:", {
+    hasCaptionUrls: captionUrls.length > 0,
+    captionUrlsCount: captionUrls.length,
+    metadataChars: metadataTranscript.length,
+    captionChars: captionTranscript.length,
+    finalChars: finalTranscript.length,
+  });
+
+  return finalTranscript;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -107,9 +341,13 @@ Deno.serve(async (req: Request) => {
         global: { headers: { Authorization: authHeader } },
       });
       const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-      if (!claimsError && claimsData?.claims) {
-        userId = claimsData.claims.sub as string;
+      try {
+        const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+        if (!claimsError && claimsData?.claims) {
+          userId = claimsData.claims.sub as string;
+        }
+      } catch (e) {
+        console.warn("Auth token is invalid/expired, continuing without user context");
       }
     }
 
@@ -532,14 +770,18 @@ Deno.serve(async (req: Request) => {
           commentsFetch,
         ]);
 
-        // Extract post info (stats, description, etc.)
+        // Extract post info (stats, description, transcript/action cues)
         let statsData: any = null;
         let transcriptText = "";
+        let actionSignalsText = "";
         if (postInfoRes.status === "fulfilled" && postInfoRes.value) {
           const raw = postInfoRes.value?.data || postInfoRes.value;
           const inner = raw?.["0"] || raw;
           statsData = unwrapVideo(inner);
           console.log("Post info keys:", JSON.stringify(Object.keys(statsData || {})));
+
+          transcriptText = await buildTranscriptText(statsData);
+          actionSignalsText = joinUniqueLines(collectTextValues(statsData?.video_text), 1200);
         } else if (postInfoRes.status === "rejected") {
           console.error("Post info fetch failed:", postInfoRes.reason);
         }
@@ -581,7 +823,9 @@ Deno.serve(async (req: Request) => {
           contextParts.push(`Статистика: ${v} просмотров, ${l} лайков, ${c} комментариев, ${s} репостов`);
         }
         if (topCommentsText) contextParts.push(`Топ комментарии:\n${topCommentsText.slice(0, 2000)}`);
-        if (transcriptText) contextParts.push(`Транскрипт (речь из видео):\n${transcriptText.slice(0, 3000)}`);
+        if (actionSignalsText) contextParts.push(`Текст/сцены из видео-метаданных:\n${actionSignalsText.slice(0, 1200)}`);
+        if (transcriptText) contextParts.push(`Транскрипт (речь из видео):\n${transcriptText.slice(0, 5000)}`);
+        contextParts.push(`Надежность источника речи: ${transcriptText.length >= 120 ? "высокая" : "низкая"}`);
 
         const hasContent = contextParts.length > 0;
 
@@ -589,28 +833,36 @@ Deno.serve(async (req: Request) => {
           try {
             const systemPromptKk = `Сен — TikTok бейнелерін талдау бойынша сарапшысың. Барлық қолжетімді ақпарат негізінде (сипаттама, транскрипт, статистика, пікірлер) талдау жаса.
 
-БАСТЫ ЕРЕЖЕ — МӘНДІ САҚТА:
-- Видеодағы нақты мазмұнды ғана сипатта. Ойдан шығарма, ұқсатпа, болжама.
-- Транскрипт берілсе — ондағы нақты сөздер мен ойларды пайдалан. Мағынасын өзгертпе.
-- Сипаттамадағы мәтінді дәл сол күйінде бер, жалпылама, қысқартпа.
-- Егер ақпарат жеткіліксіз болса — "белгісіз" деп жаз, ойлап шығарма.
-- hook_phrase, visual_hook, text_hook — ТУРА видеодан ал. Ойлап шығарма.
+БАСТЫ ЕРЕЖЕ — МӘНДІ 1:1 САҚТА:
+- Видеода нақты бар ақпаратты ғана жаз. Ойдан ештеңе қоспа.
+- Егер транскрипт бар болса, соған басымдық бер: сөздер мен ойды өзгертпе.
+- "structure" ішінде әрекеттерді уақыт ретімен толық бер (өткізіп алма).
+- Дәлел жоқ өрістерге тек "белгісіз" деп жаз.
+- hook_phrase, visual_hook, text_hook — тек видеода нақты бар болса ғана толтыр, әйтпесе "белгісіз".
 
 ТІЛ: Барлық жауаптарды ҚАЗАҚ тілінде бер. Тек video_analysis функциясын шақыр.`;
 
-            const systemPromptRu = `Ты — эксперт по анализу TikTok-контента. Проанализируй видео на основе всей доступной информации (описание, транскрипт, статистика, комментарии).
+            const systemPromptRu = `Ты — эксперт по анализу TikTok-контента. Проанализируй видео строго по данным из источников (описание, транскрипт, статистика, комментарии).
 
-ГЛАВНОЕ ПРАВИЛО — СОХРАНИ СМЫСЛ:
-- Описывай ТОЛЬКО то, что реально есть в видео. Не додумывай, не приукрашивай, не обобщай.
-- Если есть транскрипт — используй именно те слова и мысли, что звучат в видео. Не перефразируй и не подменяй смысл.
-- Описание видео передавай как есть, без упрощений и обобщений.
-- Если информации недостаточно — напиши "неизвестно", а не придумывай.
-- hook_phrase, visual_hook, text_hook — бери ДОСЛОВНО из видео. Не выдумывай.
+ГЛАВНОЕ ПРАВИЛО — СОХРАНИ СМЫСЛ 1:1:
+- Пиши только то, что реально подтверждается входными данными. Никаких догадок.
+- Если есть транскрипт — опирайся в первую очередь на него, не перефразируй ключевые смыслы.
+- В поле "structure" перечисли действия по порядку (хронология), не пропускай значимые шаги.
+- Если факт не подтвержден, пиши только "неизвестно".
+- hook_phrase, visual_hook, text_hook заполняй только при явном подтверждении, иначе "неизвестно".
 
 ЯЗЫК: Все ответы давай на РУССКОМ языке. Вызови только функцию video_analysis.`;
 
-            const userPromptKk = `Осы TikTok бейнесін талда. Видеоның мәнін, мазмұнын 100% дәл сақта — ешнәрсе қоспа, алма, өзгертпе.\n\nURL: ${video_url || "N/A"}\n\n${contextParts.join("\n\n")}`;
-            const userPromptRu = `Проанализируй это TikTok-видео. Передай содержание и смысл видео 100% точно — ничего не добавляй, не убирай, не изменяй.\n\nURL: ${video_url || "N/A"}\n\n${contextParts.join("\n\n")}`;
+            const userPromptKk = `Осы TikTok бейнесін талда. Видеоның айтылған мәтінін және іс-әрекеттерін 100% дәл жеткіз: ештеңе қоспа, ештеңе алып тастама, ретін бұзба.
+
+URL: ${video_url || "N/A"}
+
+${contextParts.join("\n\n")}`;
+            const userPromptRu = `Проанализируй это TikTok-видео. Передай полный сказанный текст и действия из видео максимально точно, без добавлений и без потери смысла.
+
+URL: ${video_url || "N/A"}
+
+${contextParts.join("\n\n")}`;
 
             const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
               method: "POST",
@@ -619,7 +871,8 @@ Deno.serve(async (req: Request) => {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                model: "google/gemini-2.5-flash",
+                model: "google/gemini-3-flash-preview",
+                temperature: 0,
                 messages: [
                   {
                     role: "system",
@@ -653,7 +906,7 @@ Deno.serve(async (req: Request) => {
                             items: { type: "string" },
                             description: analysisLang === "kk" ? "2-4 ниша эмодзимен" : "2-4 ниши с эмодзи"
                           },
-                          summary: { type: "string", description: analysisLang === "kk" ? "Видео мазмұны — 2-4 сөйлем, ТУРА видеодағы ақпаратты бер, ештеңе қоспа" : "Суть видео — 2-4 предложения, ТОЧНО передай содержание видео, ничего не добавляй от себя" },
+                          summary: { type: "string", description: analysisLang === "kk" ? "Видео мазмұны — 4-8 сөйлем, айтылған мәтін мен іс-әрекеттерді хронологиямен дәл бер, ештеңе қоспа" : "Суть видео — 4-8 предложений, точно передай сказанный текст и действия по хронологии, без добавлений" },
                           structure: {
                             type: "array",
                             items: {
@@ -665,7 +918,7 @@ Deno.serve(async (req: Request) => {
                               },
                               required: ["time", "title", "description"]
                             },
-                            description: analysisLang === "kk" ? "3-5 бейне құрылымының сегменті таймкодтармен" : "3-5 сегментов структуры видео с таймкодами"
+                            description: analysisLang === "kk" ? "Кемінде 5 сегмент (бар болса 5-12): әрекеттердің толық хронологиясы таймкодпен" : "Минимум 5 сегментов (если доступно 5-12): полная хронология действий с таймкодами"
                           },
                           hook_phrase: { type: "string", description: analysisLang === "kk" ? "Видеодағы бірінші фраза-хук — ДӘЛМЕ-ДӘЛ видеодан ал" : "Первая фраза-хук — бери ДОСЛОВНО из видео" },
                           visual_hook: { type: "string", description: analysisLang === "kk" ? "Визуалды хуктің сипаттамасы — нақты көрінетін нәрсені жаз" : "Описание визуального хука — опиши что реально видно" },
@@ -709,8 +962,19 @@ Deno.serve(async (req: Request) => {
         }
 
         // 3. Combine everything
+        const unknownText = analysisLang === "kk" ? "белгісіз" : "неизвестно";
+        const transcriptQuality = getTranscriptQuality(transcriptText);
+        const hasStrongSpeechSource = transcriptQuality === "high";
+
+        if (aiAnalysis && !hasStrongSpeechSource) {
+          aiAnalysis.hook_phrase = unknownText;
+          aiAnalysis.text_hook = unknownText;
+          if (!aiAnalysis.visual_hook) aiAnalysis.visual_hook = unknownText;
+        }
+
         const summaryJson = {
           ...(aiAnalysis || {}),
+          source_quality: transcriptQuality,
           stats: statsData ? {
             views: videoStats.play_count ?? videoStats.views ?? 0,
             likes: videoStats.digg_count ?? videoStats.likes ?? 0,
