@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { MemoVideoCard } from "@/components/VideoCard";
 import { ChevronRight } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
+import { isNativePlatform } from "@/lib/native";
 
 
 interface TrendNicheRowProps {
