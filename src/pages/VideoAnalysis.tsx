@@ -218,7 +218,7 @@ export default function VideoAnalysis() {
                     author_username: authorUsername,
                     author_avatar_url: authorAvatar,
                     views, likes, comments: commentsCount, shares,
-                    duration_sec: duration,
+                    duration: duration,
                   }}
                   playingId={isPlaying ? videoId : null}
                   onPlay={(id) => setIsPlaying(!!id)}
