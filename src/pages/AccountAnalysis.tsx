@@ -122,14 +122,19 @@ export default function AccountAnalysis() {
 
 
   const handleAnalyze = async () => {
-    if (!url.trim() || isPending) return;
-    if (!isValidTikTokUrl(url.trim())) {
-      toast.error("Используйте только ссылку на TikTok (например: https://www.tiktok.com/@username)");
+    const normalizedUrl = normalizeTikTokProfileInput(url);
+    if (!normalizedUrl || isPending) return;
+
+    if (!isValidTikTokUrl(normalizedUrl)) {
+      toast.error("Используйте ссылку на TikTok профиль (например: https://www.tiktok.com/@username)");
       return;
     }
-    const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${url.trim()}`);
+
+    const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${normalizedUrl}`);
     if (!ok) return;
-    analyze(url.trim());
+
+    setUrl(normalizedUrl);
+    analyze(normalizedUrl);
   };
 
   const topVideos: TopVideo[] = account?.top_videos || [];
