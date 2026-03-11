@@ -14,12 +14,6 @@ import { hapticSuccess } from "@/lib/haptics";
 import { VideoAnalysisResults } from "@/components/VideoAnalysisResults";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const fmt = (n: number) => {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + "k";
-  return String(n);
-};
-
 const extractVideoId = (url: string): string => {
   const patterns = [/\/video\/(\d+)/, /\/photo\/(\d+)/, /(\d{15,})/];
   for (const pattern of patterns) {
@@ -129,14 +123,15 @@ export default function VideoAnalysis() {
   const coverUrl = stats?.thumbnailUrl || stats?.cover || stats?.cover_url || stats?.originCover || stats?.video?.cover || "";
   const authorUsername = stats?.channelName || stats?.author?.uniqueId || stats?.author_username || "";
   const authorAvatar = stats?.author?.avatarThumb || stats?.author_avatar_url || "";
+  const duration = Number(stats?.duration || stats?.duration_sec || stats?.video?.duration || 0);
 
   if (showScript && analysis) {
     return (
       <AppLayout>
-        <div className="pb-16 md:pb-8 m-4" style={{ height: "calc(100dvh - 6rem)" }}>
+        <div className="pb-16 md:pb-8 mx-2 md:m-4" style={{ height: "calc(100dvh - 6rem)" }}>
           <ScriptGenerationPanel
             transcript={transcript}
-            summary={summary}
+            summary={{ ...summary, duration_sec: duration }}
             caption=""
             language={language || "ru"}
             onBack={() => setShowScript(false)}
@@ -149,10 +144,11 @@ export default function VideoAnalysis() {
   return (
     <AppLayout>
       {!analysis || isPending ? (
-        <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
-          <div className="w-full max-w-lg flex flex-col items-center gap-6">
+        /* Input state — centered, full screen */
+        <div className="flex flex-col items-center justify-center px-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+          <div className="w-full max-w-lg flex flex-col items-center gap-5">
             {isPending ? <MagicAnalysisLoader /> : (
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">
+              <h1 className="text-xl md:text-3xl font-bold text-foreground text-center">
                 {language === "kk" ? "Видео талдау" : "Анализ видео"}
               </h1>
             )}
@@ -166,19 +162,19 @@ export default function VideoAnalysis() {
               />
               {!isPending && (
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs text-muted-foreground text-center font-medium">Тілді таңдаңыз / Выберите язык</p>
+                  <p className="text-[11px] text-muted-foreground text-center font-medium">Тілді таңдаңыз / Выберите язык</p>
                   <div className="flex gap-2">
-                    <Button onClick={() => handleAnalyze("kk")} disabled={!url.trim()} className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm">
-                      🇰🇿 Қазақ тілі
+                    <Button onClick={() => handleAnalyze("kk")} disabled={!url.trim()} className="flex-1 h-11 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm">
+                      🇰🇿 Қазақша
                     </Button>
-                    <Button onClick={() => handleAnalyze("ru")} disabled={!url.trim()} className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm">
-                      🇷🇺 Русский язык
+                    <Button onClick={() => handleAnalyze("ru")} disabled={!url.trim()} className="flex-1 h-11 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm">
+                      🇷🇺 Русский
                     </Button>
                   </div>
                 </div>
               )}
               {isPending && (
-                <Button disabled className="h-12 gradient-hero text-primary-foreground border-0 rounded-xl font-semibold text-sm">
+                <Button disabled className="h-11 gradient-hero text-primary-foreground border-0 rounded-xl font-semibold text-sm">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />Анализируем...
                 </Button>
               )}
@@ -186,33 +182,32 @@ export default function VideoAnalysis() {
           </div>
         </div>
       ) : (
-        <div className="animate-magic-reveal pb-16 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 8px, 8px)" }}>
-          {/* Top bar with input */}
-          <div className="px-3 md:px-4 lg:px-6 pb-2">
-            <div className="flex flex-col sm:flex-row gap-2">
+        /* Results state */
+        <div className="animate-magic-reveal pb-20 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 4px, 4px)" }}>
+          {/* Top bar with input — compact on mobile */}
+          <div className="px-2.5 md:px-4 lg:px-6 pb-2">
+            <div className="flex gap-1.5">
               <Input
-                placeholder="Вставьте ссылку на TikTok видео..."
+                placeholder="TikTok видео ссылкасы..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !isPending && url.trim() && handleAnalyze(language || "ru")}
-                className="flex-1 h-10 md:h-11 bg-card border-border rounded-xl card-shadow text-sm"
+                className="flex-1 h-9 md:h-11 bg-card border-border rounded-lg md:rounded-xl card-shadow text-xs md:text-sm"
               />
-              <div className="flex gap-2">
-                <Button onClick={() => handleAnalyze("kk")} disabled={isPending} className="h-10 md:h-11 gradient-hero text-primary-foreground border-0 px-3 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-xs">
-                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "🇰🇿 Қаз"}
-                </Button>
-                <Button onClick={() => handleAnalyze("ru")} disabled={isPending} className="h-10 md:h-11 gradient-hero text-primary-foreground border-0 px-3 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-xs">
-                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "🇷🇺 Рус"}
-                </Button>
-              </div>
+              <Button onClick={() => handleAnalyze("kk")} disabled={isPending} size="sm" className="h-9 md:h-11 gradient-hero text-primary-foreground border-0 px-2.5 md:px-3 rounded-lg md:rounded-xl font-semibold text-[11px] md:text-xs">
+                {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "🇰🇿"}
+              </Button>
+              <Button onClick={() => handleAnalyze("ru")} disabled={isPending} size="sm" className="h-9 md:h-11 gradient-hero text-primary-foreground border-0 px-2.5 md:px-3 rounded-lg md:rounded-xl font-semibold text-[11px] md:text-xs">
+                {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "🇷🇺"}
+              </Button>
             </div>
           </div>
 
-          {/* Content: Mobile = vertical, Desktop = horizontal */}
-          <div className="flex flex-col md:flex-row gap-3 px-3 md:px-4 lg:px-6 min-h-0 md:h-[calc(100vh-8rem)]">
-            {/* Video Card */}
-            <div className={`${isMobile ? "w-full flex justify-center" : "w-[min(44vw,200px)]"} flex-shrink-0`}>
-              <div className={isMobile ? "w-[140px]" : "w-full"}>
+          {/* Content */}
+          <div className={`flex ${isMobile ? "flex-col" : "flex-row"} gap-2.5 px-2.5 md:px-4 lg:px-6 min-h-0 md:h-[calc(100vh-8rem)]`}>
+            {/* Video Card — smaller on mobile, side on desktop */}
+            <div className={`flex-shrink-0 ${isMobile ? "w-full flex justify-center" : "w-[min(44vw,200px)]"}`}>
+              <div className={isMobile ? "w-[120px]" : "w-full"}>
                 <VideoCard
                   video={{
                     id: videoId,
@@ -223,6 +218,7 @@ export default function VideoAnalysis() {
                     author_username: authorUsername,
                     author_avatar_url: authorAvatar,
                     views, likes, comments: commentsCount, shares,
+                    duration: duration,
                   }}
                   playingId={isPlaying ? videoId : null}
                   onPlay={(id) => setIsPlaying(!!id)}
@@ -236,7 +232,7 @@ export default function VideoAnalysis() {
             </div>
 
             {/* Analysis Results */}
-            <div className="flex-1 overflow-y-auto p-3 md:p-5 bg-card rounded-xl md:rounded-2xl border border-border/50 card-shadow">
+            <div className="flex-1 overflow-y-auto p-2.5 md:p-5 bg-card rounded-xl md:rounded-2xl border border-border/50 card-shadow">
               <VideoAnalysisResults
                 summary={summary}
                 transcript={transcript}
@@ -260,5 +256,3 @@ export default function VideoAnalysis() {
     </AppLayout>
   );
 }
-
-              {/* Fallback raw */}
