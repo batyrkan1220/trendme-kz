@@ -12,7 +12,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { SplashScreen } from "@/components/SplashScreen";
 import { isNativePlatform } from "@/lib/native";
 import Index from "./pages/Index";
-import { ProfileCompletionDialog } from "@/components/ProfileCompletionDialog";
+
 
 
 const NotFound = lazy(() => import("./pages/NotFound"));
