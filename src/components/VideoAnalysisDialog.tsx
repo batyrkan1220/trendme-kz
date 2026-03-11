@@ -508,7 +508,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                     </pre>
                   </div>
                 )}
-              </>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Sparkles className="h-10 w-10 text-muted-foreground/20" />
