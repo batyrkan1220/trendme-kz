@@ -719,14 +719,18 @@ Deno.serve(async (req: Request) => {
           commentsFetch,
         ]);
 
-        // Extract post info (stats, description, etc.)
+        // Extract post info (stats, description, transcript/action cues)
         let statsData: any = null;
         let transcriptText = "";
+        let actionSignalsText = "";
         if (postInfoRes.status === "fulfilled" && postInfoRes.value) {
           const raw = postInfoRes.value?.data || postInfoRes.value;
           const inner = raw?.["0"] || raw;
           statsData = unwrapVideo(inner);
           console.log("Post info keys:", JSON.stringify(Object.keys(statsData || {})));
+
+          transcriptText = await buildTranscriptText(statsData);
+          actionSignalsText = joinUniqueLines(collectTextValues(statsData?.video_text), 1200);
         } else if (postInfoRes.status === "rejected") {
           console.error("Post info fetch failed:", postInfoRes.reason);
         }
