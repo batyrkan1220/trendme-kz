@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { isNativePlatform } from "@/lib/native";
 
 const NICHES = [
   { value: "beauty", label: "💄 Бьюти" },
