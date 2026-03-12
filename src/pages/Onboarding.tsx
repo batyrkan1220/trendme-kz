@@ -20,6 +20,13 @@ const GOALS = [
   { value: "find_trends", label: "🔥 Ловить тренды" },
 ];
 
+const PREPARING_STEPS = [
+  { icon: Search, text: "Ищем тренды по вашей нише..." },
+  { icon: BarChart3, text: "Анализируем популярный контент..." },
+  { icon: TrendingUp, text: "Подбираем лучшие видео для вас..." },
+  { icon: Zap, text: "Всё готово! Запускаем..." },
+];
+
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [niche, setNiche] = useState("");
@@ -30,6 +37,8 @@ export default function Onboarding() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [contentRulesAccepted, setContentRulesAccepted] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [prepStep, setPrepStep] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -44,10 +53,8 @@ export default function Onboarding() {
     }, 250);
   };
 
-  const handleFinish = async () => {
-    setSaving(true);
+  const doSaveAndNavigate = async () => {
     try {
-      // On native without auth, just save to localStorage
       if (isNativePlatform && !user) {
         localStorage.setItem("native_onboarding_done", "1");
         navigate("/trends", { replace: true });
@@ -56,7 +63,6 @@ export default function Onboarding() {
 
       if (!user) return;
 
-      // Save EULA acceptance
       await supabase.from("eula_acceptances").upsert({
         user_id: user.id,
         version: "1.0",
@@ -71,10 +77,28 @@ export default function Onboarding() {
       navigate("/dashboard", { replace: true });
     } catch (err: any) {
       toast.error("Ошибка сохранения: " + err.message);
-    } finally {
+      setPreparing(false);
       setSaving(false);
     }
   };
+
+  const handleFinish = () => {
+    setSaving(true);
+    setPreparing(true);
+    setPrepStep(0);
+  };
+
+  // Preparing animation sequence
+  useEffect(() => {
+    if (!preparing) return;
+    if (prepStep < PREPARING_STEPS.length - 1) {
+      const timer = setTimeout(() => setPrepStep((s) => s + 1), 1200);
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(() => doSaveAndNavigate(), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [preparing, prepStep]);
 
   const slideClass = transitioning
     ? direction === "forward"
