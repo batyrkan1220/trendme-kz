@@ -140,6 +140,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cleanup_logs: {
+        Row: {
+          broken: number
+          checked: number
+          created_at: string
+          deleted: number
+          id: string
+          source: string
+        }
+        Insert: {
+          broken?: number
+          checked?: number
+          created_at?: string
+          deleted?: number
+          id?: string
+          source?: string
+        }
+        Update: {
+          broken?: number
+          checked?: number
+          created_at?: string
+          deleted?: number
+          id?: string
+          source?: string
+        }
+        Relationships: []
+      }
       content_reports: {
         Row: {
           author_username: string | null
