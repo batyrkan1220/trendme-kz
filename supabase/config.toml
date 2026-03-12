@@ -15,3 +15,5 @@ project_id = "oacmuheaobrluhvkwayc"
     verify_jwt = false
   [functions.cleanup-broken-covers]
     verify_jwt = false
+  [functions.check-broken-covers]
+    verify_jwt = false
