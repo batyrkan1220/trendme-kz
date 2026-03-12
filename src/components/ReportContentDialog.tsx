@@ -28,6 +28,8 @@ interface ReportContentDialogProps {
   videoId: string;
   videoUrl: string;
   authorUsername?: string;
+  /** When rendered inside a high z-index overlay (e.g. fullscreen player) */
+  elevated?: boolean;
 }
 
 function ReportContent({
