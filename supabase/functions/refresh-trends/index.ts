@@ -455,6 +455,144 @@ Deno.serve(async (req: Request) => {
     }
   }
   console.log(`Language filter: ${targetLang || "all"}`);
+
+  // =========================
+  // AI-powered keyword generation for KK mode
+  // =========================
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  let aiTrendingTopics: string[] = [];
+
+  if (targetLang === "kk" && LOVABLE_API_KEY) {
+    // Step 1: Get trending topics in Kazakhstan right now
+    try {
+      console.log("🤖 AI: Fetching trending Kazakh topics...");
+      const trendRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: `Сен қазақстандық TikTok трендтерін білетін маманың. Қазіргі уақытта Қазақстандағы TikTok-та қандай тақырыптар, оқиғалар, челленджтер тренд екенін айт.
+
+Тек қазақша кілт сөздерді бер. Хэштег КЕРЕК ЕМЕС. Тек іздеу сұраныстары.
+Әр сұраныс 1-3 сөзден тұрсын.
+Мысалы: "қазақ тойы", "алматы кафе", "ЕНТ дайындық"
+
+JSON форматында қайтар:
+{"topics": ["тақырып1", "тақырып2", ...]}
+
+20-30 тақырып бер, әр түрлі салалардан (ас, сән, білім, ойын-сауық, спорт, технология т.б.)` },
+            { role: "user", content: `Бүгінгі күн: ${new Date().toLocaleDateString("kk-KZ")}. Қазақстанда қазір TikTok-та не тренд?` },
+          ],
+        }),
+      });
+      const trendData = await trendRes.json();
+      const trendContent = trendData?.choices?.[0]?.message?.content || "";
+      const trendMatch = trendContent.match(/\{[\s\S]*\}/);
+      if (trendMatch) {
+        const parsed = JSON.parse(trendMatch[0]);
+        aiTrendingTopics = (parsed.topics || []).filter((t: string) => typeof t === "string" && t.trim());
+        console.log(`🤖 AI trending topics (${aiTrendingTopics.length}): ${aiTrendingTopics.slice(0, 10).join(", ")}...`);
+      }
+    } catch (e) {
+      console.warn("AI trending topics failed:", (e as Error).message);
+    }
+
+    // Step 2: Generate fresh keywords per niche
+    const nichesToEnrich = Object.keys(NICHE_QUERIES).slice(0, 30); // limit to avoid timeout
+    const ENRICH_BATCH = 10; // process 10 niches per AI call for efficiency
+    
+    for (let i = 0; i < nichesToEnrich.length; i += ENRICH_BATCH) {
+      if (Date.now() - startTime > 15000) break; // max 15s for keyword generation
+      
+      const batch = nichesToEnrich.slice(i, i + ENRICH_BATCH);
+      const nicheDescriptions = batch.map(k => `"${k}": ${nicheLabel(k)} (${SUB_NICHE_LABELS_MAP[SUB_NICHE_TO_NICHE[k] || k] || k})`).join("\n");
+      
+      try {
+        const kwRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: `Сен TikTok контент маманысың. Берілген нишалар үшін ҚАЗАҚША іздеу кілт сөздерін жаса.
+
+ЕРЕЖЕЛЕР:
+- Тек ҚАЗАҚША сөздер (кириллица). Хэштег КЕРЕК ЕМЕС.
+- Әр ниша үшін 5-8 кілт сөз
+- Әр сұраныс 1-3 сөзден тұрсын
+- TikTok-та іздеуге қолайлы, қысқа, нақты сөздер
+- Орысша, ағылшынша сөздер ҚОСУ, тек глобалды терминдерді қалдыр (ASMR, IT, AI т.б.)
+- Қазақстандағы адамдар не іздейтінін ойла
+
+JSON форматы:
+{"niche_key1": ["сөз1", "сөз2"], "niche_key2": ["сөз1", "сөз2"]}` },
+              { role: "user", content: `Мына нишалар үшін қазақша кілт сөздер жаса:\n${nicheDescriptions}` },
+            ],
+          }),
+        });
+        const kwData = await kwRes.json();
+        const kwContent = kwData?.choices?.[0]?.message?.content || "";
+        const kwMatch = kwContent.match(/\{[\s\S]*\}/);
+        if (kwMatch) {
+          const generated = JSON.parse(kwMatch[0]);
+          let totalAdded = 0;
+          for (const [key, words] of Object.entries(generated)) {
+            if (NICHE_QUERIES[key] && Array.isArray(words)) {
+              const existing = new Set(NICHE_QUERIES[key].map((w: string) => w.toLowerCase()));
+              const newWords = (words as string[]).filter(w => typeof w === "string" && w.trim() && !existing.has(w.toLowerCase()));
+              NICHE_QUERIES[key] = [...NICHE_QUERIES[key], ...newWords];
+              totalAdded += newWords.length;
+            }
+          }
+          console.log(`🤖 AI keywords batch ${Math.floor(i/ENRICH_BATCH)+1}: +${totalAdded} keywords for ${batch.length} niches`);
+        }
+      } catch (e) {
+        console.warn(`AI keyword generation batch failed:`, (e as Error).message);
+      }
+    }
+
+    // Step 3: Distribute trending topics to relevant niches via a quick AI call
+    if (aiTrendingTopics.length > 0) {
+      try {
+        const nicheList = Object.keys(NICHE_QUERIES).map(k => `"${k}": ${nicheLabel(k)}`).join(", ");
+        const topicsStr = aiTrendingTopics.join(", ");
+        
+        const distRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: `Трендті тақырыптарды нишаларға бөл. Әр тақырыпты ең жақын нишаға тағайында.
+JSON: {"niche_key": ["тақырып1"], "niche_key2": ["тақырып2"]}
+Тек берілген ниша кілттерін қолдан.` },
+              { role: "user", content: `Нишалар: ${nicheList}\n\nТрендті тақырыптар: ${topicsStr}` },
+            ],
+          }),
+        });
+        const distData = await distRes.json();
+        const distContent = distData?.choices?.[0]?.message?.content || "";
+        const distMatch = distContent.match(/\{[\s\S]*\}/);
+        if (distMatch) {
+          const distributed = JSON.parse(distMatch[0]);
+          let totalDist = 0;
+          for (const [key, topics] of Object.entries(distributed)) {
+            if (NICHE_QUERIES[key] && Array.isArray(topics)) {
+              const existing = new Set(NICHE_QUERIES[key].map((w: string) => w.toLowerCase()));
+              const newTopics = (topics as string[]).filter(t => typeof t === "string" && t.trim() && !existing.has(t.toLowerCase()));
+              NICHE_QUERIES[key] = [...NICHE_QUERIES[key], ...newTopics];
+              totalDist += newTopics.length;
+            }
+          }
+          console.log(`🤖 AI distributed ${totalDist} trending topics across niches`);
+        }
+      } catch (e) {
+        console.warn("AI trending distribution failed:", (e as Error).message);
+      }
+    }
+  }
+
   const allAvailableNiches = Object.keys(NICHE_QUERIES);
   let allNicheKeys = allAvailableNiches;
 
