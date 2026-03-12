@@ -924,6 +924,159 @@ function RoleAssigner({
   );
 }
 
+/* ==================== MODERATION TAB ==================== */
+function ModerationTab() {
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const queryClient = useQueryClient();
+
+  const { data: reports, isLoading } = useQuery({
+    queryKey: ["admin-content-reports"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_reports" as any)
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data as any[];
+    },
+    refetchInterval: 30000,
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await (supabase.from("content_reports" as any) as any)
+        .update({ status })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-content-reports"] });
+      toast.success("Статус обновлён");
+    },
+    onError: () => toast.error("Ошибка обновления"),
+  });
+
+  const filtered = reports?.filter((r: any) => statusFilter === "all" || r.status === statusFilter) || [];
+
+  const reasonLabels: Record<string, string> = {
+    inappropriate: "🚫 Неприемлемый контент",
+    spam: "📢 Спам / Реклама",
+    misleading: "⚠️ Вводящий в заблуждение",
+    other: "📝 Другое",
+  };
+
+  const statusColors: Record<string, string> = {
+    pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+    reviewed: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    resolved: "bg-green-500/10 text-green-600 border-green-500/20",
+    dismissed: "bg-muted text-muted-foreground border-border",
+  };
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
+
+  const pendingCount = reports?.filter((r: any) => r.status === "pending").length || 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Flag className="h-5 w-5 text-destructive" />
+          <h2 className="text-lg font-bold">Жалобы на контент</h2>
+          {pendingCount > 0 && (
+            <Badge variant="destructive" className="text-xs">{pendingCount} новых</Badge>
+          )}
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Все статусы" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все</SelectItem>
+            <SelectItem value="pending">⏳ Ожидает</SelectItem>
+            <SelectItem value="reviewed">👁 На рассмотрении</SelectItem>
+            <SelectItem value="resolved">✅ Решено</SelectItem>
+            <SelectItem value="dismissed">❌ Отклонено</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <ShieldX className="h-12 w-12 mx-auto mb-3 opacity-30" />
+            <p>Жалоб не найдено</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((report: any) => (
+            <Card key={report.id} className={report.status === "pending" ? "border-yellow-500/30" : ""}>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className={statusColors[report.status] || ""}>
+                        {report.status === "pending" && "⏳ Ожидает"}
+                        {report.status === "reviewed" && "👁 На рассмотрении"}
+                        {report.status === "resolved" && "✅ Решено"}
+                        {report.status === "dismissed" && "❌ Отклонено"}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(report.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium">{reasonLabels[report.reason] || report.reason}</p>
+                    {report.details && (
+                      <p className="text-xs text-muted-foreground">{report.details}</p>
+                    )}
+                    {report.author_username && (
+                      <p className="text-xs text-muted-foreground">Автор: @{report.author_username}</p>
+                    )}
+                  </div>
+                  <a
+                    href={report.video_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 text-xs text-primary hover:underline"
+                  >
+                    Открыть видео ↗
+                  </a>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {report.status === "pending" && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: report.id, status: "reviewed" })} disabled={updateStatus.isPending}>
+                        <Eye className="h-3.5 w-3.5 mr-1" /> На рассмотрение
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => updateStatus.mutate({ id: report.id, status: "resolved" })} disabled={updateStatus.isPending}>
+                        <Check className="h-3.5 w-3.5 mr-1" /> Решить
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => updateStatus.mutate({ id: report.id, status: "dismissed" })} disabled={updateStatus.isPending}>
+                        <X className="h-3.5 w-3.5 mr-1" /> Отклонить
+                      </Button>
+                    </>
+                  )}
+                  {report.status === "reviewed" && (
+                    <>
+                      <Button size="sm" variant="destructive" onClick={() => updateStatus.mutate({ id: report.id, status: "resolved" })} disabled={updateStatus.isPending}>
+                        <Check className="h-3.5 w-3.5 mr-1" /> Решить
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => updateStatus.mutate({ id: report.id, status: "dismissed" })} disabled={updateStatus.isPending}>
+                        <X className="h-3.5 w-3.5 mr-1" /> Отклонить
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 
 /* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
