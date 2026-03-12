@@ -88,7 +88,12 @@ export default function Trends() {
   useEffect(() => {
     if (allVideos.length > 0) saveTrendsCache(allVideos);
   }, [allVideos]);
-  const effectiveVideos = isOnline && allVideos.length > 0 ? allVideos : (cachedVideos || allVideos);
+  const effectiveVideosRaw = isOnline && allVideos.length > 0 ? allVideos : (cachedVideos || allVideos);
+
+  // Filter out blocked authors
+  const effectiveVideos = useMemo(() => {
+    return effectiveVideosRaw.filter((v: any) => !isBlocked(v.author_username));
+  }, [effectiveVideosRaw, isBlocked]);
 
   const videosByNiche = useMemo(() => {
     const map: Record<string, any[]> = {};
