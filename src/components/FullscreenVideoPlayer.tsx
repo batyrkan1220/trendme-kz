@@ -418,6 +418,7 @@ export function FullscreenVideoPlayer({
         videoId={video.id}
         videoUrl={video.url}
         authorUsername={video.author_username}
+        elevated
       />
     </div>
   );
