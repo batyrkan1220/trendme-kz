@@ -888,13 +888,13 @@ JSON: {"niche_key": ["тақырып1"], "niche_key2": ["тақырып2"]}
           if (hasKyrgyzIndicators) { nonCyrillic++; return null; }
 
           if (targetLang === "kk") {
-            // KK mode: REQUIRE at least 1 Kazakh-specific character (ә,ң,ғ,ү,ұ,қ,ө,һ,і)
-            // This ensures only Kazakh-language videos pass through
-            const kazakhSpecificChars = caption.match(/[әңғүұқөһіӘҢҒҮҰҚӨҺІ]/gu);
-            if (!kazakhSpecificChars || kazakhSpecificChars.length < 1) {
+            // KK mode: accept any Cyrillic text, AI will verify Kazakh language later
+            const hasCyrillic = /[а-яА-ЯёЁәңғүұқөһіӘҢҒҮҰҚӨҺІ]/u.test(caption);
+            if (!hasCyrillic) {
               nonCyrillic++;
               return null;
             }
+            // Preliminary lang tag, AI verification will reject non-Kazakh
             var detectedLang = "kk";
           } else if (targetLang === "en") {
             // English mode: accept any video
