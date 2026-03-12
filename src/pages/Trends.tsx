@@ -223,7 +223,7 @@ export default function Trends() {
   const PERIOD_OPTIONS = [
     { value: 3, label: "3 дня" },
     { value: 7, label: "7 дней" },
-    { value: 30, label: "30 дней" },
+    { value: 14, label: "14 дней" },
   ];
 
   const handleViewAll = (nicheKey: string, subNicheKey?: string) => {
