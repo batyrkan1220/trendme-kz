@@ -251,7 +251,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
   const handleCoverError = useCallback(() => {
     setCoverFailed(true);
-  }, []);
+    reportBrokenCover(video.id);
+  }, [video.id]);
 
   const handlePlay = async () => {
     if (playingId === video.id) {
