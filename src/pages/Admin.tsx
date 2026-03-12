@@ -21,6 +21,7 @@ import {
   RefreshCw, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
   Users, Activity, Video, Search, Heart, UserCircle, ScrollText,
   CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye, Link2, ChevronRight,
+  Flag, ShieldX, AlertTriangle, MessageSquare,
 } from "lucide-react";
 import { NICHE_GROUPS } from "@/config/niches";
 import {
