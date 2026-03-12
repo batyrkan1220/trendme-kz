@@ -59,6 +59,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     }
   }, [open, video]);
 
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
@@ -75,9 +77,11 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
       return data;
     },
     onSuccess: () => {
+      setAnalysisError(null);
       hapticSuccess();
     },
     onError: (err: Error) => {
+      setAnalysisError(err.message);
       toast.error("Не удалось проанализировать: " + err.message);
     },
   });
@@ -482,7 +486,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                     {isUnknownValue(summary?.hook_phrase) && isUnknownValue(summary?.text_hook) && (
                       <div className="rounded-xl border border-border/50 bg-card p-3">
                         <p className="text-xs text-muted-foreground">
-                          Хук фраза және мәтіндік хук табылмады (видеода сөйлеу/экран мәтіні анық емес).
+                          Хук-фраза и текстовый хук не найдены (в видео нет чёткой речи или экранного текста).
                         </p>
                       </div>
                     )}
@@ -528,14 +532,34 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             ) : (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Sparkles className="h-10 w-10 text-muted-foreground/20" />
-                <p className="text-muted-foreground text-sm">Анализ ещё не выполнен</p>
-                <button
-                  onClick={() => setShowLangPicker(true)}
-                  className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity flex items-center gap-2"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  Анализировать
-                </button>
+                <p className="text-muted-foreground text-sm">
+                  {analysisError ? "Произошла ошибка при анализе" : "Анализ ещё не выполнен"}
+                </p>
+                {analysisError && (
+                  <p className="text-xs text-destructive/70 max-w-xs text-center">{analysisError}</p>
+                )}
+                <div className="flex flex-col items-center gap-2">
+                  {analysisError ? (
+                    <button
+                      onClick={() => {
+                        setAnalysisError(null);
+                        setShowLangPicker(true);
+                      }}
+                      className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity flex items-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Попробовать заново
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowLangPicker(true)}
+                      className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity flex items-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Анализировать
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
