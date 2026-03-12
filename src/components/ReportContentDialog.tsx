@@ -80,6 +80,7 @@ function ReportContent({
       }
       console.log("[Report] Success");
       setSubmitted(true);
+      onSubmittedChange?.(true);
     } catch (err) {
       console.error("[Report] Catch error:", err);
       toast.error("Не удалось отправить жалобу");
