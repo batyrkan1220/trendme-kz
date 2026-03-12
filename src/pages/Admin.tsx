@@ -2629,6 +2629,9 @@ function IntegrationsTab() {
 
   return (
     <div className="space-y-6">
+      {/* Cron Jobs Section */}
+      <CronJobsSection />
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Пиксели и аналитика</h2>
@@ -2707,6 +2710,179 @@ function IntegrationsTab() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+/* ==================== CRON JOBS SECTION ==================== */
+function CronJobsSection() {
+  const queryClient = useQueryClient();
+
+  // Fetch cron jobs from cron.job table
+  const { data: cronJobs, isLoading } = useQuery({
+    queryKey: ["admin-cron-jobs"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("get_cron_jobs");
+      if (error) throw error;
+      return (data || []) as Array<{
+        jobid: number;
+        schedule: string;
+        command: string;
+        jobname: string;
+        active: boolean;
+      }>;
+    },
+    staleTime: 30_000,
+  });
+
+  // Fetch recent refresh logs to show last run status
+  const { data: recentLogs } = useQuery({
+    queryKey: ["admin-cron-recent-logs"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trend_refresh_logs")
+        .select("started_at, finished_at, status, total_saved, mode")
+        .order("started_at", { ascending: false })
+        .limit(10);
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
+
+  const getLastRunForMode = (mode: string) => {
+    return recentLogs?.find((l) => l.mode === mode);
+  };
+
+  const formatSchedule = (schedule: string) => {
+    if (schedule === "0 */12 * * *") return "Әр 12 сағат (00:00, 12:00 UTC)";
+    if (schedule === "15 */12 * * *") return "Әр 12 сағат (00:15, 12:15 UTC)";
+    if (schedule === "0 */6 * * *") return "Әр 6 сағат";
+    if (schedule === "0 0 * * *") return "Күнде 00:00 UTC";
+    return schedule;
+  };
+
+  const getModeFromCommand = (command: string): string | null => {
+    const match = command.match(/"mode"\s*:\s*"([^"]+)"/);
+    return match ? match[1] : null;
+  };
+
+  const getStatusBadge = (status: string) => {
+    if (status === "done") return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs">✅ Успешно</Badge>;
+    if (status === "running") return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs animate-pulse">⏳ Выполняется</Badge>;
+    if (status === "error") return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">❌ Ошибка</Badge>;
+    return <Badge variant="outline" className="text-xs">{status}</Badge>;
+  };
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-4" />;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <RefreshCw className="h-5 w-5 text-primary" />
+            Автоматические задачи (Cron)
+          </h2>
+          <p className="text-sm text-muted-foreground">Расписание автоматического обновления трендов</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-cron-jobs"] })}
+        >
+          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+          Обновить
+        </Button>
+      </div>
+
+      {!cronJobs || cronJobs.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground text-sm">
+            Нет активных cron-задач
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-3">
+          {cronJobs.map((job) => {
+            const mode = getModeFromCommand(job.command);
+            const lastRun = mode ? getLastRunForMode(mode) : null;
+
+            return (
+              <Card key={job.jobid} className={!job.active ? "opacity-50" : ""}>
+                <CardContent className="pt-4 pb-3 px-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-foreground text-sm">{job.jobname}</span>
+                        <Badge variant={job.active ? "default" : "secondary"} className="text-[10px]">
+                          {job.active ? "🟢 Активен" : "⏸️ Пауза"}
+                        </Badge>
+                        {mode && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {mode === "mass_kk" ? "🇰🇿 KK" : mode === "mass_ru" ? "🇷🇺 RU" : mode === "mass_en" ? "🇺🇸 EN" : mode}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        📅 {formatSchedule(job.schedule)}
+                      </p>
+                      {lastRun && (
+                        <div className="flex items-center gap-2 flex-wrap text-xs">
+                          <span className="text-muted-foreground">Последний запуск:</span>
+                          {getStatusBadge(lastRun.status)}
+                          <span className="text-muted-foreground">
+                            {lastRun.finished_at
+                              ? format(new Date(lastRun.finished_at), "dd.MM HH:mm")
+                              : format(new Date(lastRun.started_at), "dd.MM HH:mm")}
+                          </span>
+                          {lastRun.total_saved !== null && lastRun.total_saved > 0 && (
+                            <span className="text-emerald-400 font-medium">+{lastRun.total_saved} видео</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Recent runs log */}
+      {recentLogs && recentLogs.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-foreground flex items-center gap-2">
+              <ScrollText className="h-4 w-4 text-primary" />
+              Последние запуски
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-3">
+            <div className="space-y-1.5">
+              {recentLogs.map((log, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs py-1.5 border-b border-border/30 last:border-0">
+                  {getStatusBadge(log.status)}
+                  <Badge variant="outline" className="text-[10px]">
+                    {log.mode === "mass_kk" ? "🇰🇿 KK" : log.mode === "mass_ru" ? "🇷🇺 RU" : log.mode === "mass_en" ? "🇺🇸 EN" : log.mode}
+                  </Badge>
+                  <span className="text-muted-foreground">
+                    {format(new Date(log.started_at), "dd.MM HH:mm")}
+                  </span>
+                  {log.total_saved !== null && log.total_saved > 0 && (
+                    <span className="text-emerald-400 font-medium">+{log.total_saved}</span>
+                  )}
+                  {log.finished_at && (
+                    <span className="text-muted-foreground ml-auto">
+                      {Math.round((new Date(log.finished_at).getTime() - new Date(log.started_at).getTime()) / 1000)}с
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
