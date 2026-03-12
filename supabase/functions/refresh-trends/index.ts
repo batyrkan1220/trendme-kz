@@ -104,6 +104,8 @@ function likelyKazakhCaption(caption: string): boolean {
 }
 
 // Human-readable labels for sub-niches (for logs)
+const SUB_NICHE_LABELS: Record<string, string> = {
+  finance: "Финансы", crypto: "Крипто", business_ideas: "Бизнес идеи",
   marketing: "Маркетинг", freelance: "Фриланс", ecommerce: "E-commerce",
   skincare: "Уход за кожей", makeup: "Макияж", haircare: "Волосы",
   manicure: "Маникюр", cosmetology: "Косметология", perfume: "Парфюмерия",
