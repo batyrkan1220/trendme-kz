@@ -88,9 +88,22 @@ function pickRotatedKeywords(
 
 const VERSION = "refresh-trends-ensemble v4 hierarchical-niches sub_niche support";
 
+const KAZAKH_SPECIFIC_RE = /[әіңғүұқөһіӘІҢҒҮҰҚӨҺ]/u;
+const KAZAKH_COMMON_WORDS_RE = /\b(және|үшін|бұл|осы|қалай|неге|тағы|бәрі|сәлем|қазақша|мен|сен|сіз|біз|олар|қазір|бүгін|ертең|үйде|туралы|керек|емес|бар|жоқ)\b/giu;
+const RUSSIAN_COMMON_WORDS_RE = /\b(и|в|на|что|как|это|для|только|видео|смотри|подпишись|очень|тебя|меня|всем|когда|если|просто|тут|такой|будет|после)\b/giu;
+
+function likelyKazakhCaption(caption: string): boolean {
+  const text = String(caption || "").toLowerCase();
+  if (!text.trim()) return false;
+  if (KAZAKH_SPECIFIC_RE.test(text)) return true;
+
+  const kzHits = text.match(KAZAKH_COMMON_WORDS_RE)?.length || 0;
+  const ruHits = text.match(RUSSIAN_COMMON_WORDS_RE)?.length || 0;
+
+  return kzHits >= 2 && kzHits >= ruHits;
+}
+
 // Human-readable labels for sub-niches (for logs)
-const SUB_NICHE_LABELS: Record<string, string> = {
-  finance: "Финансы", crypto: "Крипто", business_ideas: "Бизнес идеи",
   marketing: "Маркетинг", freelance: "Фриланс", ecommerce: "E-commerce",
   skincare: "Уход за кожей", makeup: "Макияж", haircare: "Волосы",
   manicure: "Маникюр", cosmetology: "Косметология", perfume: "Парфюмерия",
