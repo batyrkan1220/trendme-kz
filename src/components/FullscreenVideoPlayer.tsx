@@ -1,10 +1,11 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
-  X, Eye, Heart, MessageCircle, Share2,
+  X, Eye, Heart, MessageCircle, Share2, Flag,
   Flame, Rocket, Zap, TrendingUp, Loader2, ExternalLink,
   Play, RotateCcw
 } from "lucide-react";
+import { ReportContentDialog } from "./ReportContentDialog";
 
 interface VideoInfo {
   id: string;
