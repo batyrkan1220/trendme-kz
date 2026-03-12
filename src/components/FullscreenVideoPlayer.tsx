@@ -1,10 +1,11 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
-  X, Eye, Heart, MessageCircle, Share2,
+  X, Eye, Heart, MessageCircle, Share2, Flag,
   Flame, Rocket, Zap, TrendingUp, Loader2, ExternalLink,
   Play, RotateCcw
 } from "lucide-react";
+import { ReportContentDialog } from "./ReportContentDialog";
 
 interface VideoInfo {
   id: string;
@@ -80,6 +81,7 @@ export function FullscreenVideoPlayer({
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
   const [showPauseIcon, setShowPauseIcon] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const pauseIconTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Swipe down to close
@@ -343,6 +345,13 @@ export function FullscreenVideoPlayer({
               <Share2 className="h-6 w-6 text-white" />
               <span className="text-white/70 text-[10px] font-medium">{fmt(Number(video.shares || 0))}</span>
             </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setReportOpen(true); }}
+              className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
+            >
+              <Flag className="h-6 w-6 text-white/70" />
+              <span className="text-white/70 text-[10px] font-medium">Жалоба</span>
+            </button>
           </div>
 
           {/* Left side — text info */}
@@ -403,6 +412,13 @@ export function FullscreenVideoPlayer({
           </div>
         </div>
       </div>
+      <ReportContentDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        videoId={video.id}
+        videoUrl={video.url}
+        authorUsername={video.author_username}
+      />
     </div>
   );
 
