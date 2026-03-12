@@ -38,8 +38,7 @@ function ReportContent({
   videoId,
   videoUrl,
   authorUsername,
-  onSubmittedChange,
-}: Omit<ReportContentDialogProps, "open" | "elevated"> & { onSubmittedChange?: (v: boolean) => void }) {
+}: Omit<ReportContentDialogProps, "open" | "elevated">) {
   const { user } = useAuth();
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
@@ -80,7 +79,6 @@ function ReportContent({
       }
       console.log("[Report] Success");
       setSubmitted(true);
-      onSubmittedChange?.(true);
     } catch (err) {
       console.error("[Report] Catch error:", err);
       toast.error("Не удалось отправить жалобу");
@@ -247,20 +245,19 @@ export function ReportContentDialog({
   elevated = false,
 }: ReportContentDialogProps) {
   const isMobile = useIsMobile();
-  const [submitted, setSubmitted] = useState(false);
-  const contentProps = { onClose: () => { setSubmitted(false); onClose(); }, videoId, videoUrl, authorUsername, onSubmittedChange: setSubmitted };
+  const contentProps = { onClose, videoId, videoUrl, authorUsername };
   const zClass = elevated ? "z-[10000]" : "";
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={(o) => { if (!o) { setSubmitted(false); onClose(); } }}>
+      <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
         <DrawerContent
           className={cn("px-4 pb-8", zClass)}
           style={elevated ? { zIndex: 10000 } : undefined}
           overlayClassName={elevated ? "z-[10000]" : undefined}
         >
           <DrawerTitle className="sr-only">Пожаловаться</DrawerTitle>
-          <div className="pt-2 pb-4" key={submitted ? "done" : "form"}>
+          <div className="pt-2 pb-4">
             <ReportContent {...contentProps} />
           </div>
         </DrawerContent>
@@ -269,7 +266,7 @@ export function ReportContentDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) { setSubmitted(false); onClose(); } }}>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
         className={cn("max-w-sm p-5", zClass)}
         style={elevated ? { zIndex: 10000 } : undefined}

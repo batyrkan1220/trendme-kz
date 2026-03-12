@@ -346,8 +346,11 @@ export function FullscreenVideoPlayer({
               <span className="text-white/70 text-[10px] font-medium">{fmt(Number(video.shares || 0))}</span>
             </div>
             <button
+              type="button"
               onClick={(e) => { e.stopPropagation(); setReportOpen(true); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setReportOpen(true); }}
               className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
+              style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
             >
               <Flag className="h-6 w-6 text-white/70" />
               <span className="text-white/70 text-[10px] font-medium">Жалоба</span>
