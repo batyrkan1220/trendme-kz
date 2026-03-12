@@ -193,14 +193,16 @@ export function ReportContentDialog({
   videoId,
   videoUrl,
   authorUsername,
+  elevated = false,
 }: ReportContentDialogProps) {
   const isMobile = useIsMobile();
   const contentProps = { onClose, videoId, videoUrl, authorUsername };
+  const zClass = elevated ? "z-[10000]" : "";
 
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-        <DrawerContent className="px-4 pb-8">
+        <DrawerContent className={cn("px-4 pb-8", zClass)} style={elevated ? { zIndex: 10000 } : undefined}>
           <DrawerTitle className="sr-only">Пожаловаться</DrawerTitle>
           <div className="pt-2 pb-4">
             <ReportContent {...contentProps} />
@@ -212,7 +214,7 @@ export function ReportContentDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-sm p-5">
+      <DialogContent className={cn("max-w-sm p-5", zClass)} style={elevated ? { zIndex: 10000 } : undefined}>
         <DialogTitle className="sr-only">Пожаловаться</DialogTitle>
         <ReportContent {...contentProps} />
       </DialogContent>
