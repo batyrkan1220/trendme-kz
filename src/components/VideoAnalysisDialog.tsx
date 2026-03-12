@@ -482,7 +482,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                     {isUnknownValue(summary?.hook_phrase) && isUnknownValue(summary?.text_hook) && (
                       <div className="rounded-xl border border-border/50 bg-card p-3">
                         <p className="text-xs text-muted-foreground">
-                          Хук фраза және мәтіндік хук табылмады (видеода сөйлеу/экран мәтіні анық емес).
+                          Хук-фраза и текстовый хук не найдены (в видео нет чёткой речи или экранного текста).
                         </p>
                       </div>
                     )}
