@@ -108,8 +108,89 @@ export default function Onboarding() {
         </div>
 
         <div className={`transition-all duration-250 ease-out ${slideClass}`}>
-          {/* Step 0: Consent / Agreements */}
+          {/* Step 0: Niche */}
           {step === 0 && (
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 animate-scale-in">
+                  <Sparkles className="h-7 w-7 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground">Какая у вас ниша?</h2>
+                <p className="text-sm text-muted-foreground">Выберите основную тему контента</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {NICHES.map((n, idx) => (
+                  <button
+                    key={n.value}
+                    onClick={() => setNiche(n.value)}
+                    className={`p-3 rounded-xl border text-left text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
+                      niche === n.value
+                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
+                        : "border-border bg-card text-muted-foreground hover:border-primary/50"
+                    }`}
+                    style={{ animationDelay: `${idx * 40}ms` }}
+                  >
+                    {n.label}
+                  </button>
+                ))}
+              </div>
+              <Button
+                onClick={() => goToStep(1)}
+                disabled={!niche}
+                className="w-full h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
+              >
+                Далее <ArrowRight className="h-5 w-5 ml-2" />
+              </Button>
+            </div>
+          )}
+
+          {/* Step 1: Goal */}
+          {step === 1 && (
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 animate-scale-in">
+                  <Target className="h-7 w-7 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground">Какая ваша цель?</h2>
+                <p className="text-sm text-muted-foreground">Мы настроим дашборд под вас</p>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                {GOALS.map((g, idx) => (
+                  <button
+                    key={g.value}
+                    onClick={() => setGoal(g.value)}
+                    className={`p-4 rounded-xl border text-left text-base font-medium transition-all duration-200 active:scale-[0.97] ${
+                      goal === g.value
+                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
+                        : "border-border bg-card text-muted-foreground hover:border-primary/50"
+                    }`}
+                    style={{ animationDelay: `${idx * 50}ms` }}
+                  >
+                    {g.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => goToStep(0)}
+                  className="h-12 rounded-xl px-6"
+                >
+                  Назад
+                </Button>
+                <Button
+                  onClick={() => goToStep(2)}
+                  disabled={!goal}
+                  className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
+                >
+                  Далее <ArrowRight className="h-5 w-5 ml-2" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Consent / Agreements */}
+          {step === 2 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 animate-scale-in">
@@ -172,87 +253,6 @@ export default function Onboarding() {
                 </label>
               </div>
 
-              <Button
-                onClick={() => goToStep(1)}
-                disabled={!allConsentsAccepted}
-                className="w-full h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
-              >
-                Принимаю <ArrowRight className="h-5 w-5 ml-2" />
-              </Button>
-            </div>
-          )}
-
-          {/* Step 1: Niche */}
-          {step === 1 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 animate-scale-in">
-                  <Sparkles className="h-7 w-7 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold text-foreground">Какая у вас ниша?</h2>
-                <p className="text-sm text-muted-foreground">Выберите основную тему контента</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {NICHES.map((n, idx) => (
-                  <button
-                    key={n.value}
-                    onClick={() => setNiche(n.value)}
-                    className={`p-3 rounded-xl border text-left text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
-                      niche === n.value
-                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/50"
-                    }`}
-                    style={{ animationDelay: `${idx * 40}ms` }}
-                  >
-                    {n.label}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => goToStep(0)}
-                  className="h-12 rounded-xl px-6"
-                >
-                  Назад
-                </Button>
-                <Button
-                  onClick={() => goToStep(2)}
-                  disabled={!niche}
-                  className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
-                >
-                  Далее <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Goal */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 animate-scale-in">
-                  <Target className="h-7 w-7 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold text-foreground">Какая ваша цель?</h2>
-                <p className="text-sm text-muted-foreground">Мы настроим дашборд под вас</p>
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                {GOALS.map((g, idx) => (
-                  <button
-                    key={g.value}
-                    onClick={() => setGoal(g.value)}
-                    className={`p-4 rounded-xl border text-left text-base font-medium transition-all duration-200 active:scale-[0.97] ${
-                      goal === g.value
-                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/50"
-                    }`}
-                    style={{ animationDelay: `${idx * 50}ms` }}
-                  >
-                    {g.label}
-                  </button>
-                ))}
-              </div>
               <div className="flex gap-3">
                 <Button
                   variant="outline"
@@ -263,7 +263,7 @@ export default function Onboarding() {
                 </Button>
                 <Button
                   onClick={handleFinish}
-                  disabled={!goal || saving}
+                  disabled={!allConsentsAccepted || saving}
                   className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
                 >
                   {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : (
