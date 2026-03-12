@@ -68,7 +68,7 @@ export default function Trends() {
     queryFn: async () => {
       const selectFields =
         "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
-      const since = new Date(Date.now() - 14 * 86400000).toISOString();
+      const since = new Date(Date.now() - 2 * 86400000).toISOString();
 
       const { data: rows } = await supabase
         .from("videos")
