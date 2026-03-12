@@ -60,16 +60,22 @@ Deno.serve(async (req) => {
         batch.map(async (video) => {
           try {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 5000);
+            const timeout = setTimeout(() => controller.abort(), 8000);
+            // Use GET with Range header — TikTok CDN blocks HEAD requests
             const resp = await fetch(video.cover_url!, {
-              method: "HEAD",
+              method: "GET",
+              headers: { "Range": "bytes=0-0" },
               signal: controller.signal,
               redirect: "follow",
             });
             clearTimeout(timeout);
+            // 403/404/410 = truly broken; 416 (range not satisfiable) = file exists
             if (resp.status === 403 || resp.status === 404 || resp.status === 410) {
+              // Consume body to prevent resource leak
+              await resp.text().catch(() => {});
               return { id: video.id, broken: true };
             }
+            await resp.text().catch(() => {});
             return { id: video.id, broken: false };
           } catch {
             return { id: video.id, broken: true };
@@ -86,19 +92,20 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${brokenIds.length} broken covers out of ${videos.length} checked`);
 
-    let totalDeleted = 0;
+    // Null out cover_url instead of deleting the video
+    let totalCleaned = 0;
     for (let i = 0; i < brokenIds.length; i += 50) {
       const ids = brokenIds.slice(i, i + 50);
-      const { data, error: delErr } = await supabase
+      const { data, error: updErr } = await supabase
         .from("videos")
-        .delete()
+        .update({ cover_url: null })
         .in("id", ids)
         .select("id");
 
-      if (delErr) {
-        console.error("Delete error:", delErr.message);
+      if (updErr) {
+        console.error("Update error:", updErr.message);
       } else {
-        totalDeleted += data?.length ?? 0;
+        totalCleaned += data?.length ?? 0;
       }
     }
 
