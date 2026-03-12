@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Loader2, Sparkles, Target, ShieldCheck } from "lucide-react";
+import { ArrowRight, Loader2, Sparkles, Target, ShieldCheck, Zap, Search, BarChart3, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
