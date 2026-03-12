@@ -412,6 +412,13 @@ export function FullscreenVideoPlayer({
           </div>
         </div>
       </div>
+      <ReportContentDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        videoId={video.id}
+        videoUrl={video.url}
+        authorUsername={video.author_username}
+      />
     </div>
   );
 
