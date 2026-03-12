@@ -21,7 +21,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Limit batch size to prevent abuse
     const ids = video_ids.slice(0, 50);
 
     const supabase = createClient(
@@ -37,6 +36,14 @@ Deno.serve(async (req) => {
 
     const deleted = data?.length ?? 0;
     console.log(`Cleanup broken covers: deleted ${deleted}/${ids.length} videos`);
+
+    // Log results to cleanup_logs
+    await supabase.from("cleanup_logs").insert({
+      source: "client_browser",
+      checked: ids.length,
+      broken: ids.length,
+      deleted,
+    });
 
     return new Response(
       JSON.stringify({ deleted, error: error?.message ?? null }),

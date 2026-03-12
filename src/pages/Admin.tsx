@@ -558,6 +558,9 @@ function PlatformTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* Cleanup Logs Section */}
+      <CleanupLogsSection />
     </div>
   );
 }
@@ -2539,6 +2542,155 @@ function AssignSubDialog({ plans, onClose, onAssign, saving }: { plans: any[]; o
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ==================== CLEANUP LOGS SECTION ==================== */
+function CleanupLogsSection() {
+  const queryClient = useQueryClient();
+
+  const { data: logs, isLoading } = useQuery({
+    queryKey: ["admin-cleanup-logs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cleanup_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
+
+  // Aggregate by day
+  const dailyStats = useMemo(() => {
+    if (!logs) return [];
+    const byDay: Record<string, { checked: number; broken: number; deleted: number; client: number; server: number }> = {};
+    for (const log of logs) {
+      const day = new Date(log.created_at).toISOString().slice(0, 10);
+      if (!byDay[day]) byDay[day] = { checked: 0, broken: 0, deleted: 0, client: 0, server: 0 };
+      byDay[day].checked += log.checked;
+      byDay[day].broken += log.broken;
+      byDay[day].deleted += log.deleted;
+      if (log.source === "client_browser") byDay[day].client += log.deleted;
+      else byDay[day].server += log.deleted;
+    }
+    return Object.entries(byDay).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [logs]);
+
+  const totalDeleted = logs?.reduce((sum, l) => sum + l.deleted, 0) || 0;
+
+  const [isRunning, setIsRunning] = useState(false);
+  const runManualCheck = async () => {
+    setIsRunning(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-broken-covers`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ batch_size: 200 }),
+        }
+      );
+      const result = await res.json();
+      toast.success(`Проверено: ${result.checked}, сломано: ${result.broken}, удалено: ${result.deleted}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-cleanup-logs"] });
+    } catch (err) {
+      toast.error("Ошибка проверки: " + String(err));
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-4" />;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Trash2 className="h-5 w-5 text-destructive" />
+            Очистка сломанных обложек
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-sm font-bold">
+              Всего удалено: {totalDeleted}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={runManualCheck}
+              disabled={isRunning}
+            >
+              {isRunning ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Play className="h-3.5 w-3.5 mr-1.5" />}
+              Проверить сейчас
+            </Button>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          Сервер (cron каждые 6ч) + Браузер (при просмотре пользователем)
+        </p>
+      </CardHeader>
+      <CardContent>
+        {dailyStats.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Нет данных об очистке</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left p-2 text-muted-foreground font-medium">День</th>
+                  <th className="text-center p-2 text-muted-foreground font-medium">Проверено</th>
+                  <th className="text-center p-2 text-muted-foreground font-medium">Сломано</th>
+                  <th className="text-center p-2 text-muted-foreground font-medium">🖥 Сервер</th>
+                  <th className="text-center p-2 text-muted-foreground font-medium">🌐 Браузер</th>
+                  <th className="text-center p-2 text-muted-foreground font-medium text-destructive font-bold">Удалено</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailyStats.map(([day, s]) => (
+                  <tr key={day} className="border-b border-border/30">
+                    <td className="p-2">
+                      {new Date(day).toLocaleDateString("ru-RU", { day: "numeric", month: "short", weekday: "short" })}
+                    </td>
+                    <td className="text-center p-2">{s.checked}</td>
+                    <td className="text-center p-2 text-amber-500">{s.broken}</td>
+                    <td className="text-center p-2">{s.server || "—"}</td>
+                    <td className="text-center p-2">{s.client || "—"}</td>
+                    <td className="text-center p-2 font-bold text-destructive">{s.deleted}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Recent individual logs */}
+        {logs && logs.length > 0 && (
+          <div className="mt-4 space-y-1.5">
+            <h4 className="text-sm font-medium text-muted-foreground">Последние события</h4>
+            {logs.slice(0, 15).map((log) => (
+              <div key={log.id} className="flex items-center gap-2 text-xs py-1.5 border-b border-border/30 last:border-0">
+                <Badge variant={log.source === "server_cron" ? "default" : "outline"} className="text-[10px]">
+                  {log.source === "server_cron" ? "🖥 Сервер" : "🌐 Браузер"}
+                </Badge>
+                <span className="text-muted-foreground">
+                  {new Date(log.created_at).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                </span>
+                <span>проверено: {log.checked}</span>
+                <span className="text-amber-500">сломано: {log.broken}</span>
+                <span className="text-destructive font-medium">удалено: {log.deleted}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
