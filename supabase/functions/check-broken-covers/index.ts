@@ -109,21 +109,21 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`Deleted ${totalDeleted} broken-cover videos`);
+    console.log(`Cleaned ${totalCleaned} broken-cover videos (set cover_url=null)`);
 
     // Log results to cleanup_logs
     await supabase.from("cleanup_logs").insert({
       source: "server_cron",
       checked: videos.length,
       broken: brokenIds.length,
-      deleted: totalDeleted,
+      deleted: totalCleaned,
     });
 
     return new Response(
       JSON.stringify({
         checked: videos.length,
         broken: brokenIds.length,
-        deleted: totalDeleted,
+        cleaned: totalCleaned,
         offset,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
