@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { isNativePlatform } from "@/lib/native";
 
 const NICHES = [
   { value: "beauty", label: "💄 Бьюти" },
@@ -51,9 +52,17 @@ export default function Onboarding() {
   };
 
   const handleFinish = async () => {
-    if (!user) return;
     setSaving(true);
     try {
+      // On native without auth, just save to localStorage
+      if (isNativePlatform && !user) {
+        localStorage.setItem("native_onboarding_done", "1");
+        navigate("/trends", { replace: true });
+        return;
+      }
+
+      if (!user) return;
+
       // Save EULA acceptance
       await supabase.from("eula_acceptances").upsert({
         user_id: user.id,

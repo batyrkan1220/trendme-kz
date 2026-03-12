@@ -51,6 +51,13 @@ const queryClient = new QueryClient({
   },
 });
 
+function NativeOnboardingGate({ children }: { children: React.ReactNode }) {
+  if (!isNativePlatform) return <>{children}</>;
+  const done = localStorage.getItem("native_onboarding_done") === "1";
+  if (!done) return <Navigate to="/onboarding" replace />;
+  return <>{children}</>;
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
@@ -113,7 +120,7 @@ const AppRoutes = () => {
     <Suspense fallback={<SuspenseFallback />}>
       <Routes>
         <Route element={<PageTransition />}>
-          <Route path="/auth" element={isNativePlatform ? <Navigate to="/trends" replace /> : <Auth />} />
+          <Route path="/auth" element={isNativePlatform ? <NativeOnboardingGate><Navigate to="/trends" replace /></NativeOnboardingGate> : <Auth />} />
           <Route path="/landing" element={<Navigate to="/" replace />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/reset-password" element={<ResetPassword />} />
