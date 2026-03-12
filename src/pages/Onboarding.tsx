@@ -34,9 +34,9 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [transitioning, setTransitioning] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
-  const [contentRulesAccepted, setContentRulesAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(true);
+  const [privacyAccepted, setPrivacyAccepted] = useState(true);
+  const [contentRulesAccepted, setContentRulesAccepted] = useState(true);
   const [preparing, setPreparing] = useState(false);
   const [prepStep, setPrepStep] = useState(0);
   const { user } = useAuth();
