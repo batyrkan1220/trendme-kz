@@ -120,7 +120,7 @@ const AppRoutes = () => {
     <Suspense fallback={<SuspenseFallback />}>
       <Routes>
         <Route element={<PageTransition />}>
-          <Route path="/auth" element={isNativePlatform ? <Navigate to="/trends" replace /> : <Auth />} />
+          <Route path="/auth" element={isNativePlatform ? <NativeOnboardingGate><Navigate to="/trends" replace /></NativeOnboardingGate> : <Auth />} />
           <Route path="/landing" element={<Navigate to="/" replace />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/reset-password" element={<ResetPassword />} />
