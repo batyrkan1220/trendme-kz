@@ -108,11 +108,40 @@ const getTimeAgo = (published_at: string | number | null) => {
   return `${Math.floor(d / 30)} мес. назад`;
 };
 
-/** Convert TikTok origin cover URLs to JPEG variants for iOS WebView compatibility */
+/** Convert TikTok origin cover URLs to JPEG variants for iOS WebView compatibility.
+ *  Also strip expired signatures so CDN can still serve the image unsigned. */
 function optimizeCoverUrl(url: string | null | undefined): string | null | undefined {
   if (!url) return url;
-  // Don't transform signed CDN URLs — changing the path invalidates the signature
-  if (url.includes("x-signature=") || url.includes("x-expires=")) return url;
+
+  // Check if signed URL has expired — strip signature params to try unsigned access
+  if (url.includes("x-expires=")) {
+    const match = url.match(/x-expires=(\d+)/);
+    if (match) {
+      const expiresAt = parseInt(match[1], 10);
+      const nowSec = Math.floor(Date.now() / 1000);
+      if (expiresAt < nowSec) {
+        // URL expired — strip all signing params and try unsigned
+        const cleaned = url
+          .replace(/[&?]x-signature=[^&]*/g, "")
+          .replace(/[&?]x-expires=[^&]*/g, "")
+          .replace(/[&?]refresh_token=[^&]*/g, "")
+          .replace(/[&?]s=[^&]*/g, "")
+          .replace(/[&?]sc=[^&]*/g, "")
+          .replace(/[&?]shcp=[^&]*/g, "")
+          .replace(/[&?]shp=[^&]*/g, "")
+          .replace(/[&?]t=[^&]*/g, "")
+          .replace(/[&?]biz_tag=[^&]*/g, "")
+          .replace(/[&?]dr=[^&]*/g, "")
+          .replace(/[&?]idc=[^&]*/g, "")
+          .replace(/[&?]ps=[^&]*/g, "")
+          .replace(/\?$/, "");
+        return cleaned;
+      }
+    }
+    // Still valid signed URL — don't transform
+    return url;
+  }
+
   // Convert origin WEBP to cropped JPEG for iOS compatibility
   if (url.includes("tplv-tiktokx-origin.image")) {
     return url.replace(
