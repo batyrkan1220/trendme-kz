@@ -6,19 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { isNativePlatform } from "@/lib/native";
+import { NICHE_GROUPS } from "@/config/niches";
 
-const NICHES = [
-  { value: "beauty", label: "💄 Бьюти" },
-  { value: "fitness", label: "💪 Фитнес" },
-  { value: "food", label: "🍕 Еда" },
-  { value: "education", label: "📚 Образование" },
-  { value: "entertainment", label: "🎬 Развлечения" },
-  { value: "business", label: "💼 Бизнес" },
-  { value: "tech", label: "💻 Технологии" },
-  { value: "travel", label: "✈️ Путешествия" },
-  { value: "fashion", label: "👗 Мода" },
-  { value: "other", label: "🔮 Другое" },
-];
+const NICHES = NICHE_GROUPS.map((g) => ({
+  value: g.key,
+  label: `${g.emoji} ${g.label}`,
+}));
 
 const GOALS = [
   { value: "grow_followers", label: "📈 Рост подписчиков" },
