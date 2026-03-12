@@ -2722,9 +2722,9 @@ function CronJobsSection() {
   const { data: cronJobs, isLoading } = useQuery({
     queryKey: ["admin-cron-jobs"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_cron_jobs");
+      const { data, error } = await (supabase.rpc as any)("get_cron_jobs");
       if (error) throw error;
-      return data as Array<{
+      return (data || []) as Array<{
         jobid: number;
         schedule: string;
         command: string;
