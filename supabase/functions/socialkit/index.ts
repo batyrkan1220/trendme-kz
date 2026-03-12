@@ -290,21 +290,61 @@ const fetchCaptionTranscript = async (urls: string[]): Promise<string> => {
   return "";
 };
 
-async function buildTranscriptText(video: any): Promise<string> {
+/** Fetch transcript from SocialKit Transcript API */
+async function fetchSocialKitTranscript(videoUrl: string): Promise<string> {
+  const accessKey = Deno.env.get("SOCIALKIT_ACCESS_KEY");
+  if (!accessKey) {
+    console.warn("SOCIALKIT_ACCESS_KEY not configured, skipping transcript fallback");
+    return "";
+  }
+  try {
+    const apiUrl = `https://api.socialkit.dev/tiktok/transcript?access_key=${encodeURIComponent(accessKey)}&url=${encodeURIComponent(videoUrl)}`;
+    console.log("SocialKit Transcript API call for:", videoUrl);
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`SocialKit Transcript API error ${res.status}:`, errText);
+      return "";
+    }
+    const data = await res.json();
+    if (data?.success && data?.data?.transcript) {
+      const transcript = String(data.data.transcript).trim();
+      console.log("SocialKit Transcript API returned", transcript.length, "chars");
+      return transcript;
+    }
+    console.log("SocialKit Transcript API: no transcript in response");
+    return "";
+  } catch (e) {
+    console.error("SocialKit Transcript API failed:", e);
+    return "";
+  }
+}
+
+async function buildTranscriptText(video: any, videoUrl?: string): Promise<string> {
   if (!video) return "";
 
   const metadataTranscript = extractTranscriptFromPostInfo(video);
   const captionUrls = extractCaptionUrlsFromPostInfo(video);
   const captionTranscript = captionUrls.length > 0 ? await fetchCaptionTranscript(captionUrls) : "";
 
-  const finalTranscript = joinUniqueLines([captionTranscript, metadataTranscript], 7000);
-  console.log("Transcript extraction:", {
+  let finalTranscript = joinUniqueLines([captionTranscript, metadataTranscript], 7000);
+  console.log("Transcript extraction (EnsembleData):", {
     hasCaptionUrls: captionUrls.length > 0,
     captionUrlsCount: captionUrls.length,
     metadataChars: metadataTranscript.length,
     captionChars: captionTranscript.length,
     finalChars: finalTranscript.length,
   });
+
+  // Fallback: if EnsembleData returned no useful transcript, try SocialKit Transcript API
+  if (finalTranscript.length < 50 && videoUrl) {
+    console.log("EnsembleData transcript too short, trying SocialKit Transcript API fallback...");
+    const skTranscript = await fetchSocialKitTranscript(videoUrl);
+    if (skTranscript.length > finalTranscript.length) {
+      finalTranscript = skTranscript;
+      console.log("Using SocialKit transcript:", finalTranscript.length, "chars");
+    }
+  }
 
   return finalTranscript;
 }
@@ -780,7 +820,7 @@ Deno.serve(async (req: Request) => {
           statsData = unwrapVideo(inner);
           console.log("Post info keys:", JSON.stringify(Object.keys(statsData || {})));
 
-          transcriptText = await buildTranscriptText(statsData);
+          transcriptText = await buildTranscriptText(statsData, video_url);
           actionSignalsText = joinUniqueLines(collectTextValues(statsData?.video_text), 1200);
         } else if (postInfoRes.status === "rejected") {
           console.error("Post info fetch failed:", postInfoRes.reason);
