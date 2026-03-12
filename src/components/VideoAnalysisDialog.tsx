@@ -59,6 +59,8 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     }
   }, [open, video]);
 
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+
   const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
     mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
@@ -75,9 +77,11 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
       return data;
     },
     onSuccess: () => {
+      setAnalysisError(null);
       hapticSuccess();
     },
     onError: (err: Error) => {
+      setAnalysisError(err.message);
       toast.error("Не удалось проанализировать: " + err.message);
     },
   });
