@@ -103,29 +103,30 @@ export default function Onboarding() {
         <div className={`transition-all duration-250 ease-out ${slideClass}`}>
           {/* Step 0: Niche */}
           {step === 0 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 animate-scale-in">
-                  <Sparkles className="h-7 w-7 text-primary" />
+            <div className="space-y-4">
+              <div className="text-center space-y-1.5">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary/10 animate-scale-in">
+                  <Sparkles className="h-6 w-6 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground">Какая у вас ниша?</h2>
-                <p className="text-sm text-muted-foreground">Выберите основную тему контента</p>
+                <h2 className="text-xl font-bold text-foreground">Какая у вас ниша?</h2>
+                <p className="text-xs text-muted-foreground">Выберите основную тему контента</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {NICHES.map((n, idx) => (
-                  <button
-                    key={n.value}
-                    onClick={() => setNiche(n.value)}
-                    className={`p-3 rounded-xl border text-left text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
-                      niche === n.value
-                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/50"
-                    }`}
-                    style={{ animationDelay: `${idx * 40}ms` }}
-                  >
-                    {n.label}
-                  </button>
-                ))}
+              <div className="max-h-[calc(100dvh-280px)] overflow-y-auto -mx-1 px-1 scrollbar-hide">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {NICHES.map((n, idx) => (
+                    <button
+                      key={n.value}
+                      onClick={() => setNiche(n.value)}
+                      className={`px-3 py-2 rounded-full border text-xs font-medium transition-all duration-200 active:scale-[0.95] whitespace-nowrap ${
+                        niche === n.value
+                          ? "border-primary bg-primary/15 text-foreground shadow-sm"
+                          : "border-border bg-card text-muted-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      {n.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <Button
                 onClick={() => goToStep(1)}
