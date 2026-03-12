@@ -820,7 +820,7 @@ Deno.serve(async (req: Request) => {
           statsData = unwrapVideo(inner);
           console.log("Post info keys:", JSON.stringify(Object.keys(statsData || {})));
 
-          transcriptText = await buildTranscriptText(statsData);
+          transcriptText = await buildTranscriptText(statsData, video_url);
           actionSignalsText = joinUniqueLines(collectTextValues(statsData?.video_text), 1200);
         } else if (postInfoRes.status === "rejected") {
           console.error("Post info fetch failed:", postInfoRes.reason);
