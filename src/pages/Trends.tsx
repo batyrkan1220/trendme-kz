@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { isNativePlatform } from "@/lib/native";
 import { useNavigate } from "react-router-dom";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
+import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 
 import { trackAddToFavorites } from "@/components/TrackingPixels";
 import { TrendingUp, WifiOff } from "lucide-react";
@@ -41,6 +42,7 @@ export default function Trends() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const isOnline = useOnlineStatus();
+  const { isBlocked } = useBlockedUsers();
   const FREE_LIMIT = 5;
 
   const { data: userSub } = useQuery({
@@ -86,7 +88,12 @@ export default function Trends() {
   useEffect(() => {
     if (allVideos.length > 0) saveTrendsCache(allVideos);
   }, [allVideos]);
-  const effectiveVideos = isOnline && allVideos.length > 0 ? allVideos : (cachedVideos || allVideos);
+  const effectiveVideosRaw = isOnline && allVideos.length > 0 ? allVideos : (cachedVideos || allVideos);
+
+  // Filter out blocked authors
+  const effectiveVideos = useMemo(() => {
+    return effectiveVideosRaw.filter((v: any) => !isBlocked(v.author_username));
+  }, [effectiveVideosRaw, isBlocked]);
 
   const videosByNiche = useMemo(() => {
     const map: Record<string, any[]> = {};
@@ -195,12 +202,12 @@ export default function Trends() {
 
   const drillVideosFiltered = useMemo(() => {
     if (!drillNiche) return [];
-    let vids = drillNicheVideos;
+    let vids = drillNicheVideos.filter((v: any) => !isBlocked(v.author_username));
     if (drillSubNiche) {
       vids = vids.filter((v: any) => v.sub_niche === drillSubNiche);
     }
     return vids.slice(0, visibleCount);
-  }, [drillNiche, drillNicheVideos, drillSubNiche, visibleCount]);
+  }, [drillNiche, drillNicheVideos, drillSubNiche, visibleCount, isBlocked]);
 
   const drillTotalFiltered = useMemo(() => {
     if (!drillNiche) return 0;
