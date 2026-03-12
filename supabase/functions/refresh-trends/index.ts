@@ -10,7 +10,7 @@ const ENSEMBLE_BASE = "https://ensembledata.com/apis";
 
 // Filters
 const MIN_VIEWS = 5000;
-const MAX_AGE_DAYS = 7;
+const MAX_AGE_DAYS = 14;
 
 // Batching across niches
 const BATCH_SIZE = 1;
