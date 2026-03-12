@@ -17,7 +17,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Parse optional batch_size and offset from body
     let batchSize = 200;
     let offset = 0;
     try {
@@ -25,10 +24,9 @@ Deno.serve(async (req) => {
       if (body.batch_size) batchSize = Math.min(body.batch_size, 500);
       if (body.offset) offset = body.offset;
     } catch {
-      // No body or invalid JSON — use defaults
+      // defaults
     }
 
-    // Fetch videos with cover_url, oldest fetched first
     const { data: videos, error: fetchErr } = await supabase
       .from("videos")
       .select("id, cover_url")
@@ -53,10 +51,9 @@ Deno.serve(async (req) => {
 
     console.log(`Checking ${videos.length} covers (offset=${offset})...`);
 
-    // Check covers in parallel with concurrency limit
     const CONCURRENCY = 20;
     const brokenIds: string[] = [];
-    
+
     for (let i = 0; i < videos.length; i += CONCURRENCY) {
       const batch = videos.slice(i, i + CONCURRENCY);
       const results = await Promise.allSettled(
@@ -64,20 +61,17 @@ Deno.serve(async (req) => {
           try {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 5000);
-            
             const resp = await fetch(video.cover_url!, {
               method: "HEAD",
               signal: controller.signal,
               redirect: "follow",
             });
             clearTimeout(timeout);
-
             if (resp.status === 403 || resp.status === 404 || resp.status === 410) {
               return { id: video.id, broken: true };
             }
             return { id: video.id, broken: false };
           } catch {
-            // Network error or timeout — treat as broken
             return { id: video.id, broken: true };
           }
         })
@@ -92,7 +86,6 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${brokenIds.length} broken covers out of ${videos.length} checked`);
 
-    // Delete broken videos in batches of 50
     let totalDeleted = 0;
     for (let i = 0; i < brokenIds.length; i += 50) {
       const ids = brokenIds.slice(i, i + 50);
@@ -110,6 +103,14 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Deleted ${totalDeleted} broken-cover videos`);
+
+    // Log results to cleanup_logs
+    await supabase.from("cleanup_logs").insert({
+      source: "server_cron",
+      checked: videos.length,
+      broken: brokenIds.length,
+      deleted: totalDeleted,
+    });
 
     return new Response(
       JSON.stringify({
