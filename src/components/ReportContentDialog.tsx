@@ -78,8 +78,12 @@ function ReportContent({
         throw error;
       }
       console.log("[Report] Success");
-      setSubmitted(true);
       toast.success("Жалоба отправлена. Мы рассмотрим её в течение 24 часов.");
+      setTimeout(() => {
+        setReason("");
+        setDetails("");
+        onClose();
+      }, 300);
     } catch (err) {
       console.error("[Report] Catch error:", err);
       toast.error("Не удалось отправить жалобу");
