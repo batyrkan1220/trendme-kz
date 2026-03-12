@@ -1245,6 +1245,7 @@ Every index must appear in exactly one array.` },
         }
 
         // Insert verified new videos with niche assignment
+        if (verifiedNewVideos.length > 0) {
           const { error: insertErr } = await adminClient
             .from("videos")
             .upsert(verifiedNewVideos, { onConflict: "platform,platform_video_id" });
