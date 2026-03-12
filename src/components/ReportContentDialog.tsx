@@ -48,10 +48,19 @@ function ReportContent({
 
   const handleReport = async () => {
     console.log("[Report] handleReport called", { userId: user?.id, reason, videoId, videoUrl });
-    if (!user || !reason) {
-      console.warn("[Report] Aborted: user or reason missing", { user: !!user, reason });
+
+    if (!user) {
+      toast.error("Жалоба жіберу үшін аккаунтқа кіріңіз");
+      console.warn("[Report] Aborted: user missing");
       return;
     }
+
+    if (!reason) {
+      toast.error("Алдымен шағым себебін таңдаңыз");
+      console.warn("[Report] Aborted: reason missing");
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = {
