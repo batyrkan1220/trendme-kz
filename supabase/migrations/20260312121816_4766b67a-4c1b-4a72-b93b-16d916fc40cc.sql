@@ -1,0 +1,1 @@
+ALTER TABLE public.eula_acceptances ADD CONSTRAINT eula_acceptances_user_id_version_key UNIQUE (user_id, version);
