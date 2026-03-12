@@ -42,6 +42,7 @@ export default function Trends() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const isOnline = useOnlineStatus();
+  const { isBlocked } = useBlockedUsers();
   const FREE_LIMIT = 5;
 
   const { data: userSub } = useQuery({
