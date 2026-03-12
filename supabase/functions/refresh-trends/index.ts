@@ -88,6 +88,21 @@ function pickRotatedKeywords(
 
 const VERSION = "refresh-trends-ensemble v4 hierarchical-niches sub_niche support";
 
+const KAZAKH_SPECIFIC_RE = /[әіңғүұқөһіӘІҢҒҮҰҚӨҺ]/u;
+const KAZAKH_COMMON_WORDS_RE = /\b(және|үшін|бұл|осы|қалай|неге|тағы|бәрі|сәлем|қазақша|мен|сен|сіз|біз|олар|қазір|бүгін|ертең|үйде|туралы|керек|емес|бар|жоқ)\b/giu;
+const RUSSIAN_COMMON_WORDS_RE = /\b(и|в|на|что|как|это|для|только|видео|смотри|подпишись|очень|тебя|меня|всем|когда|если|просто|тут|такой|будет|после)\b/giu;
+
+function likelyKazakhCaption(caption: string): boolean {
+  const text = String(caption || "").toLowerCase();
+  if (!text.trim()) return false;
+  if (KAZAKH_SPECIFIC_RE.test(text)) return true;
+
+  const kzHits = text.match(KAZAKH_COMMON_WORDS_RE)?.length || 0;
+  const ruHits = text.match(RUSSIAN_COMMON_WORDS_RE)?.length || 0;
+
+  return kzHits >= 2 && kzHits >= ruHits;
+}
+
 // Human-readable labels for sub-niches (for logs)
 const SUB_NICHE_LABELS: Record<string, string> = {
   finance: "Финансы", crypto: "Крипто", business_ideas: "Бизнес идеи",
@@ -980,34 +995,111 @@ JSON: {"niche_key": ["тақырып1"], "niche_key2": ["тақырып2"]}
 
         console.log(`  💾 "${query}": ${newCount} new / ${existingIds.size} dupes`);
 
-        // AI verification: check if new videos actually belong to target niche
+        // AI verification: strict language gate (KK) + niche verification
         let verifiedNewVideos = newVideos;
         if (newVideos.length > 0) {
           const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
           if (LOVABLE_API_KEY) {
             try {
-              const captions = newVideos.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 300)}`).join("\n");
-              const nicheDisplayName = nicheLabel(nicheKey);
-              const parentNiche = SUB_NICHE_TO_NICHE[nicheKey] || nicheKey;
-              const parentNicheLabel = SUB_NICHE_LABELS_MAP[parentNiche] || parentNiche;
+              let candidateVideos = newVideos;
 
-              // Build available sub-niches list for reassignment
-              const availableSubNiches = Object.entries(SUB_NICHE_LABELS)
-                .map(([k, v]) => {
-                  const parent = SUB_NICHE_TO_NICHE[k] || k;
-                  const parentLabel = SUB_NICHE_LABELS_MAP[parent] || parent;
-                  return `"${k}" = ${v} (${parentLabel})`;
-                })
-                .join("\n");
-              const validSubNicheKeys = Object.keys(SUB_NICHE_LABELS);
-              
-              const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-                method: "POST",
-                headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  model: "google/gemini-2.5-flash",
-                  messages: [
-                    { role: "system", content: `You are a strict video categorization verifier. Given numbered TikTok video captions, determine which ones ACTUALLY belong to the category "${nicheDisplayName}" (parent: "${parentNicheLabel}").
+              // Stage 1 (KK only): strict language gate before category verification
+              if (targetLang === "kk") {
+                const languageCaptions = newVideos
+                  .map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 300)}`)
+                  .join("\n");
+
+                try {
+                  const langRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      model: "google/gemini-2.5-flash",
+                      messages: [
+                        {
+                          role: "system",
+                          content: `Classify each caption language strictly.
+Return ONLY JSON:
+{"labels":[{"index":0,"lang":"kk|ru|other"}]}
+Rules:
+- "kk" only if PRIMARY language is Kazakh.
+- Russian text (even with Kazakh hashtags) => "ru".
+- Mixed text => choose dominant language.
+- If unclear or no meaningful text => "other".
+Include every index exactly once.`,
+                        },
+                        { role: "user", content: languageCaptions },
+                      ],
+                    }),
+                  });
+
+                  const langData = await langRes.json();
+                  const langContent = langData?.choices?.[0]?.message?.content || "";
+                  const langJsonMatch = langContent.match(/\{[\s\S]*\}/);
+                  if (!langJsonMatch) throw new Error("No JSON from language gate");
+
+                  const langResult = JSON.parse(langJsonMatch[0]);
+                  const labels: Array<{ index: number; lang: string }> = Array.isArray(langResult?.labels)
+                    ? langResult.labels
+                    : [];
+                  if (labels.length === 0) throw new Error("Empty labels from language gate");
+
+                  const kkIndices = new Set<number>(
+                    labels
+                      .filter((l: any) => Number.isInteger(l?.index) && String(l?.lang || "").toLowerCase() === "kk")
+                      .map((l: any) => Number(l.index)),
+                  );
+
+                  candidateVideos = newVideos.filter((_: any, idx: number) => kkIndices.has(idx));
+                  const nonKkCount = newVideos.length - candidateVideos.length;
+                  nicheDiscarded += nonKkCount;
+
+                  if (nonKkCount > 0) {
+                    const rejectedSamples = newVideos
+                      .filter((_: any, idx: number) => !kkIndices.has(idx))
+                      .slice(0, 3)
+                      .map((v: any) => `    ${(v.caption || "").slice(0, 60)}`)
+                      .join("\n");
+                    console.log(`  🌐 KK language gate: kept ${candidateVideos.length}/${newVideos.length}, discarded ${nonKkCount}`);
+                    if (rejectedSamples) console.log(`  🚫 Non-KK samples:\n${rejectedSamples}`);
+                  } else {
+                    console.log(`  🌐 KK language gate: kept ${candidateVideos.length}/${newVideos.length}`);
+                  }
+                } catch (langErr) {
+                  // Deterministic fallback if AI language gate fails
+                  candidateVideos = newVideos.filter((v: any) => likelyKazakhCaption(v.caption || ""));
+                  const nonKkCount = newVideos.length - candidateVideos.length;
+                  nicheDiscarded += nonKkCount;
+                  console.warn(
+                    `KK language gate fallback used: kept ${candidateVideos.length}/${newVideos.length}, discarded ${nonKkCount}. Reason: ${(langErr as Error).message}`,
+                  );
+                }
+              }
+
+              if (candidateVideos.length > 0) {
+                const captions = candidateVideos
+                  .map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 300)}`)
+                  .join("\n");
+                const nicheDisplayName = nicheLabel(nicheKey);
+                const parentNiche = SUB_NICHE_TO_NICHE[nicheKey] || nicheKey;
+                const parentNicheLabel = SUB_NICHE_LABELS_MAP[parentNiche] || parentNiche;
+
+                // Build available sub-niches list for reassignment
+                const availableSubNiches = Object.entries(SUB_NICHE_LABELS)
+                  .map(([k, v]) => {
+                    const parent = SUB_NICHE_TO_NICHE[k] || k;
+                    const parentLabel = SUB_NICHE_LABELS_MAP[parent] || parent;
+                    return `"${k}" = ${v} (${parentLabel})`;
+                  })
+                  .join("\n");
+
+                const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                  method: "POST",
+                  headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    model: "google/gemini-2.5-flash",
+                    messages: [
+                      { role: "system", content: `You are a strict video categorization verifier. Given numbered TikTok video captions, determine which ones ACTUALLY belong to the category "${nicheDisplayName}" (parent: "${parentNicheLabel}").
 ${targetLang === "kk" ? `
 LANGUAGE CHECK (CRITICAL for KK mode):
 - ONLY accept videos where the caption is in KAZAKH language
@@ -1042,97 +1134,113 @@ Return JSON:
 {"accepted": [0, 2], "reassigned": [{"index": 1, "sub_niche": "recipes"}, {"index": 3, "sub_niche": "football"}], "discarded": [5]}
 
 Every index must appear in exactly one array.` },
-                    { role: "user", content: captions },
-                  ],
-                }),
-              });
-              const aiData = await aiRes.json();
-              const content = aiData?.choices?.[0]?.message?.content || "";
-              const jsonMatch = content.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                const result = JSON.parse(jsonMatch[0]);
-                const acceptedIndices = new Set((result.accepted || []).map(Number));
-                const reassigned: Array<{index: number; sub_niche?: string; niche?: string}> = result.reassigned || [];
-                const discarded: number[] = result.discarded || [];
+                      { role: "user", content: captions },
+                    ],
+                  }),
+                });
+                const aiData = await aiRes.json();
+                const content = aiData?.choices?.[0]?.message?.content || "";
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                  const result = JSON.parse(jsonMatch[0]);
+                  const acceptedIndices = new Set((result.accepted || []).map(Number));
+                  const reassigned: Array<{ index: number; sub_niche?: string; niche?: string }> = result.reassigned || [];
+                  const discarded: number[] = result.discarded || [];
 
-                const before = verifiedNewVideos.length;
-                verifiedNewVideos = newVideos.filter((_: any, idx: number) => acceptedIndices.has(idx));
-                nicheAccepted += verifiedNewVideos.length;
-                
-                // Log accepted
-                if (verifiedNewVideos.length < before) {
-                  console.log(`  🤖 AI: ✅${verifiedNewVideos.length} ♻️${reassigned.length} 🗑️${discarded.length} (total ${before})`);
-                }
+                  const before = candidateVideos.length;
+                  verifiedNewVideos = candidateVideos.filter((_: any, idx: number) => acceptedIndices.has(idx));
+                  nicheAccepted += verifiedNewVideos.length;
 
-                // Reassign videos to correct sub-niches (SKIP in KK mode — non-Kazakh videos should not be saved)
-                if (reassigned.length > 0 && targetLang !== "kk") {
-                  const validReassigned = reassigned.filter(r => {
-                    // Support both sub_niche and niche keys from AI
-                    const subKey = r.sub_niche || r.niche;
-                    if (!subKey) { nicheDiscarded++; return false; }
-                    // Check if it's a valid sub_niche key
-                    if (SUB_NICHE_TO_NICHE[subKey]) return true;
-                    // Check if it's a valid parent niche key
-                    if (SUB_NICHE_LABELS_MAP[subKey]) return true;
-                    nicheDiscarded++;
-                    return false;
-                  });
-
-                  for (const r of validReassigned) {
-                    const video = newVideos[r.index];
-                    if (!video) continue;
-                    const subKey = r.sub_niche || r.niche || "";
-                    
-                    if (SUB_NICHE_TO_NICHE[subKey]) {
-                      video.niche = SUB_NICHE_TO_NICHE[subKey];
-                      video.sub_niche = subKey;
-                    } else if (SUB_NICHE_LABELS_MAP[subKey]) {
-                      video.niche = subKey;
-                      const subs = NICHE_TO_SUB_NICHES[subKey];
-                      video.sub_niche = subs && subs.length > 0 ? subs[0] : null;
-                    }
-                    video.categories = [video.niche];
+                  // Log accepted
+                  if (verifiedNewVideos.length < before) {
+                    console.log(`  🤖 AI: ✅${verifiedNewVideos.length} ♻️${reassigned.length} 🗑️${discarded.length} (total ${before})`);
                   }
 
-                  const reassignedVideos = validReassigned
-                    .filter(r => newVideos[r.index])
-                    .map(r => newVideos[r.index]);
+                  // Reassign videos to correct sub-niches (SKIP in KK mode — non-Kazakh videos should not be saved)
+                  if (reassigned.length > 0 && targetLang !== "kk") {
+                    const validReassigned = reassigned.filter((r) => {
+                      // Support both sub_niche and niche keys from AI
+                      const subKey = r.sub_niche || r.niche;
+                      if (!subKey) {
+                        nicheDiscarded++;
+                        return false;
+                      }
+                      // Check if it's a valid sub_niche key
+                      if (SUB_NICHE_TO_NICHE[subKey]) return true;
+                      // Check if it's a valid parent niche key
+                      if (SUB_NICHE_LABELS_MAP[subKey]) return true;
+                      nicheDiscarded++;
+                      return false;
+                    });
 
-                  if (reassignedVideos.length > 0) {
-                    const { error: reErr } = await adminClient
-                      .from("videos")
-                      .upsert(reassignedVideos, { onConflict: "platform,platform_video_id" });
-                    if (reErr) {
-                      console.error(`  Reassign insert error:`, reErr.message);
-                    } else {
-                      nicheReassigned += reassignedVideos.length;
-                      const reassignLog = validReassigned
-                        .map(r => {
-                          const v = newVideos[r.index];
-                          return `    → ${v?.sub_niche || v?.niche}: ${(v?.caption || "").slice(0, 60)}`;
-                        })
-                        .join("\n");
-                      console.log(`  ♻️ Reassigned:\n${reassignLog}`);
+                    for (const r of validReassigned) {
+                      const video = candidateVideos[r.index];
+                      if (!video) continue;
+                      const subKey = r.sub_niche || r.niche || "";
+
+                      if (SUB_NICHE_TO_NICHE[subKey]) {
+                        video.niche = SUB_NICHE_TO_NICHE[subKey];
+                        video.sub_niche = subKey;
+                      } else if (SUB_NICHE_LABELS_MAP[subKey]) {
+                        video.niche = subKey;
+                        const subs = NICHE_TO_SUB_NICHES[subKey];
+                        video.sub_niche = subs && subs.length > 0 ? subs[0] : null;
+                      }
+                      video.categories = [video.niche];
                     }
-                  }
-                } else if (reassigned.length > 0 && targetLang === "kk") {
-                  // In KK mode, reassigned = non-Kazakh videos, just discard them
-                  nicheDiscarded += reassigned.length;
-                  console.log(`  🚫 KK mode: ${reassigned.length} non-Kazakh videos discarded (not reassigned)`);
-                }
 
-                // Log discarded
-                nicheDiscarded += discarded.length;
-                if (discarded.length > 0) {
-                  const discardLog = discarded
-                    .map(idx => `    ${(newVideos[idx]?.caption || "").slice(0, 60)}`)
-                    .join("\n");
-                  console.log(`  🗑️ Discarded:\n${discardLog}`);
+                    const reassignedVideos = validReassigned
+                      .filter((r) => candidateVideos[r.index])
+                      .map((r) => candidateVideos[r.index]);
+
+                    if (reassignedVideos.length > 0) {
+                      const { error: reErr } = await adminClient
+                        .from("videos")
+                        .upsert(reassignedVideos, { onConflict: "platform,platform_video_id" });
+                      if (reErr) {
+                        console.error(`  Reassign insert error:`, reErr.message);
+                      } else {
+                        nicheReassigned += reassignedVideos.length;
+                        const reassignLog = validReassigned
+                          .map((r) => {
+                            const v = candidateVideos[r.index];
+                            return `    → ${v?.sub_niche || v?.niche}: ${(v?.caption || "").slice(0, 60)}`;
+                          })
+                          .join("\n");
+                        console.log(`  ♻️ Reassigned:\n${reassignLog}`);
+                      }
+                    }
+                  } else if (reassigned.length > 0 && targetLang === "kk") {
+                    // In KK mode, reassigned = non-Kazakh videos, just discard them
+                    nicheDiscarded += reassigned.length;
+                    console.log(`  🚫 KK mode: ${reassigned.length} non-Kazakh videos discarded (not reassigned)`);
+                  }
+
+                  // Log discarded
+                  nicheDiscarded += discarded.length;
+                  if (discarded.length > 0) {
+                    const discardLog = discarded
+                      .map((idx) => `    ${(candidateVideos[idx]?.caption || "").slice(0, 60)}`)
+                      .join("\n");
+                    console.log(`  🗑️ Discarded:\n${discardLog}`);
+                  }
                 }
+              } else {
+                verifiedNewVideos = [];
               }
             } catch (aiErr) {
               console.warn("AI verification failed, accepting all:", (aiErr as Error).message);
             }
+          }
+        }
+
+        if (targetLang === "kk" && verifiedNewVideos.length > 0) {
+          const beforeVeto = verifiedNewVideos.length;
+          verifiedNewVideos = verifiedNewVideos.filter((v: any) => likelyKazakhCaption(v.caption || ""));
+          const vetoed = beforeVeto - verifiedNewVideos.length;
+          if (vetoed > 0) {
+            nicheDiscarded += vetoed;
+            console.log(`  🛡️ KK deterministic veto: removed ${vetoed} non-Kazakh captions before insert`);
           }
         }
 
