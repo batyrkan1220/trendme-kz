@@ -796,74 +796,89 @@ Deno.serve(async (req: Request) => {
         const awemeId = (isValidVideoUrl ? extractAwemeId(video_url) : null) || fallbackVideoId || null;
         console.log("analyze_video: resolved URL =", video_url || "[missing]", "awemeId =", awemeId);
 
-        // 1. Fetch post info and comments from EnsembleData in parallel
-        const postInfoFetch = isValidVideoUrl
-          ? callEnsemble("/tt/post/info", { url: video_url })
+        const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY") || "";
+
+        // 1. Fetch transcript, stats, and comments from SocialKit in parallel
+        const skBase = "https://api.socialkit.dev";
+        const skHeaders: Record<string, string> = { "x-access-key": socialKitKey };
+
+        const transcriptFetch = isValidVideoUrl && socialKitKey
+          ? fetch(`${skBase}/tiktok/transcript?url=${encodeURIComponent(video_url)}`, { headers: skHeaders })
+              .then(r => r.json()).catch(e => { console.error("SK transcript error:", e); return null; })
           : Promise.resolve(null);
 
-        const commentsFetch = awemeId
-          ? callEnsemble("/tt/post/comments", { aweme_id: awemeId })
+        const statsFetch = isValidVideoUrl && socialKitKey
+          ? fetch(`${skBase}/tiktok/stats?url=${encodeURIComponent(video_url)}`, { headers: skHeaders })
+              .then(r => r.json()).catch(e => { console.error("SK stats error:", e); return null; })
           : Promise.resolve(null);
 
-        const [postInfoRes, commentsRes] = await Promise.allSettled([
-          postInfoFetch,
+        const commentsFetch = isValidVideoUrl && socialKitKey
+          ? fetch(`${skBase}/tiktok/comments?url=${encodeURIComponent(video_url)}&limit=15`, { headers: skHeaders })
+              .then(r => r.json()).catch(e => { console.error("SK comments error:", e); return null; })
+          : Promise.resolve(null);
+
+        const [skTranscript, skStats, skComments] = await Promise.all([
+          transcriptFetch,
+          statsFetch,
           commentsFetch,
         ]);
 
-        // Extract post info (stats, description, transcript/action cues)
-        let statsData: any = null;
-        let transcriptText = "";
-        let actionSignalsText = "";
-        if (postInfoRes.status === "fulfilled" && postInfoRes.value) {
-          const raw = postInfoRes.value?.data || postInfoRes.value;
-          const inner = raw?.["0"] || raw;
-          statsData = unwrapVideo(inner);
-          console.log("Post info keys:", JSON.stringify(Object.keys(statsData || {})));
+        console.log("SocialKit results:", {
+          transcript: skTranscript?.success ? `${skTranscript.data?.wordCount || 0} words` : "failed",
+          stats: skStats?.success ? "ok" : "failed",
+          comments: skComments?.success ? `${skComments.data?.comments?.length || 0} comments` : "failed",
+        });
 
-          transcriptText = await buildTranscriptText(statsData, video_url);
-          actionSignalsText = joinUniqueLines(collectTextValues(statsData?.video_text), 1200);
-        } else if (postInfoRes.status === "rejected") {
-          console.error("Post info fetch failed:", postInfoRes.reason);
+        // Extract transcript
+        let transcriptText = "";
+        if (skTranscript?.success && skTranscript?.data?.transcript) {
+          transcriptText = String(skTranscript.data.transcript).trim();
+        }
+
+        // Extract stats
+        let videoStats: any = {};
+        let statsCaption = "";
+        if (skStats?.success && skStats?.data) {
+          const sd = skStats.data;
+          videoStats = {
+            views: sd.views || 0,
+            likes: sd.likes || 0,
+            comments: sd.comments || 0,
+            shares: sd.shares || 0,
+          };
+          statsCaption = sd.title || sd.description || "";
         }
 
         // Extract comments
         let commentsData: any = null;
         let topCommentsText = "";
-        if (commentsRes.status === "fulfilled") {
-          const cData = commentsRes.value?.data || commentsRes.value;
-          const commentsList = Array.isArray(cData) ? cData : cData?.comments || [];
-          commentsData = commentsList;
-          if (Array.isArray(commentsList)) {
-            topCommentsText = commentsList.slice(0, 10).map((c: any) => c.text || c.comment || c.content || "").filter(Boolean).join("\n");
-          }
-          console.log("Comments fetched, top comments length:", topCommentsText.length);
-        } else {
-          console.error("Comments fetch failed:", commentsRes.reason);
+        if (skComments?.success && Array.isArray(skComments?.data?.comments)) {
+          commentsData = skComments.data.comments;
+          topCommentsText = commentsData
+            .slice(0, 10)
+            .map((c: any) => c.text || "")
+            .filter(Boolean)
+            .join("\n");
+          console.log("SK Comments fetched, top comments length:", topCommentsText.length);
         }
 
         // 2. Use Lovable AI to generate structured analysis
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        const caption = cleanForPrompt(body.caption || "", 500);
+        const caption = cleanForPrompt(body.caption || statsCaption || "", 500);
         const analysisLang = body.language === "kk" ? "kk" : "ru";
 
-        const videoStats = statsData?.statistics || statsData?.stats || {};
-        const videoTitle = cleanForPrompt(statsData?.desc || caption || "", 500);
-        const videoDuration = statsData?.video?.duration ? Math.round(statsData.video.duration / 1000) : "";
+        const videoTitle = cleanForPrompt(statsCaption || body.caption || "", 500);
+        const videoDuration = skStats?.data?.duration || "";
 
         // Build context for AI from all available data
         const contextParts: string[] = [];
         if (videoTitle) contextParts.push(`Название/описание: ${videoTitle}`);
-        if (videoDuration) contextParts.push(`Длительность: ${videoDuration} сек`);
-        if (statsData) {
-          const v = videoStats.play_count ?? videoStats.views ?? 0;
-          const l = videoStats.digg_count ?? videoStats.likes ?? 0;
-          const c = videoStats.comment_count ?? videoStats.comments ?? 0;
-          const s = videoStats.share_count ?? videoStats.shares ?? 0;
-          contextParts.push(`Статистика: ${v} просмотров, ${l} лайков, ${c} комментариев, ${s} репостов`);
+        if (videoDuration) contextParts.push(`Длительность: ${videoDuration}`);
+        if (videoStats.views) {
+          contextParts.push(`Статистика: ${videoStats.views} просмотров, ${videoStats.likes} лайков, ${videoStats.comments} комментариев, ${videoStats.shares} репостов`);
         }
         if (topCommentsText) contextParts.push(`Топ комментарии:\n${topCommentsText.slice(0, 2000)}`);
-        if (actionSignalsText) contextParts.push(`Текст/сцены из видео-метаданных:\n${actionSignalsText.slice(0, 1200)}`);
         if (transcriptText) contextParts.push(`Транскрипт (речь из видео):\n${transcriptText.slice(0, 5000)}`);
         contextParts.push(`Надежность источника речи: ${transcriptText.length >= 120 ? "высокая" : "низкая"}`);
 
@@ -1038,15 +1053,12 @@ ${contextParts.join("\n\n")}`;
         const unknownText = analysisLang === "kk" ? "белгісіз" : "неизвестно";
         const transcriptQuality = getTranscriptQuality(transcriptText);
         const hasStrongSpeechSource = transcriptQuality === "high";
-        const hasActionSignals = actionSignalsText.trim().length >= 30;
 
         if (aiAnalysis && !hasStrongSpeechSource) {
-          // Do not overwrite model output blindly on low transcript quality.
-          // Keep existing hooks if model extracted them from reliable visual/text metadata.
           if (!aiAnalysis.hook_phrase || !String(aiAnalysis.hook_phrase).trim()) {
             aiAnalysis.hook_phrase = unknownText;
           }
-          if ((!aiAnalysis.text_hook || !String(aiAnalysis.text_hook).trim()) && !hasActionSignals) {
+          if (!aiAnalysis.text_hook || !String(aiAnalysis.text_hook).trim()) {
             aiAnalysis.text_hook = unknownText;
           }
           if (!aiAnalysis.visual_hook || !String(aiAnalysis.visual_hook).trim()) {
@@ -1057,12 +1069,7 @@ ${contextParts.join("\n\n")}`;
         const summaryJson = {
           ...(aiAnalysis || {}),
           source_quality: transcriptQuality,
-          stats: statsData ? {
-            views: videoStats.play_count ?? videoStats.views ?? 0,
-            likes: videoStats.digg_count ?? videoStats.likes ?? 0,
-            comments: videoStats.comment_count ?? videoStats.comments ?? 0,
-            shares: videoStats.share_count ?? videoStats.shares ?? 0,
-          } : null,
+          stats: videoStats.views ? videoStats : null,
         };
 
         const result = {
@@ -1090,13 +1097,11 @@ ${contextParts.join("\n\n")}`;
           if (saved) analysis = saved;
         }
 
-        // activity_log is handled client-side via checkAndLog
-        const analyzeCredits =
-          (postInfoRes.status === "fulfilled" && !!postInfoRes.value ? 1 : 0) +
-          (commentsRes.status === "fulfilled" && awemeId ? 1 : 0);
-        await logApiUsage("analyze_video", analyzeCredits, {
+        // Log API usage (3 SocialKit calls: transcript + stats + comments)
+        const skCredits = (skTranscript?.success ? 1 : 0) + (skStats?.success ? 1 : 0) + (skComments?.success ? 1 : 0);
+        await logApiUsage("analyze_video", skCredits, {
           video_url: normalizedVideoUrl || null,
-          fallback: !isValidVideoUrl,
+          provider: "socialkit",
         });
 
         return json(analysis);
