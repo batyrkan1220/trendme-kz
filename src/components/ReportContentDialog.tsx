@@ -219,7 +219,10 @@ export function ReportContentDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className={cn("max-w-sm p-5", zClass)} style={elevated ? { zIndex: 10000 } : undefined}>
+      <DialogContent
+        className={cn("max-w-sm p-5", zClass)}
+        style={elevated ? { zIndex: 10000 } : undefined}
+      >
         <DialogTitle className="sr-only">Пожаловаться</DialogTitle>
         <ReportContent {...contentProps} />
       </DialogContent>
