@@ -46,6 +46,36 @@ function persistCache() {
 /** Global in-flight request tracker to prevent duplicate concurrent API calls */
 const inFlightRequests = new Map<string, Promise<string | null>>();
 
+/** Broken cover collector — batches broken video IDs and sends to cleanup function */
+const brokenCoverIds = new Set<string>();
+let brokenCoverTimer: ReturnType<typeof setTimeout> | null = null;
+
+function flushBrokenCovers() {
+  if (brokenCoverIds.size === 0) return;
+  const ids = Array.from(brokenCoverIds);
+  brokenCoverIds.clear();
+  brokenCoverTimer = null;
+
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!projectId || !anonKey) return;
+
+  fetch(`https://${projectId}.supabase.co/functions/v1/cleanup-broken-covers`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${anonKey}`,
+    },
+    body: JSON.stringify({ video_ids: ids }),
+  }).catch(() => {});
+}
+
+function reportBrokenCover(videoId: string) {
+  brokenCoverIds.add(videoId);
+  if (brokenCoverTimer) clearTimeout(brokenCoverTimer);
+  brokenCoverTimer = setTimeout(flushBrokenCovers, 5000); // 5s debounce
+}
+
 /** Centralized function to fetch play URL with deduplication */
 export async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
   // Check memory cache first
