@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Loader2, Sparkles, Target, ShieldCheck } from "lucide-react";
+import { ArrowRight, Loader2, Sparkles, Target, ShieldCheck, Zap, Search, BarChart3, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +20,13 @@ const GOALS = [
   { value: "find_trends", label: "🔥 Ловить тренды" },
 ];
 
+const PREPARING_STEPS = [
+  { icon: Search, text: "Ищем тренды по вашей нише..." },
+  { icon: BarChart3, text: "Анализируем популярный контент..." },
+  { icon: TrendingUp, text: "Подбираем лучшие видео для вас..." },
+  { icon: Zap, text: "Всё готово! Запускаем..." },
+];
+
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [niche, setNiche] = useState("");
@@ -30,6 +37,8 @@ export default function Onboarding() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [contentRulesAccepted, setContentRulesAccepted] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [prepStep, setPrepStep] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -44,10 +53,8 @@ export default function Onboarding() {
     }, 250);
   };
 
-  const handleFinish = async () => {
-    setSaving(true);
+  const doSaveAndNavigate = async () => {
     try {
-      // On native without auth, just save to localStorage
       if (isNativePlatform && !user) {
         localStorage.setItem("native_onboarding_done", "1");
         navigate("/trends", { replace: true });
@@ -56,7 +63,6 @@ export default function Onboarding() {
 
       if (!user) return;
 
-      // Save EULA acceptance
       await supabase.from("eula_acceptances").upsert({
         user_id: user.id,
         version: "1.0",
@@ -71,16 +77,89 @@ export default function Onboarding() {
       navigate("/dashboard", { replace: true });
     } catch (err: any) {
       toast.error("Ошибка сохранения: " + err.message);
-    } finally {
+      setPreparing(false);
       setSaving(false);
     }
   };
+
+  const handleFinish = () => {
+    setSaving(true);
+    setPreparing(true);
+    setPrepStep(0);
+  };
+
+  // Preparing animation sequence
+  useEffect(() => {
+    if (!preparing) return;
+    if (prepStep < PREPARING_STEPS.length - 1) {
+      const timer = setTimeout(() => setPrepStep((s) => s + 1), 1200);
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(() => doSaveAndNavigate(), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [preparing, prepStep]);
 
   const slideClass = transitioning
     ? direction === "forward"
       ? "opacity-0 translate-x-8"
       : "opacity-0 -translate-x-8"
     : "opacity-100 translate-x-0";
+
+  if (preparing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-[0.08]" style={{ background: "hsl(72 100% 50%)" }} />
+        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-[0.06]" style={{ background: "hsl(82 90% 45%)" }} />
+
+        <div className="w-full max-w-sm space-y-10 text-center animate-fade-in">
+          {/* Animated icon */}
+          <div className="relative mx-auto w-20 h-20">
+            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" style={{ animationDuration: "2s" }} />
+            <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-primary/10">
+              {(() => {
+                const Icon = PREPARING_STEPS[prepStep].icon;
+                return <Icon className="h-9 w-9 text-primary animate-scale-in" key={prepStep} />;
+              })()}
+            </div>
+          </div>
+
+          {/* Step text */}
+          <div className="space-y-3">
+            <p className="text-lg font-semibold text-foreground animate-fade-in" key={prepStep}>
+              {PREPARING_STEPS[prepStep].text}
+            </p>
+
+            {/* Progress dots */}
+            <div className="flex justify-center gap-2">
+              {PREPARING_STEPS.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-2 rounded-full transition-all duration-500 ${
+                    i <= prepStep ? "w-8 bg-primary" : "w-2 bg-muted"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Selected niche & goal */}
+          <div className="flex justify-center gap-2 flex-wrap">
+            {niche && (
+              <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                {NICHES.find((n) => n.value === niche)?.label}
+              </span>
+            )}
+            {goal && (
+              <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                {GOALS.find((g) => g.value === goal)?.label}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
