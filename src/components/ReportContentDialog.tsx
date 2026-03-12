@@ -38,8 +38,7 @@ function ReportContent({
   videoId,
   videoUrl,
   authorUsername,
-  onSubmittedChange,
-}: Omit<ReportContentDialogProps, "open" | "elevated"> & { onSubmittedChange?: (v: boolean) => void }) {
+}: Omit<ReportContentDialogProps, "open" | "elevated">) {
   const { user } = useAuth();
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
