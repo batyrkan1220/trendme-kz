@@ -1010,7 +1010,15 @@ JSON: {"niche_key": ["тақырып1"], "niche_key2": ["тақырып2"]}
                   model: "google/gemini-2.5-flash",
                   messages: [
                     { role: "system", content: `You are a strict video categorization verifier. Given numbered TikTok video captions, determine which ones ACTUALLY belong to the category "${nicheDisplayName}" (parent: "${parentNicheLabel}").
-
+${targetLang === "kk" ? `
+LANGUAGE CHECK (CRITICAL for KK mode):
+- ONLY accept videos where the caption is in KAZAKH language
+- REJECT videos that are purely in Russian (no Kazakh words/grammar)
+- REJECT videos in Uzbek, Kyrgyz, Ukrainian, or other languages
+- Kazakh indicators: specific letters (ә,ң,ғ,ү,ұ,қ,ө,һ,і), Kazakh grammar, Kazakh words
+- Videos mixing Kazakh+Russian are OK if primary language is Kazakh
+- Put non-Kazakh videos in "discarded" with reason "wrong_language"
+` : ""}
 INCLUDE in "accepted":
 - Videos directly about ${nicheDisplayName}: products, reviews, tutorials, tips, trends
 - Commercial content (brands, prices, unboxing) IF about ${nicheDisplayName} products
