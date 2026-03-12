@@ -558,6 +558,9 @@ function PlatformTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* Cleanup Logs Section */}
+      <CleanupLogsSection />
     </div>
   );
 }
