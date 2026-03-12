@@ -47,21 +47,32 @@ function ReportContent({
   const [blocking, setBlocking] = useState(false);
 
   const handleReport = async () => {
-    if (!user || !reason) return;
+    console.log("[Report] handleReport called", { userId: user?.id, reason, videoId, videoUrl });
+    if (!user || !reason) {
+      console.warn("[Report] Aborted: user or reason missing", { user: !!user, reason });
+      return;
+    }
     setLoading(true);
     try {
-      const { error } = await supabase.from("content_reports").insert({
+      const payload = {
         user_id: user.id,
         video_id: videoId,
         video_url: videoUrl,
         author_username: authorUsername || null,
         reason,
         details: details.trim() || null,
-      });
-      if (error) throw error;
+      };
+      console.log("[Report] Inserting:", payload);
+      const { error } = await supabase.from("content_reports").insert(payload);
+      if (error) {
+        console.error("[Report] Supabase error:", error);
+        throw error;
+      }
+      console.log("[Report] Success");
       setSubmitted(true);
       toast.success("Жалоба отправлена. Мы рассмотрим её в течение 24 часов.");
-    } catch {
+    } catch (err) {
+      console.error("[Report] Catch error:", err);
       toast.error("Не удалось отправить жалобу");
     } finally {
       setLoading(false);
