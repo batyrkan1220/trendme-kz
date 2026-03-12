@@ -1064,8 +1064,8 @@ Every index must appear in exactly one array.` },
                   console.log(`  🤖 AI: ✅${verifiedNewVideos.length} ♻️${reassigned.length} 🗑️${discarded.length} (total ${before})`);
                 }
 
-                // Reassign videos to correct sub-niches
-                if (reassigned.length > 0) {
+                // Reassign videos to correct sub-niches (SKIP in KK mode — non-Kazakh videos should not be saved)
+                if (reassigned.length > 0 && targetLang !== "kk") {
                   const validReassigned = reassigned.filter(r => {
                     // Support both sub_niche and niche keys from AI
                     const subKey = r.sub_niche || r.niche;
@@ -1084,11 +1084,9 @@ Every index must appear in exactly one array.` },
                     const subKey = r.sub_niche || r.niche || "";
                     
                     if (SUB_NICHE_TO_NICHE[subKey]) {
-                      // It's a sub_niche key → set both niche and sub_niche
                       video.niche = SUB_NICHE_TO_NICHE[subKey];
                       video.sub_niche = subKey;
                     } else if (SUB_NICHE_LABELS_MAP[subKey]) {
-                      // It's a parent niche key → assign first sub_niche
                       video.niche = subKey;
                       const subs = NICHE_TO_SUB_NICHES[subKey];
                       video.sub_niche = subs && subs.length > 0 ? subs[0] : null;
@@ -1117,6 +1115,10 @@ Every index must appear in exactly one array.` },
                       console.log(`  ♻️ Reassigned:\n${reassignLog}`);
                     }
                   }
+                } else if (reassigned.length > 0 && targetLang === "kk") {
+                  // In KK mode, reassigned = non-Kazakh videos, just discard them
+                  nicheDiscarded += reassigned.length;
+                  console.log(`  🚫 KK mode: ${reassigned.length} non-Kazakh videos discarded (not reassigned)`);
                 }
 
                 // Log discarded
