@@ -161,7 +161,13 @@ function ReportContent({
   }
 
   return (
-    <div className="flex flex-col gap-3 px-1">
+    <div
+      className="flex flex-col gap-3 px-1"
+      onClick={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
+    >
       <div className="flex items-center gap-2">
         <Flag className="h-5 w-5 text-destructive" />
         <h3 className="text-lg font-bold text-foreground">Пожаловаться</h3>
@@ -175,12 +181,15 @@ function ReportContent({
           return (
             <button
               key={r.value}
-              onClick={() => setReason(r.value)}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setReason(r.value); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setReason(r.value); }}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left ${
                 reason === r.value
                   ? "bg-primary/10 text-primary border border-primary/30"
                   : "bg-muted/50 text-foreground border border-transparent hover:bg-muted"
               }`}
+              style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
             >
               <Icon className="h-4 w-4 shrink-0" />
               {r.label}
@@ -193,20 +202,28 @@ function ReportContent({
         placeholder="Дополнительные подробности (необязательно)"
         value={details}
         onChange={(e) => setDetails(e.target.value)}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
         className="w-full h-20 px-4 py-3 rounded-xl bg-muted/50 border border-border text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
       />
 
       <div className="flex gap-2">
         <button
-          onClick={handleClose}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); handleClose(); }}
+          onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); handleClose(); }}
           className="flex-1 py-3 rounded-xl bg-muted text-muted-foreground text-sm font-semibold hover:bg-muted/80 transition-colors"
+          style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
         >
           Отмена
         </button>
         <button
-          onClick={handleReport}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); handleReport(); }}
+          onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); handleReport(); }}
           disabled={!reason || loading}
           className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
