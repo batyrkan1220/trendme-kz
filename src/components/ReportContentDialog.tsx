@@ -38,7 +38,8 @@ function ReportContent({
   videoId,
   videoUrl,
   authorUsername,
-}: Omit<ReportContentDialogProps, "open" | "elevated">) {
+  onSubmittedChange,
+}: Omit<ReportContentDialogProps, "open" | "elevated"> & { onSubmittedChange?: (v: boolean) => void }) {
   const { user } = useAuth();
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
@@ -79,6 +80,7 @@ function ReportContent({
       }
       console.log("[Report] Success");
       setSubmitted(true);
+      onSubmittedChange?.(true);
     } catch (err) {
       console.error("[Report] Catch error:", err);
       toast.error("Не удалось отправить жалобу");
@@ -245,12 +247,30 @@ export function ReportContentDialog({
   elevated = false,
 }: ReportContentDialogProps) {
   const isMobile = useIsMobile();
-  const contentProps = { onClose, videoId, videoUrl, authorUsername };
+  const [submitted, setSubmitted] = useState(false);
+  const contentProps = { onClose, videoId, videoUrl, authorUsername, onSubmittedChange: setSubmitted };
   const zClass = elevated ? "z-[10000]" : "";
+
+  // Reset submitted when dialog re-opens
+  const handleOpenChange = (o: boolean) => {
+    if (!o) {
+      // Block dismiss while showing success screen — user must tap "Закрыть"
+      if (submitted) return;
+      onClose();
+    }
+  };
+
+  // Wrap onClose to also reset submitted
+  const handleClose = () => {
+    setSubmitted(false);
+    onClose();
+  };
+
+  const closeContentProps = { ...contentProps, onClose: handleClose };
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
+      <Drawer open={open} onOpenChange={handleOpenChange}>
         <DrawerContent
           className={cn("px-4 pb-8", zClass)}
           style={elevated ? { zIndex: 10000 } : undefined}
@@ -258,7 +278,7 @@ export function ReportContentDialog({
         >
           <DrawerTitle className="sr-only">Пожаловаться</DrawerTitle>
           <div className="pt-2 pb-4">
-            <ReportContent {...contentProps} />
+            <ReportContent {...closeContentProps} />
           </div>
         </DrawerContent>
       </Drawer>
@@ -266,13 +286,13 @@ export function ReportContentDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn("max-w-sm p-5", zClass)}
         style={elevated ? { zIndex: 10000 } : undefined}
       >
         <DialogTitle className="sr-only">Пожаловаться</DialogTitle>
-        <ReportContent {...contentProps} />
+        <ReportContent {...closeContentProps} />
       </DialogContent>
     </Dialog>
   );
