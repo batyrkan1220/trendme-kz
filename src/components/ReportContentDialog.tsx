@@ -203,7 +203,11 @@ export function ReportContentDialog({
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-        <DrawerContent className={cn("px-4 pb-8", zClass)} style={elevated ? { zIndex: 10000 } : undefined}>
+        <DrawerContent
+          className={cn("px-4 pb-8", zClass)}
+          style={elevated ? { zIndex: 10000 } : undefined}
+          overlayClassName={elevated ? "z-[10000]" : undefined}
+        >
           <DrawerTitle className="sr-only">Пожаловаться</DrawerTitle>
           <div className="pt-2 pb-4">
             <ReportContent {...contentProps} />
