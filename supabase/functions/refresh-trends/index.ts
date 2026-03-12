@@ -1234,8 +1234,17 @@ Every index must appear in exactly one array.` },
           }
         }
 
+        if (targetLang === "kk" && verifiedNewVideos.length > 0) {
+          const beforeVeto = verifiedNewVideos.length;
+          verifiedNewVideos = verifiedNewVideos.filter((v: any) => likelyKazakhCaption(v.caption || ""));
+          const vetoed = beforeVeto - verifiedNewVideos.length;
+          if (vetoed > 0) {
+            nicheDiscarded += vetoed;
+            console.log(`  🛡️ KK deterministic veto: removed ${vetoed} non-Kazakh captions before insert`);
+          }
+        }
+
         // Insert verified new videos with niche assignment
-        if (verifiedNewVideos.length > 0) {
           const { error: insertErr } = await adminClient
             .from("videos")
             .upsert(verifiedNewVideos, { onConflict: "platform,platform_video_id" });
