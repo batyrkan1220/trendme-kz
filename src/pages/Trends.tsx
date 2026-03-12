@@ -202,12 +202,12 @@ export default function Trends() {
 
   const drillVideosFiltered = useMemo(() => {
     if (!drillNiche) return [];
-    let vids = drillNicheVideos;
+    let vids = drillNicheVideos.filter((v: any) => !isBlocked(v.author_username));
     if (drillSubNiche) {
       vids = vids.filter((v: any) => v.sub_niche === drillSubNiche);
     }
     return vids.slice(0, visibleCount);
-  }, [drillNiche, drillNicheVideos, drillSubNiche, visibleCount]);
+  }, [drillNiche, drillNicheVideos, drillSubNiche, visibleCount, isBlocked]);
 
   const drillTotalFiltered = useMemo(() => {
     if (!drillNiche) return 0;
