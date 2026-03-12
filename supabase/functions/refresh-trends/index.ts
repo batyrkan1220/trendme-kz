@@ -733,29 +733,36 @@ Deno.serve(async (req: Request) => {
 
           if (views < MIN_VIEWS) { lowViews++; return null; }
 
-          // Filter: reject non-KK/RU Cyrillic (Ukrainian, Bulgarian, Serbian, etc.)
+          // Filter: reject non-KK/RU Cyrillic (Ukrainian, Bulgarian, Uzbek, Kyrgyz, etc.)
           const caption = v.desc || "";
           // Ukrainian chars
           const hasUkrainianChars = /[їєґЇЄҐ]/u.test(caption);
           if (hasUkrainianChars) { nonCyrillic++; return null; }
-          // Bulgarian/Serbian indicators: ъ, щ paired with Latin-only patterns, or specific Bulgarian words
-          // More reliable: reject if caption has Bulgarian-specific patterns
+          // Uzbek-specific chars (ў, ҳ — NOT shared with Kazakh)
+          const hasUzbekChars = /[ўҳЎҲ]/u.test(caption);
+          if (hasUzbekChars) { nonCyrillic++; return null; }
+          // Bulgarian/Serbian indicators
           const hasBulgarianIndicators = /[ъЪ]/u.test(caption) && !/[әңғүұқөһӘҢҒҮҰҚӨҺ]/u.test(caption)
             && /\b(на|от|за|при|към|или|има|ще|бъде|също|повече|цена|цени|може)\b/iu.test(caption);
           if (hasBulgarianIndicators) { nonCyrillic++; return null; }
+          // Kyrgyz-specific stopwords (Kyrgyz uses ң,ү,ө like Kazakh but has unique grammar)
+          const hasKyrgyzIndicators = /\b(менен|жана|болгон|кылуу|үчүн|кыргыз|бишкек|кыргызстан|жөнүндө|керектүү|болуп|жатат)\b/iu.test(caption);
+          if (hasKyrgyzIndicators) { nonCyrillic++; return null; }
 
           if (targetLang === "kk") {
-            // KK mode: accept both Kazakh and Russian videos (Cyrillic required)
-            const hasCyrillic = /[а-яА-ЯёЁәңғүұқөһӘҢҒҮҰҚӨҺ]/u.test(caption);
-            if (!hasCyrillic) { nonCyrillic++; return null; }
-            // Auto-detect actual lang for DB storage
-            const kazakhChars = caption.match(/[әңғүұқөһӘҢҒҮҰҚӨҺ]/gu);
-            var detectedLang = (kazakhChars && kazakhChars.length >= 2) ? "kk" : "ru";
+            // KK mode: ONLY accept videos with Kazakh language indicators
+            // Require at least 1 Kazakh-specific character (ә,ң,ғ,ү,ұ,қ,ө,һ,і)
+            const kazakhSpecificChars = caption.match(/[әңғүұқөһіӘҢҒҮҰҚӨҺІ]/gu);
+            if (!kazakhSpecificChars || kazakhSpecificChars.length < 1) {
+              nonCyrillic++;
+              return null;
+            }
+            var detectedLang = "kk";
           } else if (targetLang === "en") {
             // English mode: accept any video
             var detectedLang = "en";
           } else {
-            // Russian mode: require Cyrillic, reject Bulgarian
+            // Russian mode: require Cyrillic, reject if has Kazakh-specific chars (those go to KK)
             const hasCyrillic = /[а-яА-ЯёЁ]/u.test(caption);
             if (!hasCyrillic) { nonCyrillic++; return null; }
             var detectedLang = "ru";
