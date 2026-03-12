@@ -82,7 +82,6 @@ export function FullscreenVideoPlayer({
   const [ended, setEnded] = useState(false);
   const [showPauseIcon, setShowPauseIcon] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [showPauseIcon, setShowPauseIcon] = useState(false);
   const pauseIconTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Swipe down to close
