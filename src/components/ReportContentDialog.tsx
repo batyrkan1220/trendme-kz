@@ -114,7 +114,13 @@ function ReportContent({
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center gap-4 py-4 px-1">
+      <div
+        className="flex flex-col items-center gap-4 py-4 px-1"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+      >
         <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center">
           <Check className="h-7 w-7 text-green-500" />
         </div>
@@ -126,9 +132,12 @@ function ReportContent({
         </div>
         {authorUsername && (
           <button
-            onClick={handleBlock}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); handleBlock(); }}
+            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); handleBlock(); }}
             disabled={blocking}
             className="w-full py-3 rounded-xl bg-destructive/10 text-destructive text-sm font-semibold hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
+            style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
           >
             {blocking ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -139,8 +148,11 @@ function ReportContent({
           </button>
         )}
         <button
-          onClick={handleClose}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); handleClose(); }}
+          onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); handleClose(); }}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
         >
           Закрыть
         </button>
