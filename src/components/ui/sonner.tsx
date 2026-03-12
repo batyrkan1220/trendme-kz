@@ -15,7 +15,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       position={isMobile ? "top-center" : "bottom-right"}
       expand={true}
       richColors
-      style={isMobile ? { top: "12px", left: "8px", right: "8px" } : undefined}
+      style={isMobile ? { top: "calc(env(safe-area-inset-top, 0px) + 48px)", left: "8px", right: "8px" } : undefined}
       toastOptions={{
         classNames: {
           toast:
