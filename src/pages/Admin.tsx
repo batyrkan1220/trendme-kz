@@ -985,6 +985,7 @@ function ModerationTab() {
     inappropriate: "🚫 Неприемлемый контент",
     spam: "📢 Спам / Реклама",
     misleading: "⚠️ Вводящий в заблуждение",
+    user_blocked: "🛡️ Пользователь заблокирован",
     other: "📝 Другое",
   };
 
