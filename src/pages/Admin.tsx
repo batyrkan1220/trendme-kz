@@ -960,6 +960,25 @@ function ModerationTab() {
     onError: () => toast.error("Ошибка обновления"),
   });
 
+  const deleteVideo = useMutation({
+    mutationFn: async ({ videoId, reportId }: { videoId: string; reportId: string }) => {
+      // Delete the video from DB
+      const { error: delErr } = await supabase.from("videos").delete().eq("id", videoId);
+      if (delErr) throw delErr;
+      // Mark report as resolved
+      const { error: updErr } = await (supabase.from("content_reports" as any) as any)
+        .update({ status: "resolved" })
+        .eq("id", reportId);
+      if (updErr) throw updErr;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-content-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["trends-all"] });
+      toast.success("Видео удалено и жалоба решена");
+    },
+    onError: () => toast.error("Ошибка удаления видео"),
+  });
+
   const filtered = reports?.filter((r: any) => statusFilter === "all" || r.status === statusFilter) || [];
 
   const reasonLabels: Record<string, string> = {
