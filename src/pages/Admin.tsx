@@ -1067,22 +1067,21 @@ function ModerationTab() {
                   </a>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {report.status === "pending" && (
+                  {(report.status === "pending" || report.status === "reviewed") && (
                     <>
-                      <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: report.id, status: "reviewed" })} disabled={updateStatus.isPending}>
-                        <Eye className="h-3.5 w-3.5 mr-1" /> На рассмотрение
+                      {report.status === "pending" && (
+                        <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: report.id, status: "reviewed" })} disabled={updateStatus.isPending}>
+                          <Eye className="h-3.5 w-3.5 mr-1" /> На рассмотрение
+                        </Button>
+                      )}
+                      <Button size="sm" variant="destructive" onClick={() => {
+                        if (confirm(`Удалить видео ${report.video_id} и решить жалобу?`)) {
+                          deleteVideo.mutate({ videoId: report.video_id, reportId: report.id });
+                        }
+                      }} disabled={deleteVideo.isPending}>
+                        <Trash2 className="h-3.5 w-3.5 mr-1" /> Удалить видео
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => updateStatus.mutate({ id: report.id, status: "resolved" })} disabled={updateStatus.isPending}>
-                        <Check className="h-3.5 w-3.5 mr-1" /> Решить
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => updateStatus.mutate({ id: report.id, status: "dismissed" })} disabled={updateStatus.isPending}>
-                        <X className="h-3.5 w-3.5 mr-1" /> Отклонить
-                      </Button>
-                    </>
-                  )}
-                  {report.status === "reviewed" && (
-                    <>
-                      <Button size="sm" variant="destructive" onClick={() => updateStatus.mutate({ id: report.id, status: "resolved" })} disabled={updateStatus.isPending}>
+                      <Button size="sm" variant="destructive" className="bg-destructive/80" onClick={() => updateStatus.mutate({ id: report.id, status: "resolved" })} disabled={updateStatus.isPending}>
                         <Check className="h-3.5 w-3.5 mr-1" /> Решить
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => updateStatus.mutate({ id: report.id, status: "dismissed" })} disabled={updateStatus.isPending}>
