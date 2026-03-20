@@ -66,6 +66,8 @@ export function FullscreenVideoPlayer({
   onToggleFav,
   onAnalyze,
 }: FullscreenVideoPlayerProps) {
+  const { user } = useAuth();
+  const [blockingUser, setBlockingUser] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const views = Number(video.views) || 0;
   const tier = getTier(views);
