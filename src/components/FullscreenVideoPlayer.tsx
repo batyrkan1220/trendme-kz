@@ -1,12 +1,14 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
-  X, Eye, Heart, MessageCircle, Share2, Flag,
+  X, Eye, Heart, MessageCircle, Share2, Flag, ShieldX,
   Flame, Rocket, Zap, TrendingUp, Loader2, ExternalLink,
   Play, RotateCcw
 } from "lucide-react";
 import { ReportContentDialog } from "./ReportContentDialog";
-
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 interface VideoInfo {
   id: string;
   url: string;
@@ -64,6 +66,8 @@ export function FullscreenVideoPlayer({
   onToggleFav,
   onAnalyze,
 }: FullscreenVideoPlayerProps) {
+  const { user } = useAuth();
+  const [blockingUser, setBlockingUser] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const views = Number(video.views) || 0;
   const tier = getTier(views);
@@ -345,6 +349,43 @@ export function FullscreenVideoPlayer({
               <Share2 className="h-6 w-6 text-white" />
               <span className="text-white/70 text-[10px] font-medium">{fmt(Number(video.shares || 0))}</span>
             </div>
+            {video.author_username && (
+              <button
+                type="button"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (!user || !video.author_username || blockingUser) return;
+                  setBlockingUser(true);
+                  try {
+                    const { error } = await supabase.from("blocked_users").insert({
+                      user_id: user.id,
+                      blocked_username: video.author_username,
+                    });
+                    if (error && !(error as any).message?.includes("duplicate")) throw error;
+                    await supabase.from("content_reports").insert({
+                      user_id: user.id,
+                      video_id: video.id,
+                      video_url: video.url,
+                      author_username: video.author_username,
+                      reason: "user_blocked",
+                      details: `Пользователь заблокировал автора @${video.author_username}. Контент удалён из ленты.`,
+                    });
+                    toast.success(`@${video.author_username} заблокирован`);
+                    closeOverlay();
+                  } catch {
+                    toast.error("Ошибка блокировки");
+                  } finally {
+                    setBlockingUser(false);
+                  }
+                }}
+                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
+                style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+              >
+                <ShieldX className="h-6 w-6 text-white/70" />
+                <span className="text-white/70 text-[10px] font-medium">Блок</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setReportOpen(true); }}

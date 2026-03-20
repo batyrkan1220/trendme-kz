@@ -98,6 +98,15 @@ function ReportContent({
         blocked_username: authorUsername,
       });
       if (error && !(error as any).message?.includes("duplicate")) throw error;
+      // Auto-notify developer by creating a content report for the block
+      await supabase.from("content_reports").insert({
+        user_id: user.id,
+        video_id: videoId,
+        video_url: videoUrl,
+        author_username: authorUsername,
+        reason: "user_blocked",
+        details: `Пользователь заблокировал автора @${authorUsername}. Контент удалён из ленты пользователя.`,
+      });
       toast.success(`Пользователь @${authorUsername} заблокирован`);
     } catch {
       toast.error("Не удалось заблокировать пользователя");
