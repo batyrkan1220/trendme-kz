@@ -12,6 +12,31 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { video_ids } = await req.json();
 
     if (!Array.isArray(video_ids) || video_ids.length === 0) {
@@ -24,7 +49,7 @@ Deno.serve(async (req) => {
     const ids = video_ids.slice(0, 50);
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      supabaseUrl,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
@@ -37,7 +62,6 @@ Deno.serve(async (req) => {
     const deleted = data?.length ?? 0;
     console.log(`Cleanup broken covers: deleted ${deleted}/${ids.length} videos`);
 
-    // Log results to cleanup_logs
     await supabase.from("cleanup_logs").insert({
       source: "client_browser",
       checked: ids.length,
@@ -52,7 +76,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error("cleanup-broken-covers error:", err);
     return new Response(
-      JSON.stringify({ error: String(err) }),
+      JSON.stringify({ error: "Internal error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

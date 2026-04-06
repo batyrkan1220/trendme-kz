@@ -12,18 +12,53 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    // Validate JWT - require admin role
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // TikTok CDN URLs are signed with x-expires — server-side HTTP checks
-    // always return 403 because the signature is bound to browser context.
-    // Instead, this function cleans up videos that have NULL cover_url
-    // (already flagged as broken by client-side detection) and removes
-    // videos older than 14 days to keep the database fresh.
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // 1. Delete videos with null cover_url (already detected as broken by browsers)
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = claimsData.claims.sub;
+
+    // Check admin role
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: roleData } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = adminClient;
+
+    // 1. Delete videos with null cover_url
     const { data: nullCovers, error: nullErr } = await supabase
       .from("videos")
       .delete()
@@ -48,7 +83,6 @@ Deno.serve(async (req) => {
 
     const totalDeleted = nullDeleted + oldDeleted;
 
-    // Log results
     await supabase.from("cleanup_logs").insert({
       source: "server_cron",
       checked: nullDeleted + oldDeleted,
@@ -67,7 +101,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error("check-broken-covers error:", err);
     return new Response(
-      JSON.stringify({ error: String(err) }),
+      JSON.stringify({ error: "Internal error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
