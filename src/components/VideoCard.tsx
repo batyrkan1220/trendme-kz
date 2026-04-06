@@ -50,24 +50,31 @@ const inFlightRequests = new Map<string, Promise<string | null>>();
 const brokenCoverIds = new Set<string>();
 let brokenCoverTimer: ReturnType<typeof setTimeout> | null = null;
 
-function flushBrokenCovers() {
+async function flushBrokenCovers() {
   if (brokenCoverIds.size === 0) return;
   const ids = Array.from(brokenCoverIds);
   brokenCoverIds.clear();
   brokenCoverTimer = null;
 
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!projectId || !anonKey) return;
+  if (!projectId) return;
 
-  fetch(`https://${projectId}.supabase.co/functions/v1/cleanup-broken-covers`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${anonKey}`,
-    },
-    body: JSON.stringify({ video_ids: ids }),
-  }).catch(() => {});
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    fetch(`https://${projectId}.supabase.co/functions/v1/cleanup-broken-covers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify({ video_ids: ids }),
+    }).catch(() => {});
+  } catch {
+    // silently fail
+  }
 }
 
 function reportBrokenCover(videoId: string) {
