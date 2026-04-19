@@ -614,7 +614,7 @@ function Testimonials() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {items.map((t) => (
-            <div key={t.name} className="bg-card border border-border rounded-2xl p-7 hover-lift shadow-card-hover">
+            <div key={t.name} className="bg-card border border-border rounded-2xl p-5 sm:p-7 hover-lift shadow-card-hover">
               <div className="flex gap-0.5 text-amber-500 mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
