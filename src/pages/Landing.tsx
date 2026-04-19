@@ -423,39 +423,39 @@ function Product() {
                 </div>
               </aside>
 
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <h4 className="text-[20px] font-bold text-foreground">Тренды · Казахстан</h4>
-                    <p className="text-[12px] text-muted-foreground mt-0.5">Обновлено 2 минуты назад</p>
+              <div className="p-4 sm:p-6">
+                <div className="flex items-start sm:items-center justify-between gap-3 mb-4 sm:mb-5">
+                  <div className="min-w-0">
+                    <h4 className="text-[16px] sm:text-[20px] font-bold text-foreground truncate">Тренды · Казахстан</h4>
+                    <p className="text-[11px] sm:text-[12px] text-muted-foreground mt-0.5">Обновлено 2 минуты назад</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button className="px-3 py-1.5 text-[12px] font-medium border border-border rounded-lg text-foreground">24ч</button>
-                    <button className="px-3 py-1.5 text-[12px] font-medium bg-foreground text-background rounded-lg">7д</button>
-                    <button className="px-3 py-1.5 text-[12px] font-medium border border-border rounded-lg text-foreground">30д</button>
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-[12px] font-medium border border-border rounded-lg text-foreground">24ч</button>
+                    <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-[12px] font-medium bg-foreground text-background rounded-lg">7д</button>
+                    <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-[12px] font-medium border border-border rounded-lg text-foreground">30д</button>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mb-5">
-                  <Pill className="bg-foreground text-background">Все ниши</Pill>
-                  <Pill className="bg-muted text-foreground/80">Beauty</Pill>
-                  <Pill className="bg-muted text-foreground/80">Food</Pill>
-                  <Pill className="bg-muted text-foreground/80">Fitness</Pill>
-                  <Pill className="bg-muted text-foreground/80">Edu</Pill>
+                <div className="flex flex-nowrap sm:flex-wrap gap-2 mb-4 sm:mb-5 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                  <Pill className="bg-foreground text-background shrink-0">Все ниши</Pill>
+                  <Pill className="bg-muted text-foreground/80 shrink-0">Beauty</Pill>
+                  <Pill className="bg-muted text-foreground/80 shrink-0">Food</Pill>
+                  <Pill className="bg-muted text-foreground/80 shrink-0">Fitness</Pill>
+                  <Pill className="bg-muted text-foreground/80 shrink-0">Edu</Pill>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                   {[
                     { bg: "from-pink-500 via-rose-400 to-orange-400", badge: "🔥 +420%", badgeBg: "bg-viral text-foreground", user: "@beauty.viral", title: "Макияж за 30 сек", views: "▶ 2.4M" },
                     { bg: "from-primary via-purple-500 to-fuchsia-500", badge: "⭐ TOP", badgeBg: "bg-background text-foreground", user: "@food.hub", title: "5 рецептов", views: "▶ 8.1M" },
                     { bg: "from-emerald-500 via-teal-500 to-cyan-500", badge: "↑ +183%", badgeBg: "bg-background text-foreground", user: "@fit.pro", title: "5 мин тренировка", views: "▶ 960K" },
                     { bg: "from-amber-500 via-orange-400 to-rose-400", badge: "🔥 Hot", badgeBg: "bg-background text-foreground", user: "@edu.kz", title: "IELTS за месяц", views: "▶ 1.1M" },
                   ].map((c, i) => (
-                    <div key={i} className={`relative aspect-[9/14] rounded-xl overflow-hidden bg-gradient-to-br ${c.bg}`}>
-                      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${c.badgeBg}`}>{c.badge}</div>
+                    <div key={i} className={`relative aspect-[9/14] rounded-lg sm:rounded-xl overflow-hidden bg-gradient-to-br ${c.bg}`}>
+                      <div className={`absolute top-1.5 left-1.5 sm:top-2 sm:left-2 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold ${c.badgeBg}`}>{c.badge}</div>
                       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 to-transparent" />
-                      <div className="absolute bottom-2 left-2 right-2 text-white">
-                        <div className="text-[10px] opacity-80">{c.user}</div>
-                        <div className="text-[11px] font-bold">{c.title}</div>
-                        <div className="text-[10px] opacity-90 mt-0.5">{c.views}</div>
+                      <div className="absolute bottom-1.5 left-1.5 right-1.5 sm:bottom-2 sm:left-2 sm:right-2 text-white">
+                        <div className="text-[9px] sm:text-[10px] opacity-80 truncate">{c.user}</div>
+                        <div className="text-[10px] sm:text-[11px] font-bold leading-tight">{c.title}</div>
+                        <div className="text-[9px] sm:text-[10px] opacity-90 mt-0.5">{c.views}</div>
                       </div>
                     </div>
                   ))}
