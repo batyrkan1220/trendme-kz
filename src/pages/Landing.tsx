@@ -647,11 +647,11 @@ function FAQ() {
   ];
 
   return (
-    <section id="faq" className="py-24 bg-background-subtle border-y border-border">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="text-center mb-12">
+    <section id="faq" className="py-16 sm:py-24 bg-background-subtle border-y border-border">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10 sm:mb-12">
           <span className="eyebrow">FAQ</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.75rem,5vw,2.75rem)] font-bold tracking-tight text-foreground">
             Частые вопросы
           </h2>
         </div>
