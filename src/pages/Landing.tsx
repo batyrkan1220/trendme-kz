@@ -376,17 +376,17 @@ function Product() {
   ];
 
   return (
-    <section id="product" className="py-28">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="max-w-2xl mb-14">
+    <section id="product" className="py-16 sm:py-28">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="max-w-2xl mb-10 sm:mb-14">
           <span className="eyebrow">Продукт</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.75rem,5vw,2.75rem)] font-bold tracking-tight text-foreground">
             От ленты до сценария — за 3 шага
           </h2>
         </div>
 
         {/* Dashboard mockup */}
-        <div className="bg-gradient-to-br from-background-subtle to-primary-soft/40 p-6 md:p-10 rounded-[28px] border border-border shadow-card">
+        <div className="bg-gradient-to-br from-background-subtle to-primary-soft/40 p-3 sm:p-6 md:p-10 rounded-2xl sm:rounded-[28px] border border-border shadow-card">
           <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-card">
             <div className="flex items-center gap-2 px-4 h-10 border-b border-border bg-background-subtle">
               <div className="flex gap-1.5">
