@@ -29,7 +29,7 @@ function LandingNav() {
     <header className={`fixed top-0 inset-x-0 z-50 transition-all ${
       scrolled ? "glass border-b border-border" : "bg-transparent"
     }`}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center relative">
             <div className="w-3 h-3 rounded-full bg-viral" />
@@ -52,7 +52,7 @@ function LandingNav() {
           </Link>
           <Link
             to="/auth"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-lg transition-all"
           >
             Начать бесплатно
             <ArrowRight className="w-4 h-4" />
