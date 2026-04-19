@@ -183,10 +183,14 @@ body.native-app main {
 
 /* No transform on active — causes touch issues in iOS WKWebView */
 
-/* Prevent horizontal scroll and native pull-to-refresh globally */
+/* Prevent horizontal scroll globally */
 html, body {
   overflow-x: hidden;
   max-width: 100vw;
+}
+
+/* Native-only: prevent pull-to-refresh */
+body.native-app {
   overscroll-behavior-y: contain;
 }
 
