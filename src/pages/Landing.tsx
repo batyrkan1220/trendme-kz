@@ -535,9 +535,9 @@ function Pricing() {
           {plans.map((p) => (
             <div
               key={p.name}
-              className={`relative rounded-2xl p-8 transition-all hover:-translate-y-1 ${
+              className={`relative rounded-2xl p-6 sm:p-8 transition-all hover:-translate-y-1 ${
                 p.featured
-                  ? "bg-foreground text-background border border-foreground shadow-card"
+                  ? "bg-foreground text-background border border-foreground shadow-card sm:col-span-2 lg:col-span-1"
                   : "bg-card border border-border shadow-card-hover"
               }`}
             >
