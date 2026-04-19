@@ -140,14 +140,14 @@ function Hero() {
             </a>
           </div>
 
-          <div className="mt-10 flex items-center gap-4 text-[13px] text-muted-foreground">
-            <div className="flex -space-x-2">
+          <div className="mt-8 sm:mt-10 flex items-center justify-center lg:justify-start gap-4 text-[13px] text-muted-foreground">
+            <div className="flex -space-x-2 shrink-0">
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-pink-400 to-orange-400" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-purple-400 to-blue-500" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-emerald-400 to-cyan-500" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-amber-400 to-rose-500" />
             </div>
-            <div>
+            <div className="text-left">
               <div className="flex items-center gap-1 text-amber-500">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
