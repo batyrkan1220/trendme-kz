@@ -604,15 +604,15 @@ function Testimonials() {
   ];
 
   return (
-    <section className="py-24">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="max-w-2xl mb-14">
+    <section className="py-16 sm:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="max-w-2xl mb-10 sm:mb-14">
           <span className="eyebrow">Отзывы</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.75rem,5vw,2.75rem)] font-bold tracking-tight text-foreground">
             Что говорят пользователи
           </h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {items.map((t) => (
             <div key={t.name} className="bg-card border border-border rounded-2xl p-7 hover-lift shadow-card-hover">
               <div className="flex gap-0.5 text-amber-500 mb-4">
