@@ -519,19 +519,19 @@ function Pricing() {
   ];
 
   return (
-    <section id="pricing" className="py-28 bg-background-subtle border-y border-border">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="text-center max-w-2xl mx-auto mb-14">
+    <section id="pricing" className="py-16 sm:py-28 bg-background-subtle border-y border-border">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
           <span className="eyebrow">Тарифы</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.75rem,5vw,2.75rem)] font-bold tracking-tight text-foreground">
             Простые тарифы для любого масштаба
           </h2>
-          <p className="mt-4 text-[17px] text-muted-foreground leading-relaxed">
+          <p className="mt-4 text-[15px] sm:text-[17px] text-muted-foreground leading-relaxed">
             Начните бесплатно. Отмените в любой момент.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {plans.map((p) => (
             <div
               key={p.name}
