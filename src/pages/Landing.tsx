@@ -336,27 +336,27 @@ function Features() {
   };
 
   return (
-    <section id="features" className="py-24 bg-background-subtle border-y border-border">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="features" className="py-16 sm:py-24 bg-background-subtle border-y border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="max-w-2xl">
           <span className="eyebrow">Возможности</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
-            Всё, что нужно для работы с<br />вирусным контентом TikTok
+          <h2 className="mt-3 text-[clamp(1.75rem,5vw,2.75rem)] font-bold tracking-tight text-foreground">
+            Всё, что нужно для работы с<br className="hidden sm:block" />{" "}вирусным контентом TikTok
           </h2>
-          <p className="mt-4 text-[17px] text-muted-foreground leading-relaxed">
+          <p className="mt-4 text-[15px] sm:text-[17px] text-muted-foreground leading-relaxed">
             От поиска тренда до готового сценария — одна платформа. Без ручного листания ленты и гаданий.
           </p>
         </div>
 
-        <div className="mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="mt-10 sm:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {features.map((f) => {
             const Icon = f.icon;
             return (
-              <div key={f.title} className="bg-card border border-border rounded-2xl p-7 shadow-card-hover hover-lift">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 ${colorMap[f.color]}`}>
+              <div key={f.title} className="bg-card border border-border rounded-2xl p-5 sm:p-7 shadow-card-hover hover-lift">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 sm:mb-5 ${colorMap[f.color]}`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-[18px] font-semibold text-foreground">{f.title}</h3>
+                <h3 className="text-[17px] sm:text-[18px] font-semibold text-foreground">{f.title}</h3>
                 <p className="mt-2 text-[14px] text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
             );
