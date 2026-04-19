@@ -104,36 +104,36 @@ function Pill({ children, className = "" }: { children: React.ReactNode; classNa
 /* ───────── HERO ───────── */
 function Hero() {
   return (
-    <section className="relative pt-32 pb-24 overflow-hidden gradient-mesh">
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-[1.15fr,1fr] gap-16 items-center">
-        <div className="animate-fade-in">
-          <Pill className="bg-viral-soft text-foreground border border-viral/40 mb-6">
+    <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden gradient-mesh">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-[1.15fr,1fr] gap-10 lg:gap-16 items-center">
+        <div className="animate-fade-in text-center lg:text-left">
+          <Pill className="bg-viral-soft text-foreground border border-viral/40 mb-5 sm:mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-viral animate-pulse" />
             Новое · ИИ-сценарии для TikTok
           </Pill>
 
-          <h1 className="text-[clamp(2.5rem,5.5vw,4.5rem)] font-bold leading-[1.02] tracking-tight text-foreground">
+          <h1 className="text-[clamp(2rem,8vw,4.5rem)] font-bold leading-[1.05] tracking-tight text-foreground">
             Находите <span className="gradient-text">вирусные тренды</span>
-            <br />раньше конкурентов
+            <br className="hidden sm:block" />{" "}раньше конкурентов
           </h1>
 
-          <p className="mt-6 text-[18px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[560px]">
+          <p className="mt-5 sm:mt-6 text-[16px] sm:text-[18px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[560px] mx-auto lg:mx-0">
             Платформа для мониторинга TikTok-трендов, разведки конкурентов и генерации ИИ-сценариев.{" "}
             <span className="text-foreground font-medium">5M+ видео</span>,{" "}
             <span className="text-foreground font-medium">150+ ниш</span>, обновление в реальном времени.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center lg:justify-start gap-3">
             <Link
               to="/auth"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
             >
               Попробовать бесплатно
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
               href="#product"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold text-foreground border border-border bg-background hover:bg-muted transition"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold text-foreground border border-border bg-background hover:bg-muted transition"
             >
               <Play className="w-4 h-4" />
               Смотреть демо · 2 мин
