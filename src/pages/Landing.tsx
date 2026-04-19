@@ -299,14 +299,14 @@ function Stats() {
     { value: "12s", label: "Генерация сценария", note: "ИИ на основе тренда" },
   ];
   return (
-    <section className="py-24">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-4 gap-6">
+    <section className="py-16 sm:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
           {items.map((s) => (
-            <div key={s.label} className="border border-border rounded-2xl p-6 bg-card hover-lift shadow-card-hover">
-              <div className="text-[38px] font-bold tracking-tight gradient-text">{s.value}</div>
-              <div className="mt-1 text-[14px] text-muted-foreground">{s.label}</div>
-              <div className="mt-3 text-[13px] text-foreground/80">{s.note}</div>
+            <div key={s.label} className="border border-border rounded-2xl p-4 sm:p-6 bg-card hover-lift shadow-card-hover">
+              <div className="text-[28px] sm:text-[38px] font-bold tracking-tight gradient-text">{s.value}</div>
+              <div className="mt-1 text-[13px] sm:text-[14px] text-muted-foreground">{s.label}</div>
+              <div className="mt-2 sm:mt-3 text-[12px] sm:text-[13px] text-foreground/80">{s.note}</div>
             </div>
           ))}
         </div>
