@@ -4,47 +4,49 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 95%;
+    /* Soft off-white (Stripe/Vercel) palette + neon lime accent */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 8%;
 
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 8%;
 
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 8%;
 
-    --primary: 72 100% 50%;
+    /* Neon lime brand color preserved */
+    --primary: 72 100% 45%;
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 10% 8%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 42%;
 
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 95%;
+    --accent: 72 90% 95%;
+    --accent-foreground: 72 80% 22%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 72 100% 50%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 72 100% 45%;
 
     --radius: 0.75rem;
 
-    --neon: 72 100% 50%;
+    --neon: 72 100% 45%;
     --neon-foreground: 0 0% 0%;
 
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 0 0% 60%;
-    --sidebar-primary: 72 100% 50%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 240 5% 30%;
+    --sidebar-primary: 72 100% 45%;
     --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 14%;
-    --sidebar-ring: 72 100% 50%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 10% 8%;
+    --sidebar-border: 240 6% 92%;
+    --sidebar-ring: 72 100% 45%;
   }
 }
 

@@ -282,8 +282,8 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-x-hidden overflow-y-auto h-full trends-dark-theme relative pb-16 md:pb-8"
-        style={{ background: "#0a0a0a", color: "#ffffff", paddingTop: drillNiche ? "0px" : "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+        className="overflow-x-hidden overflow-y-auto h-full bg-background text-foreground relative pb-16 md:pb-8"
+        style={{ paddingTop: drillNiche ? "0px" : "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
