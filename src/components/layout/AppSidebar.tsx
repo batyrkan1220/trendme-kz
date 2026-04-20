@@ -22,9 +22,7 @@ const searchItems: NavItem[] = [
   { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
 ];
 
-const toolItems: NavItem[] = [
-  { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
-];
+const toolItems: NavItem[] = [];
 
 const ideaItems: NavItem[] = [
   { label: "Избранные", icon: Heart, path: "/library", iconColor: "text-rose-500" },
