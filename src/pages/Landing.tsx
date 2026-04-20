@@ -43,16 +43,17 @@ function LandingNav() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2">
           <Link to="/auth" className="hidden sm:inline-flex px-3 py-2 rounded-lg text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition">
             Войти
           </Link>
           <Link
             to="/auth"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-1 md:gap-1.5 px-3 md:px-4 py-2 rounded-lg text-[13px] md:text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap"
           >
-            Начать бесплатно
-            <ArrowRight className="w-4 h-4" />
+            <span className="hidden sm:inline">Начать бесплатно</span>
+            <span className="sm:hidden">Войти</span>
+            <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </Link>
           <button
             onClick={() => setOpen(!open)}
