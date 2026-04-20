@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { TrendMeLogo } from "@/components/TrendMeLogo";
+import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 import { isNativePlatform } from "@/lib/native";
 
 type Mode = "login" | "register" | "forgot";
