@@ -647,22 +647,22 @@ function FAQ() {
   ];
 
   return (
-    <section id="faq" className="py-24 bg-background-subtle border-y border-border">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="text-center mb-12">
+    <section id="faq" className="py-14 md:py-24 bg-background-subtle border-y border-border">
+      <div className="max-w-3xl mx-auto px-4 md:px-6">
+        <div className="text-center mb-8 md:mb-12">
           <span className="eyebrow">FAQ</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
             Частые вопросы
           </h2>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2.5 md:space-y-3">
           {faqs.map((f, i) => (
-            <details key={i} className="group bg-card border border-border rounded-xl p-5" open={i === 0}>
-              <summary className="flex items-center justify-between font-semibold text-[15px] text-foreground cursor-pointer list-none">
+            <details key={i} className="group bg-card border border-border rounded-xl p-4 md:p-5" open={i === 0}>
+              <summary className="flex items-center justify-between gap-3 font-semibold text-[14px] md:text-[15px] text-foreground cursor-pointer list-none">
                 {f.q}
-                <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform group-open:rotate-180" />
+                <ChevronDown className="w-5 h-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
-              <p className="mt-3 text-[14px] text-muted-foreground leading-relaxed">{f.a}</p>
+              <p className="mt-3 text-[13.5px] md:text-[14px] text-muted-foreground leading-relaxed">{f.a}</p>
             </details>
           ))}
         </div>
