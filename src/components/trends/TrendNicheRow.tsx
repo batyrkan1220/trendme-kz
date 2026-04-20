@@ -10,6 +10,7 @@ interface TrendNicheRowProps {
   userFavorites: string[];
   onToggleFav: (id: string) => void;
   onAnalyze: (v: any) => void;
+  onScript?: (v: any) => void;
   playingId: string | null;
   onPlay: (id: string | null) => void;
   onViewAll: (nicheKey: string, subNicheKey?: string) => void;
@@ -22,37 +23,26 @@ function TrendNicheRowImpl({
   userFavorites,
   onToggleFav,
   onAnalyze,
+  onScript,
   playingId,
   onPlay,
   onViewAll,
-  darkMode,
 }: TrendNicheRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  
-
-  // Auto-scroll hint removed — was causing unwanted card shifting on mobile
 
   if (videos.length === 0) return null;
 
   return (
     <section className="space-y-2">
-      {/* Section header */}
-      <div
-        className="sticky z-20 -mx-4 px-4 py-2.5"
-        style={{
-          top: "0px",
-          background: "rgba(10,10,10,0.55)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
+      {/* Section header — light premium */}
+      <div className="sticky z-20 -mx-4 px-4 py-2.5 glass border-b border-border" style={{ top: "0px" }}>
         <div className="flex items-center justify-between">
-          <h2 className={`text-[15px] font-extrabold tracking-tight ${darkMode ? "text-white" : "text-foreground"}`}>
+          <h2 className="text-[15px] font-extrabold tracking-tight text-foreground">
             {group.label} {group.emoji}
           </h2>
           <button
             onClick={() => onViewAll(group.key)}
-            className="flex items-center gap-0.5 text-[13px] font-bold text-neon hover:text-neon/80 transition-colors active:scale-95"
+            className="flex items-center gap-0.5 text-[13px] font-bold text-primary hover:text-primary-hover transition-colors active:scale-95"
           >
             Все
             <ChevronRight className="h-4 w-4" />
@@ -65,7 +55,7 @@ function TrendNicheRowImpl({
               <button
                 key={sub.key}
                 onClick={() => onViewAll(group.key, sub.key)}
-                className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/8 text-white/50 border border-white/5 hover:bg-white/15 hover:text-white/70 active:scale-95 transition-all"
+                className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-background-muted text-muted-foreground border border-border hover:bg-muted hover:text-foreground active:scale-95 transition-all"
               >
                 {sub.label}
               </button>
@@ -73,7 +63,7 @@ function TrendNicheRowImpl({
             {group.subNiches.length > 4 && (
               <button
                 onClick={() => onViewAll(group.key)}
-                className="shrink-0 text-[10px] text-white/30 font-medium hover:text-white/50 transition-colors"
+                className="shrink-0 text-[10px] text-muted-foreground font-medium hover:text-foreground transition-colors"
               >
                 +{group.subNiches.length - 4}
               </button>
@@ -101,12 +91,12 @@ function TrendNicheRowImpl({
               isFavorite={userFavorites.includes(video.id)}
               onToggleFav={onToggleFav}
               onAnalyze={onAnalyze}
+              onScript={onScript}
               showTier={true}
               showAuthor={false}
               showAnalyzeButton={true}
-              darkMode={darkMode}
+              showScriptButton={!!onScript}
               isMobileOverride={true}
-              
             />
           </div>
         ))}
