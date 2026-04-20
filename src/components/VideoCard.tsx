@@ -202,10 +202,11 @@ const getTier = (views: number): TrendTier | null => {
   return null;
 };
 
-const tierConfig: Record<TrendTier, { label: string; icon: any; className: string; glow?: string }> = {
-  strong: { label: "🔥 Взлетает", icon: Rocket, className: "bg-gradient-to-r from-red-500 to-orange-500 text-white", glow: "0 0 12px rgba(239,68,68,0.6), 0 0 24px rgba(249,115,22,0.3)" },
-  mid: { label: "⚡ В тренде", icon: Zap, className: "bg-gradient-to-r from-amber-500 to-yellow-400 text-black", glow: "0 0 10px rgba(245,158,11,0.5)" },
-  micro: { label: "📈 Набирает", icon: TrendingUp, className: "bg-gradient-to-r from-emerald-500 to-green-400 text-white", glow: "0 0 8px rgba(16,185,129,0.4)" },
+/** Light premium pill styling — viral lime for HOT, white pills for TOP/RISING */
+const tierConfig: Record<TrendTier, { label: string; className: string }> = {
+  strong: { label: "🔥 HOT",     className: "bg-viral text-foreground" },
+  mid:    { label: "⭐ TOP",     className: "bg-white text-foreground border border-border" },
+  micro:  { label: "📈 RISING",  className: "bg-white text-foreground border border-border" },
 };
 
 export interface VideoCardData {
