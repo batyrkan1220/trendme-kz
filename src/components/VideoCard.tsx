@@ -362,7 +362,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   return (
     <div
       ref={ref}
-      className="group h-full rounded-2xl overflow-hidden transition-all duration-300 relative flex flex-col bg-card border border-border shadow-soft hover:shadow-card hover:-translate-y-0.5"
+      className="group h-full rounded-[20px] overflow-hidden transition-all duration-300 relative flex flex-col bg-card/80 backdrop-blur-xl border border-border/60 shadow-soft hover:shadow-card hover:-translate-y-0.5 hover:border-border"
+      style={{ boxShadow: "0 1px 0 0 hsl(0 0% 100% / 0.04) inset, 0 8px 24px -12px rgba(0,0,0,0.4)" }}
       onMouseEnter={handlePreload}
       onMouseLeave={handlePreloadCancel}
     >
