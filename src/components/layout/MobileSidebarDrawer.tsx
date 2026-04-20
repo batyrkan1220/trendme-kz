@@ -30,16 +30,16 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   path: string;
   iconColor?: string;
+  badge?: { text: string; tone: "viral" | "muted" };
 }
 
 const searchItems: NavItem[] = [
-  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
+  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500", badge: { text: "HOT", tone: "viral" } },
   { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
 ];
 
 const toolItems: NavItem[] = [
   { label: "Анализ видео", icon: Video, path: "/video-analysis", iconColor: "text-orange-500" },
-  
   { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
 ];
 
@@ -102,19 +102,31 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
               to={item.path}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] text-[13.5px] font-medium transition-all",
+                "group flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] text-[13.5px] font-medium transition-all duration-150",
                 active
-                  ? "bg-foreground text-background font-semibold"
+                  ? "bg-foreground text-background font-semibold shadow-soft"
                   : "text-foreground/70 hover:bg-muted hover:text-foreground"
               )}
             >
               <item.icon
                 className={cn(
-                  "h-[18px] w-[18px] shrink-0",
+                  "h-[18px] w-[18px] shrink-0 transition-colors",
                   active ? "text-viral" : item.iconColor
                 )}
               />
-              <span>{item.label}</span>
+              <span className="flex-1 truncate">{item.label}</span>
+              {item.badge && (
+                <span
+                  className={cn(
+                    "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                    item.badge.tone === "viral"
+                      ? "bg-viral text-foreground"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {item.badge.text}
+                </span>
+              )}
             </Link>
           );
         })}
