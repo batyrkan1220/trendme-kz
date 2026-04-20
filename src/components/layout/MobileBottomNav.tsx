@@ -153,14 +153,14 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
 
       {/* Bottom bar */}
       <div
-        className="px-2 pt-2 animate-bottom-nav-enter glass-strong"
+        className="px-1.5 pt-1.5 animate-bottom-nav-enter glass-strong"
         style={{
-          paddingBottom: "max(8px, env(safe-area-inset-bottom, 0px))",
+          paddingBottom: "max(6px, env(safe-area-inset-bottom, 0px))",
           borderTop: "1px solid hsl(var(--border))",
           boxShadow: "0 -4px 20px rgba(16, 24, 40, 0.06)",
         }}
       >
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-0.5">
           {mainNavItems.map((item) => (
             <Item
               key={item.path}
