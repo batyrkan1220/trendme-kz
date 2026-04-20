@@ -2,7 +2,6 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
 import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
-import { useSubscription } from "@/hooks/useSubscription";
 
 interface VideoData {
   id: string;
@@ -28,19 +27,15 @@ interface Props {
  */
 export function ScriptOnlyDialog({ video, open, onOpenChange }: Props) {
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
-  const { checkAndLog } = useSubscription();
 
   // Reset state on close
   useEffect(() => {
     if (!open) setLanguage(null);
   }, [open]);
 
-  const startScript = async (lang: "ru" | "kk") => {
+  const startScript = (lang: "ru" | "kk") => {
     if (!video) return;
-    // Лимитті алдын ала тексереміз (списание ScriptGenerationPanel-да token-mен жүреді,
-    // бірақ usage limit-ті осы жерде логтаймыз — VideoAnalysis-те де солай)
-    const ok = await checkAndLog("ai_script", `AI Сценарий: ${video.url}`);
-    if (!ok) return;
+    // Списание токенов + лимит ScriptGenerationPanel ішінде жүреді (қос есептен сақтау)
     setLanguage(lang);
   };
 
