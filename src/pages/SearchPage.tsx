@@ -155,9 +155,7 @@ export default function SearchPage() {
             <div className="space-y-6">
               {/* Hero header — same style as /trends */}
               <div className="space-y-1.5">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                  Поиск
-                </p>
+                <span className="eyebrow">Поиск</span>
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
                   Найдите свои тренды 🔍
                 </h1>
@@ -248,9 +246,7 @@ export default function SearchPage() {
               <div className="space-y-4 md:space-y-6">
                 {/* Hero header */}
                 <div className="space-y-1.5">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                    Поиск
-                  </p>
+                  <span className="eyebrow">Поиск</span>
                   <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
                     Результаты 🔍
                   </h1>
