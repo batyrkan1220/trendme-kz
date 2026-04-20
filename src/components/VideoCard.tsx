@@ -457,23 +457,33 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 {/* Top + bottom gradient overlays for pill/text legibility */}
                 <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/55 via-black/15 to-transparent pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-                {/* Hover play */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div
+                {/* Hover play — lux premium */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  {/* Soft outer glow ring */}
+                  <div className="absolute h-20 w-20 rounded-full bg-viral/20 blur-2xl animate-pulse" />
+                  {/* Outer ping ring */}
+                  <div className="absolute h-16 w-16 rounded-full border border-white/30 animate-ping" style={{ animationDuration: "2s" }} />
+                  {/* Play button */}
+                  <button
+                    type="button"
                     onClick={handlePlay}
-                    className="h-12 w-12 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center pointer-events-auto cursor-pointer"
+                    aria-label="Воспроизвести"
+                    className="relative h-14 w-14 rounded-full bg-white/90 backdrop-blur-xl flex items-center justify-center pointer-events-auto cursor-pointer ring-1 ring-white/40 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),0_0_24px_-4px_hsl(var(--viral)/0.4)] hover:scale-110 hover:bg-white active:scale-95 transition-all duration-200"
                   >
-                    <Play className="h-5 w-5 text-white ml-0.5" fill="currentColor" />
-                  </div>
+                    <Play className="h-5 w-5 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
+                  </button>
                 </div>
               </div>
             ) : (
               <div
-                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br from-muted to-muted/60 gap-3 p-4"
+                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br from-muted to-muted/60 gap-3 p-4 group/play"
                 onClick={handlePlay}
               >
-                <div className="h-14 w-14 rounded-full bg-foreground/10 flex items-center justify-center">
-                  <Play className="h-7 w-7 text-muted-foreground ml-0.5" />
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-viral/30 blur-xl opacity-0 group-hover/play:opacity-100 transition-opacity duration-300" />
+                  <div className="relative h-14 w-14 rounded-full bg-foreground/10 backdrop-blur-md ring-1 ring-foreground/15 flex items-center justify-center group-hover/play:scale-110 group-hover/play:bg-foreground/15 transition-all duration-200">
+                    <Play className="h-6 w-6 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
+                  </div>
                 </div>
                 {caption && (
                   <p className="text-[11px] text-muted-foreground text-center px-2 line-clamp-3 leading-relaxed">{caption}</p>
