@@ -4,8 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import {
   TrendingUp, Search, Video, UserCircle, Heart,
-  Shield, Sparkles, ChevronsUpDown, CreditCard
+  Shield, Sparkles, CreditCard, LogOut
 } from "lucide-react";
+import { toast } from "sonner";
 import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 
 interface NavItem {
