@@ -95,7 +95,6 @@ function TrendNicheRowImpl({
               showAuthor={false}
               showAnalyzeButton={true}
               showScriptButton={!!onScript}
-              isMobileOverride={true}
             />
           </div>
         ))}
