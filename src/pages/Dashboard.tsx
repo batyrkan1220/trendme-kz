@@ -25,14 +25,6 @@ const actions = [
     iconBg: "bg-orange-500",
     emoji: "📈",
   },
-  {
-    icon: UserCircle,
-    title: "Анализ профиля",
-    description: "Изучите стратегию любого автора",
-    path: "/account-analysis",
-    iconBg: "bg-emerald-500",
-    emoji: "👤",
-  },
 ];
 
 export default function Dashboard() {
