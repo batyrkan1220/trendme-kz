@@ -582,21 +582,21 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         )}
       </div>
 
-      {/* Stats bar */}
-      <div className="flex items-center justify-between px-3 py-2 text-[11.5px] text-muted-foreground">
-        <span className="flex items-center gap-1">
+      {/* Stats bar — adaptive: tighter on mobile, comfortable on desktop */}
+      <div className="flex items-center justify-between gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10.5px] sm:text-[11.5px] text-muted-foreground">
+        <span className="flex items-center gap-0.5 sm:gap-1 min-w-0">
           <Eye className="h-3 w-3 shrink-0" />
-          <span className="font-semibold text-foreground">{fmt(views)}</span>
+          <span className="font-semibold text-foreground truncate">{fmt(views)}</span>
         </span>
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-0.5 sm:gap-1 min-w-0">
           <Heart className="h-3 w-3 shrink-0 text-rose-500" />
-          <span className="font-semibold text-foreground">{fmt(Number(video.likes))}</span>
+          <span className="font-semibold text-foreground truncate">{fmt(Number(video.likes))}</span>
         </span>
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-0.5 sm:gap-1 min-w-0">
           <MessageCircle className="h-3 w-3 shrink-0" />
-          <span className="font-semibold text-foreground">{fmt(Number(video.comments))}</span>
+          <span className="font-semibold text-foreground truncate">{fmt(Number(video.comments))}</span>
         </span>
-        <span className="text-foreground font-semibold">
+        <span className="text-foreground font-semibold truncate shrink-0 text-[10px] sm:text-[11.5px]">
           {timeAgo}
         </span>
       </div>
