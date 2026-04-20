@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
 import {
-  Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp, Loader2, Maximize, Flame, Rocket, Flag
+  Eye, Heart, MessageCircle, Play, ExternalLink, X,
+  Loader2, Maximize, Flag, Sparkles
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FullscreenVideoPlayer } from "@/components/FullscreenVideoPlayer";
