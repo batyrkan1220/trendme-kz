@@ -167,6 +167,9 @@ export default function Trends() {
   }, [queryClient]);
 
   const openAnalysis = useCallback((v: any) => setAnalysisVideo(v), []);
+  const openScript = useCallback((v: any) => {
+    navigate(`/video-analysis?url=${encodeURIComponent(v.url)}&script=1`);
+  }, [navigate]);
 
   const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
     onRefresh: handleRefresh,
