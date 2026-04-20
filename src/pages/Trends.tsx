@@ -583,15 +583,15 @@ export default function Trends() {
                   <div className="space-y-6">
                     {Array.from({ length: 3 }).map((_, i) => (
                       <div key={i} className="space-y-2">
-                        <div className="h-5 bg-white/10 rounded w-32 animate-pulse" />
+                        <div className="h-5 bg-background-muted rounded w-32 animate-pulse" />
                         <div className="flex gap-3">
                           {Array.from({ length: 3 }).map((_, j) => (
                             <div
                               key={j}
-                              className="shrink-0 rounded-2xl overflow-hidden animate-pulse"
-                              style={{ width: "min(44vw, 200px)", background: "#1a1a1a" }}
+                              className="shrink-0 rounded-2xl overflow-hidden animate-pulse bg-card border border-border"
+                              style={{ width: "min(44vw, 200px)" }}
                             >
-                              <div className="aspect-[9/16] bg-white/5 m-1.5 rounded-xl" />
+                              <div className="aspect-[9/16] bg-background-muted m-1.5 rounded-xl" />
                             </div>
                           ))}
                         </div>
@@ -611,16 +611,15 @@ export default function Trends() {
                         playingId={playingId}
                         onPlay={setPlayingId}
                         onViewAll={handleViewAll}
-                        darkMode
                       />
                     ))}
 
                     {filteredGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
                       <div className="text-center py-20">
-                        <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                          <TrendingUp className="h-10 w-10 text-white/20" />
+                        <div className="h-20 w-20 rounded-full bg-background-muted flex items-center justify-center mx-auto mb-4">
+                          <TrendingUp className="h-10 w-10 text-muted-foreground/40" />
                         </div>
-                        <p className="text-white/50 font-medium">
+                        <p className="text-muted-foreground font-medium">
                           Нет трендовых видео
                         </p>
                       </div>
