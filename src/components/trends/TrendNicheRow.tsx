@@ -35,13 +35,8 @@ function TrendNicheRowImpl({
   return (
     <section className="space-y-2">
       <div
-        className="sticky z-20 -mx-4 px-4 py-2.5"
-        style={{
-          top: "0px",
-          background: "rgba(10,10,10,0.55)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
+        className="sticky z-20 -mx-4 px-4 py-2.5 glass border-b border-border/60"
+        style={{ top: "0px" }}
       >
         <div className="flex items-center justify-between">
           <h2 className="text-[15px] font-extrabold tracking-tight text-foreground">
