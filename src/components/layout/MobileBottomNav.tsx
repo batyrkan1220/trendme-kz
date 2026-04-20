@@ -73,7 +73,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
     <button
       onClick={onClick}
       className={cn(
-        "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[12px] font-semibold transition-all duration-150 press-feedback",
+        "flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 rounded-[10px] font-semibold transition-all duration-150 press-feedback",
         active
           ? "bg-foreground text-background"
           : "text-foreground/70 hover:bg-muted",
@@ -82,7 +82,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       <div className="relative">
         <Icon
           className={cn(
-            "h-[18px] w-[18px] shrink-0 transition-colors",
+            "h-[20px] w-[20px] shrink-0 transition-colors",
             active ? (iconAccent ? "text-viral" : "text-background") : "text-muted-foreground",
           )}
           strokeWidth={active ? 2.4 : 2}
@@ -97,7 +97,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           />
         )}
       </div>
-      <span className="truncate leading-none">{label}</span>
+      <span className="truncate leading-none text-[10.5px] max-w-full">{label}</span>
     </button>
   );
 
