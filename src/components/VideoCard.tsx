@@ -582,25 +582,29 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         )}
       </div>
 
-      {/* Stats bar — adaptive: numbers always fit, time hidden on very narrow cards */}
-      <div className="flex items-center justify-between gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-[11.5px] text-muted-foreground">
-        <span className="flex items-center gap-1 shrink-0">
-          <Eye className="h-3 w-3 shrink-0" />
-          <span className="font-semibold text-foreground tabular-nums">{fmt(views)}</span>
-        </span>
-        <span className="flex items-center gap-1 shrink-0">
-          <Heart className="h-3 w-3 shrink-0 text-rose-500" />
-          <span className="font-semibold text-foreground tabular-nums">{fmt(Number(video.likes))}</span>
-        </span>
-        <span className="flex items-center gap-1 shrink-0">
-          <MessageCircle className="h-3 w-3 shrink-0" />
-          <span className="font-semibold text-foreground tabular-nums">{fmt(Number(video.comments))}</span>
-        </span>
-        {timeAgo && (
-          <span className="hidden min-[200px]:inline text-foreground font-semibold tabular-nums shrink truncate text-[10.5px] sm:text-[11.5px] text-right">
-            {timeAgo}
+      {/* Stats — two rows: views+likes on top, comments+time below */}
+      <div className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-[11.5px] text-muted-foreground space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1 shrink-0">
+            <Eye className="h-3 w-3 shrink-0" />
+            <span className="font-semibold text-foreground tabular-nums">{fmt(views)}</span>
           </span>
-        )}
+          <span className="flex items-center gap-1 shrink-0">
+            <Heart className="h-3 w-3 shrink-0 text-rose-500" />
+            <span className="font-semibold text-foreground tabular-nums">{fmt(Number(video.likes))}</span>
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1 shrink-0">
+            <MessageCircle className="h-3 w-3 shrink-0" />
+            <span className="font-semibold text-foreground tabular-nums">{fmt(Number(video.comments))}</span>
+          </span>
+          {timeAgo && (
+            <span className="text-foreground font-semibold tabular-nums truncate text-[10.5px] sm:text-[11px]">
+              {timeAgo}
+            </span>
+          )}
+        </div>
       </div>
 
       {(showAnalyzeButton && onAnalyze) || (showScriptButton && onScript) ? (
