@@ -101,6 +101,38 @@ export default function VideoAnalysis() {
     analyze({ videoUrl: normalizedUrl, lang });
   };
 
+  // Auto-analyze when navigated with ?url=...&script=1 (e.g. from Trends "Сценарий" button)
+  useEffect(() => {
+    if (autoTriggeredRef.current) return;
+    const urlParam = searchParams.get("url");
+    const wantScript = searchParams.get("script") === "1";
+    const langParam = (searchParams.get("lang") as "ru" | "kk" | null) || "ru";
+    if (!urlParam) return;
+    autoTriggeredRef.current = true;
+    autoScriptRef.current = wantScript;
+    setUrl(urlParam);
+    // fire async; handleAnalyze validates + checks limits
+    handleAnalyze(langParam);
+    // clean query so refresh doesn't re-trigger
+    const next = new URLSearchParams(searchParams);
+    next.delete("url");
+    next.delete("script");
+    next.delete("lang");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-open script panel after successful analysis if requested
+  useEffect(() => {
+    if (analysis && autoScriptRef.current) {
+      autoScriptRef.current = false;
+      (async () => {
+        const ok = await checkAndLog("ai_script", `AI Сценарий из анализа: ${url.trim()}`);
+        if (ok) setShowScript(true);
+      })();
+    }
+  }, [analysis, checkAndLog, url]);
+
   const stats = analysis?.stats;
   const rawSummary = analysis?.summary_json;
   const summary = typeof rawSummary === "string"
