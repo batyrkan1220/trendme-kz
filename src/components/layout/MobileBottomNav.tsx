@@ -63,7 +63,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
     chevron = false,
     iconAccent = false,
   }: {
-    icon: React.ComponentType<{ className?: string }>;
+    icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
     label: string;
     active: boolean;
     onClick: () => void;
