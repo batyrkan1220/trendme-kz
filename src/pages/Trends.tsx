@@ -5,7 +5,7 @@ import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp, WifiOff } from "lucide-react";
+import { TrendingUp, WifiOff, Flame, Eye, Sparkles, Layers } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { useOnlineStatus, saveTrendsCache, loadTrendsCache } from "@/hooks/useOfflineCache";
@@ -34,6 +34,8 @@ export default function Trends() {
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
+  const [headerPeriod, setHeaderPeriod] = useState<number>(1); // 1 / 7 / 30 days
+  const [activeNicheFilter, setActiveNicheFilter] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const chipScrollRef = useRef<HTMLDivElement>(null);
