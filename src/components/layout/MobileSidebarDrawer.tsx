@@ -122,12 +122,15 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
     </div>
   );
 
+  const initial = (user?.email?.[0] || "U").toUpperCase();
+  const displayName = (user?.user_metadata as any)?.name || user?.email?.split("@")[0] || "Гость";
+
   return (
     <>
       <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
         <SheetContent
           side="left"
-          className="w-[280px] p-0 flex flex-col safe-area-top bg-background"
+          className="w-[300px] max-w-[85vw] p-0 flex flex-col safe-area-top bg-background"
           style={{ maxHeight: '100dvh' }}
         >
           <SheetHeader className="px-5 h-16 border-b border-border flex flex-row items-center gap-2.5 shrink-0">
@@ -135,7 +138,21 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
             <SheetTitle className="sr-only">Меню</SheetTitle>
           </SheetHeader>
 
-          <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
+          {/* User profile pill */}
+          <button
+            onClick={() => { navigate("/subscription"); onClose(); }}
+            className="mx-3 mt-3 flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-muted text-left transition-colors shrink-0"
+          >
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center text-primary-foreground font-bold text-[14px] shrink-0">
+              {initial}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13.5px] font-semibold truncate text-foreground">{displayName}</div>
+              <div className="text-[11px] text-muted-foreground truncate">{user?.email || "Гость"}</div>
+            </div>
+          </button>
+
+          <nav className="flex-1 py-3 px-3 overflow-y-auto min-h-0">
             {renderGroup("Поиск контента", searchItems)}
             {renderGroup("Инструменты", toolItems)}
             {renderGroup("Идеи", ideaItems)}
@@ -145,16 +162,16 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
           <div className="border-t border-border p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-foreground/80 hover:text-destructive hover:bg-destructive/5 transition-colors"
             >
-              <LogOut className="h-4 w-4 shrink-0" />
-              <span>Выйти</span>
+              <LogOut className="h-[18px] w-[18px] shrink-0" />
+              <span>Выйти из аккаунта</span>
             </button>
 
             {/* Account deletion — required by App Store */}
             <button
               onClick={() => setShowDeleteDialog(true)}
-              className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5 transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-[12px] text-muted-foreground/70 hover:text-destructive hover:bg-destructive/5 transition-colors"
             >
               <Trash2 className="h-4 w-4 shrink-0" />
               <span>Удалить аккаунт</span>
