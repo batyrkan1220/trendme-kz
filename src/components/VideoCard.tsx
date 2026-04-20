@@ -476,11 +476,14 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               </div>
             ) : (
               <div
-                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br from-muted to-muted/60 gap-3 p-4"
+                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br from-muted to-muted/60 gap-3 p-4 group/play"
                 onClick={handlePlay}
               >
-                <div className="h-14 w-14 rounded-full bg-foreground/10 flex items-center justify-center">
-                  <Play className="h-7 w-7 text-muted-foreground ml-0.5" />
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-viral/30 blur-xl opacity-0 group-hover/play:opacity-100 transition-opacity duration-300" />
+                  <div className="relative h-14 w-14 rounded-full bg-foreground/10 backdrop-blur-md ring-1 ring-foreground/15 flex items-center justify-center group-hover/play:scale-110 group-hover/play:bg-foreground/15 transition-all duration-200">
+                    <Play className="h-6 w-6 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
+                  </div>
                 </div>
                 {caption && (
                   <p className="text-[11px] text-muted-foreground text-center px-2 line-clamp-3 leading-relaxed">{caption}</p>
