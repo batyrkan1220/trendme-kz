@@ -1,10 +1,11 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { trackSearchEvent, trackAddToFavorites } from "@/components/TrackingPixels";
 import {
-  Search as SearchIcon, Clock, Loader2, Sparkles, TrendingUp, X
-} from "lucide-react";
+  Search as SearchIcon, Clock, Loader2, Sparkles } from
+"lucide-react";
 import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,38 +13,40 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
-import { cn } from "@/lib/utils";
 
-const SUGGESTED_KEYWORDS = ["мотивация", "юмор", "лайфхаки", "рецепты", "тренировки", "путешествия"];
+const fmt = (n: number) => {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  return String(n);
+};
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  const [inputFocused, setInputFocused] = useState(false);
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { checkAndLog } = useSubscription();
+  const { checkAndLog, getRemaining, isFreeTrial } = useSubscription();
 
   const { data: recentQueries } = useQuery({
     queryKey: ["search-queries", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("search_queries")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("last_run_at", { ascending: false })
-        .limit(5);
+      const { data } = await supabase.
+      from("search_queries").
+      select("*").
+      eq("user_id", user!.id).
+      order("last_run_at", { ascending: false }).
+      limit(5);
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user
   });
 
   const { data: searchResults, isPending: isSearching, mutate: doSearch } = useMutation({
     mutationFn: async (q: string) => {
       const { data, error } = await supabase.functions.invoke("ensemble-search", {
-        body: { query: q },
+        body: { query: q }
       });
       if (error) {
         if (data?.error) throw new Error(data.error);
@@ -58,36 +61,33 @@ export default function SearchPage() {
     },
     onError: () => {
       toast.error("Не удалось выполнить поиск. Попробуйте позже.");
-    },
+    }
   });
 
   const { data: userFavorites = [] } = useQuery({
     queryKey: ["user-favorites", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("favorites")
-        .select("video_id")
-        .eq("user_id", user!.id);
+      const { data } = await supabase.
+      from("favorites").
+      select("video_id").
+      eq("user_id", user!.id);
       return data?.map((f) => f.video_id) || [];
     },
-    enabled: !!user,
+    enabled: !!user
   });
 
-  const toggleFav = useCallback(
-    async (videoId: string) => {
-      if (!user) return;
-      const isFav = userFavorites.includes(videoId);
-      if (isFav) {
-        await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
-      } else {
-        await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
-        trackAddToFavorites(videoId);
-      }
-      queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
-      queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
-    },
-    [user, userFavorites, queryClient],
-  );
+  const toggleFav = useCallback(async (videoId: string) => {
+    if (!user) return;
+    const isFav = userFavorites.includes(videoId);
+    if (isFav) {
+      await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+    } else {
+      await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+      trackAddToFavorites(videoId);
+    }
+    queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
+    queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
+  }, [user, userFavorites, queryClient]);
 
   const handleSearch = async () => {
     const q = query.trim();
@@ -96,367 +96,239 @@ export default function SearchPage() {
       return;
     }
     const ok = await checkAndLog("search", `Поиск: ${q}`);
+
     if (!ok) return;
     doSearch(q);
   };
 
   const handleSearchDirect = async (q: string) => {
     if (!q.trim()) return;
-    setQuery(q.trim());
     const ok = await checkAndLog("search", `Поиск: ${q.trim()}`);
     if (!ok) return;
     doSearch(q.trim());
   };
 
-  const results = [...(searchResults?.videos || [])].sort(
-    (a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0),
-  );
+  const results = [...(searchResults?.videos || [])].sort((a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0));
   const relatedKeywords: string[] = searchResults?.relatedKeywords || [];
-
-  // ───────────────────── HERO SEARCH BAR (reusable) ─────────────────────
-  const HeroSearch = ({ compact = false }: { compact?: boolean }) => (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleSearch();
-      }}
-      className="w-full"
-    >
-      <div
-        className={cn(
-          "relative group transition-all duration-300",
-          inputFocused && "scale-[1.01]",
-        )}
-      >
-        {/* Outer glow on focus */}
-        <div
-          className={cn(
-            "absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary/40 via-viral/30 to-primary/40 blur-xl opacity-0 transition-opacity duration-500 pointer-events-none",
-            inputFocused && "opacity-60",
-          )}
-        />
-        <div className="relative flex items-center bg-card border border-border rounded-2xl shadow-soft overflow-hidden focus-within:border-primary/40 focus-within:shadow-card transition-all duration-300">
-          <div className="pl-4 pr-2 shrink-0">
-            <SearchIcon
-              className={cn(
-                "h-5 w-5 transition-colors duration-300",
-                inputFocused ? "text-primary" : "text-muted-foreground",
-              )}
-            />
-          </div>
-          <Input
-            placeholder="Введите ключевое слово..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            className={cn(
-              "flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base placeholder:text-muted-foreground/60",
-              compact ? "h-12" : "h-14",
-            )}
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="mr-2 h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
-              aria-label="Очистить"
-            >
-              <X className="h-4 w-4 text-muted-foreground" />
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={isSearching}
-            className={cn(
-              "shrink-0 mr-1.5 flex items-center justify-center gap-1.5 rounded-xl bg-foreground text-background font-bold text-sm tracking-wide active:scale-[0.96] transition-all disabled:opacity-60 ring-1 ring-foreground/20",
-              compact ? "h-10 px-4" : "h-11 px-5",
-            )}
-            style={{ boxShadow: "0 4px 16px -4px hsl(var(--foreground) / 0.4)" }}
-          >
-            {isSearching ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <Sparkles className="h-3.5 w-3.5 text-viral" />
-                <span>Найти</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </form>
-  );
 
   return (
     <AppLayout>
-      {/* ════════════════ EMPTY STATE — LUX HERO ════════════════ */}
       {!searchResults && !isSearching ? (
-        <div
-          className="relative flex flex-col items-center justify-center px-4 py-8 animate-fade-in bg-background-subtle overflow-hidden"
-          style={{
-            minHeight: "calc(100dvh - 8rem)",
-            paddingTop: "max(env(safe-area-inset-top, 0px) + 24px, 24px)",
-          }}
-        >
-          {/* Decorative ambient blobs */}
-          <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-primary/10 blur-[100px] pointer-events-none animate-pulse" style={{ animationDuration: "6s" }} />
-          <div className="absolute bottom-1/4 -right-20 w-72 h-72 rounded-full bg-viral/10 blur-[100px] pointer-events-none animate-pulse" style={{ animationDuration: "8s", animationDelay: "1s" }} />
-
-          <div className="relative w-full max-w-xl flex flex-col items-center gap-7">
-            {/* Eyebrow + heading */}
-            <div className="text-center space-y-3 animate-fade-in">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
-                <Sparkles className="h-3 w-3 text-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                  AI Поиск трендов
-                </span>
-              </div>
-              <h1 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight leading-tight">
-                Найди свой <span className="bg-gradient-to-r from-primary via-viral to-primary bg-clip-text text-transparent">тренд</span>
-              </h1>
-              <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
-                Введите ключевое слово — соберём релевантные TikTok видео с детальной аналитикой
+      /* Centered empty state */
+      <div className="flex flex-col items-center justify-center p-4 animate-fade-in bg-background-subtle" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+          <div className="w-full max-w-lg flex flex-col items-center gap-6">
+            <div className="text-center space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                Поиск трендов
               </p>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Найдите свои тренды</h1>
+              <p className="text-sm text-muted-foreground">Введите ключевое слово — соберём релевантные TikTok видео</p>
             </div>
 
-            {/* Hero search */}
-            <div className="w-full animate-fade-in" style={{ animationDelay: "0.1s" }}>
-              <HeroSearch />
-            </div>
+            <form onSubmit={(e) => {e.preventDefault();handleSearch();}} className="flex flex-col sm:flex-row gap-2 w-full">
+              <Input
+              placeholder="Введите ключевое слово..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="flex-1 h-12 bg-card border-border rounded-xl shadow-soft text-base" />
 
-            {/* Suggested chips */}
-            <div className="w-full animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              <div className="flex items-center justify-center gap-1.5 mb-3">
-                <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Популярные</span>
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {SUGGESTED_KEYWORDS.map((kw, i) => (
-                  <button
-                    key={kw}
-                    onClick={() => handleSearchDirect(kw)}
-                    className="px-3.5 py-1.5 rounded-full bg-card border border-border text-[12.5px] font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground hover:scale-105 transition-all shadow-soft animate-fade-in"
-                    style={{ animationDelay: `${0.3 + i * 0.04}s` }}
-                  >
-                    {kw}
-                  </button>
-                ))}
-              </div>
-            </div>
+              <Button
+              type="submit"
+              disabled={isSearching}
+              className="h-12 bg-foreground text-background hover:bg-foreground/90 border-0 px-7 transition-opacity rounded-xl font-semibold text-sm relative z-10 shadow-soft">
 
-            {/* Recent queries */}
-            {recentQueries && recentQueries.length > 0 && (
-              <div className="w-full animate-fade-in" style={{ animationDelay: "0.4s" }}>
-                <div className="flex items-center justify-center gap-1.5 mb-3">
-                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Недавние</span>
+                <SearchIcon className="h-4 w-4 mr-2" />Искать
+              </Button>
+            </form>
+
+            {recentQueries && recentQueries.length > 0 &&
+          <div className="w-full mt-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">Недавние запросы</span>
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {recentQueries.slice(0, 5).map((q, i) => (
-                    <button
-                      key={q.id}
-                      onClick={() => handleSearchDirect(q.query_text)}
-                      className="px-3.5 py-1.5 rounded-full bg-background-muted border border-border/60 text-[12.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-card hover:border-border transition-all animate-fade-in"
-                      style={{ animationDelay: `${0.5 + i * 0.04}s` }}
-                    >
+                  {recentQueries.slice(0, 5).map((q) =>
+              <button
+                key={q.id}
+                onClick={() => {
+                  setQuery(q.query_text);
+                  handleSearchDirect(q.query_text);
+                }}
+                className="px-4 py-2 rounded-xl bg-card border border-border text-sm font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-colors shadow-soft">
+
                       {q.query_text}
                     </button>
-                  ))}
+              )}
                 </div>
               </div>
-            )}
+          }
           </div>
-        </div>
-      ) : isSearching && !searchResults ? (
-        /* ════════════════ LOADING — ORBITAL LUX ════════════════ */
-        <div
-          className="relative flex flex-col items-center justify-center p-4 animate-fade-in bg-background-subtle overflow-hidden"
-          style={{
-            minHeight: "calc(100dvh - 8rem)",
-            paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)",
-          }}
-        >
-          {/* Ambient blobs */}
-          <div className="absolute top-1/3 left-1/4 w-72 h-72 rounded-full bg-primary/15 blur-[100px] pointer-events-none animate-pulse" style={{ animationDuration: "3s" }} />
-          <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full bg-viral/15 blur-[100px] pointer-events-none animate-pulse" style={{ animationDuration: "4s" }} />
+        </div>) :
+      isSearching && !searchResults ? (
+      /* Centered loading */
+      <div className="flex flex-col items-center justify-center p-4 animate-fade-in bg-background-subtle" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+          <div className="w-full max-w-lg flex flex-col items-center gap-5">
+            <div className="w-20 h-20 rounded-2xl bg-primary flex items-center justify-center shadow-glow-primary animate-scale-in">
+              <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
+            </div>
+            <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
+              Ищем видео по вашему запросу...<br />
+              Это займёт 1–2 минуты
+            </p>
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        </div>) :
 
-          <div className="relative w-full max-w-md flex flex-col items-center gap-7">
-            {/* Orbital loader */}
-            <div className="relative h-32 w-32 flex items-center justify-center">
-              {/* Outer rotating ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary border-r-primary/30 animate-spin" style={{ animationDuration: "2s" }} />
-              {/* Middle reverse ring */}
-              <div className="absolute inset-3 rounded-full border-2 border-transparent border-b-viral border-l-viral/30 animate-spin" style={{ animationDuration: "1.5s", animationDirection: "reverse" }} />
-              {/* Pulsing glow */}
-              <div className="absolute inset-6 rounded-full bg-primary/20 blur-xl animate-pulse" />
-              {/* Core */}
-              <div className="relative h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-viral flex items-center justify-center shadow-glow-primary">
-                <Sparkles className="h-7 w-7 text-primary-foreground animate-pulse" />
+      <>
+      <div
+          className="animate-fade-in bg-background-subtle min-h-full"
+          style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)", paddingBottom: "6rem" }}>
+
+        <div className="px-4 pb-3 md:p-6 lg:p-8">
+          <div className="space-y-4 md:space-y-6">
+            <div className="text-center space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                Поиск трендов
+              </p>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Результаты</h1>
+            </div>
+
+            <form onSubmit={(e) => {e.preventDefault();handleSearch();}} className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto w-full">
+              <Input
+                  placeholder="Введите ключевое слово..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl shadow-soft text-base" />
+
+              <Button
+                  type="submit"
+                  disabled={isSearching}
+                  className="h-11 md:h-12 bg-foreground text-background hover:bg-foreground/90 border-0 px-5 md:px-7 transition-opacity rounded-xl font-semibold text-sm relative z-10 shadow-soft">
+
+                {isSearching ?
+                  <Loader2 className="h-4 w-4 animate-spin" /> :
+
+                  <>
+                    <SearchIcon className="h-4 w-4 mr-2" />
+                    Искать
+                  </>
+                  }
+              </Button>
+            </form>
+
+          {results.length === 0 && searchResults && !isSearching &&
+              <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 14rem)" }}>
+              <div className="h-16 w-16 rounded-full bg-background-muted flex items-center justify-center">
+                <SearchIcon className="h-8 w-8 text-muted-foreground/40" />
               </div>
-            </div>
-
-            {/* Status text */}
-            <div className="text-center space-y-2 animate-fade-in">
-              <p className="text-base md:text-lg font-bold text-foreground">
-                Ищем «<span className="text-primary">{query}</span>»
-              </p>
-              <p className="text-sm text-muted-foreground">
-                AI анализирует TikTok — обычно занимает 1–2 минуты
+              <p className="text-lg font-semibold text-foreground">Ничего не найдено</p>
+              <p className="text-sm text-muted-foreground text-center max-w-sm">
+                По запросу «{query}» не найдено видео. Попробуйте изменить запрос.
               </p>
             </div>
+              }
 
-            {/* Progress dots */}
-            <div className="flex items-center gap-1.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0s" }} />
-              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.2s" }} />
-              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.4s" }} />
+          {results.length > 0 &&
+              <>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-bold text-foreground">{results.length}</span> видео найдено
             </div>
-          </div>
-        </div>
-      ) : (
-        /* ════════════════ RESULTS ════════════════ */
-        <>
-          <div
-            className="animate-fade-in bg-background-subtle min-h-full"
-            style={{
-              paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)",
-              paddingBottom: "6rem",
-            }}
-          >
-            <div className="px-4 pb-3 md:p-6 lg:p-8 space-y-5 md:space-y-6">
-              {/* Sticky search bar */}
-              <div className="max-w-3xl mx-auto w-full space-y-3">
-                <div className="text-center space-y-1">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20">
-                    <Sparkles className="h-2.5 w-2.5 text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
-                      Результаты
-                    </span>
-                  </div>
-                  {results.length > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      Найдено <span className="font-bold text-foreground">{results.length}</span>{" "}
-                      {results.length === 1 ? "видео" : "видео"} по запросу «<span className="text-foreground font-semibold">{query}</span>»
-                    </p>
+
+            {relatedKeywords.length > 0 &&
+                <div className="flex flex-wrap gap-2">
+                {relatedKeywords.map((kw) =>
+                  <button
+                    key={kw}
+                    onClick={() => {
+                      setQuery(kw);
+                      doSearch(kw);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-card border border-border text-sm font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-colors shadow-soft">
+
+                    {kw}
+                  </button>
                   )}
-                </div>
-                <HeroSearch compact />
               </div>
+                }
 
-              {/* No results */}
-              {results.length === 0 && searchResults && !isSearching && (
-                <div
-                  className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in"
-                  style={{ minHeight: "calc(100dvh - 18rem)" }}
-                >
-                  <div className="relative">
-                    <div className="absolute inset-0 rounded-full bg-muted/30 blur-2xl" />
-                    <div className="relative h-20 w-20 rounded-2xl bg-card border border-border flex items-center justify-center shadow-soft">
-                      <SearchIcon className="h-9 w-9 text-muted-foreground/40" />
-                    </div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4">
+              {results.map((video: any, i: number) => {
+                    const cardData: VideoCardData = {
+                      id: video.id,
+                      platform_video_id: video.platform_video_id,
+                      url: video.url,
+                      cover_url: video.cover_url,
+                      caption: video.caption,
+                      author_username: video.author_username,
+                      author_avatar_url: video.author_avatar_url,
+                      views: Number(video.views) || 0,
+                      likes: Number(video.likes) || 0,
+                      comments: Number(video.comments) || 0,
+                      shares: Number(video.shares) || 0,
+                      velocity_views: Number(video.velocity_views) || 0,
+                      published_at: video.published_at,
+                      duration: Number(video.duration_sec) || 0
+                    };
+
+                    return (
+                      <VideoCard
+                        key={video.id || i}
+                        video={cardData}
+                        playingId={playingId}
+                        onPlay={setPlayingId}
+                        isFavorite={userFavorites.includes(video.id)}
+                        onToggleFav={toggleFav}
+                        onAnalyze={(v) => setAnalysisVideo(video)}
+                        showTier={true}
+                        showAuthor={true}
+                        showAnalyzeButton={true} />);
+
+
+                  })}
+            </div>
+
+            {/* Recent queries - only shown when results exist */}
+            <div className="w-full xl:w-72 shrink-0 mt-4">
+              <div className="bg-card rounded-2xl p-4 md:p-5 border border-border shadow-card">
+                <div className="flex items-center gap-2 mb-3 md:mb-4">
+                  <div className="h-7 w-7 rounded-lg bg-primary-soft flex items-center justify-center">
+                    <Clock className="h-3.5 w-3.5 text-primary" />
                   </div>
-                  <div className="text-center space-y-1">
-                    <p className="text-lg font-bold text-foreground">Ничего не найдено</p>
-                    <p className="text-sm text-muted-foreground max-w-sm">
-                      По запросу «{query}» нет видео. Попробуйте другое ключевое слово.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 justify-center mt-2">
-                    {SUGGESTED_KEYWORDS.slice(0, 4).map((kw) => (
+                  <h3 className="font-semibold text-sm text-foreground">Последние запросы</h3>
+                </div>
+                {recentQueries && recentQueries.length > 0 ?
+                    <div className="flex flex-wrap gap-1.5">
+                    {recentQueries.map((q) =>
                       <button
-                        key={kw}
-                        onClick={() => handleSearchDirect(kw)}
-                        className="px-3.5 py-1.5 rounded-full bg-card border border-border text-[12.5px] font-medium hover:bg-foreground hover:text-background transition-all"
-                      >
-                        {kw}
+                        key={q.id}
+                        onClick={() => {
+                          setQuery(q.query_text);
+                          doSearch(q.query_text);
+                        }}
+                        className="text-left px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-background-muted transition-colors truncate border border-border">
+
+                        {q.query_text}
                       </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      )}
+                  </div> :
 
-              {/* Results grid */}
-              {results.length > 0 && (
-                <>
-                  {/* Related keywords */}
-                  {relatedKeywords.length > 0 && (
-                    <div className="max-w-5xl mx-auto w-full">
-                      <div className="flex items-center gap-1.5 mb-2.5">
-                        <TrendingUp className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                          Похожие запросы
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {relatedKeywords.map((kw, i) => (
-                          <button
-                            key={kw}
-                            onClick={() => handleSearchDirect(kw)}
-                            className="px-3.5 py-1.5 rounded-full bg-card border border-border text-[12.5px] font-medium text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-105 transition-all shadow-soft animate-fade-in"
-                            style={{ animationDelay: `${i * 0.03}s` }}
-                          >
-                            {kw}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Video grid with staggered fade-in */}
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4">
-                    {results.map((video: any, i: number) => {
-                      const cardData: VideoCardData = {
-                        id: video.id,
-                        platform_video_id: video.platform_video_id,
-                        url: video.url,
-                        cover_url: video.cover_url,
-                        caption: video.caption,
-                        author_username: video.author_username,
-                        author_avatar_url: video.author_avatar_url,
-                        views: Number(video.views) || 0,
-                        likes: Number(video.likes) || 0,
-                        comments: Number(video.comments) || 0,
-                        shares: Number(video.shares) || 0,
-                        velocity_views: Number(video.velocity_views) || 0,
-                        published_at: video.published_at,
-                        duration: Number(video.duration_sec) || 0,
-                      };
-
-                      return (
-                        <div
-                          key={video.id || i}
-                          className="animate-fade-in"
-                          style={{ animationDelay: `${Math.min(i * 0.03, 0.6)}s` }}
-                        >
-                          <VideoCard
-                            video={cardData}
-                            playingId={playingId}
-                            onPlay={setPlayingId}
-                            isFavorite={userFavorites.includes(video.id)}
-                            onToggleFav={toggleFav}
-                            onAnalyze={(v) => setAnalysisVideo(video)}
-                            showTier={true}
-                            showAuthor={true}
-                            showAnalyzeButton={true}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
+                    <p className="text-muted-foreground text-xs text-center py-4">Нет запросов</p>
+                    }
+              </div>
             </div>
+            </>
+              }
           </div>
-          <VideoAnalysisDialog
-            video={analysisVideo}
-            open={!!analysisVideo}
-            onOpenChange={(open) => {
-              if (!open) setAnalysisVideo(null);
-            }}
-          />
-        </>
-      )}
-    </AppLayout>
-  );
+        </div>
+      </div>
+      <VideoAnalysisDialog
+          video={analysisVideo}
+          open={!!analysisVideo}
+          onOpenChange={(open) => {if (!open) setAnalysisVideo(null);}} />
+
+      </>
+      }
+    </AppLayout>);
+
 }
