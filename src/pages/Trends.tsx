@@ -516,7 +516,7 @@ export default function Trends() {
                   <div className="min-w-0">
                     <h1 className="text-[22px] md:text-[40px] leading-[1.1] md:leading-[1.05] font-semibold tracking-tight text-foreground">
                       Что взрывается{" "}
-                      <span style={{ color: "hsl(var(--viral))" }}>сейчас</span>
+                      <span className="text-foreground">сейчас</span>
                     </h1>
                   </div>
 
