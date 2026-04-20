@@ -458,6 +458,13 @@ export default function SearchPage() {
               if (!open) setAnalysisVideo(null);
             }}
           />
+          <ScriptOnlyDialog
+            video={scriptVideo}
+            open={!!scriptVideo}
+            onOpenChange={(open) => {
+              if (!open) setScriptVideo(null);
+            }}
+          />
         </>
       )}
     </AppLayout>
