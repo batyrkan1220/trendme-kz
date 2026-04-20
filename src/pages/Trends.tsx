@@ -228,6 +228,39 @@ export default function Trends() {
     { value: 14, label: "14 дней" },
   ];
 
+  const HEADER_PERIODS = [
+    { value: 1, label: "24ч" },
+    { value: 7, label: "7д" },
+    { value: 30, label: "30д" },
+  ];
+
+  // KPI metrics for header strip
+  const kpiStats = useMemo(() => {
+    const since = Date.now() - headerPeriod * 86400000;
+    const inWindow = effectiveVideos.filter(
+      (v) => v.published_at && new Date(v.published_at).getTime() >= since
+    );
+    const totalVideos = inWindow.length;
+    const viralCount = inWindow.filter((v) => (v.trend_score || 0) >= 70).length;
+    const avgViews =
+      inWindow.length > 0
+        ? Math.round(inWindow.reduce((s, v) => s + (Number(v.views) || 0), 0) / inWindow.length)
+        : 0;
+    const activeNiches = new Set(inWindow.map((v) => v.niche).filter(Boolean)).size;
+    return { totalVideos, viralCount, avgViews, activeNiches };
+  }, [effectiveVideos, headerPeriod]);
+
+  const formatNum = (n: number) => {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+    return String(n);
+  };
+
+  const filteredGroups = useMemo(
+    () => (activeNicheFilter ? allGroups.filter((g) => g.key === activeNicheFilter) : allGroups),
+    [allGroups, activeNicheFilter]
+  );
+
   const handleViewAll = (nicheKey: string, subNicheKey?: string) => {
     setDrillNiche(nicheKey);
     setDrillSubNiche(subNicheKey || null);
