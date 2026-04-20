@@ -349,60 +349,66 @@ export default function Trends() {
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
             <>
-              {/* Sticky header with back + title — light premium */}
+              {/* Sticky header — lux glass */}
               <div
-                className="sticky top-0 z-30 pb-3 px-4 md:px-6 lg:px-8 space-y-3 glass border-b border-border"
+                className="sticky top-0 z-30 pb-3 px-4 md:px-6 lg:px-8 space-y-3 border-b border-border/60"
                 style={{
-                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)"
+                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)",
+                  background: "hsl(var(--background) / 0.7)",
+                  backdropFilter: "blur(24px)",
+                  WebkitBackdropFilter: "blur(24px)",
                 }}
               >
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleBack}
-                    className="h-9 w-9 rounded-full bg-background-muted hover:bg-muted border border-border flex items-center justify-center transition-colors shrink-0"
+                    className="h-10 w-10 rounded-full bg-card/70 backdrop-blur-md hover:bg-muted border border-border/60 flex items-center justify-center transition-all active:scale-90 shrink-0"
                   >
                     <ChevronLeft className="h-4 w-4 text-foreground" />
                   </button>
-                  <h1 className="text-lg md:text-xl font-bold text-foreground truncate tracking-tight">
-                    {drillGroup.emoji} {drillGroup.label}
-                  </h1>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Ниша</p>
+                    <h1 className="text-lg md:text-xl font-bold text-foreground truncate tracking-tight">
+                      {drillGroup.emoji} {drillGroup.label}
+                    </h1>
+                  </div>
                 </div>
 
-                {/* Period chips + video count */}
+                {/* Period chips — lux glass */}
                 <div className="flex items-center gap-2 text-xs">
                   {PERIOD_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
-                      onClick={() => { setDrillPeriod(opt.value); setVisibleCount(PAGE_SIZE); }}
+                      onClick={() => { setDrillPeriod(opt.value); setVisibleCount(PAGE_SIZE); hapticLight(); }}
                       className={cn(
-                        "shrink-0 px-3 py-1.5 rounded-full font-semibold transition-all border",
+                        "shrink-0 px-3 py-1.5 rounded-full font-bold transition-all active:scale-95",
                         drillPeriod === opt.value
-                          ? "bg-foreground text-background border-foreground shadow-soft"
-                          : "bg-card text-muted-foreground border-border hover:bg-muted"
+                          ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
+                          : "bg-card/70 backdrop-blur-md text-muted-foreground border border-border/60 hover:bg-muted hover:text-foreground"
                       )}
                     >
                       {opt.label}
                     </button>
                   ))}
-                  <span className="text-muted-foreground ml-1 font-medium">· {drillTotalFiltered} видео</span>
+                  <span className="text-muted-foreground ml-1 font-medium tabular-nums">· {drillTotalFiltered} видео</span>
                 </div>
 
-                {/* Sub-niche chips */}
+                {/* Sub-niche chips — lux glass */}
                 {drillGroup.subNiches.length > 0 && (
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-bold text-primary uppercase tracking-[0.14em]">Под-темы</span>
-                      <div className="h-px flex-1 bg-border" />
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-[0.16em]">Под-темы</span>
+                      <div className="h-px flex-1 bg-border/60" />
                     </div>
                     <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
                       <button
                         data-active={!drillSubNiche ? "true" : undefined}
-                        onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
+                        onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); hapticLight(); }}
                         className={cn(
-                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border",
+                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95",
                           !drillSubNiche
-                            ? "bg-foreground text-background border-foreground"
-                            : "bg-card text-foreground/70 border-border hover:bg-muted"
+                            ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
+                            : "bg-card/70 backdrop-blur-md text-foreground/70 border border-border/60 hover:bg-muted hover:text-foreground"
                         )}
                       >
                         Все
@@ -413,15 +419,15 @@ export default function Trends() {
                           <button
                             key={sub.key}
                             data-active={drillSubNiche === sub.key ? "true" : undefined}
-                            onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
+                            onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); hapticLight(); }}
                             className={cn(
-                              "shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border",
+                              "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap active:scale-95",
                               drillSubNiche === sub.key
-                                ? "bg-foreground text-background border-foreground"
-                                : "bg-card text-foreground/70 border-border hover:bg-muted"
+                                ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
+                                : "bg-card/70 backdrop-blur-md text-foreground/70 border border-border/60 hover:bg-muted hover:text-foreground"
                             )}
                           >
-                            {sub.label}{count > 0 && <span className="ml-1 opacity-60">{count}</span>}
+                            {sub.label}{count > 0 && <span className="ml-1 opacity-60 tabular-nums">{count}</span>}
                           </button>
                         );
                       })}
