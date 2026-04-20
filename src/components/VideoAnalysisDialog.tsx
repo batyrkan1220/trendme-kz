@@ -323,27 +323,73 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
             </button>
           <div className="flex-1 overflow-y-auto p-3 md:p-6 pb-4 md:pb-6 space-y-4 md:space-y-6 relative">
             {showLangPicker ? (
-              <div className="flex flex-col items-center justify-center py-10 md:py-20 gap-5">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary">
-                  <Sparkles className="h-7 w-7 md:h-8 md:w-8 text-primary-foreground" />
-                </div>
-                <div className="text-center space-y-1">
-                  <p className="text-base font-bold text-foreground">Тілді таңдаңыз / Выберите язык</p>
-                  <p className="text-sm text-muted-foreground">Анализ будет на выбранном языке</p>
-                </div>
-                <div className="flex gap-3 w-full max-w-xs">
+              <div className="flex flex-col h-full bg-background-subtle -m-3 md:-m-6">
+                {/* Header */}
+                <div
+                  className="flex items-center justify-between px-4 py-3 border-b border-border bg-card"
+                  style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary leading-none mb-0.5">
+                        AI Анализ
+                      </p>
+                      <h2 className="text-sm font-bold text-foreground leading-none">
+                        Анализ видео
+                      </h2>
+                    </div>
+                  </div>
                   <button
-                    onClick={() => startAnalysis("kk")}
-                    className="flex-1 px-4 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity"
+                    onClick={() => onOpenChange(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground font-semibold px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
                   >
-                    🇰🇿 Қазақ тілі
+                    Закрыть
                   </button>
-                  <button
-                    onClick={() => startAnalysis("ru")}
-                    className="flex-1 px-4 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity"
-                  >
-                    🇷🇺 Русский язык
-                  </button>
+                </div>
+
+                {/* Language picker */}
+                <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 animate-fade-in">
+                  <div className="w-full max-w-sm flex flex-col items-center gap-5">
+                    {video.cover_url && (
+                      <div className="w-24 h-32 rounded-2xl overflow-hidden shadow-card border border-border">
+                        <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+
+                    <div className="text-center space-y-1.5">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                        Шаг 1 / 2
+                      </p>
+                      <h3 className="text-xl font-bold text-foreground tracking-tight">
+                        Выберите язык анализа
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Тілді таңдаңыз — AI бірден видеоны талдай бастайды
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-2 w-full">
+                      <button
+                        onClick={() => startAnalysis("kk")}
+                        className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 rounded-xl font-semibold text-sm shadow-soft transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                      >
+                        🇰🇿 Қазақша
+                      </button>
+                      <button
+                        onClick={() => startAnalysis("ru")}
+                        className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-hover rounded-xl font-semibold text-sm shadow-glow-primary transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                      >
+                        🇷🇺 Русский
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-muted-foreground text-center">
+                      После выбора языка AI глубоко проанализирует контент, тему, тэги и эффективность
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : isPending ? (
