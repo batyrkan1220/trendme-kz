@@ -253,9 +253,11 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   isFavorite,
   onToggleFav,
   onAnalyze,
+  onScript,
   showTier = true,
   showAuthor = true,
   showAnalyzeButton = true,
+  showScriptButton = true,
   darkMode: _darkMode, // deprecated — kept for backward compatibility, ignored
   isMobileOverride,
 }, ref) {
