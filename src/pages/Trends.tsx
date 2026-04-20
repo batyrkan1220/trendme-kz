@@ -332,18 +332,19 @@ export default function Trends() {
     [drillSubNiche, subNicheKeys]
   );
 
-  /* ======================= shared styles ======================= */
-  // Compact, quiet chips — less visual noise than before
+  /* ======================= shared styles (lux) ======================= */
+  // Glass chips — soft border, hairline, premium hover
   const chipBase =
-    "shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-[12.5px] font-medium transition-colors whitespace-nowrap";
+    "shrink-0 inline-flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[12.5px] font-medium transition-all whitespace-nowrap border";
   const chipInactive =
-    "bg-transparent text-foreground/60 hover:bg-foreground/[0.04] hover:text-foreground";
-  const chipActive = "bg-foreground text-background";
+    "bg-white/60 backdrop-blur-md border-border/60 text-foreground/65 hover:bg-white hover:text-foreground hover:border-border-strong/70 hover:-translate-y-px";
+  const chipActive =
+    "gradient-brand text-primary-foreground border-transparent shadow-glow-primary";
 
   // Segmented control button (period switcher)
   const segBase =
-    "px-3 h-7 rounded-md text-[12px] font-semibold transition-colors";
-  const segActive = "bg-foreground text-background";
+    "px-3.5 h-7 rounded-md text-[12px] font-semibold transition-all";
+  const segActive = "bg-white text-foreground shadow-soft";
   const segInactive = "text-foreground/55 hover:text-foreground";
 
   /* ======================= render ======================= */
