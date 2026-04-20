@@ -454,47 +454,23 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   onClick={handlePlay}
                   onError={() => handleCoverError()}
                 />
-                {/* Top + bottom gradient overlays for pill/text legibility */}
-                <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/55 via-black/15 to-transparent pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-                {/* Desktop hover play — lux premium centered (hidden on mobile) */}
-                <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <div className="absolute h-20 w-20 rounded-full bg-viral/20 blur-2xl animate-pulse" />
-                  <div className="absolute h-16 w-16 rounded-full border border-white/30 animate-ping" style={{ animationDuration: "2s" }} />
-                  <button
-                    type="button"
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div
                     onClick={handlePlay}
-                    aria-label="Воспроизвести"
-                    className="relative h-14 w-14 rounded-full bg-white/90 backdrop-blur-xl flex items-center justify-center pointer-events-auto cursor-pointer ring-1 ring-white/40 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),0_0_24px_-4px_hsl(var(--viral)/0.4)] hover:scale-110 hover:bg-white active:scale-95 transition-all duration-200"
+                    className="h-12 w-12 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center pointer-events-auto cursor-pointer"
                   >
-                    <Play className="h-5 w-5 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
-                  </button>
-                </div>
-
-                {/* Mobile play — always visible, centered, lux compact */}
-                <div className="md:hidden absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                  <div className="absolute h-16 w-16 rounded-full bg-viral/25 blur-2xl" />
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); handlePlay(); }}
-                    aria-label="Воспроизвести"
-                    className="relative h-12 w-12 rounded-full bg-white/85 backdrop-blur-xl flex items-center justify-center pointer-events-auto ring-1 ring-white/50 shadow-[0_6px_20px_-2px_rgba(0,0,0,0.45),0_0_18px_-4px_hsl(var(--viral)/0.5)] active:scale-90 transition-transform"
-                    style={{ WebkitTapHighlightColor: "transparent" }}
-                  >
-                    <Play className="h-5 w-5 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
-                  </button>
+                    <Play className="h-5 w-5 text-white ml-0.5" fill="currentColor" />
+                  </div>
                 </div>
               </div>
             ) : (
               <div
-                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br from-muted to-muted/60 gap-3 p-4 group/play"
+                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br from-muted to-muted/60 gap-3 p-4"
                 onClick={handlePlay}
               >
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-viral/30 blur-xl opacity-0 group-hover/play:opacity-100 transition-opacity duration-300" />
-                  <div className="relative h-14 w-14 rounded-full bg-foreground/10 backdrop-blur-md ring-1 ring-foreground/15 flex items-center justify-center group-hover/play:scale-110 group-hover/play:bg-foreground/15 transition-all duration-200">
-                    <Play className="h-6 w-6 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
-                  </div>
+                <div className="h-14 w-14 rounded-full bg-foreground/10 flex items-center justify-center">
+                  <Play className="h-7 w-7 text-muted-foreground ml-0.5" />
                 </div>
                 {caption && (
                   <p className="text-[11px] text-muted-foreground text-center px-2 line-clamp-3 leading-relaxed">{caption}</p>
@@ -594,33 +570,32 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 px-2.5 py-2 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1 min-w-0">
+      <div className="flex items-center justify-between px-3 py-2 text-[11.5px] text-muted-foreground">
+        <span className="flex items-center gap-1">
           <Eye className="h-3 w-3 shrink-0" />
-          <span className="font-semibold text-foreground truncate">{fmt(views)}</span>
+          <span className="font-semibold text-foreground">{fmt(views)}</span>
         </span>
-        <span className="flex items-center justify-end gap-1 min-w-0">
+        <span className="flex items-center gap-1">
           <Heart className="h-3 w-3 shrink-0 text-rose-500" />
-          <span className="font-semibold text-foreground truncate">{fmt(Number(video.likes))}</span>
+          <span className="font-semibold text-foreground">{fmt(Number(video.likes))}</span>
         </span>
-        <span className="flex items-center gap-1 min-w-0">
+        <span className="flex items-center gap-1">
           <MessageCircle className="h-3 w-3 shrink-0" />
-          <span className="font-semibold text-foreground truncate">{fmt(Number(video.comments))}</span>
+          <span className="font-semibold text-foreground">{fmt(Number(video.comments))}</span>
         </span>
-        <span className="text-foreground font-semibold shrink-0 truncate text-right">
+        <span className="text-foreground font-semibold">
           {timeAgo}
         </span>
       </div>
 
-      {/* Action button — Script only */}
       {showScriptButton && onScript ? (
-        <div className="px-2.5 pb-2.5 mt-auto">
+        <div className="px-3 pb-3 mt-auto">
           <button
             onClick={(e) => { e.stopPropagation(); onScript(video); }}
-            className="w-full min-h-[36px] py-2 px-3 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground inline-flex items-center justify-center gap-1.5 border border-primary/20"
+            className="w-full py-2 rounded-xl text-[12.5px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1.5"
           >
-            <Sparkles className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Сценарий</span>
+            <Sparkles className="h-3.5 w-3.5 text-viral" />
+            Сценарий
           </button>
         </div>
       ) : null}
