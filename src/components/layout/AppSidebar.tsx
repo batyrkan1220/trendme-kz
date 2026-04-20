@@ -125,7 +125,7 @@ export function AppSidebar(_props: AppSidebarProps) {
       {/* Main Nav */}
       <nav className="flex-1 py-3 px-2 overflow-y-auto">
         {renderGroup("Поиск контента", searchItems)}
-        {renderGroup("Инструменты", toolItems)}
+        
         {renderGroup("Идеи", ideaItems)}
         {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
       </nav>
