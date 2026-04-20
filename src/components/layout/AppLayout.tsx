@@ -12,7 +12,6 @@ import { ArrowLeft } from "lucide-react";
 const MAIN_TABS = ["/trends", "/search", "/library", "/"];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -23,10 +22,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <div className="relative flex h-[100dvh] w-full overflow-hidden bg-background text-foreground">
-      {!isMobile && !isNativePlatform && (
-        <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-      )}
+    <div className="relative flex h-[100dvh] w-full overflow-hidden bg-background-subtle text-foreground">
+      {!isMobile && !isNativePlatform && <AppSidebar />}
 
       {/* Swipe-back edge indicator */}
       {showIndicator && (

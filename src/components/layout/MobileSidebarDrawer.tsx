@@ -89,8 +89,10 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   };
 
   const renderGroup = (label: string, items: NavItem[]) => (
-    <div className="mb-3">
-      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em] px-3 mb-2">{label}</p>
+    <div className="mb-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground px-3 mb-1.5">
+        {label}
+      </p>
       <div className="space-y-0.5">
         {items.map((item) => {
           const active = location.pathname === item.path;
@@ -100,13 +102,18 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
               to={item.path}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-[14px] transition-all",
+                "flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] text-[13.5px] font-medium transition-all",
                 active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                  : "text-foreground/80 hover:bg-muted/50"
+                  ? "bg-foreground text-background font-semibold"
+                  : "text-foreground/70 hover:bg-muted hover:text-foreground"
               )}
             >
-              <item.icon className={cn("h-5 w-5 shrink-0", item.iconColor)} />
+              <item.icon
+                className={cn(
+                  "h-[18px] w-[18px] shrink-0",
+                  active ? "text-viral" : item.iconColor
+                )}
+              />
               <span>{item.label}</span>
             </Link>
           );
