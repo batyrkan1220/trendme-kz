@@ -309,9 +309,9 @@ export function VideoAnalysisResults({
       <div className="sticky bottom-2 z-10 pt-1">
         <button
           onClick={onGenerateScript}
-          className="w-full py-3 rounded-xl gradient-hero text-primary-foreground font-bold text-sm glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-xl bg-foreground text-background font-bold text-sm hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 shadow-glow-primary"
         >
-          <Sparkles className="h-4 w-4" />
+          <Sparkles className="h-4 w-4 text-viral" />
           {isKk ? "Сценарий генерациялау" : "Генерация сценария"}
         </button>
       </div>
