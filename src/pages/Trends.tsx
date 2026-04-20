@@ -500,24 +500,29 @@ export default function Trends() {
             <>
               {/* =================== MAIN VIEW =================== */}
 
-              {/* Header — single clean row (title + period) */}
+              {/* Header — lux row (eyebrow + gradient title + glass period) */}
               <div
                 className="px-4 md:px-6 lg:px-8 pt-6 md:pt-8"
                 style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 24px)" }}
               >
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight text-foreground">
-                      Тренды
+                <div className="eyebrow mb-2">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+                  </span>
+                  Live trends
+                </div>
+
+                <div className="flex items-end justify-between gap-4 flex-wrap">
+                  <div className="min-w-0">
+                    <h1 className="text-[32px] md:text-[40px] leading-[1.05] font-semibold tracking-tight text-foreground">
+                      Что взрывается{" "}
+                      <span className="gradient-text">прямо сейчас</span>
                     </h1>
-                    <span className="relative flex h-1.5 w-1.5 mt-1">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                    </span>
                   </div>
 
-                  {/* Period segmented control */}
-                  <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-background-muted">
+                  {/* Period segmented control — glass */}
+                  <div className="inline-flex items-center gap-0.5 p-1 rounded-xl glass shadow-soft">
                     {HEADER_PERIODS.map((p) => (
                       <button
                         key={p.value}
@@ -536,19 +541,19 @@ export default function Trends() {
                   </div>
                 </div>
 
-                {/* Inline stats — one subtle line, replaces 4 KPI cards */}
-                <p className="mt-2 text-[13.5px] text-foreground/55">
-                  <span className="tabular-nums font-medium text-foreground/80">
+                {/* Inline stats — premium spacing */}
+                <p className="mt-3 text-[13.5px] text-muted-foreground">
+                  <span className="tabular-nums font-semibold text-foreground">
                     {formatNum(inlineStats.totalVideos)}
                   </span>{" "}
                   видео
-                  <span className="mx-2 text-foreground/25">·</span>
-                  <span className="tabular-nums font-medium text-foreground/80">
+                  <span className="mx-2 text-foreground/20">·</span>
+                  <span className="tabular-nums font-semibold text-foreground">
                     {formatNum(inlineStats.viralCount)}
                   </span>{" "}
                   вирусных
-                  <span className="mx-2 text-foreground/25">·</span>
-                  <span className="tabular-nums font-medium text-foreground/80">
+                  <span className="mx-2 text-foreground/20">·</span>
+                  <span className="tabular-nums font-semibold text-foreground">
                     {inlineStats.activeNiches}
                   </span>{" "}
                   ниш
