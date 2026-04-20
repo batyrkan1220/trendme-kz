@@ -9,12 +9,14 @@ import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { useNavigate } from "react-router-dom";
 import { isNativePlatform } from "@/lib/native";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
+import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
 
 export default function Library() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [scriptVideo, setScriptVideo] = useState<VideoCardData | null>(null);
   const { favorites: localFavorites, toggleFavorite: toggleLocalFav } = useLocalFavorites();
 
   // Remote favorites (only on web)
@@ -75,7 +77,7 @@ export default function Library() {
   };
 
   const handleScript = (video: VideoCardData) => {
-    navigate(`/video-analysis?url=${encodeURIComponent(video.url)}&mode=script`);
+    setScriptVideo(video);
   };
 
   return (
