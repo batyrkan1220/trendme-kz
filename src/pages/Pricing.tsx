@@ -102,7 +102,7 @@ export default function Pricing() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
               {sortedPlans.map((plan: any) => {
                 const isPaid = plan.price_rub > 0;
-                const isFeatured = plan.sort_order === 3;
+                const isFeatured = plan.duration_days === 30;
                 const isActive = activePlanName === plan.name;
                 const features = Array.isArray(plan.features) ? plan.features as string[] : [];
                 const usageLimits = plan.usage_limits as Record<string, number> | null;
@@ -190,7 +190,7 @@ export default function Pricing() {
                       >
                         {loadingPlanId === plan.id ? (
                           <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
-                        ) : isActive ? "Активен ✓" : isFeatured ? "Выбрать 3 мес" : "Выбрать"}
+                        ) : isActive ? "Активен ✓" : isFeatured ? "Выбрать 1 мес" : "Выбрать"}
                       </button>
                     ) : (
                       <div className={cn(
