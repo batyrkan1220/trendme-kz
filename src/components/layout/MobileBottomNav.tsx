@@ -1,71 +1,45 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Flame, Search, Heart, ScanSearch, Video, UserSearch, ChevronUp, Menu } from "lucide-react";
-import { useState, useRef, useEffect, useCallback } from "react";
-
-const mainNavItems = [
-  { icon: Flame, path: "/trends", label: "Тренды" },
-  { icon: Search, path: "/search", label: "Поиск" },
-];
-
-const toolsMenuItems: { icon: any; path: string; label: string }[] = [];
+import { Flame, Search, Heart, CreditCard, LogOut } from "lucide-react";
+import { useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface MobileBottomNavProps {
-  onMenuOpen: () => void;
+  /** Kept for API compatibility with AppLayout — drawer is no longer used. */
+  onMenuOpen?: () => void;
   onDrawerClose?: () => void;
   drawerOpen?: boolean;
 }
 
 /**
- * Mobile bottom nav — 5 кнопка: Тренды | Поиск | Анализ | Избранное | Меню
- * "Меню" — толық drawer-ды ашады (Подписка, Выход, Удалить аккаунт т.б.)
+ * Mobile bottom nav — 5 кнопок:
+ * Тренды | Поиск | Избранное | Подписка | Выход
  */
-export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: MobileBottomNavProps) {
+export function MobileBottomNav({ drawerOpen }: MobileBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [showToolsMenu, setShowToolsMenu] = useState(false);
-  const popoverRef = useRef<HTMLDivElement>(null);
-
-  const isToolsActive = toolsMenuItems.some((item) => location.pathname === item.path);
-
-  useEffect(() => {
-    if (!showToolsMenu) return;
-    const handle = (e: MouseEvent | TouchEvent) => {
-      const nav = document.getElementById("mobile-bottom-nav");
-      if (
-        popoverRef.current && !popoverRef.current.contains(e.target as Node) &&
-        (!nav || !nav.contains(e.target as Node))
-      ) {
-        setShowToolsMenu(false);
-      }
-    };
-    document.addEventListener("click", handle, true);
-    return () => document.removeEventListener("click", handle, true);
-  }, [showToolsMenu]);
+  const { signOut } = useAuth();
 
   const goTo = useCallback(
-    (path: string) => {
-      drawerOpen && onDrawerClose?.();
-      setShowToolsMenu(false);
-      navigate(path);
-    },
-    [navigate, drawerOpen, onDrawerClose],
+    (path: string) => navigate(path),
+    [navigate],
   );
+
+  const handleLogout = useCallback(async () => {
+    await signOut();
+    navigate("/auth");
+  }, [signOut, navigate]);
 
   const Item = ({
     icon: Icon,
     label,
     active,
     onClick,
-    chevron = false,
-    iconAccent = false,
   }: {
     icon: React.ComponentType<any>;
     label: string;
     active: boolean;
     onClick: () => void;
-    chevron?: boolean;
-    iconAccent?: boolean;
   }) => (
     <button
       onClick={onClick}
@@ -76,24 +50,13 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           : "text-foreground/70 hover:bg-muted",
       )}
     >
-      <div className="relative">
-        <Icon
-          className={cn(
-            "h-[19px] w-[19px] shrink-0 transition-colors",
-            active ? (iconAccent ? "text-viral" : "text-background") : "text-muted-foreground",
-          )}
-          strokeWidth={active ? 2.4 : 2}
-        />
-        {chevron && (
-          <ChevronUp
-            className={cn(
-              "absolute -top-1.5 -right-1.5 h-3 w-3 transition-all",
-              showToolsMenu ? "rotate-180" : "",
-              active ? "text-viral" : "text-muted-foreground/60",
-            )}
-          />
+      <Icon
+        className={cn(
+          "h-[19px] w-[19px] shrink-0 transition-colors",
+          active ? "text-background" : "text-muted-foreground",
         )}
-      </div>
+        strokeWidth={active ? 2.4 : 2}
+      />
       <span className="truncate leading-none text-[10px] max-w-full">{label}</span>
     </button>
   );
@@ -111,44 +74,6 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         opacity: drawerOpen ? 0 : 1,
       }}
     >
-      {/* Tools popover */}
-      {showToolsMenu && (
-        <div
-          ref={popoverRef}
-          className="absolute bottom-full mb-3 rounded-2xl p-2 glass-strong shadow-card border border-border"
-          style={{
-            animation: "slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-            right: 12,
-            left: 12,
-          }}
-        >
-          <div className="px-3 py-1.5 mb-1">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
-              Инструменты
-            </span>
-          </div>
-          {toolsMenuItems.map((item) => {
-            const active = location.pathname === item.path;
-            return (
-              <button
-                key={item.path}
-                onClick={() => goTo(item.path)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm w-full text-left transition-colors",
-                  active
-                    ? "bg-foreground text-background font-semibold"
-                    : "text-foreground/80 hover:bg-muted",
-                )}
-              >
-                <item.icon className={cn("h-5 w-5 shrink-0", active && "text-viral")} />
-                <span className="font-medium">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Bottom bar */}
       <div
         className="px-1 pt-1.5 animate-bottom-nav-enter glass-strong"
         style={{
@@ -158,46 +83,35 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         }}
       >
         <div className="flex items-center gap-0.5">
-          {mainNavItems.map((item) => (
-            <Item
-              key={item.path}
-              icon={item.icon}
-              label={item.label}
-              active={location.pathname === item.path}
-              onClick={() => goTo(item.path)}
-              iconAccent
-            />
-          ))}
-
           <Item
-            icon={ScanSearch}
-            label="Анализ"
-            active={isToolsActive || showToolsMenu}
-            onClick={() => {
-              drawerOpen && onDrawerClose?.();
-              setShowToolsMenu((v) => !v);
-            }}
-            chevron
-            iconAccent
+            icon={Flame}
+            label="Тренды"
+            active={location.pathname === "/trends"}
+            onClick={() => goTo("/trends")}
           />
-
+          <Item
+            icon={Search}
+            label="Поиск"
+            active={location.pathname === "/search"}
+            onClick={() => goTo("/search")}
+          />
           <Item
             icon={Heart}
             label="Избранное"
             active={location.pathname === "/library"}
             onClick={() => goTo("/library")}
-            iconAccent
           />
-
           <Item
-            icon={Menu}
-            label="Меню"
-            active={drawerOpen ?? false}
-            onClick={() => {
-              setShowToolsMenu(false);
-              onMenuOpen();
-            }}
-            iconAccent
+            icon={CreditCard}
+            label="Подписка"
+            active={location.pathname === "/subscription"}
+            onClick={() => goTo("/subscription")}
+          />
+          <Item
+            icon={LogOut}
+            label="Выход"
+            active={false}
+            onClick={handleLogout}
           />
         </div>
       </div>
