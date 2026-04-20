@@ -86,8 +86,7 @@ function TrendNicheRowImpl({
         {videos.slice(0, 6).map((video) => (
           <div
             key={video.id}
-            className="shrink-0"
-            style={{ width: "40vw", maxWidth: "200px" }}
+            className="shrink-0 w-[42vw] max-w-[180px] sm:w-[200px] sm:max-w-[200px] lg:w-[220px] lg:max-w-[220px]"
           >
             <MemoVideoCard
               video={video}
