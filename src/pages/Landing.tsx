@@ -272,13 +272,13 @@ function Hero() {
 function Trust() {
   const brands = ["AURORA", "BeautyLab", "Kaspi Media", "SMM Agency", "ViralCo", "FoodieHub", "FitnessPro", "ContentHouse"];
   return (
-    <section className="py-12 border-y border-border bg-background-subtle overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <p className="text-center text-[12px] uppercase font-semibold tracking-[0.16em] text-muted-foreground mb-8">
+    <section className="py-10 md:py-12 border-y border-border bg-background-subtle overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <p className="text-center text-[11px] md:text-[12px] uppercase font-semibold tracking-[0.16em] text-muted-foreground mb-6 md:mb-8">
           Нам доверяют команды и агентства
         </p>
         <div className="overflow-hidden">
-          <div className="flex gap-14 text-border-strong font-bold text-[22px] whitespace-nowrap animate-[marq_30s_linear_infinite]">
+          <div className="flex gap-8 md:gap-14 text-border-strong font-bold text-[16px] md:text-[22px] whitespace-nowrap animate-[marq_30s_linear_infinite]">
             {[...brands, ...brands, ...brands].map((b, i) => (
               <span key={i} className="shrink-0">{b} ·</span>
             ))}
