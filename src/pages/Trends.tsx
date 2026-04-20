@@ -353,6 +353,7 @@ export default function Trends() {
       <div
         ref={containerRef}
         className="overflow-x-hidden overflow-y-auto h-full text-foreground relative bg-background"
+        style={{ backgroundImage: "var(--gradient-mesh)" }}
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
