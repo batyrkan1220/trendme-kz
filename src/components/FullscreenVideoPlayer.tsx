@@ -302,12 +302,30 @@ export function FullscreenVideoPlayer({
                 </div>
               </div>
             )}
-            {/* Ended — replay overlay */}
+            {/* Ended — replay overlay (clickable) */}
             {ended && !showPauseIcon && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                <div className="h-20 w-20 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                  <RotateCcw className="h-10 w-10 text-white" />
-                </div>
+              <div className="absolute inset-0 flex items-center justify-center z-30">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleVideoTap();
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleVideoTap();
+                  }}
+                  aria-label="Воспроизвести заново"
+                  className="relative h-20 w-20 rounded-full bg-white/90 backdrop-blur-xl flex items-center justify-center ring-1 ring-white/40 active:scale-90 transition-transform"
+                  style={{
+                    WebkitTapHighlightColor: "transparent",
+                    boxShadow: "0 8px 32px -4px rgba(0,0,0,0.5), 0 0 24px -4px hsl(var(--viral) / 0.5)",
+                  }}
+                >
+                  <div className="absolute inset-0 rounded-full bg-viral/20 blur-2xl -z-10" />
+                  <RotateCcw className="h-9 w-9 text-foreground" strokeWidth={2.5} />
+                </button>
               </div>
             )}
           </>
