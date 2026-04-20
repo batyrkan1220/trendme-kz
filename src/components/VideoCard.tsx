@@ -237,9 +237,11 @@ interface VideoCardProps {
   isFavorite: boolean;
   onToggleFav: (id: string) => void;
   onAnalyze?: (video: VideoCardData) => void;
+  onScript?: (video: VideoCardData) => void;
   showTier?: boolean;
   showAuthor?: boolean;
   showAnalyzeButton?: boolean;
+  showScriptButton?: boolean;
   darkMode?: boolean;
   isMobileOverride?: boolean;
 }
