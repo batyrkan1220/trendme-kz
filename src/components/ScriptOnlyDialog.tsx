@@ -2,7 +2,6 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
 import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
-import { useSubscription } from "@/hooks/useSubscription";
 
 interface VideoData {
   id: string;
