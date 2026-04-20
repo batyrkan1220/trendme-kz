@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
 import {
-  Eye, Heart, MessageCircle, Share2, Play, ExternalLink, Music, X,
-  Trophy, Zap, Target, TrendingUp, Loader2, Maximize, Flame, Rocket, Flag
+  Eye, Heart, MessageCircle, Play, ExternalLink, X,
+  Loader2, Maximize, Flag, Sparkles
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FullscreenVideoPlayer } from "@/components/FullscreenVideoPlayer";
@@ -202,10 +203,11 @@ const getTier = (views: number): TrendTier | null => {
   return null;
 };
 
-const tierConfig: Record<TrendTier, { label: string; icon: any; className: string; glow?: string }> = {
-  strong: { label: "🔥 Взлетает", icon: Rocket, className: "bg-gradient-to-r from-red-500 to-orange-500 text-white", glow: "0 0 12px rgba(239,68,68,0.6), 0 0 24px rgba(249,115,22,0.3)" },
-  mid: { label: "⚡ В тренде", icon: Zap, className: "bg-gradient-to-r from-amber-500 to-yellow-400 text-black", glow: "0 0 10px rgba(245,158,11,0.5)" },
-  micro: { label: "📈 Набирает", icon: TrendingUp, className: "bg-gradient-to-r from-emerald-500 to-green-400 text-white", glow: "0 0 8px rgba(16,185,129,0.4)" },
+/** Light premium pill styling — viral lime for HOT, white pills for TOP/RISING */
+const tierConfig: Record<TrendTier, { label: string; className: string }> = {
+  strong: { label: "🔥 HOT",     className: "bg-viral text-foreground" },
+  mid:    { label: "⭐ TOP",     className: "bg-white text-foreground border border-border" },
+  micro:  { label: "📈 RISING",  className: "bg-white text-foreground border border-border" },
 };
 
 export interface VideoCardData {
@@ -354,29 +356,30 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const timeAgo = getTimeAgo(video.published_at || video.createTime || null);
 
   return (
-    <div ref={ref} className="group rounded-[20px] overflow-hidden transition-all duration-300 relative flex flex-col bg-card border border-border/40 shadow-card" onMouseEnter={handlePreload} onMouseLeave={handlePreloadCancel}>
-      {/* Video area */}
-      <div className="relative aspect-[9/16] bg-black overflow-hidden rounded-[16px] m-[4px]">
+    <div
+      ref={ref}
+      className="group rounded-2xl overflow-hidden transition-all duration-300 relative flex flex-col bg-card border border-border shadow-soft hover:shadow-card hover:-translate-y-0.5"
+      onMouseEnter={handlePreload}
+      onMouseLeave={handlePreloadCancel}
+    >
+      {/* Video area — 9/14 (dashboard ratio) */}
+      <div className="relative aspect-[9/14] bg-muted overflow-hidden">
         {playingId === video.id && !showFullscreen ? (
           <>
             {loadingPlay ? (
               <div className="w-full h-full relative overflow-hidden">
-                {/* Keep cover image as background */}
                 {activeCover && !coverFailed ? (
                   <img src={activeCover} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-muted/80" />
                 )}
-                {/* Dark overlay */}
                 <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
-                {/* Animated rings */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-32 h-32 rounded-full border-2 border-white/15 animate-ping" style={{ animationDuration: '2s' }} />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-20 h-20 rounded-full border-2 border-white/20 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
                 </div>
-                {/* Center loader */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                   <div className="h-14 w-14 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/20">
                     <Loader2 className="h-6 w-6 text-primary animate-spin" />
@@ -406,12 +409,12 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-3">
-                <p className="text-white/50 text-xs text-center px-4">Видео қолжетімсіз</p>
+                <p className="text-white/60 text-xs text-center px-4">Видео недоступно</p>
                 <button
                   onClick={() => window.open(video.url, '_blank')}
                   className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
                 >
-                  TikTok-та ашу
+                  Открыть в TikTok
                 </button>
               </div>
             )}
@@ -420,7 +423,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 <button
                   onClick={handleFullscreen}
                   className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
-                  aria-label="Толық экран"
+                  aria-label="Полный экран"
                 >
                   <Maximize className="h-4 w-4" />
                 </button>
@@ -443,26 +446,29 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   alt=""
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                   onClick={handlePlay}
                   onError={() => handleCoverError()}
                 />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div 
-                    className="h-9 w-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center border border-white/10 opacity-60 pointer-events-auto cursor-pointer transition-opacity duration-200 hover:opacity-90"
+                {/* Bottom gradient (dashboard style) */}
+                <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+                {/* Hover play */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div
                     onClick={handlePlay}
+                    className="h-12 w-12 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center pointer-events-auto cursor-pointer"
                   >
-                    <Play className="h-3.5 w-3.5 text-white/80 ml-0.5" fill="currentColor" fillOpacity={0.2} />
+                    <Play className="h-5 w-5 text-white ml-0.5" fill="currentColor" />
                   </div>
                 </div>
               </div>
             ) : (
               <div
-                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-b from-muted/60 to-muted gap-3 p-4"
+                className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br from-muted to-muted/60 gap-3 p-4"
                 onClick={handlePlay}
               >
-                <div className="h-14 w-14 rounded-full bg-black/15 flex items-center justify-center border border-white/10">
-                  <Play className="h-7 w-7 text-muted-foreground/60 ml-0.5" />
+                <div className="h-14 w-14 rounded-full bg-foreground/10 flex items-center justify-center">
+                  <Play className="h-7 w-7 text-muted-foreground ml-0.5" />
                 </div>
                 {caption && (
                   <p className="text-[11px] text-muted-foreground text-center px-2 line-clamp-3 leading-relaxed">{caption}</p>
@@ -470,144 +476,125 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               </div>
             )}
 
-            {/* TikTok header bar - OUTSIDE of cover click area */}
-            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-20">
-              <div className="flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm bg-white/90">
-                <Music className="h-2.5 w-2.5 text-foreground" />
-                <span className="text-[9px] font-bold text-foreground">Tik-Tok</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onToggleFav(video.id);
-                  }}
-                  onClick={(e) => { 
-                    e.preventDefault(); 
-                    e.stopPropagation(); 
-                    onToggleFav(video.id);
-                  }}
-                  className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 bg-black/60"
-                  style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+            {/* Top bar — HOT/TOP pill (left) + favorite (right) */}
+            <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-2.5 z-20 gap-2">
+              {tier ? (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold tracking-wide shadow-soft",
+                    tierConfig[tier].className,
+                    tier === "strong" && "animate-viral-pulse",
+                  )}
                 >
-                  <Heart
-                    className={`h-4 w-4 transition-all ${
-                      isFavorite ? "text-primary fill-primary" : "text-white"
-                    }`}
-                  />
-                </button>
-              </div>
+                  {tierConfig[tier].label}
+                  {velViews >= 500 && tier === "strong" && (
+                    <span className="ml-0.5 opacity-80">+{fmt(Math.round(velViews))}/ч</span>
+                  )}
+                </span>
+              ) : <span />}
+
+              <button
+                type="button"
+                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
+                className="w-8 h-8 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-95 transition-transform"
+                style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+                aria-label="Избранное"
+              >
+                <Heart
+                  className={cn(
+                    "h-4 w-4 transition-all",
+                    isFavorite ? "text-rose-400 fill-rose-400" : "text-white",
+                  )}
+                />
+              </button>
             </div>
 
-            {/* Tier badge */}
-            {tier && (
-              <div className="absolute top-10 left-1.5 z-10 flex flex-col gap-1.5 pointer-events-none">
-                <div
-                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 shadow-lg ${tierConfig[tier].className}`}
-                  style={{ boxShadow: tierConfig[tier].glow, animation: tier === "strong" ? "pulse 2s ease-in-out infinite" : undefined }}
-                >
-                  {(() => {
-                    const Icon = tierConfig[tier].icon;
-                    return <Icon className="h-3.5 w-3.5" />;
-                  })()}
-                  <span className="text-[10px] font-extrabold tracking-wide">{tierConfig[tier].label}</span>
+            {/* Bottom overlay — author + caption */}
+            <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10 text-white pointer-events-none">
+              {(showAuthor && video.author_username) && (
+                <div className="flex items-center gap-1.5 text-[11px] opacity-90 mb-1">
+                  {video.author_avatar_url ? (
+                    <img
+                      src={video.author_avatar_url}
+                      alt=""
+                      className="w-4 h-4 rounded-full bg-white/20 object-cover"
+                    />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-white/30" />
+                  )}
+                  <span className="truncate font-medium">@{video.author_username}</span>
                 </div>
-                {velViews >= 500 && (
-                  <div
-                    className="flex items-center gap-1 rounded-full px-2.5 py-1"
-                    style={{
-                      background: tier === "strong" ? "rgba(239,68,68,0.25)" : "rgba(255,255,255,0.15)",
-                      backdropFilter: "blur(12px)",
-                      border: tier === "strong" ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(255,255,255,0.2)",
-                    }}
-                  >
-                    <Flame className={`h-3.5 w-3.5 ${tier === "strong" ? "text-orange-400" : "text-white"}`} />
-                    <span className={`text-[10px] font-bold ${tier === "strong" ? "text-orange-300" : "text-white"}`}>+{fmt(Math.round(velViews))}/ч</span>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+              {caption && (
+                <p className="text-[12px] font-semibold leading-tight line-clamp-2 drop-shadow-sm">
+                  {caption}
+                </p>
+              )}
+            </div>
 
-            {/* Open in TikTok */}
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(video.url, '_blank'); }}
-              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); window.open(video.url, '_blank'); }}
-              className="absolute top-11 right-1.5 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20"
-              style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
-            >
-              <ExternalLink className="h-4 w-4 text-white" />
-            </button>
+            {/* Floating actions (Open + Report) */}
+            <div className="absolute top-12 right-2 z-10 flex flex-col gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(video.url, '_blank'); }}
+                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); window.open(video.url, '_blank'); }}
+                className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-95 transition-transform"
+                style={{ WebkitTapHighlightColor: "transparent" }}
+                aria-label="Открыть в TikTok"
+              >
+                <ExternalLink className="h-3.5 w-3.5 text-white" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowReport(true); }}
+                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setShowReport(true); }}
+                className="w-7 h-7 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-95 transition-transform"
+                style={{ WebkitTapHighlightColor: "transparent" }}
+                aria-label="Пожаловаться"
+              >
+                <Flag className="h-3 w-3 text-white/80" />
+              </button>
+            </div>
 
-            {/* Report content */}
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowReport(true); }}
-              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setShowReport(true); }}
-              className="absolute top-[5.25rem] right-1.5 z-10 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20"
-              style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
-            >
-              <Flag className="h-3.5 w-3.5 text-white/70" />
-            </button>
-
-            {/* Duration badge */}
+            {/* Duration */}
             {video.duration && video.duration > 0 && (
-              <div className="absolute bottom-2.5 left-2.5 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
+              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 bg-black/55 backdrop-blur-sm text-white text-[10px] px-1.5 py-0.5 rounded font-medium z-10">
                 {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
               </div>
             )}
-
-            {/* Bottom gradient — subtle */}
-            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
           </>
         )}
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 px-3 py-1.5">
+      <div className="flex items-center justify-between px-3 py-2 text-[11.5px] text-muted-foreground">
         <span className="flex items-center gap-1">
-          <Eye className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-bold truncate text-foreground">{fmt(views)}</span>
+          <Eye className="h-3 w-3 shrink-0" />
+          <span className="font-semibold text-foreground">{fmt(views)}</span>
         </span>
         <span className="flex items-center gap-1">
-          <Heart className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-bold truncate text-foreground">{fmt(Number(video.likes))}</span>
+          <Heart className="h-3 w-3 shrink-0 text-rose-500" />
+          <span className="font-semibold text-foreground">{fmt(Number(video.likes))}</span>
         </span>
         <span className="flex items-center gap-1">
-          <MessageCircle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-bold truncate text-foreground">{fmt(Number(video.comments))}</span>
+          <MessageCircle className="h-3 w-3 shrink-0" />
+          <span className="font-semibold text-foreground">{fmt(Number(video.comments))}</span>
         </span>
-        <span className="flex items-center gap-1">
-          <Share2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="text-[11px] font-bold truncate text-foreground">{fmt(Number(video.shares || 0))}</span>
+        <span className="text-foreground font-semibold">
+          {timeAgo}
         </span>
-      </div>
-
-      {/* Caption — fixed height */}
-      <div className="px-3 pt-1.5 pb-0.5 h-[2.75rem]">
-        <p className="text-xs line-clamp-2 leading-relaxed text-foreground/80">
-          {caption || "Без описания"}
-        </p>
-      </div>
-
-      {/* Time ago — always show */}
-      <div className="px-3 pb-2">
-        <span className="text-[11px] text-muted-foreground">{timeAgo || " "}</span>
       </div>
 
       {/* Analyze button */}
       {showAnalyzeButton && onAnalyze && (
-        <div className="px-3 pb-3.5 mt-auto">
+        <div className="px-3 pb-3 mt-auto">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAnalyze(video);
-            }}
-            className="w-full py-2.5 rounded-[14px] text-sm font-bold tracking-wide transition-all active:scale-[0.97] bg-primary text-primary-foreground shadow-glow-primary"
+            onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
+            className="w-full py-2 rounded-xl text-[12.5px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1.5"
           >
-            Анализ видео
+            <Sparkles className="h-3.5 w-3.5 text-viral" />
+            ИИ-анализ
           </button>
         </div>
       )}

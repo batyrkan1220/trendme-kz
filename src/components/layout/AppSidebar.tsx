@@ -3,10 +3,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import {
-  LayoutDashboard, TrendingUp, Search,
-  Video, UserCircle, Heart, ScrollText,
-  ArrowRight, Shield,
-  LogOut, ChevronLeft, ChevronRight, CreditCard
+  TrendingUp, Search, Video, UserCircle, Heart,
+  Shield, Sparkles, ChevronsUpDown, CreditCard
 } from "lucide-react";
 import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 
@@ -15,17 +13,16 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   path: string;
   iconColor?: string;
-  badge?: string;
+  badge?: { text: string; tone: "viral" | "muted" };
 }
 
 const searchItems: NavItem[] = [
-  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
+  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500", badge: { text: "HOT", tone: "viral" } },
   { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
 ];
 
-const aiVideoItems: NavItem[] = [
+const toolItems: NavItem[] = [
   { label: "Анализ видео", icon: Video, path: "/video-analysis", iconColor: "text-orange-500" },
-  
   { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
 ];
 
@@ -35,122 +32,131 @@ const ideaItems: NavItem[] = [
 ];
 
 interface AppSidebarProps {
-  collapsed: boolean;
-  onToggle: () => void;
+  /** kept for layout-API compatibility — sidebar is no longer collapsible */
+  collapsed?: boolean;
+  onToggle?: () => void;
 }
 
-export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
+export function AppSidebar(_props: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user } = useAuth();
   const { isAdmin } = useAdmin();
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/auth");
+  const initial = (user?.email?.[0] || "U").toUpperCase();
+  const displayName = (user?.user_metadata as any)?.name || user?.email?.split("@")[0] || "Гость";
+
+  const renderItem = (item: NavItem) => {
+    const active = location.pathname === item.path;
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        className={cn(
+          "group flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] text-[13.5px] font-medium transition-all duration-150",
+          active
+            ? "bg-foreground text-background font-semibold shadow-soft"
+            : "text-foreground/70 hover:bg-muted hover:text-foreground"
+        )}
+      >
+        <item.icon
+          className={cn(
+            "h-[18px] w-[18px] shrink-0 transition-colors",
+            active ? "text-viral" : item.iconColor
+          )}
+        />
+        <span className="flex-1 truncate">{item.label}</span>
+        {item.badge && (
+          <span
+            className={cn(
+              "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+              item.badge.tone === "viral"
+                ? "bg-viral text-foreground"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {item.badge.text}
+          </span>
+        )}
+      </Link>
+    );
   };
 
   const renderGroup = (label: string, items: NavItem[]) => (
-    <div className="mb-2">
-      {!collapsed && <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider px-3 mb-1.5">{label}</p>}
-      <div className="space-y-0.5">
-        {items.map((item) => {
-          const active = location.pathname === item.path;
-          const disabled = item.path === "#";
-          return (
-            <Link
-              key={item.label}
-              to={disabled ? "#" : item.path}
-              onClick={disabled ? (e) => e.preventDefault() : undefined}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all duration-150 group relative",
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                  : "text-foreground/80 hover:bg-muted/50",
-                disabled && "opacity-60 cursor-default",
-                collapsed && "justify-center px-0"
-              )}
-            >
-              <item.icon className={cn("h-5 w-5 shrink-0", item.iconColor)} />
-              {!collapsed && (
-                <>
-                  <span className="flex-1">{item.label}</span>
-                  {item.badge && (
-                    <span className="text-[10px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                </>
-              )}
-            </Link>
-          );
-        })}
-      </div>
+    <div className="mb-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground px-3 mb-1.5">
+        {label}
+      </p>
+      <div className="space-y-0.5">{items.map(renderItem)}</div>
     </div>
   );
 
   return (
-    <aside
-      className={cn(
-        "h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 shrink-0 z-30",
-        collapsed ? "w-[64px]" : "w-[240px]"
-      )}
-    >
+    <aside className="h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border shrink-0 z-30 w-[240px]">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-16 border-b border-sidebar-border shrink-0">
-        {collapsed ? (
-          <span
-            className="inline-block rounded-full mx-auto"
-            style={{
-              width: 14,
-              height: 14,
-              background: "var(--gradient-brand)",
-              boxShadow: "0 0 0 4px hsl(var(--primary) / 0.12)",
-            }}
+        <TrendMeWordmark size="lg" />
+      </div>
+
+      {/* Quick search (visual only) */}
+      <div className="px-3 pt-3">
+        <div className="flex items-center gap-2 px-3 h-9 bg-muted rounded-lg">
+          <Search className="w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Быстрый поиск..."
+            onFocus={() => navigate("/search")}
+            className="flex-1 bg-transparent text-[13px] placeholder:text-muted-foreground focus:outline-none"
           />
-        ) : (
-          <TrendMeWordmark size="lg" />
-        )}
+          <span className="text-[10px] font-semibold text-muted-foreground bg-background border border-border rounded px-1.5 py-0.5">
+            ⌘K
+          </span>
+        </div>
       </div>
 
       {/* Main Nav */}
       <nav className="flex-1 py-3 px-2 overflow-y-auto">
         {renderGroup("Поиск контента", searchItems)}
-        {renderGroup("Инструменты", aiVideoItems)}
+        {renderGroup("Инструменты", toolItems)}
         {renderGroup("Идеи", ideaItems)}
         {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
       </nav>
 
-      {/* Bottom */}
-      <div className="border-t border-sidebar-border py-3 px-2 space-y-2 shrink-0">
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          title="Выйти"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 w-full transition-colors",
-            collapsed && "justify-center px-0"
-          )}
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>Выйти</span>}
-        </button>
+      {/* Upgrade card */}
+      <div className="px-3 pb-3">
+        <div className="relative overflow-hidden rounded-xl bg-foreground text-background p-4">
+          <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-viral/20 blur-2xl" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wide bg-viral text-foreground px-2 py-0.5 rounded-full">
+              <Sparkles className="h-2.5 w-2.5" />
+              PRO
+            </span>
+            <div className="text-[13px] font-semibold leading-tight mt-2">Безлимит на всё</div>
+            <div className="text-[11px] text-background/60 mt-1">150+ ниш, ИИ-сценарии, анализ</div>
+            <button
+              onClick={() => navigate("/subscription")}
+              className="mt-3 w-full py-2 rounded-lg bg-background text-foreground text-[12px] font-semibold hover:bg-muted transition"
+            >
+              Улучшить
+            </button>
+          </div>
+        </div>
+      </div>
 
-        {/* Collapse Toggle */}
+      {/* User pill */}
+      <div className="border-t border-sidebar-border px-3 py-3 shrink-0">
         <button
-          onClick={onToggle}
-          className={cn(
-            "flex items-center gap-3 px-3 py-1.5 rounded-xl text-xs text-muted-foreground/50 hover:text-foreground w-full transition-colors",
-            collapsed && "justify-center px-0"
-          )}
+          onClick={() => navigate("/subscription")}
+          className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-muted w-full text-left transition-colors"
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : (
-            <>
-              <ChevronLeft className="h-4 w-4" />
-              <span>Свернуть</span>
-            </>
-          )}
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center text-white font-bold text-[13px] shrink-0">
+            {initial}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-semibold truncate text-foreground">{displayName}</div>
+            <div className="text-[11px] text-muted-foreground truncate">{user?.email || "—"}</div>
+          </div>
+          <ChevronsUpDown className="w-4 h-4 text-muted-foreground/60 shrink-0" />
         </button>
       </div>
     </aside>
