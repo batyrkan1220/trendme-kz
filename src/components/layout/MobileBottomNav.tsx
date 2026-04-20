@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Flame, Search, Heart, ScanSearch, Video, UserSearch, ChevronUp } from "lucide-react";
+import { Flame, Search, Heart, ScanSearch, Video, UserSearch, ChevronUp, Menu } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 const mainNavItems = [
@@ -20,8 +20,8 @@ interface MobileBottomNavProps {
 }
 
 /**
- * Mobile bottom nav — full-width pill style, sidebar nav-item parity.
- * Active tab uses bg-foreground + text-background + viral icon (dashboard style).
+ * Mobile bottom nav — 5 кнопка: Тренды | Поиск | Анализ | Избранное | Меню
+ * "Меню" — толық drawer-ды ашады (Подписка, Выход, Удалить аккаунт т.б.)
  */
 export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: MobileBottomNavProps) {
   const location = useLocation();
@@ -73,7 +73,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
     <button
       onClick={onClick}
       className={cn(
-        "flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 rounded-[10px] font-semibold transition-all duration-150 press-feedback",
+        "flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 rounded-[10px] font-semibold transition-all duration-150 press-feedback",
         active
           ? "bg-foreground text-background"
           : "text-foreground/70 hover:bg-muted",
@@ -82,7 +82,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       <div className="relative">
         <Icon
           className={cn(
-            "h-[20px] w-[20px] shrink-0 transition-colors",
+            "h-[19px] w-[19px] shrink-0 transition-colors",
             active ? (iconAccent ? "text-viral" : "text-background") : "text-muted-foreground",
           )}
           strokeWidth={active ? 2.4 : 2}
@@ -97,7 +97,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           />
         )}
       </div>
-      <span className="truncate leading-none text-[10.5px] max-w-full">{label}</span>
+      <span className="truncate leading-none text-[10px] max-w-full">{label}</span>
     </button>
   );
 
@@ -153,7 +153,7 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
 
       {/* Bottom bar */}
       <div
-        className="px-1.5 pt-1.5 animate-bottom-nav-enter glass-strong"
+        className="px-1 pt-1.5 animate-bottom-nav-enter glass-strong"
         style={{
           paddingBottom: "max(6px, env(safe-area-inset-bottom, 0px))",
           borderTop: "1px solid hsl(var(--border))",
@@ -189,6 +189,17 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
             label="Избранное"
             active={location.pathname === "/library"}
             onClick={() => goTo("/library")}
+            iconAccent
+          />
+
+          <Item
+            icon={Menu}
+            label="Меню"
+            active={drawerOpen ?? false}
+            onClick={() => {
+              setShowToolsMenu(false);
+              onMenuOpen();
+            }}
             iconAccent
           />
         </div>
