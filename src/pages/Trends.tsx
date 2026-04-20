@@ -3,16 +3,18 @@ import { isNativePlatform } from "@/lib/native";
 import { useNavigate } from "react-router-dom";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
-
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp, WifiOff, Flame, Eye, Sparkles, Layers } from "lucide-react";
+import { TrendingUp, WifiOff, ChevronLeft } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { hapticLight, hapticMedium, hapticSuccess } from "@/lib/haptics";
-import { useOnlineStatus, saveTrendsCache, loadTrendsCache } from "@/hooks/useOfflineCache";
+import { hapticLight, hapticMedium } from "@/lib/haptics";
+import {
+  useOnlineStatus,
+  saveTrendsCache,
+  loadTrendsCache,
+} from "@/hooks/useOfflineCache";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
-import { TREND_CATEGORIES } from "@/config/trendCategories";
 import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
@@ -22,34 +24,56 @@ import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { ChevronLeft } from "lucide-react";
 
-
+/**
+ * /trends — simplified Light Premium page.
+ *
+ * Structure (top → bottom):
+ *   1. Header row     : title + period switcher (single line on desktop)
+ *   2. Inline stats   : "N видео · M вирусных · K ниш"  (no KPI card grid)
+ *   3. Niche filter   : pill chips (horizontal scroll)
+ *   4. Niche rows     : LazyNicheRow per group
+ *
+ * Drill-down: sticky clean header + sub-niche chips + grid.
+ */
 
 const PAGE_SIZE = 30;
 const EMPTY_ARR: any[] = [];
+const FREE_LIMIT = 5;
+
+const PERIOD_OPTIONS = [
+  { value: 3, label: "3 дня" },
+  { value: 7, label: "7 дней" },
+  { value: 14, label: "14 дней" },
+];
+const HEADER_PERIODS = [
+  { value: 1, label: "24ч" },
+  { value: 7, label: "7д" },
+  { value: 30, label: "30д" },
+];
 
 export default function Trends() {
-  // removed activeCategory state
+  /* ======================= state ======================= */
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [scriptVideo, setScriptVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
-  const [headerPeriod, setHeaderPeriod] = useState<number>(1); // 1 / 7 / 30 days
+  const [headerPeriod, setHeaderPeriod] = useState<number>(1);
   const [activeNicheFilter, setActiveNicheFilter] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const chipScrollRef = useRef<HTMLDivElement>(null);
+
   const { user } = useAuth();
   const { balance } = useTokens();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const isOnline = useOnlineStatus();
   const { isBlocked } = useBlockedUsers();
-  const FREE_LIMIT = 5;
 
+  /* ======================= subscription ======================= */
   const { data: userSub } = useQuery({
     queryKey: ["user-subscription", user?.id],
     queryFn: async () => {
@@ -65,16 +89,17 @@ export default function Trends() {
     },
     enabled: !!user,
   });
+  const isFreePlan = isNativePlatform
+    ? false
+    : !userSub || (userSub.plans as any)?.price_rub === 0;
 
-  const isFreePlan = isNativePlatform ? false : (!userSub || (userSub.plans as any)?.price_rub === 0);
-
+  /* ======================= all videos ======================= */
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
     queryKey: ["trends-all"],
     queryFn: async () => {
       const selectFields =
         "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
       const since = new Date(Date.now() - 2 * 86400000).toISOString();
-
       const { data: rows } = await supabase
         .from("videos")
         .select(selectFields)
@@ -88,18 +113,19 @@ export default function Trends() {
     enabled: isOnline,
   });
 
-  // Cache trends data when loaded, use cache when offline
+  /* ======================= offline cache ======================= */
   const cachedVideos = useMemo(() => loadTrendsCache(), []);
   useEffect(() => {
     if (allVideos.length > 0) saveTrendsCache(allVideos);
   }, [allVideos]);
-  const effectiveVideosRaw = isOnline && allVideos.length > 0 ? allVideos : (cachedVideos || allVideos);
+  const effectiveVideosRaw =
+    isOnline && allVideos.length > 0 ? allVideos : cachedVideos || allVideos;
+  const effectiveVideos = useMemo(
+    () => effectiveVideosRaw.filter((v: any) => !isBlocked(v.author_username)),
+    [effectiveVideosRaw, isBlocked]
+  );
 
-  // Filter out blocked authors
-  const effectiveVideos = useMemo(() => {
-    return effectiveVideosRaw.filter((v: any) => !isBlocked(v.author_username));
-  }, [effectiveVideosRaw, isBlocked]);
-
+  /* ======================= group by niche ======================= */
   const videosByNiche = useMemo(() => {
     const map: Record<string, any[]> = {};
     for (const v of effectiveVideos) {
@@ -110,18 +136,21 @@ export default function Trends() {
     return map;
   }, [effectiveVideos]);
 
-  const { favorites: localFavorites, toggleFavorite: toggleLocalFav } = useLocalFavorites();
-
+  /* ======================= favorites ======================= */
+  const { favorites: localFavorites, toggleFavorite: toggleLocalFav } =
+    useLocalFavorites();
   const { data: remoteFavorites = [] } = useQuery({
     queryKey: ["user-favorites", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("favorites").select("video_id").eq("user_id", user!.id);
+      const { data } = await supabase
+        .from("favorites")
+        .select("video_id")
+        .eq("user_id", user!.id);
       return data?.map((f) => f.video_id) || [];
     },
     enabled: !!user && !isNativePlatform,
     staleTime: 30_000,
   });
-
   const userFavorites = isNativePlatform ? localFavorites : remoteFavorites;
 
   const toggleFav = useCallback(
@@ -131,56 +160,52 @@ export default function Trends() {
         toggleLocalFav(videoId);
         return;
       }
-
       if (!user) {
-        console.warn("[Trends] toggleFav: No user, redirecting to auth");
         navigate("/auth");
         return;
       }
-      console.log("[Trends] toggleFav called:", { userId: user.id, videoId });
       const isFav = userFavorites.includes(videoId);
-
-      // Optimistic update — UI жедел жаңартылады
       queryClient.setQueryData(
         ["user-favorites", user.id],
-        isFav ? userFavorites.filter((id: string) => id !== videoId) : [...userFavorites, videoId]
+        isFav
+          ? userFavorites.filter((id: string) => id !== videoId)
+          : [...userFavorites, videoId]
       );
-
       try {
         if (isFav) {
-          const { error } = await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
-          console.log("[Trends] Delete favorite result:", { error });
+          await supabase
+            .from("favorites")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("video_id", videoId);
         } else {
-          const { data, error } = await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId }).select();
-          console.log("[Trends] Insert favorite result:", { data, error });
+          const { error } = await supabase
+            .from("favorites")
+            .insert({ user_id: user.id, video_id: videoId })
+            .select();
           if (!error) trackAddToFavorites(videoId);
         }
       } catch (err) {
-        console.error("[Trends] toggleFav error:", err);
+        console.error(err);
       }
       queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     },
-    [user, userFavorites, queryClient, isNativePlatform, toggleLocalFav]
+    [user, userFavorites, queryClient, toggleLocalFav, navigate]
   );
 
+  /* ======================= pull to refresh ======================= */
   const handleRefresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ["trends-all"] });
     await new Promise((r) => setTimeout(r, 500));
   }, [queryClient]);
+  const { containerRef, pullDistance, isRefreshing, progress } =
+    usePullToRefresh({ onRefresh: handleRefresh });
 
   const openAnalysis = useCallback((v: any) => setAnalysisVideo(v), []);
-  const openScript = useCallback((v: any) => {
-    setScriptVideo(v);
-  }, []);
-
-  const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
-    onRefresh: handleRefresh,
-  });
-
-  // Show all niches in one list
+  const openScript = useCallback((v: any) => setScriptVideo(v), []);
   const allGroups = NICHE_GROUPS;
 
-  // Fetch full niche data only when drilling down
+  /* ======================= drill-down ======================= */
   const { data: drillNicheVideos = [] } = useQuery<any[]>({
     queryKey: ["trends-niche", drillNiche, drillPeriod],
     queryFn: async () => {
@@ -213,15 +238,14 @@ export default function Trends() {
   const drillVideosFiltered = useMemo(() => {
     if (!drillNiche) return [];
     let vids = drillNicheVideos.filter((v: any) => !isBlocked(v.author_username));
-    if (drillSubNiche) {
-      vids = vids.filter((v: any) => v.sub_niche === drillSubNiche);
-    }
+    if (drillSubNiche) vids = vids.filter((v: any) => v.sub_niche === drillSubNiche);
     return vids.slice(0, visibleCount);
   }, [drillNiche, drillNicheVideos, drillSubNiche, visibleCount, isBlocked]);
 
   const drillTotalFiltered = useMemo(() => {
     if (!drillNiche) return 0;
-    if (drillSubNiche) return drillNicheVideos.filter((v: any) => v.sub_niche === drillSubNiche).length;
+    if (drillSubNiche)
+      return drillNicheVideos.filter((v: any) => v.sub_niche === drillSubNiche).length;
     return drillNicheVideos.length;
   }, [drillNiche, drillNicheVideos, drillSubNiche]);
 
@@ -230,32 +254,16 @@ export default function Trends() {
     [drillNiche]
   );
 
-  const PERIOD_OPTIONS = [
-    { value: 3, label: "3 дня" },
-    { value: 7, label: "7 дней" },
-    { value: 14, label: "14 дней" },
-  ];
-
-  const HEADER_PERIODS = [
-    { value: 1, label: "24ч" },
-    { value: 7, label: "7д" },
-    { value: 30, label: "30д" },
-  ];
-
-  // KPI metrics for header strip
-  const kpiStats = useMemo(() => {
+  /* ======================= inline stats (replaces KPI grid) ======================= */
+  const inlineStats = useMemo(() => {
     const since = Date.now() - headerPeriod * 86400000;
     const inWindow = effectiveVideos.filter(
       (v) => v.published_at && new Date(v.published_at).getTime() >= since
     );
     const totalVideos = inWindow.length;
     const viralCount = inWindow.filter((v) => (v.trend_score || 0) >= 70).length;
-    const avgViews =
-      inWindow.length > 0
-        ? Math.round(inWindow.reduce((s, v) => s + (Number(v.views) || 0), 0) / inWindow.length)
-        : 0;
     const activeNiches = new Set(inWindow.map((v) => v.niche).filter(Boolean)).size;
-    return { totalVideos, viralCount, avgViews, activeNiches };
+    return { totalVideos, viralCount, activeNiches };
   }, [effectiveVideos, headerPeriod]);
 
   const formatNum = (n: number) => {
@@ -265,7 +273,8 @@ export default function Trends() {
   };
 
   const filteredGroups = useMemo(
-    () => (activeNicheFilter ? allGroups.filter((g) => g.key === activeNicheFilter) : allGroups),
+    () =>
+      activeNicheFilter ? allGroups.filter((g) => g.key === activeNicheFilter) : allGroups,
     [allGroups, activeNicheFilter]
   );
 
@@ -280,11 +289,11 @@ export default function Trends() {
     setVisibleCount(PAGE_SIZE);
   }, []);
 
-  // Swipe between sub-niches
+  /* ======================= swipe between sub-niches ======================= */
   const swipeRef = useRef<{ startX: number; startY: number } | null>(null);
   const subNicheKeys = useMemo(() => {
     if (!drillGroup) return [];
-    return [null, ...drillGroup.subNiches.map(s => s.key)];
+    return [null, ...drillGroup.subNiches.map((s) => s.key)];
   }, [drillGroup]);
 
   const handleSwipeStart = useCallback((e: React.TouchEvent) => {
@@ -292,44 +301,57 @@ export default function Trends() {
     swipeRef.current = { startX: t.clientX, startY: t.clientY };
   }, []);
 
-  const handleSwipeEnd = useCallback((e: React.TouchEvent) => {
-    if (!swipeRef.current || subNicheKeys.length <= 1) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - swipeRef.current.startX;
-    const dy = t.clientY - swipeRef.current.startY;
-    swipeRef.current = null;
-    if (Math.abs(dx) < 80 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+  const handleSwipeEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!swipeRef.current || subNicheKeys.length <= 1) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - swipeRef.current.startX;
+      const dy = t.clientY - swipeRef.current.startY;
+      swipeRef.current = null;
+      if (Math.abs(dx) < 80 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+      const currentIdx = subNicheKeys.indexOf(drillSubNiche);
+      let nextIdx: number;
+      if (dx < 0) {
+        nextIdx = currentIdx + 1 >= subNicheKeys.length ? 0 : currentIdx + 1;
+        setSlideDir("left");
+      } else {
+        nextIdx = currentIdx - 1 < 0 ? subNicheKeys.length - 1 : currentIdx - 1;
+        setSlideDir("right");
+      }
+      setDrillSubNiche(subNicheKeys[nextIdx]);
+      setVisibleCount(PAGE_SIZE);
+      hapticMedium();
+      setTimeout(() => setSlideDir(null), 300);
+      setTimeout(() => {
+        const el = chipScrollRef.current?.querySelector(
+          '[data-active="true"]'
+        ) as HTMLElement;
+        el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }, 50);
+    },
+    [drillSubNiche, subNicheKeys]
+  );
 
-    const currentIdx = subNicheKeys.indexOf(drillSubNiche);
-    let nextIdx: number;
-    if (dx < 0) {
-      nextIdx = currentIdx + 1 >= subNicheKeys.length ? 0 : currentIdx + 1;
-      setSlideDir("left");
-    } else {
-      nextIdx = currentIdx - 1 < 0 ? subNicheKeys.length - 1 : currentIdx - 1;
-      setSlideDir("right");
-    }
-    setDrillSubNiche(subNicheKeys[nextIdx]);
-    setVisibleCount(PAGE_SIZE);
-    hapticMedium();
-    // Clear direction after animation
-    setTimeout(() => setSlideDir(null), 300);
-    // Auto-scroll active chip into view
-    setTimeout(() => {
-      const el = chipScrollRef.current?.querySelector('[data-active="true"]') as HTMLElement;
-      el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    }, 50);
-  }, [drillSubNiche, subNicheKeys]);
+  /* ======================= shared styles ======================= */
+  // Compact, quiet chips — less visual noise than before
+  const chipBase =
+    "shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-[12.5px] font-medium transition-colors whitespace-nowrap";
+  const chipInactive =
+    "bg-transparent text-foreground/60 hover:bg-foreground/[0.04] hover:text-foreground";
+  const chipActive = "bg-foreground text-background";
 
+  // Segmented control button (period switcher)
+  const segBase =
+    "px-3 h-7 rounded-md text-[12px] font-semibold transition-colors";
+  const segActive = "bg-foreground text-background";
+  const segInactive = "text-foreground/55 hover:text-foreground";
+
+  /* ======================= render ======================= */
   return (
     <AppLayout>
       <div
         ref={containerRef}
-        className={cn(
-          "overflow-x-hidden overflow-y-auto h-full text-foreground relative",
-          drillNiche ? "bg-background" : "bg-background-subtle"
-        )}
-        style={{ paddingTop: drillNiche ? "0px" : "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+        className="overflow-x-hidden overflow-y-auto h-full text-foreground relative bg-background"
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
@@ -339,109 +361,120 @@ export default function Trends() {
 
         {/* Offline banner */}
         {!isOnline && (
-          <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-warning/10 border border-warning/30 flex items-center gap-2 text-warning text-xs">
+          <div className="mx-4 md:mx-6 lg:mx-8 mt-4 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100 flex items-center gap-2 text-amber-700 text-[12.5px]">
             <WifiOff className="h-3.5 w-3.5 shrink-0" />
             <span>Офлайн режим — кэштелген деректер көрсетілуде</span>
           </div>
         )}
 
-        <div className="space-y-4 pb-4">
-          {/* Drill-down mode */}
+        <div className="pb-10">
+          {/* =================== DRILL-DOWN =================== */}
           {drillNiche && drillGroup ? (
             <>
-              {/* Sticky header — lux glass */}
+              {/* Sticky drill header */}
               <div
-                className="sticky top-0 z-30 pb-3 px-4 md:px-6 lg:px-8 space-y-3 border-b border-border/60"
+                className="sticky top-0 z-30 px-4 md:px-6 lg:px-8 pb-3 border-b border-border/60"
                 style={{
-                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)",
-                  background: "hsl(var(--background) / 0.7)",
-                  backdropFilter: "blur(24px)",
-                  WebkitBackdropFilter: "blur(24px)",
+                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)",
+                  background: "hsl(var(--background) / 0.85)",
+                  backdropFilter: "blur(20px) saturate(1.2)",
+                  WebkitBackdropFilter: "blur(20px) saturate(1.2)",
                 }}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mb-3">
                   <button
                     onClick={handleBack}
-                    className="h-10 w-10 rounded-full bg-card/70 backdrop-blur-md hover:bg-muted border border-border/60 flex items-center justify-center transition-all active:scale-90 shrink-0"
+                    className="h-8 w-8 rounded-full border border-border bg-background hover:bg-foreground/[0.04] flex items-center justify-center transition-colors active:scale-95 shrink-0"
+                    aria-label="Назад"
                   >
-                    <ChevronLeft className="h-4 w-4 text-foreground" />
+                    <ChevronLeft className="h-4 w-4 text-foreground/70" strokeWidth={2} />
                   </button>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Ниша</p>
-                    <h1 className="text-lg md:text-xl font-bold text-foreground truncate tracking-tight">
-                      {drillGroup.emoji} {drillGroup.label}
-                    </h1>
-                  </div>
+                  <h1 className="text-[18px] md:text-[20px] font-semibold text-foreground truncate tracking-tight">
+                    {drillGroup.emoji} {drillGroup.label}
+                  </h1>
+                  <span className="text-[12.5px] text-foreground/50 tabular-nums ml-auto">
+                    {drillTotalFiltered} видео
+                  </span>
                 </div>
 
-                {/* Period chips — lux glass */}
-                <div className="flex items-center gap-2 text-xs">
+                {/* Period chips */}
+                <div className="flex items-center gap-1 mb-2">
                   {PERIOD_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
-                      onClick={() => { setDrillPeriod(opt.value); setVisibleCount(PAGE_SIZE); hapticLight(); }}
+                      onClick={() => {
+                        setDrillPeriod(opt.value);
+                        setVisibleCount(PAGE_SIZE);
+                        hapticLight();
+                      }}
                       className={cn(
-                        "shrink-0 px-3 py-1.5 rounded-full font-bold transition-all active:scale-95",
-                        drillPeriod === opt.value
-                          ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
-                          : "bg-card/70 backdrop-blur-md text-muted-foreground border border-border/60 hover:bg-muted hover:text-foreground"
+                        chipBase,
+                        drillPeriod === opt.value ? chipActive : chipInactive
                       )}
                     >
                       {opt.label}
                     </button>
                   ))}
-                  <span className="text-muted-foreground ml-1 font-medium tabular-nums">· {drillTotalFiltered} видео</span>
                 </div>
 
-                {/* Sub-niche chips — lux glass */}
+                {/* Sub-niche chips */}
                 {drillGroup.subNiches.length > 0 && (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-primary uppercase tracking-[0.16em]">Под-темы</span>
-                      <div className="h-px flex-1 bg-border/60" />
-                    </div>
-                    <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-                      <button
-                        data-active={!drillSubNiche ? "true" : undefined}
-                        onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); hapticLight(); }}
-                        className={cn(
-                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95",
-                          !drillSubNiche
-                            ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
-                            : "bg-card/70 backdrop-blur-md text-foreground/70 border border-border/60 hover:bg-muted hover:text-foreground"
-                        )}
-                      >
-                        Все
-                      </button>
-                      {drillGroup.subNiches.map((sub) => {
-                        const count = drillNicheVideos.filter((v: any) => v.sub_niche === sub.key).length;
-                        return (
-                          <button
-                            key={sub.key}
-                            data-active={drillSubNiche === sub.key ? "true" : undefined}
-                            onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); hapticLight(); }}
-                            className={cn(
-                              "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap active:scale-95",
-                              drillSubNiche === sub.key
-                                ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
-                                : "bg-card/70 backdrop-blur-md text-foreground/70 border border-border/60 hover:bg-muted hover:text-foreground"
-                            )}
-                          >
-                            {sub.label}{count > 0 && <span className="ml-1 opacity-60 tabular-nums">{count}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  <div
+                    ref={chipScrollRef}
+                    className="flex items-center gap-1 overflow-x-auto scrollbar-hide -mx-1 px-1"
+                  >
+                    <button
+                      data-active={!drillSubNiche ? "true" : undefined}
+                      onClick={() => {
+                        setDrillSubNiche(null);
+                        setVisibleCount(PAGE_SIZE);
+                        hapticLight();
+                      }}
+                      className={cn(chipBase, !drillSubNiche ? chipActive : chipInactive)}
+                    >
+                      Все
+                    </button>
+                    {drillGroup.subNiches.map((sub) => {
+                      const count = drillNicheVideos.filter(
+                        (v: any) => v.sub_niche === sub.key
+                      ).length;
+                      const active = drillSubNiche === sub.key;
+                      return (
+                        <button
+                          key={sub.key}
+                          data-active={active ? "true" : undefined}
+                          onClick={() => {
+                            setDrillSubNiche(active ? null : sub.key);
+                            setVisibleCount(PAGE_SIZE);
+                            hapticLight();
+                          }}
+                          className={cn(chipBase, active ? chipActive : chipInactive)}
+                        >
+                          <span>{sub.label}</span>
+                          {count > 0 && (
+                            <span
+                              className={cn(
+                                "text-[10.5px] font-semibold tabular-nums",
+                                active ? "text-background/70" : "text-foreground/40"
+                              )}
+                            >
+                              {count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
+              {/* Drill grid */}
               <div
                 key={drillSubNiche ?? "__all"}
                 className={cn(
                   "p-4 md:p-6 lg:p-8",
                   slideDir === "left" && "animate-slide-in-from-right",
-                  slideDir === "right" && "animate-slide-in-from-left",
+                  slideDir === "right" && "animate-slide-in-from-left"
                 )}
                 onTouchStart={handleSwipeStart}
                 onTouchEnd={handleSwipeEnd}
@@ -463,115 +496,70 @@ export default function Trends() {
             </>
           ) : (
             <>
-              {/* Page header — lux: eyebrow + h1 + KPI + niche tabs */}
-              <div className="px-4 md:px-6 lg:px-8 space-y-5">
-                <div className="space-y-1.5">
-                  <div className="flex items-end justify-between gap-4 flex-wrap">
-                    <div className="space-y-1">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
-                        Тренды
-                      </p>
-                      <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                        Тренды TikTok 🔥
-                      </h1>
-                      <p className="text-[13px] md:text-sm text-muted-foreground">
-                        Лучшее за последние 24 часа в твоей нише
-                      </p>
-                    </div>
-                    {/* Period switcher — lux glass */}
-                    <div
-                      className="inline-flex items-center gap-0.5 p-1 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-soft"
-                      style={{ boxShadow: "0 1px 0 0 hsl(0 0% 100% / 0.04) inset, 0 4px 16px -8px rgba(0,0,0,0.3)" }}
-                    >
-                      {HEADER_PERIODS.map((p) => (
-                        <button
-                          key={p.value}
-                          onClick={() => { setHeaderPeriod(p.value); hapticLight(); }}
-                          className={cn(
-                            "px-3.5 py-1.5 rounded-xl text-[12px] font-bold transition-all active:scale-95",
-                            headerPeriod === p.value
-                              ? "bg-foreground text-background shadow-soft"
-                              : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
+              {/* =================== MAIN VIEW =================== */}
+
+              {/* Header — single clean row (title + period) */}
+              <div
+                className="px-4 md:px-6 lg:px-8 pt-6 md:pt-8"
+                style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 24px)" }}
+              >
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <h1 className="text-[24px] md:text-[28px] font-semibold tracking-tight text-foreground">
+                      Тренды
+                    </h1>
+                    <span className="relative flex h-1.5 w-1.5 mt-1">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                  </div>
+
+                  {/* Period segmented control */}
+                  <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-background-muted">
+                    {HEADER_PERIODS.map((p) => (
+                      <button
+                        key={p.value}
+                        onClick={() => {
+                          setHeaderPeriod(p.value);
+                          hapticLight();
+                        }}
+                        className={cn(
+                          segBase,
+                          headerPeriod === p.value ? segActive : segInactive
+                        )}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* KPI strip — lux glass cards with viral accent on Вирусных */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-                  {[
-                    {
-                      label: "Всего видео",
-                      value: formatNum(kpiStats.totalVideos),
-                      icon: Layers,
-                      iconBg: "bg-primary/15 text-primary ring-1 ring-primary/25",
-                      glow: "0 8px 24px -12px hsl(var(--primary) / 0.25)",
-                      accent: false,
-                    },
-                    {
-                      label: "Вирусных",
-                      value: formatNum(kpiStats.viralCount),
-                      icon: Flame,
-                      iconBg: "bg-viral/20 text-foreground ring-1 ring-viral/40",
-                      glow: "0 8px 24px -10px hsl(var(--viral) / 0.45)",
-                      accent: true,
-                    },
-                    {
-                      label: "Средний охват",
-                      value: formatNum(kpiStats.avgViews),
-                      icon: Eye,
-                      iconBg: "bg-blue-500/15 text-blue-500 ring-1 ring-blue-500/25",
-                      glow: "0 8px 24px -12px hsl(217 91% 60% / 0.25)",
-                      accent: false,
-                    },
-                    {
-                      label: "Активных ниш",
-                      value: String(kpiStats.activeNiches),
-                      icon: Sparkles,
-                      iconBg: "bg-violet-500/15 text-violet-500 ring-1 ring-violet-500/25",
-                      glow: "0 8px 24px -12px hsl(262 83% 60% / 0.25)",
-                      accent: false,
-                    },
-                  ].map((kpi) => (
-                    <div
-                      key={kpi.label}
-                      className={cn(
-                        "rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 p-3.5 flex items-center gap-3 transition-all hover:-translate-y-0.5 hover:border-border",
-                        kpi.accent && "ring-1 ring-viral/20"
-                      )}
-                      style={{
-                        boxShadow: `0 1px 0 0 hsl(0 0% 100% / 0.04) inset, ${kpi.glow}`,
-                      }}
-                    >
-                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", kpi.iconBg)}>
-                        <kpi.icon className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.08em] truncate">
-                          {kpi.label}
-                        </div>
-                        <div className="text-lg md:text-xl font-bold text-foreground leading-tight tabular-nums">
-                          {kpi.value}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {/* Inline stats — one subtle line, replaces 4 KPI cards */}
+                <p className="mt-2 text-[13.5px] text-foreground/55">
+                  <span className="tabular-nums font-medium text-foreground/80">
+                    {formatNum(inlineStats.totalVideos)}
+                  </span>{" "}
+                  видео
+                  <span className="mx-2 text-foreground/25">·</span>
+                  <span className="tabular-nums font-medium text-foreground/80">
+                    {formatNum(inlineStats.viralCount)}
+                  </span>{" "}
+                  вирусных
+                  <span className="mx-2 text-foreground/25">·</span>
+                  <span className="tabular-nums font-medium text-foreground/80">
+                    {inlineStats.activeNiches}
+                  </span>{" "}
+                  ниш
+                </p>
 
-                {/* Niche pill-tabs — lux glass chips */}
-                <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+                {/* Niche filter chips */}
+                <div className="mt-5 flex items-center gap-1 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
                   <button
-                    onClick={() => { setActiveNicheFilter(null); hapticLight(); }}
-                    className={cn(
-                      "shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold transition-all whitespace-nowrap active:scale-95",
-                      !activeNicheFilter
-                        ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
-                        : "bg-card/70 backdrop-blur-md text-foreground/70 border border-border/60 hover:bg-muted hover:text-foreground"
-                    )}
+                    onClick={() => {
+                      setActiveNicheFilter(null);
+                      hapticLight();
+                    }}
+                    className={cn(chipBase, !activeNicheFilter ? chipActive : chipInactive)}
                   >
                     Все
                   </button>
@@ -581,21 +569,19 @@ export default function Trends() {
                     return (
                       <button
                         key={g.key}
-                        onClick={() => { setActiveNicheFilter(active ? null : g.key); hapticLight(); }}
-                        className={cn(
-                          "shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold transition-all whitespace-nowrap flex items-center gap-1.5 active:scale-95",
-                          active
-                            ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
-                            : "bg-card/70 backdrop-blur-md text-foreground/70 border border-border/60 hover:bg-muted hover:text-foreground"
-                        )}
+                        onClick={() => {
+                          setActiveNicheFilter(active ? null : g.key);
+                          hapticLight();
+                        }}
+                        className={cn(chipBase, active ? chipActive : chipInactive)}
                       >
                         <span>{g.emoji}</span>
                         <span>{g.label}</span>
                         {count > 0 && (
                           <span
                             className={cn(
-                              "text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums",
-                              active ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
+                              "text-[10.5px] font-semibold tabular-nums",
+                              active ? "text-background/70" : "text-foreground/40"
                             )}
                           >
                             {count}
@@ -607,22 +593,26 @@ export default function Trends() {
                 </div>
               </div>
 
-              {/* Content rows */}
-              <div className="px-4 md:px-6 lg:px-8 space-y-6 pt-2">
+              {/* Separator — subtle */}
+              <div className="mx-4 md:mx-6 lg:mx-8 mt-6 border-t border-border/60" />
+
+              {/* Niche rows */}
+              <div className="px-4 md:px-6 lg:px-8 mt-6 space-y-10">
                 {isLoading ? (
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="space-y-2">
-                        <div className="h-5 bg-background-muted rounded w-32 animate-pulse" />
+                      <div key={i} className="space-y-3">
+                        <div className="h-4 bg-background-muted rounded w-28 animate-pulse" />
                         <div className="flex gap-3">
                           {Array.from({ length: 3 }).map((_, j) => (
                             <div
                               key={j}
-                              className="shrink-0 rounded-2xl overflow-hidden animate-pulse bg-card border border-border"
-                              style={{ width: "min(44vw, 200px)" }}
-                            >
-                              <div className="aspect-[9/16] bg-background-muted m-1.5 rounded-xl" />
-                            </div>
+                              className="shrink-0 rounded-xl bg-background-muted animate-pulse"
+                              style={{
+                                width: "min(44vw, 200px)",
+                                aspectRatio: "9/16",
+                              }}
+                            />
                           ))}
                         </div>
                       </div>
@@ -644,14 +634,19 @@ export default function Trends() {
                         onViewAll={handleViewAll}
                       />
                     ))}
-
-                    {filteredGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
-                      <div className="text-center py-20">
-                        <div className="h-20 w-20 rounded-full bg-background-muted flex items-center justify-center mx-auto mb-4">
-                          <TrendingUp className="h-10 w-10 text-muted-foreground/40" />
+                    {filteredGroups.every((g) => !videosByNiche[g.key]?.length) && (
+                      <div className="text-center py-24">
+                        <div className="h-14 w-14 rounded-full bg-background-muted flex items-center justify-center mx-auto mb-4">
+                          <TrendingUp
+                            className="h-6 w-6 text-foreground/40"
+                            strokeWidth={1.8}
+                          />
                         </div>
-                        <p className="text-muted-foreground font-medium">
+                        <p className="text-foreground/70 font-medium text-[14px]">
                           Нет трендовых видео
+                        </p>
+                        <p className="text-[13px] text-foreground/45 mt-1">
+                          Попробуйте сменить нишу или период
                         </p>
                       </div>
                     )}
@@ -670,7 +665,6 @@ export default function Trends() {
           if (!open) setAnalysisVideo(null);
         }}
       />
-
       <ScriptOnlyDialog
         video={scriptVideo}
         open={!!scriptVideo}
