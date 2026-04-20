@@ -83,7 +83,7 @@ export default function Pricing() {
         <div className="max-w-6xl mx-auto px-5 md:px-6">
           {/* Header — landing style */}
           <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
-            <span className="eyebrow">Тарифы</span>
+            <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-foreground bg-viral px-3 py-1 rounded-full">Тарифы</span>
             <h1 className="mt-3 text-[clamp(1.75rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
               Простые тарифы для любого масштаба
             </h1>
