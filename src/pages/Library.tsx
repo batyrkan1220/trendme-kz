@@ -156,6 +156,11 @@ export default function Library() {
           </div>
         )}
       </div>
+      <ScriptOnlyDialog
+        video={scriptVideo as any}
+        open={!!scriptVideo}
+        onOpenChange={(open) => { if (!open) setScriptVideo(null); }}
+      />
     </AppLayout>
   );
 }
