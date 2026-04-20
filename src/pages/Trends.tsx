@@ -601,7 +601,7 @@ export default function Trends() {
                   </div>
                 ) : (
                   <>
-                    {allGroups.map((group) => (
+                    {filteredGroups.map((group) => (
                       <LazyNicheRow
                         key={group.key}
                         group={group}
@@ -616,7 +616,7 @@ export default function Trends() {
                       />
                     ))}
 
-                    {allGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
+                    {filteredGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
                       <div className="text-center py-20">
                         <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
                           <TrendingUp className="h-10 w-10 text-white/20" />
