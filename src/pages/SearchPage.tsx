@@ -12,7 +12,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
-import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
 import { cn } from "@/lib/utils";
 
 const SUGGESTED_KEYWORDS = ["мотивация", "юмор", "лайфхаки", "рецепты", "тренировки", "путешествия"];
@@ -21,7 +20,6 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
-  const [scriptVideo, setScriptVideo] = useState<any>(null);
   const [inputFocused, setInputFocused] = useState(false);
 
   const { user } = useAuth();
@@ -438,10 +436,9 @@ export default function SearchPage() {
                             isFavorite={userFavorites.includes(video.id)}
                             onToggleFav={toggleFav}
                             onAnalyze={(v) => setAnalysisVideo(video)}
-                            onScript={(v) => setScriptVideo(video)}
                             showTier={true}
                             showAuthor={true}
-                            showScriptButton={true}
+                            showAnalyzeButton={true}
                           />
                         </div>
                       );
@@ -456,13 +453,6 @@ export default function SearchPage() {
             open={!!analysisVideo}
             onOpenChange={(open) => {
               if (!open) setAnalysisVideo(null);
-            }}
-          />
-          <ScriptOnlyDialog
-            video={scriptVideo}
-            open={!!scriptVideo}
-            onOpenChange={(open) => {
-              if (!open) setScriptVideo(null);
             }}
           />
         </>
