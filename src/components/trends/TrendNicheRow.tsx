@@ -34,28 +34,34 @@ function TrendNicheRowImpl({
 
   return (
     <section className="space-y-2">
-      {/* Section header — light premium */}
-      <div className="sticky z-20 -mx-4 px-4 py-2.5 glass border-b border-border" style={{ top: "0px" }}>
+      <div
+        className="sticky z-20 -mx-4 px-4 py-2.5"
+        style={{
+          top: "0px",
+          background: "rgba(10,10,10,0.55)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
         <div className="flex items-center justify-between">
           <h2 className="text-[15px] font-extrabold tracking-tight text-foreground">
             {group.label} {group.emoji}
           </h2>
           <button
             onClick={() => onViewAll(group.key)}
-            className="flex items-center gap-0.5 text-[13px] font-bold text-primary hover:text-primary-hover transition-colors active:scale-95"
+            className="flex items-center gap-0.5 text-[13px] font-bold text-primary hover:text-primary transition-colors active:scale-95"
           >
             Все
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-        {/* Sub-niche preview chips */}
         {group.subNiches.length > 0 && (
           <div className="flex items-center gap-1.5 mt-1.5 overflow-x-auto scrollbar-hide">
             {group.subNiches.slice(0, 4).map((sub) => (
               <button
                 key={sub.key}
                 onClick={() => onViewAll(group.key, sub.key)}
-                className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-background-muted text-muted-foreground border border-border hover:bg-muted hover:text-foreground active:scale-95 transition-all"
+                className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-card/70 text-muted-foreground border border-border/60 hover:bg-muted hover:text-foreground active:scale-95 transition-all"
               >
                 {sub.label}
               </button>
@@ -72,7 +78,6 @@ function TrendNicheRowImpl({
         )}
       </div>
 
-      {/* Horizontal scroll */}
       <div
         ref={scrollRef}
         className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide"
@@ -81,7 +86,8 @@ function TrendNicheRowImpl({
         {videos.slice(0, 6).map((video) => (
           <div
             key={video.id}
-            className="shrink-0 w-[46vw] min-w-[176px] max-w-[240px] sm:w-[220px] md:w-[232px] lg:w-[240px]"
+            className="shrink-0"
+            style={{ width: "40vw", maxWidth: "200px" }}
           >
             <MemoVideoCard
               video={video}

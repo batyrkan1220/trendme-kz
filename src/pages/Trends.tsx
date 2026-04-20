@@ -548,7 +548,7 @@ export default function Trends() {
                         : "bg-card text-foreground/70 border-border hover:bg-muted"
                     )}
                   >
-                    🌍 Все
+                    Все
                   </button>
                   {allGroups.map((g) => {
                     const count = (videosByNiche[g.key] || []).length;
