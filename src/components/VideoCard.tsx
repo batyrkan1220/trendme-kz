@@ -472,9 +472,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
             {/* TikTok header bar - OUTSIDE of cover click area */}
             <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-1.5 z-20">
-              <div className={`flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm ${darkMode ? "bg-neon/90" : "bg-white/90"}`}>
-                <Music className={`h-2.5 w-2.5 ${darkMode ? "text-black" : "text-foreground"}`} />
-                <span className={`text-[9px] font-bold ${darkMode ? "text-black" : "text-foreground"}`}>Tik-Tok</span>
+              <div className="flex items-center gap-1 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm bg-white/90">
+                <Music className="h-2.5 w-2.5 text-foreground" />
+                <span className="text-[9px] font-bold text-foreground">Tik-Tok</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
@@ -482,23 +482,19 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   onTouchEnd={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log("[VideoCard] Heart touchend fired for:", video.id);
                     onToggleFav(video.id);
                   }}
                   onClick={(e) => { 
                     e.preventDefault(); 
                     e.stopPropagation(); 
-                    console.log("[VideoCard] Heart click fired for:", video.id);
                     onToggleFav(video.id);
                   }}
-                  className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 ${darkMode ? "bg-black/60" : "bg-black/60"}`}
+                  className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform border border-white/20 bg-black/60"
                   style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 >
                   <Heart
                     className={`h-4 w-4 transition-all ${
-                      isFavorite
-                        ? darkMode ? "text-neon fill-neon" : "text-primary fill-primary"
-                        : "text-white"
+                      isFavorite ? "text-primary fill-primary" : "text-white"
                     }`}
                   />
                 </button>
