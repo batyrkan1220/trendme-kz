@@ -30,16 +30,16 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   path: string;
   iconColor?: string;
+  badge?: { text: string; tone: "viral" | "muted" };
 }
 
 const searchItems: NavItem[] = [
-  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
+  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500", badge: { text: "HOT", tone: "viral" } },
   { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
 ];
 
 const toolItems: NavItem[] = [
   { label: "Анализ видео", icon: Video, path: "/video-analysis", iconColor: "text-orange-500" },
-  
   { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
 ];
 
