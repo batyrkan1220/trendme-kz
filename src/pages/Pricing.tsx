@@ -194,10 +194,16 @@ export default function Pricing() {
                       </button>
                     ) : (
                       <button
-                        disabled
-                        className="mt-6 inline-flex w-full justify-center items-center py-3 rounded-xl text-[14px] font-semibold bg-muted text-muted-foreground cursor-default"
+                        disabled={isActive}
+                        onClick={() => { if (!isActive) handlePayment(plan.id); }}
+                        className={cn(
+                          "mt-6 inline-flex w-full justify-center items-center py-3 rounded-xl text-[14px] font-semibold transition disabled:cursor-default",
+                          isActive
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-foreground text-background hover:bg-foreground/90"
+                        )}
                       >
-                        {isActive ? "Активен ✓" : "Текущий план"}
+                        {isActive ? "Активен ✓" : "Выбрать"}
                       </button>
                     )}
 
