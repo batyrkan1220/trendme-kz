@@ -467,17 +467,29 @@ export function FullscreenVideoPlayer({
               </p>
             )}
 
-            {/* Action button — Script (lux) */}
-            {onScript && (
-              <div className="mt-3">
-                <button
-                  onClick={(e) => { e.stopPropagation(); onScript(video); onClose(); }}
-                  className="w-full flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[14px] font-bold tracking-wide bg-viral text-foreground active:scale-[0.97] transition-transform ring-1 ring-white/20"
-                  style={{ boxShadow: "0 6px 24px -4px hsl(var(--viral) / 0.5), 0 0 16px -4px hsl(var(--viral) / 0.4)" }}
-                >
-                  <FileText className="h-4 w-4" />
-                  Создать сценарий
-                </button>
+            {/* Action buttons — Анализ + Сценарий (lux) */}
+            {(onAnalyze || onScript) && (
+              <div className={`mt-3 grid gap-2 ${onAnalyze && onScript ? "grid-cols-2" : "grid-cols-1"}`}>
+                {onAnalyze && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onAnalyze(video); onClose(); }}
+                    className="group/btn relative flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-white/12 backdrop-blur-2xl text-white ring-1 ring-white/25 active:scale-[0.97] transition-all hover:bg-white/20"
+                    style={{ boxShadow: "0 6px 24px -6px rgba(0,0,0,0.5)" }}
+                  >
+                    <Sparkles className="h-4 w-4 text-viral transition-transform group-hover/btn:rotate-12" />
+                    Анализ
+                  </button>
+                )}
+                {onScript && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onScript(video); onClose(); }}
+                    className="group/btn relative flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-viral text-foreground active:scale-[0.97] transition-all ring-1 ring-white/30 hover:brightness-110"
+                    style={{ boxShadow: "0 8px 28px -6px hsl(var(--viral) / 0.6), 0 0 20px -4px hsl(var(--viral) / 0.5)" }}
+                  >
+                    <FileText className="h-4 w-4 transition-transform group-hover/btn:rotate-[-6deg]" />
+                    Сценарий
+                  </button>
+                )}
               </div>
             )}
           </div>
