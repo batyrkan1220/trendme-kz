@@ -21,6 +21,7 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const [scriptVideo, setScriptVideo] = useState<any>(null);
   const [inputFocused, setInputFocused] = useState(false);
 
   const { user } = useAuth();
