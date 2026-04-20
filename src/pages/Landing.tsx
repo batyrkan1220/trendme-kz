@@ -30,7 +30,7 @@ function LandingNav() {
     <header className={`fixed top-0 inset-x-0 z-50 transition-all ${
       scrolled ? "glass border-b border-border" : "bg-transparent"
     }`}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center">
           <TrendMeWordmark size="lg" />
         </Link>
@@ -43,16 +43,17 @@ function LandingNav() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2">
           <Link to="/auth" className="hidden sm:inline-flex px-3 py-2 rounded-lg text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition">
             Войти
           </Link>
           <Link
             to="/auth"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-1 md:gap-1.5 px-3 md:px-4 py-2 rounded-lg text-[13px] md:text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap"
           >
-            Начать бесплатно
-            <ArrowRight className="w-4 h-4" />
+            <span className="hidden sm:inline">Начать бесплатно</span>
+            <span className="sm:hidden">Войти</span>
+            <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </Link>
           <button
             onClick={() => setOpen(!open)}
@@ -101,50 +102,52 @@ function Pill({ children, className = "" }: { children: React.ReactNode; classNa
 /* ───────── HERO ───────── */
 function Hero() {
   return (
-    <section className="relative pt-32 pb-24 overflow-hidden gradient-mesh">
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-[1.15fr,1fr] gap-16 items-center">
-        <div className="animate-fade-in">
-          <Pill className="bg-viral-soft text-foreground border border-viral/40 mb-6">
+    <section className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden gradient-mesh">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 grid lg:grid-cols-[1.15fr,1fr] gap-10 lg:gap-16 items-center">
+        <div className="animate-fade-in text-center lg:text-left">
+          <Pill className="bg-viral-soft text-foreground border border-viral/40 mb-5 md:mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-viral animate-pulse" />
-            Новое · ИИ-сценарии для TikTok
+            <span className="hidden sm:inline">Новое · ИИ-сценарии для TikTok</span>
+            <span className="sm:hidden">ИИ-сценарии</span>
           </Pill>
 
-          <h1 className="text-[clamp(2.5rem,5.5vw,4.5rem)] font-bold leading-[1.02] tracking-tight text-foreground">
+          <h1 className="text-[clamp(2rem,8vw,4.5rem)] font-bold leading-[1.05] tracking-tight text-foreground">
             Находите <span className="gradient-text">вирусные тренды</span>
-            <br />раньше конкурентов
+            <br className="hidden sm:block" />
+            <span className="sm:inline"> раньше конкурентов</span>
           </h1>
 
-          <p className="mt-6 text-[18px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[560px]">
+          <p className="mt-5 md:mt-6 text-[15px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[560px] mx-auto lg:mx-0">
             Платформа для мониторинга TikTok-трендов, разведки конкурентов и генерации ИИ-сценариев.{" "}
             <span className="text-foreground font-medium">5M+ видео</span>,{" "}
             <span className="text-foreground font-medium">150+ ниш</span>, обновление в реальном времени.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-7 md:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center lg:justify-start gap-3">
             <Link
               to="/auth"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
             >
               Попробовать бесплатно
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
               href="#product"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold text-foreground border border-border bg-background hover:bg-muted transition"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold text-foreground border border-border bg-background hover:bg-muted transition"
             >
               <Play className="w-4 h-4" />
               Смотреть демо · 2 мин
             </a>
           </div>
 
-          <div className="mt-10 flex items-center gap-4 text-[13px] text-muted-foreground">
+          <div className="mt-8 md:mt-10 flex items-center justify-center lg:justify-start gap-4 text-[13px] text-muted-foreground">
             <div className="flex -space-x-2">
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-pink-400 to-orange-400" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-purple-400 to-blue-500" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-emerald-400 to-cyan-500" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-amber-400 to-rose-500" />
             </div>
-            <div>
+            <div className="text-left">
               <div className="flex items-center gap-1 text-amber-500">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
@@ -152,7 +155,7 @@ function Hero() {
                 <span className="ml-1.5 text-foreground font-semibold">5.0</span>
               </div>
               <div className="mt-0.5">
-                Более <span className="text-foreground font-semibold">2 400 креаторов</span> уже используют
+                <span className="text-foreground font-semibold">2 400+ креаторов</span>
               </div>
             </div>
           </div>
@@ -269,13 +272,13 @@ function Hero() {
 function Trust() {
   const brands = ["AURORA", "BeautyLab", "Kaspi Media", "SMM Agency", "ViralCo", "FoodieHub", "FitnessPro", "ContentHouse"];
   return (
-    <section className="py-12 border-y border-border bg-background-subtle overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <p className="text-center text-[12px] uppercase font-semibold tracking-[0.16em] text-muted-foreground mb-8">
+    <section className="py-10 md:py-12 border-y border-border bg-background-subtle overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <p className="text-center text-[11px] md:text-[12px] uppercase font-semibold tracking-[0.16em] text-muted-foreground mb-6 md:mb-8">
           Нам доверяют команды и агентства
         </p>
         <div className="overflow-hidden">
-          <div className="flex gap-14 text-border-strong font-bold text-[22px] whitespace-nowrap animate-[marq_30s_linear_infinite]">
+          <div className="flex gap-8 md:gap-14 text-border-strong font-bold text-[16px] md:text-[22px] whitespace-nowrap animate-[marq_30s_linear_infinite]">
             {[...brands, ...brands, ...brands].map((b, i) => (
               <span key={i} className="shrink-0">{b} ·</span>
             ))}
@@ -296,14 +299,14 @@ function Stats() {
     { value: "12s", label: "Генерация сценария", note: "ИИ на основе тренда" },
   ];
   return (
-    <section className="py-24">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-4 gap-6">
+    <section className="py-14 md:py-24">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
           {items.map((s) => (
-            <div key={s.label} className="border border-border rounded-2xl p-6 bg-card hover-lift shadow-card-hover">
-              <div className="text-[38px] font-bold tracking-tight gradient-text">{s.value}</div>
-              <div className="mt-1 text-[14px] text-muted-foreground">{s.label}</div>
-              <div className="mt-3 text-[13px] text-foreground/80">{s.note}</div>
+            <div key={s.label} className="border border-border rounded-2xl p-4 md:p-6 bg-card hover-lift shadow-card-hover">
+              <div className="text-[26px] md:text-[38px] font-bold tracking-tight gradient-text">{s.value}</div>
+              <div className="mt-1 text-[12px] md:text-[14px] text-muted-foreground">{s.label}</div>
+              <div className="mt-2 md:mt-3 text-[11.5px] md:text-[13px] text-foreground/80 leading-snug">{s.note}</div>
             </div>
           ))}
         </div>
@@ -333,28 +336,28 @@ function Features() {
   };
 
   return (
-    <section id="features" className="py-24 bg-background-subtle border-y border-border">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="features" className="py-16 md:py-24 bg-background-subtle border-y border-border">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="max-w-2xl">
           <span className="eyebrow">Возможности</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
-            Всё, что нужно для работы с<br />вирусным контентом TikTok
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
+            Всё, что нужно для работы с вирусным контентом TikTok
           </h2>
-          <p className="mt-4 text-[17px] text-muted-foreground leading-relaxed">
+          <p className="mt-3 md:mt-4 text-[15px] md:text-[17px] text-muted-foreground leading-relaxed">
             От поиска тренда до готового сценария — одна платформа. Без ручного листания ленты и гаданий.
           </p>
         </div>
 
-        <div className="mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="mt-8 md:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
           {features.map((f) => {
             const Icon = f.icon;
             return (
-              <div key={f.title} className="bg-card border border-border rounded-2xl p-7 shadow-card-hover hover-lift">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 ${colorMap[f.color]}`}>
+              <div key={f.title} className="bg-card border border-border rounded-2xl p-5 md:p-7 shadow-card-hover hover-lift">
+                <div className={`w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center mb-4 md:mb-5 ${colorMap[f.color]}`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-[18px] font-semibold text-foreground">{f.title}</h3>
-                <p className="mt-2 text-[14px] text-muted-foreground leading-relaxed">{f.desc}</p>
+                <h3 className="text-[16px] md:text-[18px] font-semibold text-foreground">{f.title}</h3>
+                <p className="mt-1.5 md:mt-2 text-[13.5px] md:text-[14px] text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
             );
           })}
@@ -373,17 +376,17 @@ function Product() {
   ];
 
   return (
-    <section id="product" className="py-28">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="max-w-2xl mb-14">
+    <section id="product" className="py-16 md:py-28">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-2xl mb-8 md:mb-14">
           <span className="eyebrow">Продукт</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
             От ленты до сценария — за 3 шага
           </h2>
         </div>
 
         {/* Dashboard mockup */}
-        <div className="bg-gradient-to-br from-background-subtle to-primary-soft/40 p-6 md:p-10 rounded-[28px] border border-border shadow-card">
+        <div className="bg-gradient-to-br from-background-subtle to-primary-soft/40 p-3 md:p-10 rounded-2xl md:rounded-[28px] border border-border shadow-card">
           <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-card">
             <div className="flex items-center gap-2 px-4 h-10 border-b border-border bg-background-subtle">
               <div className="flex gap-1.5">
@@ -463,12 +466,12 @@ function Product() {
         </div>
 
         {/* Steps */}
-        <div className="mt-14 grid md:grid-cols-3 gap-5">
+        <div className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
           {steps.map((s) => (
-            <div key={s.n} className="bg-card border border-border rounded-2xl p-6 hover-lift shadow-card-hover">
-              <div className="w-9 h-9 rounded-lg bg-foreground text-background flex items-center justify-center font-bold mb-4">{s.n}</div>
-              <h3 className="text-[17px] font-semibold text-foreground">{s.title}</h3>
-              <p className="mt-2 text-[14px] text-muted-foreground leading-relaxed">{s.desc}</p>
+            <div key={s.n} className="bg-card border border-border rounded-2xl p-5 md:p-6 hover-lift shadow-card-hover">
+              <div className="w-9 h-9 rounded-lg bg-foreground text-background flex items-center justify-center font-bold mb-3 md:mb-4">{s.n}</div>
+              <h3 className="text-[16px] md:text-[17px] font-semibold text-foreground">{s.title}</h3>
+              <p className="mt-1.5 md:mt-2 text-[13.5px] md:text-[14px] text-muted-foreground leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -516,23 +519,23 @@ function Pricing() {
   ];
 
   return (
-    <section id="pricing" className="py-28 bg-background-subtle border-y border-border">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="text-center max-w-2xl mx-auto mb-14">
+    <section id="pricing" className="py-16 md:py-28 bg-background-subtle border-y border-border">
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+        <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
           <span className="eyebrow">Тарифы</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
             Простые тарифы для любого масштаба
           </h2>
-          <p className="mt-4 text-[17px] text-muted-foreground leading-relaxed">
+          <p className="mt-3 md:mt-4 text-[15px] md:text-[17px] text-muted-foreground leading-relaxed">
             Начните бесплатно. Отмените в любой момент.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {plans.map((p) => (
             <div
               key={p.name}
-              className={`relative rounded-2xl p-8 transition-all hover:-translate-y-1 ${
+              className={`relative rounded-2xl p-6 md:p-8 transition-all hover:-translate-y-1 ${
                 p.featured
                   ? "bg-foreground text-background border border-foreground shadow-card"
                   : "bg-card border border-border shadow-card-hover"
@@ -544,14 +547,14 @@ function Pricing() {
                 </Pill>
               )}
               <div className={`text-[14px] font-semibold ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.name}</div>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-[44px] font-bold tracking-tight">{p.price}</span>
-                <span className={`text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>/мес</span>
+              <div className="mt-2 md:mt-3 flex items-baseline gap-1">
+                <span className="text-[36px] md:text-[44px] font-bold tracking-tight">{p.price}</span>
+                <span className={`text-[13px] md:text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>/мес</span>
               </div>
-              <p className={`mt-2 text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.desc}</p>
+              <p className={`mt-1.5 md:mt-2 text-[13.5px] md:text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.desc}</p>
               <Link
                 to="/auth"
-                className={`mt-6 inline-flex w-full justify-center py-3 rounded-xl text-[14px] font-semibold transition ${
+                className={`mt-5 md:mt-6 inline-flex w-full justify-center py-3 rounded-xl text-[14px] font-semibold transition ${
                   p.featured
                     ? "bg-viral text-foreground hover:opacity-90"
                     : "border border-border text-foreground hover:bg-muted"
@@ -559,7 +562,7 @@ function Pricing() {
               >
                 {p.cta}
               </Link>
-              <ul className="mt-8 space-y-3 text-[14px]">
+              <ul className="mt-6 md:mt-8 space-y-2.5 md:space-y-3 text-[13.5px] md:text-[14px]">
                 {p.features.map((f) => (
                   <li key={f.label} className={`flex gap-2.5 ${
                     f.ok
@@ -601,28 +604,28 @@ function Testimonials() {
   ];
 
   return (
-    <section className="py-24">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="max-w-2xl mb-14">
+    <section className="py-14 md:py-24">
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+        <div className="max-w-2xl mb-8 md:mb-14">
           <span className="eyebrow">Отзывы</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
             Что говорят пользователи
           </h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {items.map((t) => (
-            <div key={t.name} className="bg-card border border-border rounded-2xl p-7 hover-lift shadow-card-hover">
-              <div className="flex gap-0.5 text-amber-500 mb-4">
+            <div key={t.name} className="bg-card border border-border rounded-2xl p-5 md:p-7 hover-lift shadow-card-hover">
+              <div className="flex gap-0.5 text-amber-500 mb-3 md:mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
               </div>
-              <p className="text-[15px] leading-relaxed text-foreground">«{t.text}»</p>
-              <div className="mt-6 flex items-center gap-3">
+              <p className="text-[14px] md:text-[15px] leading-relaxed text-foreground">«{t.text}»</p>
+              <div className="mt-5 md:mt-6 flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.grad}`} />
                 <div>
-                  <div className="text-[14px] font-semibold text-foreground">{t.name}</div>
-                  <div className="text-[12px] text-muted-foreground">{t.role}</div>
+                  <div className="text-[13.5px] md:text-[14px] font-semibold text-foreground">{t.name}</div>
+                  <div className="text-[11.5px] md:text-[12px] text-muted-foreground">{t.role}</div>
                 </div>
               </div>
             </div>
@@ -644,22 +647,22 @@ function FAQ() {
   ];
 
   return (
-    <section id="faq" className="py-24 bg-background-subtle border-y border-border">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="text-center mb-12">
+    <section id="faq" className="py-14 md:py-24 bg-background-subtle border-y border-border">
+      <div className="max-w-3xl mx-auto px-4 md:px-6">
+        <div className="text-center mb-8 md:mb-12">
           <span className="eyebrow">FAQ</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
             Частые вопросы
           </h2>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2.5 md:space-y-3">
           {faqs.map((f, i) => (
-            <details key={i} className="group bg-card border border-border rounded-xl p-5" open={i === 0}>
-              <summary className="flex items-center justify-between font-semibold text-[15px] text-foreground cursor-pointer list-none">
+            <details key={i} className="group bg-card border border-border rounded-xl p-4 md:p-5" open={i === 0}>
+              <summary className="flex items-center justify-between gap-3 font-semibold text-[14px] md:text-[15px] text-foreground cursor-pointer list-none">
                 {f.q}
-                <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform group-open:rotate-180" />
+                <ChevronDown className="w-5 h-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
-              <p className="mt-3 text-[14px] text-muted-foreground leading-relaxed">{f.a}</p>
+              <p className="mt-3 text-[13.5px] md:text-[14px] text-muted-foreground leading-relaxed">{f.a}</p>
             </details>
           ))}
         </div>
@@ -671,31 +674,31 @@ function FAQ() {
 /* ───────── FINAL CTA ───────── */
 function FinalCTA() {
   return (
-    <section className="py-28">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="relative bg-foreground rounded-[32px] p-12 md:p-16 overflow-hidden">
-          <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 blur-3xl" />
-          <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-viral/20 blur-3xl" />
+    <section className="py-16 md:py-28">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
+        <div className="relative bg-foreground rounded-2xl md:rounded-[32px] p-8 md:p-16 overflow-hidden">
+          <div className="absolute -right-20 -top-20 w-72 md:w-80 h-72 md:h-80 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 blur-3xl" />
+          <div className="absolute -left-20 -bottom-20 w-72 md:w-80 h-72 md:h-80 rounded-full bg-viral/20 blur-3xl" />
 
           <div className="relative">
-            <h2 className="text-background text-[clamp(2rem,4vw,3rem)] font-bold tracking-tight max-w-2xl leading-[1.05]">
+            <h2 className="text-background text-[clamp(1.5rem,5.5vw,3rem)] font-bold tracking-tight max-w-2xl leading-[1.08]">
               Перестаньте угадывать.<br />
               <span className="gradient-text">Работайте с трендами на фактах.</span>
             </h2>
-            <p className="mt-4 text-background/70 text-[17px] max-w-xl leading-relaxed">
+            <p className="mt-3 md:mt-4 text-background/70 text-[14.5px] md:text-[17px] max-w-xl leading-relaxed">
               Попробуйте trendme бесплатно — 10 видео в день, 3 ниши, без карты.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
               <Link
                 to="/auth"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-viral text-foreground text-[15px] font-semibold hover:opacity-90 transition"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-viral text-foreground text-[15px] font-semibold hover:opacity-90 transition"
               >
                 Начать бесплатно
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <a
                 href="#pricing"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-background/10 text-background text-[15px] font-semibold hover:bg-background/15 transition"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-background/10 text-background text-[15px] font-semibold hover:bg-background/15 transition"
               >
                 Сравнить тарифы
               </a>
@@ -710,13 +713,13 @@ function FinalCTA() {
 /* ───────── FOOTER ───────── */
 function Footer() {
   return (
-    <footer className="border-t border-border py-14 bg-background-subtle">
-      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-[2fr,1fr,1fr,1fr] gap-10">
-        <div>
-          <div className="flex items-center gap-2 mb-4">
+    <footer className="border-t border-border py-10 md:py-14 bg-background-subtle">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-2 md:grid-cols-[2fr,1fr,1fr,1fr] gap-8 md:gap-10">
+        <div className="col-span-2 md:col-span-1">
+          <div className="flex items-center gap-2 mb-3 md:mb-4">
             <TrendMeWordmark size="lg" animated={false} />
           </div>
-          <p className="text-[14px] text-muted-foreground max-w-sm leading-relaxed">
+          <p className="text-[13.5px] md:text-[14px] text-muted-foreground max-w-sm leading-relaxed">
             Платформа для мониторинга трендов TikTok, аналитики вирусного контента и генерации ИИ-сценариев.
           </p>
         </div>
@@ -726,8 +729,8 @@ function Footer() {
           { title: "Правовое", links: [["Условия", "/terms"], ["Конфиденциальность", "/privacy"]] },
         ].map((col) => (
           <div key={col.title}>
-            <div className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-4">{col.title}</div>
-            <ul className="space-y-2 text-[14px] text-foreground/80">
+            <div className="text-[11px] md:text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-3 md:mb-4">{col.title}</div>
+            <ul className="space-y-2 text-[13.5px] md:text-[14px] text-foreground/80">
               {col.links.map(([label, href]) => (
                 <li key={label}>
                   <a href={href} className="hover:text-foreground transition">{label}</a>
@@ -737,8 +740,8 @@ function Footer() {
           </div>
         ))}
       </div>
-      <div className="max-w-7xl mx-auto px-6 mt-10 pt-6 border-t border-border flex flex-wrap items-center justify-between gap-4">
-        <div className="text-[13px] text-muted-foreground">© 2026 trendme. Все права защищены.</div>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-8 md:mt-10 pt-6 border-t border-border flex flex-wrap items-center justify-between gap-4">
+        <div className="text-[12px] md:text-[13px] text-muted-foreground">© 2026 trendme. Все права защищены.</div>
         <div className="flex items-center gap-3 text-muted-foreground">
           <a href="#" className="hover:text-foreground transition" aria-label="Instagram"><Instagram className="w-5 h-5" /></a>
           <a href="#" className="hover:text-foreground transition" aria-label="YouTube"><Youtube className="w-5 h-5" /></a>
