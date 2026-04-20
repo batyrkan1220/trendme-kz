@@ -76,61 +76,78 @@ export default function Library() {
 
   return (
     <AppLayout>
-      <div className="p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 animate-fade-in" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 12px, 12px)" }}>
-        <div className="flex items-center justify-between">
-          
+      <div
+        className="p-4 md:p-6 lg:p-8 space-y-5 md:space-y-7 animate-fade-in"
+        style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}
+      >
+        {/* Header — landing/trends style */}
+        <div>
+          <div className="eyebrow mb-1.5 text-[11px] md:text-[12px]">
+            <Heart className="h-3 w-3 fill-current" />
+            Избранное
+          </div>
+          <h1 className="text-[22px] md:text-[32px] leading-[1.1] font-semibold tracking-tight text-foreground">
+            Сохранённые <span className="gradient-text">тренды</span>
+          </h1>
+          {displayFavorites.length > 0 && (
+            <p className="mt-1.5 text-[12.5px] md:text-[13.5px] text-muted-foreground">
+              <span className="tabular-nums font-semibold text-foreground">
+                {displayFavorites.length}
+              </span>{" "}
+              видео в коллекции
+            </p>
+          )}
         </div>
 
-        {displayFavorites.length === 0 ?
-        <div className="text-center py-20">
+        {displayFavorites.length === 0 ? (
+          <div className="text-center py-20">
             <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
               <Heart className="h-10 w-10 text-muted-foreground/30" />
             </div>
             <p className="text-lg font-medium text-foreground mb-1">Пока пусто</p>
             <p className="text-sm text-muted-foreground">Добавьте видео через поиск или тренды</p>
-          </div> :
-
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4 pb-20 md:pb-0">
-            {displayFavorites.map((fav: any) => {
-            const video = fav.videos;
-            if (!video) return null;
-
-            const cardData: VideoCardData = {
-              id: video.id,
-              platform_video_id: video.platform_video_id,
-              url: video.url,
-              cover_url: video.cover_url,
-              caption: video.caption,
-              author_username: video.author_username,
-              author_avatar_url: video.author_avatar_url,
-              views: Number(video.views) || 0,
-              likes: Number(video.likes) || 0,
-              comments: Number(video.comments) || 0,
-              shares: Number(video.shares) || 0,
-              velocity_views: Number(video.velocity_views) || 0,
-              published_at: video.published_at,
-              duration: Number(video.duration_sec) || 0
-            };
-
-            return (
-              <VideoCard
-                key={fav.id}
-                video={cardData}
-                playingId={playingId}
-                onPlay={setPlayingId}
-                isFavorite={favVideoIds.has(video.id)}
-                onToggleFav={removeFav}
-                onAnalyze={handleAnalyze}
-                showTier={true}
-                showAuthor={false}
-                showAnalyzeButton={true}
-                darkMode />);
-
-
-          })}
           </div>
-        }
-      </div>
-    </AppLayout>);
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4 pb-20 md:pb-0">
+            {displayFavorites.map((fav: any) => {
+              const video = fav.videos;
+              if (!video) return null;
 
+              const cardData: VideoCardData = {
+                id: video.id,
+                platform_video_id: video.platform_video_id,
+                url: video.url,
+                cover_url: video.cover_url,
+                caption: video.caption,
+                author_username: video.author_username,
+                author_avatar_url: video.author_avatar_url,
+                views: Number(video.views) || 0,
+                likes: Number(video.likes) || 0,
+                comments: Number(video.comments) || 0,
+                shares: Number(video.shares) || 0,
+                velocity_views: Number(video.velocity_views) || 0,
+                published_at: video.published_at,
+                duration: Number(video.duration_sec) || 0,
+              };
+
+              return (
+                <VideoCard
+                  key={fav.id}
+                  video={cardData}
+                  playingId={playingId}
+                  onPlay={setPlayingId}
+                  isFavorite={favVideoIds.has(video.id)}
+                  onToggleFav={removeFav}
+                  onAnalyze={handleAnalyze}
+                  showTier={true}
+                  showAuthor={true}
+                  showAnalyzeButton={true}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </AppLayout>
+  );
 }
