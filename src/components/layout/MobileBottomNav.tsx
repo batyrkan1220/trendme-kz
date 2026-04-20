@@ -12,7 +12,6 @@ const mainNavItems = [
 
 const toolsMenuItems = [
   { icon: Video, path: "/video-analysis", label: "Анализ видео" },
-  
   { icon: UserSearch, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 
@@ -33,7 +32,6 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
   useEffect(() => {
     if (!showToolsMenu) return;
     const handle = (e: MouseEvent | TouchEvent) => {
-      // Check both the popover and the tools button itself
       const nav = document.getElementById("mobile-bottom-nav");
       if (
         popoverRef.current && !popoverRef.current.contains(e.target as Node) &&
@@ -42,11 +40,8 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         setShowToolsMenu(false);
       }
     };
-    // Use click instead of mousedown/touchstart to avoid swallowing events
     document.addEventListener("click", handle, true);
-    return () => {
-      document.removeEventListener("click", handle, true);
-    };
+    return () => document.removeEventListener("click", handle, true);
   }, [showToolsMenu]);
 
   const goTo = useCallback((path: string) => {
@@ -55,40 +50,34 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
     navigate(path);
   }, [navigate, drawerOpen, onDrawerClose]);
 
-  const nav = (
+  return (
     <nav
       id="mobile-bottom-nav"
       className="md:hidden"
       style={{
         position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
+        bottom: 0, left: 0, right: 0,
         zIndex: drawerOpen ? 40 : 99999,
         pointerEvents: drawerOpen ? "none" : "auto",
-        paddingBottom: 0,
         transition: "opacity 0.2s",
         opacity: drawerOpen ? 0 : 1,
       }}
     >
-      {/* Tools menu popover */}
+      {/* Tools popover — light premium */}
       {showToolsMenu && (
         <div
           ref={popoverRef}
-          className="absolute bottom-full mb-3 rounded-3xl shadow-2xl p-2.5"
+          className="absolute bottom-full mb-3 rounded-2xl p-2 glass-strong shadow-card"
           style={{
-            background: "rgba(18,18,18,0.92)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(40px) saturate(1.4)",
-            WebkitBackdropFilter: "blur(40px) saturate(1.4)",
             animation: "slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-            right: "16px",
-            left: "16px",
-            boxShadow: "0 24px 64px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.06) inset",
+            right: 16,
+            left: 16,
           }}
         >
-          <div className="px-3 py-2 mb-1">
-            <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">Инструменты</span>
+          <div className="px-3 py-1.5 mb-1">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em]">
+              Инструменты
+            </span>
           </div>
           {toolsMenuItems.map((item) => {
             const active = location.pathname === item.path;
@@ -97,12 +86,11 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
                 key={item.path}
                 onClick={() => goTo(item.path)}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm transition-colors w-full text-left",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm w-full text-left transition-colors",
                   active
-                    ? "text-neon font-semibold"
-                    : "text-foreground/80 hover:text-foreground hover:bg-accent"
+                    ? "bg-primary-soft text-primary font-semibold"
+                    : "text-foreground/80 hover:bg-muted"
                 )}
-                style={active ? { background: "hsl(var(--neon) / 0.1)" } : undefined}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 <span className="font-medium">{item.label}</span>
@@ -112,34 +100,32 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
         </div>
       )}
 
-      {/* Bottom bar */}
-      <div className="flex items-center justify-around px-3 py-2 pb-[max(8px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter" style={{ background: "rgba(8,8,8,0.75)", backdropFilter: "blur(32px) saturate(1.5)", WebkitBackdropFilter: "blur(32px) saturate(1.5)", borderTop: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 -8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
-        {/* Main nav items */}
+      {/* Bottom bar — light premium */}
+      <div
+        className="flex items-center justify-around px-3 py-2 pb-[max(8px,env(safe-area-inset-bottom,0px))] animate-bottom-nav-enter glass-strong"
+        style={{
+          borderTop: "1px solid hsl(var(--border))",
+          boxShadow: "0 -4px 20px rgba(16, 24, 40, 0.06)",
+        }}
+      >
         {mainNavItems.map((item) => {
           const active = location.pathname === item.path;
           return (
             <button
               key={item.path}
               onClick={() => goTo(item.path)}
-              className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
+              className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] press-feedback"
             >
-              {item.path === "/trends" && active ? (
-                <item.icon
-                  className="h-[25px] w-[25px] text-neon"
-                  strokeWidth={2.2}
-                />
-              ) : (
-                <item.icon
-                  className={cn(
-                    "h-[25px] w-[25px] transition-colors duration-200",
-                    active ? "text-neon" : "text-white"
-                  )}
-                  strokeWidth={active ? 2.2 : 1.8}
-                />
-              )}
+              <item.icon
+                className={cn(
+                  "h-[24px] w-[24px] transition-colors",
+                  active ? "text-primary" : "text-muted-foreground"
+                )}
+                strokeWidth={active ? 2.3 : 1.8}
+              />
               <span className={cn(
-                "text-[11px] font-semibold leading-tight transition-colors",
-                active ? "text-neon" : "text-white"
+                "text-[11px] font-semibold leading-tight",
+                active ? "text-primary" : "text-muted-foreground"
               )}>
                 {item.label}
               </span>
@@ -147,29 +133,29 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           );
         })}
 
-        {/* Tools button */}
+        {/* Tools */}
         <button
           onClick={() => { drawerOpen && onDrawerClose?.(); setShowToolsMenu(v => !v); }}
-          className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
+          className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] press-feedback"
         >
           <div className="relative">
             <ScanSearch
               className={cn(
-                "h-[25px] w-[25px] transition-colors duration-200",
-                isToolsActive || showToolsMenu ? "text-neon" : "text-white"
+                "h-[24px] w-[24px] transition-colors",
+                isToolsActive || showToolsMenu ? "text-primary" : "text-muted-foreground"
               )}
-              strokeWidth={isToolsActive || showToolsMenu ? 2.2 : 1.8}
+              strokeWidth={isToolsActive || showToolsMenu ? 2.3 : 1.8}
             />
             <ChevronUp
               className={cn(
-                "absolute -top-1.5 -right-1.5 h-3 w-3 transition-all duration-200",
-                showToolsMenu ? "text-neon rotate-180" : "text-white/50"
+                "absolute -top-1.5 -right-1.5 h-3 w-3 transition-all",
+                showToolsMenu ? "text-primary rotate-180" : "text-muted-foreground/60"
               )}
             />
           </div>
           <span className={cn(
-            "text-[11px] font-semibold leading-tight transition-colors",
-            isToolsActive || showToolsMenu ? "text-neon" : "text-white"
+            "text-[11px] font-semibold leading-tight",
+            isToolsActive || showToolsMenu ? "text-primary" : "text-muted-foreground"
           )}>
             Анализ
           </span>
@@ -181,18 +167,18 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
           return (
             <button
               onClick={() => goTo("/library")}
-              className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] transition-opacity active:opacity-70"
+              className="relative flex flex-col items-center gap-0.5 py-1 min-w-[56px] press-feedback"
             >
               <Heart
                 className={cn(
-                  "h-[25px] w-[25px] transition-colors duration-200",
-                  active ? "text-neon fill-neon" : "text-white"
+                  "h-[24px] w-[24px] transition-colors",
+                  active ? "text-primary fill-primary" : "text-muted-foreground"
                 )}
-                strokeWidth={active ? 2.2 : 1.8}
+                strokeWidth={active ? 2.3 : 1.8}
               />
               <span className={cn(
-                "text-[11px] font-semibold leading-tight transition-colors",
-                active ? "text-neon" : "text-white"
+                "text-[11px] font-semibold leading-tight",
+                active ? "text-primary" : "text-muted-foreground"
               )}>
                 Избранное
               </span>
@@ -202,6 +188,4 @@ export function MobileBottomNav({ onMenuOpen, onDrawerClose, drawerOpen }: Mobil
       </div>
     </nav>
   );
-
-  return nav;
 }

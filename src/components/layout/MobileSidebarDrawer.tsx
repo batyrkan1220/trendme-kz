@@ -9,7 +9,7 @@ import {
   LayoutDashboard, TrendingUp, Search, Video, UserCircle,
   Heart, LogOut, Shield, CreditCard, Trash2
 } from "lucide-react";
-import { TrendMeLogo } from "@/components/TrendMeLogo";
+import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 import { isNativePlatform } from "@/lib/native";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,7 +90,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
 
   const renderGroup = (label: string, items: NavItem[]) => (
     <div className="mb-3">
-      <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.14em] px-3 mb-2">{label}</p>
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em] px-3 mb-2">{label}</p>
       <div className="space-y-0.5">
         {items.map((item) => {
           const active = location.pathname === item.path;
@@ -118,10 +118,14 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
   return (
     <>
       <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-        <SheetContent side="left" className="w-[280px] p-0 flex flex-col safe-area-top" style={{ maxHeight: '100dvh', background: 'rgba(12,12,12,0.96)', backdropFilter: 'blur(40px) saturate(1.5)', WebkitBackdropFilter: 'blur(40px) saturate(1.5)' }}>
-          <SheetHeader className="px-4 h-14 border-b border-white/[0.06] flex flex-row items-center gap-2.5 shrink-0">
-            <TrendMeLogo size={28} />
-            <SheetTitle className="font-extrabold text-base tracking-tight text-foreground">trendme</SheetTitle>
+        <SheetContent
+          side="left"
+          className="w-[280px] p-0 flex flex-col safe-area-top bg-background"
+          style={{ maxHeight: '100dvh' }}
+        >
+          <SheetHeader className="px-5 h-16 border-b border-border flex flex-row items-center gap-2.5 shrink-0">
+            <TrendMeWordmark size="lg" />
+            <SheetTitle className="sr-only">Меню</SheetTitle>
           </SheetHeader>
 
           <nav className="flex-1 py-4 px-3 overflow-y-auto min-h-0">
@@ -131,7 +135,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
             {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
           </nav>
 
-          <div className="border-t border-white/[0.06] p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+          <div className="border-t border-border p-3 space-y-1 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"

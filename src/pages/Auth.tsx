@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { TrendMeLogo } from "@/components/TrendMeLogo";
+import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 import { isNativePlatform } from "@/lib/native";
+import { cn } from "@/lib/utils";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -126,8 +127,8 @@ export default function Auth() {
       <div className="w-full max-w-sm space-y-6 animate-fade-in relative">
         {/* Logo & Title — larger on native */}
         <div className="text-center space-y-3">
-          <div className={isNative ? "pt-4" : ""}>
-            <TrendMeLogo size={isNative ? 56 : 40} className="mx-auto" />
+          <div className={cn("flex justify-center", isNative ? "pt-4" : "")}>
+            <TrendMeWordmark size="xl" />
           </div>
           <div>
             <h1 className={`font-bold tracking-tight text-foreground ${isNative ? "text-3xl" : "text-2xl md:text-3xl"}`}>
