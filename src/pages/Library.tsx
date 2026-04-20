@@ -74,6 +74,10 @@ export default function Library() {
     navigate(`/video-analysis?url=${encodeURIComponent(video.url)}`);
   };
 
+  const handleScript = (video: VideoCardData) => {
+    navigate(`/video-analysis?url=${encodeURIComponent(video.url)}&mode=script`);
+  };
+
   return (
     <AppLayout>
       <div
@@ -139,9 +143,11 @@ export default function Library() {
                   isFavorite={favVideoIds.has(video.id)}
                   onToggleFav={removeFav}
                   onAnalyze={handleAnalyze}
+                  onScript={handleScript}
                   showTier={true}
                   showAuthor={true}
                   showAnalyzeButton={true}
+                  showScriptButton={true}
                 />
               );
             })}
