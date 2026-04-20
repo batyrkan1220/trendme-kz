@@ -1,7 +1,8 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Loader2, Sparkles } from "lucide-react";
 import { VideoCard } from "@/components/VideoCard";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +51,9 @@ export default function VideoAnalysis() {
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
   const { checkAndLog } = useSubscription();
   const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const autoScriptRef = useRef(false);
+  const autoTriggeredRef = useRef(false);
 
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
@@ -71,8 +75,8 @@ export default function VideoAnalysis() {
     onError: (err: Error) => toast.error(err.message || "Не удалось проанализировать видео"),
   });
 
-  const handleAnalyze = async (lang: "ru" | "kk") => {
-    const normalizedUrl = normalizeTikTokUrlInput(url);
+  const handleAnalyze = async (lang: "ru" | "kk", overrideUrl?: string) => {
+    const normalizedUrl = normalizeTikTokUrlInput(overrideUrl ?? url);
     if (!normalizedUrl) return;
 
     if (!isValidTikTokUrl(normalizedUrl)) {
@@ -96,6 +100,38 @@ export default function VideoAnalysis() {
     setShowScript(false);
     analyze({ videoUrl: normalizedUrl, lang });
   };
+
+  // Auto-analyze when navigated with ?url=...&script=1 (e.g. from Trends "Сценарий" button)
+  useEffect(() => {
+    if (autoTriggeredRef.current) return;
+    const urlParam = searchParams.get("url");
+    const wantScript = searchParams.get("script") === "1";
+    const langParam = (searchParams.get("lang") as "ru" | "kk" | null) || "ru";
+    if (!urlParam) return;
+    autoTriggeredRef.current = true;
+    autoScriptRef.current = wantScript;
+    setUrl(urlParam);
+    // fire async; handleAnalyze validates + checks limits
+    handleAnalyze(langParam, urlParam);
+    // clean query so refresh doesn't re-trigger
+    const next = new URLSearchParams(searchParams);
+    next.delete("url");
+    next.delete("script");
+    next.delete("lang");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-open script panel after successful analysis if requested
+  useEffect(() => {
+    if (analysis && autoScriptRef.current) {
+      autoScriptRef.current = false;
+      (async () => {
+        const ok = await checkAndLog("ai_script", `AI Сценарий из анализа: ${url.trim()}`);
+        if (ok) setShowScript(true);
+      })();
+    }
+  }, [analysis, checkAndLog, url]);
 
   const stats = analysis?.stats;
   const rawSummary = analysis?.summary_json;
