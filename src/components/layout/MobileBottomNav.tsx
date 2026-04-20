@@ -9,7 +9,6 @@ const mainNavItems = [
 ];
 
 const toolsMenuItems = [
-  { icon: Video, path: "/video-analysis", label: "Анализ видео" },
   { icon: UserSearch, path: "/account-analysis", label: "Анализ аккаунта" },
 ];
 
