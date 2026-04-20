@@ -67,7 +67,7 @@
     --sidebar-ring: 243 75% 59%;
 
     /* Gradients */
-    --gradient-brand: linear-gradient(135deg, hsl(243 75% 59%), hsl(262 80% 65%));
+    --gradient-brand: linear-gradient(135deg, hsl(75 95% 55%), hsl(95 85% 50%));
     --gradient-viral: linear-gradient(135deg, hsl(338 85% 60%), hsl(25 95% 55%));
     --gradient-mesh: radial-gradient(at 20% 20%, hsl(243 85% 96%) 0px, transparent 50%),
                      radial-gradient(at 80% 10%, hsl(262 85% 96%) 0px, transparent 50%),
