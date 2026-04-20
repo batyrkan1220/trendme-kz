@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { VideoCard, VideoCardData } from "@/components/VideoCard";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
+import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
 import { cn } from "@/lib/utils";
 
 const SUGGESTED_KEYWORDS = ["мотивация", "юмор", "лайфхаки", "рецепты", "тренировки", "путешествия"];
