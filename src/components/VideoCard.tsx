@@ -471,16 +471,19 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   </button>
                 </div>
 
-                {/* Mobile play — always visible, compact, bottom-left, doesn't block content */}
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); handlePlay(); }}
-                  aria-label="Воспроизвести"
-                  className="md:hidden absolute left-2 bottom-14 z-20 h-10 w-10 rounded-full bg-white/85 backdrop-blur-xl flex items-center justify-center ring-1 ring-white/50 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.4),0_0_16px_-4px_hsl(var(--viral)/0.5)] active:scale-90 transition-transform"
-                  style={{ WebkitTapHighlightColor: "transparent" }}
-                >
-                  <Play className="h-4 w-4 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
-                </button>
+                {/* Mobile play — always visible, centered, lux compact */}
+                <div className="md:hidden absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                  <div className="absolute h-16 w-16 rounded-full bg-viral/25 blur-2xl" />
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handlePlay(); }}
+                    aria-label="Воспроизвести"
+                    className="relative h-12 w-12 rounded-full bg-white/85 backdrop-blur-xl flex items-center justify-center pointer-events-auto ring-1 ring-white/50 shadow-[0_6px_20px_-2px_rgba(0,0,0,0.45),0_0_18px_-4px_hsl(var(--viral)/0.5)] active:scale-90 transition-transform"
+                    style={{ WebkitTapHighlightColor: "transparent" }}
+                  >
+                    <Play className="h-5 w-5 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
+                  </button>
+                </div>
               </div>
             ) : (
               <div
