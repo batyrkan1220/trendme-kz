@@ -3,32 +3,26 @@ import { isNativePlatform } from "@/lib/native";
 import { useNavigate } from "react-router-dom";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
-
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp, WifiOff } from "lucide-react";
+import { WifiOff, Search as SearchIcon, X } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { hapticLight, hapticMedium, hapticSuccess } from "@/lib/haptics";
+import { hapticLight, hapticMedium } from "@/lib/haptics";
 import { useOnlineStatus, saveTrendsCache, loadTrendsCache } from "@/hooks/useOfflineCache";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { NICHE_GROUPS } from "@/config/niches";
-import { TREND_CATEGORIES } from "@/config/trendCategories";
 import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
 
-
-
 const PAGE_SIZE = 30;
 
 export default function Trends() {
-  // removed activeCategory state
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
@@ -37,8 +31,13 @@ export default function Trends() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const chipScrollRef = useRef<HTMLDivElement>(null);
+
+  // Іздеу жолағы — Trends-тің ішінде
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const { user } = useAuth();
-  const { balance } = useTokens();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const isOnline = useOnlineStatus();
@@ -69,7 +68,6 @@ export default function Trends() {
       const selectFields =
         "id,platform_video_id,url,caption,cover_url,author_username,author_avatar_url,views,likes,comments,shares,trend_score,velocity_views,published_at,region,niche,sub_niche,categories";
       const since = new Date(Date.now() - 2 * 86400000).toISOString();
-
       const { data: rows } = await supabase
         .from("videos")
         .select(selectFields)
@@ -83,27 +81,37 @@ export default function Trends() {
     enabled: isOnline,
   });
 
-  // Cache trends data when loaded, use cache when offline
   const cachedVideos = useMemo(() => loadTrendsCache(), []);
   useEffect(() => {
     if (allVideos.length > 0) saveTrendsCache(allVideos);
   }, [allVideos]);
   const effectiveVideosRaw = isOnline && allVideos.length > 0 ? allVideos : (cachedVideos || allVideos);
 
-  // Filter out blocked authors
   const effectiveVideos = useMemo(() => {
     return effectiveVideosRaw.filter((v: any) => !isBlocked(v.author_username));
   }, [effectiveVideosRaw, isBlocked]);
 
+  // Іздеу фильтрі
+  const searchFiltered = useMemo(() => {
+    if (!searchQuery.trim()) return effectiveVideos;
+    const q = searchQuery.toLowerCase();
+    return effectiveVideos.filter((v: any) =>
+      (v.caption || "").toLowerCase().includes(q) ||
+      (v.author_username || "").toLowerCase().includes(q) ||
+      (v.niche || "").toLowerCase().includes(q)
+    );
+  }, [effectiveVideos, searchQuery]);
+
   const videosByNiche = useMemo(() => {
+    const source = searchQuery.trim() ? searchFiltered : effectiveVideos;
     const map: Record<string, any[]> = {};
-    for (const v of effectiveVideos) {
+    for (const v of source) {
       const n = v.niche || "other";
       if (!map[n]) map[n] = [];
       map[n].push(v);
     }
     return map;
-  }, [effectiveVideos]);
+  }, [effectiveVideos, searchFiltered, searchQuery]);
 
   const { favorites: localFavorites, toggleFavorite: toggleLocalFav } = useLocalFavorites();
 
@@ -122,37 +130,21 @@ export default function Trends() {
   const toggleFav = useCallback(
     async (videoId: string) => {
       hapticLight();
-      if (isNativePlatform) {
-        toggleLocalFav(videoId);
-        return;
-      }
-
-      if (!user) {
-        console.warn("[Trends] toggleFav: No user, redirecting to auth");
-        navigate("/auth");
-        return;
-      }
-      console.log("[Trends] toggleFav called:", { userId: user.id, videoId });
+      if (isNativePlatform) { toggleLocalFav(videoId); return; }
+      if (!user) { navigate("/auth"); return; }
       const isFav = userFavorites.includes(videoId);
-
-      // Optimistic update — UI жедел жаңартылады
       queryClient.setQueryData(
         ["user-favorites", user.id],
         isFav ? userFavorites.filter((id: string) => id !== videoId) : [...userFavorites, videoId]
       );
-
       try {
         if (isFav) {
-          const { error } = await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
-          console.log("[Trends] Delete favorite result:", { error });
+          await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
         } else {
-          const { data, error } = await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId }).select();
-          console.log("[Trends] Insert favorite result:", { data, error });
+          const { error } = await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
           if (!error) trackAddToFavorites(videoId);
         }
-      } catch (err) {
-        console.error("[Trends] toggleFav error:", err);
-      }
+      } catch {}
       queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     },
     [user, userFavorites, queryClient, isNativePlatform, toggleLocalFav]
@@ -163,14 +155,9 @@ export default function Trends() {
     await new Promise((r) => setTimeout(r, 500));
   }, [queryClient]);
 
-  const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
-    onRefresh: handleRefresh,
-  });
+  const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({ onRefresh: handleRefresh });
 
-  // Show all niches in one list
-  const allGroups = NICHE_GROUPS;
-
-  // Fetch full niche data only when drilling down
+  // Drill-down (нишаға кіру)
   const { data: drillNicheVideos = [] } = useQuery<any[]>({
     queryKey: ["trends-niche", drillNiche, drillPeriod],
     queryFn: async () => {
@@ -180,7 +167,6 @@ export default function Trends() {
       const since = new Date(Date.now() - drillPeriod * 86400000).toISOString();
       const allRows: any[] = [];
       let from = 0;
-      const pageSize = 1000;
       while (true) {
         const { data: rows } = await supabase
           .from("videos")
@@ -188,11 +174,11 @@ export default function Trends() {
           .eq("niche", drillNiche)
           .gte("published_at", since)
           .order("trend_score", { ascending: false })
-          .range(from, from + pageSize - 1);
+          .range(from, from + 999);
         if (!rows || rows.length === 0) break;
         allRows.push(...rows);
-        if (rows.length < pageSize) break;
-        from += pageSize;
+        if (rows.length < 1000) break;
+        from += 1000;
       }
       return allRows;
     },
@@ -203,9 +189,7 @@ export default function Trends() {
   const drillVideosFiltered = useMemo(() => {
     if (!drillNiche) return [];
     let vids = drillNicheVideos.filter((v: any) => !isBlocked(v.author_username));
-    if (drillSubNiche) {
-      vids = vids.filter((v: any) => v.sub_niche === drillSubNiche);
-    }
+    if (drillSubNiche) vids = vids.filter((v: any) => v.sub_niche === drillSubNiche);
     return vids.slice(0, visibleCount);
   }, [drillNiche, drillNicheVideos, drillSubNiche, visibleCount, isBlocked]);
 
@@ -215,21 +199,20 @@ export default function Trends() {
     return drillNicheVideos.length;
   }, [drillNiche, drillNicheVideos, drillSubNiche]);
 
-  const drillGroup = useMemo(
-    () => NICHE_GROUPS.find((g) => g.key === drillNiche),
-    [drillNiche]
-  );
+  const drillGroup = useMemo(() => NICHE_GROUPS.find((g) => g.key === drillNiche), [drillNiche]);
 
   const PERIOD_OPTIONS = [
-    { value: 3, label: "3 дня" },
-    { value: 7, label: "7 дней" },
-    { value: 14, label: "14 дней" },
+    { value: 3, label: "3 күн" },
+    { value: 7, label: "7 күн" },
+    { value: 14, label: "14 күн" },
   ];
 
   const handleViewAll = (nicheKey: string, subNicheKey?: string) => {
     setDrillNiche(nicheKey);
     setDrillSubNiche(subNicheKey || null);
     setVisibleCount(PAGE_SIZE);
+    setSearchOpen(false);
+    setSearchQuery("");
   };
 
   const handleBack = () => {
@@ -241,7 +224,7 @@ export default function Trends() {
   const swipeRef = useRef<{ startX: number; startY: number } | null>(null);
   const subNicheKeys = useMemo(() => {
     if (!drillGroup) return [];
-    return [null, ...drillGroup.subNiches.map(s => s.key)];
+    return [null, ...drillGroup.subNiches.map((s) => s.key)];
   }, [drillGroup]);
 
   const handleSwipeStart = useCallback((e: React.TouchEvent) => {
@@ -256,7 +239,6 @@ export default function Trends() {
     const dy = t.clientY - swipeRef.current.startY;
     swipeRef.current = null;
     if (Math.abs(dx) < 80 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
-
     const currentIdx = subNicheKeys.indexOf(drillSubNiche);
     let nextIdx: number;
     if (dx < 0) {
@@ -269,14 +251,19 @@ export default function Trends() {
     setDrillSubNiche(subNicheKeys[nextIdx]);
     setVisibleCount(PAGE_SIZE);
     hapticMedium();
-    // Clear direction after animation
     setTimeout(() => setSlideDir(null), 300);
-    // Auto-scroll active chip into view
     setTimeout(() => {
       const el = chipScrollRef.current?.querySelector('[data-active="true"]') as HTMLElement;
       el?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }, 50);
   }, [drillSubNiche, subNicheKeys]);
+
+  // Іздеу ашылғанда фокус
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  }, [searchOpen]);
 
   return (
     <AppLayout>
@@ -285,30 +272,25 @@ export default function Trends() {
         className="overflow-x-hidden overflow-y-auto h-full bg-background text-foreground relative pb-16 md:pb-8"
         style={{ paddingTop: drillNiche ? "0px" : "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
-        <PullToRefreshIndicator
-          pullDistance={pullDistance}
-          isRefreshing={isRefreshing}
-          progress={progress}
-        />
+        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} progress={progress} />
 
-        {/* Offline banner */}
+        {/* Офлайн баннер */}
         {!isOnline && (
           <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center gap-2 text-yellow-400 text-xs">
             <WifiOff className="h-3.5 w-3.5 shrink-0" />
-            <span>Офлайн режим — кэштелген деректер көрсетілуде</span>
+            <span>Офлайн — кэштелген деректер</span>
           </div>
         )}
 
         <div className="space-y-4 pb-4">
-          {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
+            /* ══════ DRILL DOWN РЕЖІМІ ══════ */
             <>
-              {/* Sticky header with back + title */}
               <div
                 className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
                 style={{
                   background: "rgba(10,10,10,0.85)",
-                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)"
+                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
                 }}
               >
                 <div className="flex items-center gap-3">
@@ -323,7 +305,7 @@ export default function Trends() {
                   </h1>
                 </div>
 
-                {/* Period chips + video count */}
+                {/* Кезең чиптері */}
                 <div className="flex items-center gap-2 text-xs">
                   {PERIOD_OPTIONS.map((opt) => (
                     <button
@@ -331,9 +313,7 @@ export default function Trends() {
                       onClick={() => { setDrillPeriod(opt.value); setVisibleCount(PAGE_SIZE); }}
                       className={cn(
                         "shrink-0 px-2.5 py-1 rounded-full font-medium transition-all",
-                        drillPeriod === opt.value
-                          ? "bg-white/20 text-white"
-                          : "bg-white/5 text-white/40 hover:bg-white/10"
+                        drillPeriod === opt.value ? "bg-white/20 text-white" : "bg-white/5 text-white/40 hover:bg-white/10"
                       )}
                     >
                       {opt.label}
@@ -342,45 +322,35 @@ export default function Trends() {
                   <span className="text-white/40 ml-1">· {drillTotalFiltered} видео</span>
                 </div>
 
-                {/* Sub-niche chips */}
+                {/* Суб-ниша чиптері */}
                 {drillGroup.subNiches.length > 0 && (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-neon/80 uppercase tracking-wider">Под-темы ↓</span>
-                      <div className="h-px flex-1 bg-gradient-to-r from-neon/20 to-transparent" />
-                    </div>
-                    <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-                      <button
-                        data-active={!drillSubNiche ? "true" : undefined}
-                        onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
-                        className={cn(
-                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                          !drillSubNiche
-                            ? "bg-neon text-black"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
-                        )}
-                      >
-                        Все
-                      </button>
-                      {drillGroup.subNiches.map((sub) => {
-                        const count = drillNicheVideos.filter((v: any) => v.sub_niche === sub.key).length;
-                        return (
-                          <button
-                            key={sub.key}
-                            data-active={drillSubNiche === sub.key ? "true" : undefined}
-                            onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
-                            className={cn(
-                              "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
-                              drillSubNiche === sub.key
-                                ? "bg-neon text-black"
-                                : "bg-white/10 text-white/70 hover:bg-white/20"
-                            )}
-                          >
-                            {sub.label}{count > 0 && <span className="ml-1 opacity-60">{count}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+                    <button
+                      data-active={!drillSubNiche ? "true" : undefined}
+                      onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
+                      className={cn(
+                        "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        !drillSubNiche ? "bg-neon text-black" : "bg-white/10 text-white/70 hover:bg-white/20"
+                      )}
+                    >
+                      Барлығы
+                    </button>
+                    {drillGroup.subNiches.map((sub) => {
+                      const count = drillNicheVideos.filter((v: any) => v.sub_niche === sub.key).length;
+                      return (
+                        <button
+                          key={sub.key}
+                          data-active={drillSubNiche === sub.key ? "true" : undefined}
+                          onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
+                          className={cn(
+                            "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                            drillSubNiche === sub.key ? "bg-neon text-black" : "bg-white/10 text-white/70 hover:bg-white/20"
+                          )}
+                        >
+                          {sub.label}{count > 0 && <span className="ml-1 opacity-60">{count}</span>}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -411,9 +381,66 @@ export default function Trends() {
               </div>
             </>
           ) : (
+            /* ══════ НЕГІЗГІ ЛЕНТА ══════ */
             <>
+              {/* Header: Logo + Search */}
+              <div
+                className="sticky top-0 z-30 flex items-center justify-between px-4 py-3"
+                style={{
+                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)",
+                  background: "rgba(8,8,8,0.85)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  borderBottom: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
+                {searchOpen ? (
+                  /* Іздеу input */
+                  <div className="flex items-center gap-2 flex-1">
+                    <div className="flex-1 flex items-center gap-2 bg-white/8 rounded-xl px-3 py-2 border border-white/10">
+                      <SearchIcon className="h-4 w-4 text-white/40 shrink-0" />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Тренд іздеу..."
+                        className="flex-1 bg-transparent text-white text-sm outline-none placeholder:text-white/30"
+                      />
+                      {searchQuery && (
+                        <button onClick={() => setSearchQuery("")}>
+                          <X className="h-4 w-4 text-white/40" />
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+                      className="text-white/50 text-sm font-medium px-2"
+                    >
+                      Болдырмау
+                    </button>
+                  </div>
+                ) : (
+                  /* Қалыпты header */
+                  <>
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center relative">
+                        <div className="w-3 h-3 rounded-full bg-viral" />
+                        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-viral animate-ping" />
+                      </div>
+                      <span className="font-bold text-[17px] tracking-tight text-foreground">trendme</span>
+                    </div>
+                    <button
+                      onClick={() => setSearchOpen(true)}
+                      className="w-9 h-9 rounded-full bg-white/8 border border-white/10 flex items-center justify-center active:scale-95 transition-transform"
+                    >
+                      <SearchIcon className="h-4 w-4 text-white/70" />
+                    </button>
+                  </>
+                )}
+              </div>
 
-              {/* Content below hero */}
+              {/* Нишалар тізімі */}
               <div className="px-4 md:px-6 lg:px-8 space-y-6">
                 {isLoading ? (
                   <div className="space-y-6">
@@ -434,9 +461,36 @@ export default function Trends() {
                       </div>
                     ))}
                   </div>
+                ) : searchQuery.trim() ? (
+                  /* Іздеу нәтижелері */
+                  <div>
+                    <p className="text-sm text-white/40 mb-4">
+                      «{searchQuery}» бойынша {searchFiltered.length} видео табылды
+                    </p>
+                    {searchFiltered.length > 0 ? (
+                      <VirtualTrendGrid
+                        videos={searchFiltered.slice(0, 60)}
+                        playingId={playingId}
+                        onPlay={setPlayingId}
+                        userFavorites={userFavorites}
+                        onToggleFav={toggleFav}
+                        onAnalyze={(v) => setAnalysisVideo(v)}
+                        isFreePlan={isFreePlan}
+                        freeLimit={FREE_LIMIT}
+                        hasMore={false}
+                        onLoadMore={() => {}}
+                        darkMode
+                      />
+                    ) : (
+                      <div className="text-center py-16 text-white/30 text-sm">
+                        Ештеңе табылмады 😔
+                      </div>
+                    )}
+                  </div>
                 ) : (
+                  /* Нишалар */
                   <>
-                    {allGroups.map((group) => (
+                    {NICHE_GROUPS.map((group) => (
                       <LazyNicheRow
                         key={group.key}
                         group={group}
@@ -451,14 +505,9 @@ export default function Trends() {
                       />
                     ))}
 
-                    {allGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
+                    {NICHE_GROUPS.every((g) => !(videosByNiche[g.key]?.length)) && !isLoading && (
                       <div className="text-center py-20">
-                        <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                          <TrendingUp className="h-10 w-10 text-white/20" />
-                        </div>
-                        <p className="text-white/50 font-medium">
-                          Нет трендовых видео
-                        </p>
+                        <p className="text-white/30 font-medium text-sm">Трендтер жүктелуде...</p>
                       </div>
                     )}
                   </>
@@ -469,12 +518,11 @@ export default function Trends() {
         </div>
       </div>
 
+      {/* Анализ диалогы — бет ауыспайды, drawer ашылады */}
       <VideoAnalysisDialog
         video={analysisVideo}
         open={!!analysisVideo}
-        onOpenChange={(open) => {
-          if (!open) setAnalysisVideo(null);
-        }}
+        onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
       />
     </AppLayout>
   );

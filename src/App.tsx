@@ -4,110 +4,39 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import { PageTransition } from "@/components/PageTransition";
 import { TrackingPixels } from "@/components/TrackingPixels";
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAdmin } from "@/hooks/useAdmin";
-import { SplashScreen } from "@/components/SplashScreen";
+import { lazy, Suspense } from "react";
 import { isNativePlatform } from "@/lib/native";
-import Index from "./pages/Index";
+import { SplashScreen } from "@/components/SplashScreen";
+import { useState, useCallback } from "react";
 
-
-const NotFound = lazy(() => import("./pages/NotFound"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const SearchPage = lazy(() => import("./pages/SearchPage"));
+// Тек қажетті беттер
 const Trends = lazy(() => import("./pages/Trends"));
-const VideoAnalysis = lazy(() => import("./pages/VideoAnalysis"));
-const AccountAnalysis = lazy(() => import("./pages/AccountAnalysis"));
-const Journal = lazy(() => import("./pages/Journal"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
 const Auth = lazy(() => import("./pages/Auth"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Razvedka = lazy(() => import("./pages/Razvedka"));
-const Library = lazy(() => import("./pages/Library"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-
 const Pricing = lazy(() => import("./pages/Pricing"));
-const Admin = lazy(() => import("./pages/Admin"));
-
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Payment = lazy(() => import("./pages/Payment"));
-const Contacts = lazy(() => import("./pages/Contacts"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentFailure = lazy(() => import("./pages/PaymentFailure"));
-const StyleGuide = lazy(() => import("./pages/StyleGuide"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Landing = lazy(() => import("./pages/Landing"));
+const Library = lazy(() => import("./pages/Library"));
+const AccountAnalysis = lazy(() => import("./pages/AccountAnalysis"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,      // 5 мин — деректер "жаңа" болып саналады
-      gcTime: 30 * 60 * 1000,         // 30 мин — кэште сақталады
-      refetchOnWindowFocus: false,     // фокус кезінде қайта жүктемейді
-      refetchOnMount: false,           // бет ашқанда кэштен алады
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
       retry: 1,
     },
   },
 });
-
-function NativeOnboardingGate({ children }: { children: React.ReactNode }) {
-  if (!isNativePlatform) return <>{children}</>;
-  const done = localStorage.getItem("native_onboarding_done") === "1";
-  if (!done) return <Navigate to="/onboarding" replace />;
-  return <>{children}</>;
-}
-
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (!user) {
-      if (isNativePlatform) {
-        setOnboardingDone(true);
-      }
-      return;
-    }
-    supabase
-      .from("profiles")
-      .select("onboarding_completed")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(async ({ data }) => {
-        if (!data) {
-          await supabase.from("profiles").insert({ user_id: user.id, onboarding_completed: true });
-          setOnboardingDone(true);
-        } else {
-          setOnboardingDone(data.onboarding_completed ?? false);
-        }
-      });
-  }, [user]);
-
-  if (loading || (user && onboardingDone === null)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user && isNativePlatform) return <>{children}</>;
-  if (!user) return <Navigate to="/auth" replace />;
-  if (!onboardingDone && !isNativePlatform) return <Navigate to="/onboarding" replace />;
-  return <>{children}</>;
-}
-
-function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { isAdmin, isLoading } = useAdmin();
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-  if (!isAdmin) return <Navigate to="/trends" replace />;
-  return <>{children}</>;
-}
 
 const SuspenseFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -115,56 +44,75 @@ const SuspenseFallback = () => (
   </div>
 );
 
-const AppRoutes = () => {
+// Guest режімінде 10 видео көрсетеді, одан кейін auth-қа бағыттайды
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <SuspenseFallback />;
+  // Native app-та тіркелусіз кіреді
+  if (isNativePlatform) return <>{children}</>;
+  if (!user) return <Navigate to="/auth" replace />;
+  return <>{children}</>;
+}
+
+function Index() {
+  const { user, loading } = useAuth();
+  if (loading) return <SuspenseFallback />;
+  if (user) return <Navigate to="/trends" replace />;
+  if (isNativePlatform) return <Navigate to="/trends" replace />;
   return (
     <Suspense fallback={<SuspenseFallback />}>
-      <Routes>
-        <Route element={<PageTransition />}>
-          <Route path="/auth" element={isNativePlatform ? <NativeOnboardingGate><Navigate to="/trends" replace /></NativeOnboardingGate> : <Auth />} />
-          <Route path="/landing" element={<Navigate to="/" replace />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Navigate to="/trends" replace />} />
-          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-          <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
-          <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
-          
-          <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
-          <Route path="/favorites" element={<Navigate to="/library" replace />} />
-          <Route path="/journal" element={<Navigate to="/trends" replace />} />
-          <Route path="/razvedka" element={<ProtectedRoute><Razvedka /></ProtectedRoute>} />
-          <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-           <Route path="/tokens" element={<Navigate to="/subscription" replace />} />
-           <Route path="/pricing" element={<Navigate to="/subscription" replace />} />
-           <Route path="/subscription" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/payment-failure" element={<PaymentFailure />} />
-          <Route path="/style-guide" element={<StyleGuide />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+      <Landing />
     </Suspense>
   );
-};
+}
+
+const AppRoutes = () => (
+  <Suspense fallback={<SuspenseFallback />}>
+    <Routes>
+      {/* Публичные */}
+      <Route path="/" element={<Index />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/payment" element={<Payment />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-failure" element={<PaymentFailure />} />
+
+      {/* Негізгі беттер */}
+      <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
+      <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+      <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
+      <Route path="/account-analysis" element={<ProtectedRoute><AccountAnalysis /></ProtectedRoute>} />
+      <Route path="/subscription" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+
+      {/* Ескі роуттарды redirect */}
+      <Route path="/dashboard" element={<Navigate to="/trends" replace />} />
+      <Route path="/video-analysis" element={<Navigate to="/trends" replace />} />
+      <Route path="/favorites" element={<Navigate to="/library" replace />} />
+      <Route path="/journal" element={<Navigate to="/trends" replace />} />
+      <Route path="/library" element={<Navigate to="/library" replace />} />
+      <Route path="/razvedka" element={<Navigate to="/trends" replace />} />
+      <Route path="/analytics" element={<Navigate to="/trends" replace />} />
+      <Route path="/tokens" element={<Navigate to="/subscription" replace />} />
+      <Route path="/pricing" element={<Navigate to="/subscription" replace />} />
+      <Route path="/contacts" element={<Navigate to="/trends" replace />} />
+      <Route path="/onboarding" element={<Navigate to="/trends" replace />} />
+      <Route path="/landing" element={<Navigate to="/" replace />} />
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </Suspense>
+);
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(() => {
-    if (!isNativePlatform) return false;
-    return true;
-  });
+  const [showSplash, setShowSplash] = useState(() => isNativePlatform);
   const [splashJustFinished, setSplashJustFinished] = useState(false);
+
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
     setSplashJustFinished(true);
-    if (typeof sessionStorage !== "undefined") sessionStorage.setItem("splash_shown", "1");
-    // Remove reveal class after animation completes
     setTimeout(() => setSplashJustFinished(false), 700);
   }, []);
 
@@ -174,7 +122,6 @@ const App = () => {
         <Toaster />
         <Sonner />
         {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-        
         <BrowserRouter>
           <AuthProvider>
             <TrackingPixels />
