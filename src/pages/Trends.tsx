@@ -26,6 +26,7 @@ import { ChevronLeft } from "lucide-react";
 
 
 const PAGE_SIZE = 30;
+const EMPTY_ARR: any[] = [];
 
 export default function Trends() {
   // removed activeCategory state
@@ -164,6 +165,8 @@ export default function Trends() {
     await queryClient.invalidateQueries({ queryKey: ["trends-all"] });
     await new Promise((r) => setTimeout(r, 500));
   }, [queryClient]);
+
+  const openAnalysis = useCallback((v: any) => setAnalysisVideo(v), []);
 
   const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
     onRefresh: handleRefresh,
