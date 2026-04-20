@@ -154,20 +154,26 @@ export function AppSidebar(_props: AppSidebarProps) {
         </div>
       </div>
 
-      {/* User pill */}
-      <div className="border-t border-sidebar-border px-3 py-3 shrink-0">
+      {/* User pill + sign out */}
+      <div className="border-t border-sidebar-border px-3 py-3 shrink-0 space-y-1.5">
         <button
           onClick={() => navigate("/subscription")}
           className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-muted w-full text-left transition-colors"
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center text-white font-bold text-[13px] shrink-0">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center text-primary-foreground font-bold text-[13px] shrink-0">
             {initial}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[13px] font-semibold truncate text-foreground">{displayName}</div>
             <div className="text-[11px] text-muted-foreground truncate">{user?.email || "—"}</div>
           </div>
-          <ChevronsUpDown className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+        </button>
+        <button
+          onClick={handleSignOut}
+          className="group flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] w-full text-[13px] font-medium text-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+        >
+          <LogOut className="h-[18px] w-[18px] shrink-0 text-muted-foreground group-hover:text-destructive transition-colors" />
+          <span className="flex-1 text-left">Выйти из аккаунта</span>
         </button>
       </div>
     </aside>
