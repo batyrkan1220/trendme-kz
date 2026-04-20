@@ -341,22 +341,21 @@ export default function Trends() {
           {/* Drill-down mode */}
           {drillNiche && drillGroup ? (
             <>
-              {/* Sticky header with back + title */}
+              {/* Sticky header with back + title — light premium */}
               <div
-                className="sticky top-0 z-30 pb-2 px-4 backdrop-blur-md space-y-3"
+                className="sticky top-0 z-30 pb-3 px-4 md:px-6 lg:px-8 space-y-3 glass border-b border-border"
                 style={{
-                  background: "rgba(10,10,10,0.85)",
-                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)"
+                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)"
                 }}
               >
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleBack}
-                    className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors shrink-0"
+                    className="h-9 w-9 rounded-full bg-background-muted hover:bg-muted border border-border flex items-center justify-center transition-colors shrink-0"
                   >
-                    <ChevronLeft className="h-4 w-4 text-white" />
+                    <ChevronLeft className="h-4 w-4 text-foreground" />
                   </button>
-                  <h1 className="text-lg font-bold text-white truncate">
+                  <h1 className="text-lg md:text-xl font-bold text-foreground truncate tracking-tight">
                     {drillGroup.emoji} {drillGroup.label}
                   </h1>
                 </div>
@@ -368,34 +367,34 @@ export default function Trends() {
                       key={opt.value}
                       onClick={() => { setDrillPeriod(opt.value); setVisibleCount(PAGE_SIZE); }}
                       className={cn(
-                        "shrink-0 px-2.5 py-1 rounded-full font-medium transition-all",
+                        "shrink-0 px-3 py-1.5 rounded-full font-semibold transition-all border",
                         drillPeriod === opt.value
-                          ? "bg-white/20 text-white"
-                          : "bg-white/5 text-white/40 hover:bg-white/10"
+                          ? "bg-foreground text-background border-foreground shadow-soft"
+                          : "bg-card text-muted-foreground border-border hover:bg-muted"
                       )}
                     >
                       {opt.label}
                     </button>
                   ))}
-                  <span className="text-muted-foreground ml-1">· {drillTotalFiltered} видео</span>
+                  <span className="text-muted-foreground ml-1 font-medium">· {drillTotalFiltered} видео</span>
                 </div>
 
                 {/* Sub-niche chips */}
                 {drillGroup.subNiches.length > 0 && (
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-primary uppercase tracking-wider">Под-темы ↓</span>
-                      <div className="h-px flex-1 bg-gradient-to-r from-primary/20 to-transparent" />
+                      <span className="text-[11px] font-bold text-primary uppercase tracking-[0.14em]">Под-темы</span>
+                      <div className="h-px flex-1 bg-border" />
                     </div>
                     <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
                       <button
                         data-active={!drillSubNiche ? "true" : undefined}
                         onClick={() => { setDrillSubNiche(null); setVisibleCount(PAGE_SIZE); }}
                         className={cn(
-                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                          "shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border",
                           !drillSubNiche
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground/70 hover:bg-muted/70"
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-card text-foreground/70 border-border hover:bg-muted"
                         )}
                       >
                         Все
@@ -408,10 +407,10 @@ export default function Trends() {
                             data-active={drillSubNiche === sub.key ? "true" : undefined}
                             onClick={() => { setDrillSubNiche(sub.key === drillSubNiche ? null : sub.key); setVisibleCount(PAGE_SIZE); }}
                             className={cn(
-                              "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                              "shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border",
                               drillSubNiche === sub.key
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-foreground/70 hover:bg-muted/70"
+                                ? "bg-foreground text-background border-foreground"
+                                : "bg-card text-foreground/70 border-border hover:bg-muted"
                             )}
                           >
                             {sub.label}{count > 0 && <span className="ml-1 opacity-60">{count}</span>}
