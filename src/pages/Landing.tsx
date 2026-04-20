@@ -30,7 +30,7 @@ function LandingNav() {
     <header className={`fixed top-0 inset-x-0 z-50 transition-all ${
       scrolled ? "glass border-b border-border" : "bg-transparent"
     }`}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center">
           <TrendMeWordmark size="lg" />
         </Link>
