@@ -40,12 +40,12 @@ function LazyNicheRowImpl(props: LazyNicheRowProps) {
       <div ref={ref} style={{ minHeight: 220 }}>
         {/* Placeholder until visible */}
         <div className="h-5 bg-white/5 rounded w-32 animate-pulse mb-2" />
-        <div className="flex gap-3">
+        <div className="flex gap-3 overflow-hidden">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="shrink-0 rounded-2xl overflow-hidden"
-              style={{ width: "44vw", maxWidth: "200px", background: "#1a1a1a" }}
+              className="shrink-0 w-[46vw] min-w-[176px] max-w-[240px] sm:w-[220px] md:w-[232px] lg:w-[240px] rounded-2xl overflow-hidden"
+              style={{ background: "#1a1a1a" }}
             >
               <div className="aspect-[9/16] bg-white/5 m-1.5 rounded-xl" />
             </div>

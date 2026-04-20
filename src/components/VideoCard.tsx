@@ -573,12 +573,12 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       </div>
 
       {/* Stats bar */}
-      <div className="flex items-center justify-between gap-1.5 px-2.5 py-2 text-[11px] text-muted-foreground">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 px-2.5 py-2 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1 min-w-0">
           <Eye className="h-3 w-3 shrink-0" />
           <span className="font-semibold text-foreground truncate">{fmt(views)}</span>
         </span>
-        <span className="flex items-center gap-1 min-w-0">
+        <span className="flex items-center justify-end gap-1 min-w-0">
           <Heart className="h-3 w-3 shrink-0 text-rose-500" />
           <span className="font-semibold text-foreground truncate">{fmt(Number(video.likes))}</span>
         </span>
@@ -586,18 +586,18 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           <MessageCircle className="h-3 w-3 shrink-0" />
           <span className="font-semibold text-foreground truncate">{fmt(Number(video.comments))}</span>
         </span>
-        <span className="text-foreground font-semibold shrink-0 truncate">
+        <span className="text-foreground font-semibold shrink-0 truncate text-right">
           {timeAgo}
         </span>
       </div>
 
       {/* Action buttons — Analyze + Script (адаптивті: ықшам) */}
       {(showAnalyzeButton && onAnalyze) || (showScriptButton && onScript) ? (
-        <div className="px-2.5 pb-2.5 mt-auto flex items-center gap-1.5">
+        <div className="px-2.5 pb-2.5 mt-auto grid grid-cols-2 gap-1.5">
           {showAnalyzeButton && onAnalyze && (
             <button
               onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-              className="flex-1 min-w-0 py-2 px-2 rounded-xl text-[11.5px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1"
+              className="min-w-0 min-h-[36px] py-2 px-2 rounded-xl text-[11.5px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1"
             >
               <Sparkles className="h-3.5 w-3.5 text-viral shrink-0" />
               <span className="truncate">Анализ</span>
@@ -606,7 +606,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           {showScriptButton && onScript && (
             <button
               onClick={(e) => { e.stopPropagation(); onScript(video); }}
-              className="flex-1 min-w-0 py-2 px-2 rounded-xl text-[11.5px] font-semibold transition-all active:scale-[0.98] bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground inline-flex items-center justify-center gap-1 border border-primary/20"
+              className="min-w-0 min-h-[36px] py-2 px-2 rounded-xl text-[11.5px] font-semibold transition-all active:scale-[0.98] bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground inline-flex items-center justify-center gap-1 border border-primary/20"
             >
               <Sparkles className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Сценарий</span>
