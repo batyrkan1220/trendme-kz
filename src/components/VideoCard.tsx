@@ -454,7 +454,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   onClick={handlePlay}
                   onError={() => handleCoverError()}
                 />
-                {/* Bottom gradient (dashboard style) */}
+                {/* Top + bottom gradient overlays for pill/text legibility */}
+                <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/55 via-black/15 to-transparent pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
                 {/* Hover play */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
