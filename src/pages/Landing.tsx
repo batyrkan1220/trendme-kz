@@ -604,28 +604,28 @@ function Testimonials() {
   ];
 
   return (
-    <section className="py-24">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="max-w-2xl mb-14">
+    <section className="py-14 md:py-24">
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+        <div className="max-w-2xl mb-8 md:mb-14">
           <span className="eyebrow">Отзывы</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
             Что говорят пользователи
           </h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {items.map((t) => (
-            <div key={t.name} className="bg-card border border-border rounded-2xl p-7 hover-lift shadow-card-hover">
-              <div className="flex gap-0.5 text-amber-500 mb-4">
+            <div key={t.name} className="bg-card border border-border rounded-2xl p-5 md:p-7 hover-lift shadow-card-hover">
+              <div className="flex gap-0.5 text-amber-500 mb-3 md:mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
               </div>
-              <p className="text-[15px] leading-relaxed text-foreground">«{t.text}»</p>
-              <div className="mt-6 flex items-center gap-3">
+              <p className="text-[14px] md:text-[15px] leading-relaxed text-foreground">«{t.text}»</p>
+              <div className="mt-5 md:mt-6 flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.grad}`} />
                 <div>
-                  <div className="text-[14px] font-semibold text-foreground">{t.name}</div>
-                  <div className="text-[12px] text-muted-foreground">{t.role}</div>
+                  <div className="text-[13.5px] md:text-[14px] font-semibold text-foreground">{t.name}</div>
+                  <div className="text-[11.5px] md:text-[12px] text-muted-foreground">{t.role}</div>
                 </div>
               </div>
             </div>
