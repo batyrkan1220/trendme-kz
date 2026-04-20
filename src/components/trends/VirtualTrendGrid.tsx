@@ -10,6 +10,7 @@ interface VirtualTrendGridProps {
   userFavorites: string[];
   onToggleFav: (id: string) => void;
   onAnalyze: (v: any) => void;
+  onScript?: (v: any) => void;
   isFreePlan: boolean;
   freeLimit: number;
   hasMore: boolean;
@@ -24,11 +25,11 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
   userFavorites,
   onToggleFav,
   onAnalyze,
+  onScript,
   isFreePlan,
   freeLimit,
   hasMore,
   onLoadMore,
-  darkMode,
 }, ref) {
   const navigate = useNavigate();
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -72,10 +73,10 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
               isFavorite={userFavorites.includes(video.id)}
               onToggleFav={onToggleFav}
               onAnalyze={onAnalyze}
+              onScript={onScript}
               showTier={true}
               showAuthor={true}
-              darkMode={darkMode}
-              
+              showScriptButton={!!onScript}
             />
           );
         })}
