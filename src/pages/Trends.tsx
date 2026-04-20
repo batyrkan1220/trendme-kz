@@ -443,7 +443,6 @@ export default function Trends() {
                   freeLimit={FREE_LIMIT}
                   hasMore={drillTotalFiltered > visibleCount}
                   onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                  darkMode
                 />
               </div>
             </>
