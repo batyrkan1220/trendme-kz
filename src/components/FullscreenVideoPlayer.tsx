@@ -463,29 +463,17 @@ export function FullscreenVideoPlayer({
               </p>
             )}
 
-            {/* Action buttons — Analyze + Script (lux split) */}
-            {(onAnalyze || onScript) && (
-              <div className="mt-3 flex gap-2">
-                {onAnalyze && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onAnalyze(video); onClose(); }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-bold tracking-wide bg-viral text-foreground active:scale-[0.97] transition-transform ring-1 ring-white/20"
-                    style={{ boxShadow: "0 6px 24px -4px hsl(var(--viral) / 0.5), 0 0 16px -4px hsl(var(--viral) / 0.4)" }}
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Анализ
-                  </button>
-                )}
-                {onScript && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onScript(video); onClose(); }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-bold tracking-wide bg-white/10 backdrop-blur-xl text-white ring-1 ring-white/25 active:scale-[0.97] hover:bg-white/15 transition-all"
-                    style={{ boxShadow: "0 4px 20px -4px rgba(0,0,0,0.5)" }}
-                  >
-                    <FileText className="h-4 w-4" />
-                    Сценарий
-                  </button>
-                )}
+            {/* Action button — Script (lux) */}
+            {onScript && (
+              <div className="mt-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onScript(video); onClose(); }}
+                  className="w-full flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[14px] font-bold tracking-wide bg-viral text-foreground active:scale-[0.97] transition-transform ring-1 ring-white/20"
+                  style={{ boxShadow: "0 6px 24px -4px hsl(var(--viral) / 0.5), 0 0 16px -4px hsl(var(--viral) / 0.4)" }}
+                >
+                  <FileText className="h-4 w-4" />
+                  Создать сценарий
+                </button>
               </div>
             )}
           </div>

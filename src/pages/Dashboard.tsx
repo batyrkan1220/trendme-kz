@@ -26,14 +26,6 @@ const actions = [
     emoji: "📈",
   },
   {
-    icon: Video,
-    title: "Анализ видео",
-    description: "Разберите любое видео по полочкам с AI",
-    path: "/video-analysis",
-    iconBg: "bg-purple-500",
-    emoji: "🎬",
-  },
-  {
     icon: UserCircle,
     title: "Анализ профиля",
     description: "Изучите стратегию любого автора",
