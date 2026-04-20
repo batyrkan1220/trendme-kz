@@ -605,10 +605,10 @@ export default function Trends() {
                       <LazyNicheRow
                         key={group.key}
                         group={group}
-                        videos={videosByNiche[group.key] || []}
+                        videos={videosByNiche[group.key] || EMPTY_ARR}
                         userFavorites={userFavorites}
                         onToggleFav={toggleFav}
-                        onAnalyze={(v) => setAnalysisVideo(v)}
+                        onAnalyze={openAnalysis}
                         playingId={playingId}
                         onPlay={setPlayingId}
                         onViewAll={handleViewAll}
