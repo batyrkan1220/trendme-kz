@@ -66,6 +66,7 @@ export function FullscreenVideoPlayer({
   isFavorite,
   onToggleFav,
   onAnalyze,
+  onScript,
 }: FullscreenVideoPlayerProps) {
   const { user } = useAuth();
   const [blockingUser, setBlockingUser] = useState(false);
