@@ -26,6 +26,7 @@ import { ChevronLeft } from "lucide-react";
 
 
 const PAGE_SIZE = 30;
+const EMPTY_ARR: any[] = [];
 
 export default function Trends() {
   // removed activeCategory state
@@ -165,6 +166,8 @@ export default function Trends() {
     await new Promise((r) => setTimeout(r, 500));
   }, [queryClient]);
 
+  const openAnalysis = useCallback((v: any) => setAnalysisVideo(v), []);
+
   const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
     onRefresh: handleRefresh,
   });
@@ -261,16 +264,16 @@ export default function Trends() {
     [allGroups, activeNicheFilter]
   );
 
-  const handleViewAll = (nicheKey: string, subNicheKey?: string) => {
+  const handleViewAll = useCallback((nicheKey: string, subNicheKey?: string) => {
     setDrillNiche(nicheKey);
     setDrillSubNiche(subNicheKey || null);
     setVisibleCount(PAGE_SIZE);
-  };
+  }, []);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setDrillNiche(null);
     setVisibleCount(PAGE_SIZE);
-  };
+  }, []);
 
   // Swipe between sub-niches
   const swipeRef = useRef<{ startX: number; startY: number } | null>(null);
@@ -605,10 +608,10 @@ export default function Trends() {
                       <LazyNicheRow
                         key={group.key}
                         group={group}
-                        videos={videosByNiche[group.key] || []}
+                        videos={videosByNiche[group.key] || EMPTY_ARR}
                         userFavorites={userFavorites}
                         onToggleFav={toggleFav}
-                        onAnalyze={(v) => setAnalysisVideo(v)}
+                        onAnalyze={openAnalysis}
                         playingId={playingId}
                         onPlay={setPlayingId}
                         onViewAll={handleViewAll}
