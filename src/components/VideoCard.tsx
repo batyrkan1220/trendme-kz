@@ -512,14 +512,14 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 type="button"
                 onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
-                className="w-8 h-8 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-95 transition-transform"
+                className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-2xl ring-1 ring-white/25 flex items-center justify-center shadow-soft active:scale-90 transition-all hover:bg-white/25"
                 style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 aria-label="Избранное"
               >
                 <Heart
                   className={cn(
                     "h-4 w-4 transition-all",
-                    isFavorite ? "text-rose-400 fill-rose-400" : "text-white",
+                    isFavorite ? "text-rose-400 fill-rose-400 drop-shadow-[0_0_6px_rgba(251,113,133,0.6)]" : "text-white",
                   )}
                 />
               </button>
