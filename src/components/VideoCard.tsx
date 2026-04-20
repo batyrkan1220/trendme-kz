@@ -459,13 +459,13 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/55 via-black/15 to-transparent pointer-events-none" />
                 {/* Bottom vignette for caption */}
                 <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
-                {/* Lux neon play button — always visible, scales on hover */}
+                {/* Lux neon play button — adaptive size, always visible, scales on hover */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <button
                     type="button"
                     onClick={handlePlay}
                     aria-label="Воспроизвести"
-                    className="pointer-events-auto relative h-14 w-14 rounded-full bg-white/15 backdrop-blur-2xl ring-1 ring-white/30 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-viral group-hover:ring-viral/50 active:scale-95"
+                    className="pointer-events-auto relative h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-white/15 backdrop-blur-2xl ring-1 ring-white/30 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-viral group-hover:ring-viral/50 active:scale-95"
                     style={{
                       WebkitTapHighlightColor: "transparent",
                       boxShadow: "0 8px 32px -8px rgba(0,0,0,0.6), 0 0 0 1px hsl(0 0% 100% / 0.1) inset",
@@ -473,7 +473,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   >
                     {/* Glow halo on hover */}
                     <span className="absolute inset-0 rounded-full bg-viral/40 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
-                    <Play className="h-5 w-5 text-white ml-0.5 transition-colors duration-300 group-hover:text-foreground" fill="currentColor" />
+                    <Play className="h-4 w-4 sm:h-5 sm:w-5 text-white ml-0.5 transition-colors duration-300 group-hover:text-foreground" fill="currentColor" />
                   </button>
                 </div>
               </div>
