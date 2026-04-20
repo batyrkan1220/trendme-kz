@@ -1,0 +1,1 @@
+DELETE FROM public.videos WHERE platform_video_id LIKE 'demo_%';
