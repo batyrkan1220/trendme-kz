@@ -242,15 +242,19 @@ export function FullscreenVideoPlayer({
       >
         <button
           onClick={(e) => { e.stopPropagation(); closeOverlay(); }}
-          className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
+          className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-2xl ring-1 ring-white/20 flex items-center justify-center active:scale-90 transition-all hover:bg-white/20"
+          style={{ boxShadow: "0 4px 16px -4px rgba(0,0,0,0.5)" }}
+          aria-label="Закрыть"
         >
-          <X className="h-5 w-5 text-white/90" />
+          <X className="h-5 w-5 text-white" />
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); window.open(video.url, '_blank'); }}
-          className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
+          className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-2xl ring-1 ring-white/20 flex items-center justify-center active:scale-90 transition-all hover:bg-white/20"
+          style={{ boxShadow: "0 4px 16px -4px rgba(0,0,0,0.5)" }}
+          aria-label="Открыть в TikTok"
         >
-          <ExternalLink className="h-4 w-4 text-white/90" />
+          <ExternalLink className="h-4 w-4 text-white" />
         </button>
       </div>
 
