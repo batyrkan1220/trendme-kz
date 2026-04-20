@@ -331,7 +331,7 @@ export default function Trends() {
 
         {/* Offline banner */}
         {!isOnline && (
-          <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center gap-2 text-yellow-400 text-xs">
+          <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-warning/10 border border-warning/30 flex items-center gap-2 text-warning text-xs">
             <WifiOff className="h-3.5 w-3.5 shrink-0" />
             <span>Офлайн режим — кэштелген деректер көрсетілуде</span>
           </div>
