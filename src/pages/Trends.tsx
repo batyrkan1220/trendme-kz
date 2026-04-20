@@ -264,16 +264,16 @@ export default function Trends() {
     [allGroups, activeNicheFilter]
   );
 
-  const handleViewAll = (nicheKey: string, subNicheKey?: string) => {
+  const handleViewAll = useCallback((nicheKey: string, subNicheKey?: string) => {
     setDrillNiche(nicheKey);
     setDrillSubNiche(subNicheKey || null);
     setVisibleCount(PAGE_SIZE);
-  };
+  }, []);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setDrillNiche(null);
     setVisibleCount(PAGE_SIZE);
-  };
+  }, []);
 
   // Swipe between sub-niches
   const swipeRef = useRef<{ startX: number; startY: number } | null>(null);
