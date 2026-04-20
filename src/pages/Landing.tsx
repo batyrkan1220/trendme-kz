@@ -519,23 +519,23 @@ function Pricing() {
   ];
 
   return (
-    <section id="pricing" className="py-28 bg-background-subtle border-y border-border">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="text-center max-w-2xl mx-auto mb-14">
+    <section id="pricing" className="py-16 md:py-28 bg-background-subtle border-y border-border">
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+        <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
           <span className="eyebrow">Тарифы</span>
-          <h2 className="mt-3 text-[clamp(2rem,3.5vw,2.75rem)] font-bold tracking-tight text-foreground">
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
             Простые тарифы для любого масштаба
           </h2>
-          <p className="mt-4 text-[17px] text-muted-foreground leading-relaxed">
+          <p className="mt-3 md:mt-4 text-[15px] md:text-[17px] text-muted-foreground leading-relaxed">
             Начните бесплатно. Отмените в любой момент.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {plans.map((p) => (
             <div
               key={p.name}
-              className={`relative rounded-2xl p-8 transition-all hover:-translate-y-1 ${
+              className={`relative rounded-2xl p-6 md:p-8 transition-all hover:-translate-y-1 ${
                 p.featured
                   ? "bg-foreground text-background border border-foreground shadow-card"
                   : "bg-card border border-border shadow-card-hover"
@@ -547,14 +547,14 @@ function Pricing() {
                 </Pill>
               )}
               <div className={`text-[14px] font-semibold ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.name}</div>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-[44px] font-bold tracking-tight">{p.price}</span>
-                <span className={`text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>/мес</span>
+              <div className="mt-2 md:mt-3 flex items-baseline gap-1">
+                <span className="text-[36px] md:text-[44px] font-bold tracking-tight">{p.price}</span>
+                <span className={`text-[13px] md:text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>/мес</span>
               </div>
-              <p className={`mt-2 text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.desc}</p>
+              <p className={`mt-1.5 md:mt-2 text-[13.5px] md:text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.desc}</p>
               <Link
                 to="/auth"
-                className={`mt-6 inline-flex w-full justify-center py-3 rounded-xl text-[14px] font-semibold transition ${
+                className={`mt-5 md:mt-6 inline-flex w-full justify-center py-3 rounded-xl text-[14px] font-semibold transition ${
                   p.featured
                     ? "bg-viral text-foreground hover:opacity-90"
                     : "border border-border text-foreground hover:bg-muted"
@@ -562,7 +562,7 @@ function Pricing() {
               >
                 {p.cta}
               </Link>
-              <ul className="mt-8 space-y-3 text-[14px]">
+              <ul className="mt-6 md:mt-8 space-y-2.5 md:space-y-3 text-[13.5px] md:text-[14px]">
                 {p.features.map((f) => (
                   <li key={f.label} className={`flex gap-2.5 ${
                     f.ok
