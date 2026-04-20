@@ -252,9 +252,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   showTier = true,
   showAuthor = true,
   showAnalyzeButton = true,
-  darkMode = false,
+  darkMode: _darkMode, // deprecated — kept for backward compatibility, ignored
   isMobileOverride,
-  
 }, ref) {
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loadingPlay, setLoadingPlay] = useState(false);
