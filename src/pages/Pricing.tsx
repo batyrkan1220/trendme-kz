@@ -193,14 +193,12 @@ export default function Pricing() {
                         ) : isActive ? "Активен ✓" : isFeatured ? "Выбрать 1 мес" : "Выбрать"}
                       </button>
                     ) : (
-                      <div className={cn(
-                        "mt-6 inline-flex w-full justify-center items-center py-3 rounded-xl text-[14px] font-semibold border",
-                        isActive
-                          ? "border-border text-foreground bg-muted"
-                          : "border-border text-muted-foreground"
-                      )}>
+                      <button
+                        disabled
+                        className="mt-6 inline-flex w-full justify-center items-center py-3 rounded-xl text-[14px] font-semibold bg-muted text-muted-foreground cursor-default"
+                      >
                         {isActive ? "Активен ✓" : "Текущий план"}
-                      </div>
+                      </button>
                     )}
 
                     {/* Features */}
