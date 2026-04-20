@@ -49,9 +49,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <main
-        className="flex-1 min-w-0 h-full pb-0 md:pb-0 overflow-x-hidden overflow-y-auto"
+        className="flex-1 min-w-0 h-full overflow-x-hidden overflow-y-auto"
         style={{
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          // Mobile: reserve room for bottom nav (≈64px) + safe-area; Desktop: just safe-area
+          paddingBottom: isMobile
+            ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)'
+            : 'env(safe-area-inset-bottom, 0px)',
           ...swipeStyle,
         }}
         {...swipeProps}

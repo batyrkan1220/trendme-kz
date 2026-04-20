@@ -375,7 +375,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
         {/* AI Chat — slide-out panel */}
         {/* Desktop: right side panel */}
         <div
-          className={`hidden md:flex flex-col border-l border-border/50 bg-card transition-all duration-300 overflow-hidden ${chatOpen ? "w-[340px]" : "w-0 border-l-0"}`}
+          className={`hidden md:flex flex-col border-l border-border/50 bg-card transition-all duration-300 overflow-hidden ${chatOpen ? "w-[380px] lg:w-[420px]" : "w-0 border-l-0"}`}
         >
           {chatOpen && (
             <>

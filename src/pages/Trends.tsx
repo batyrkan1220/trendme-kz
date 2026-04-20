@@ -326,7 +326,7 @@ export default function Trends() {
       <div
         ref={containerRef}
         className={cn(
-          "overflow-x-hidden overflow-y-auto h-full text-foreground relative pb-16 md:pb-8",
+          "overflow-x-hidden overflow-y-auto h-full text-foreground relative",
           drillNiche ? "bg-background" : "bg-background-subtle"
         )}
         style={{ paddingTop: drillNiche ? "0px" : "calc(env(safe-area-inset-top, 0px) + 12px)" }}
