@@ -75,8 +75,8 @@ export default function VideoAnalysis() {
     onError: (err: Error) => toast.error(err.message || "Не удалось проанализировать видео"),
   });
 
-  const handleAnalyze = async (lang: "ru" | "kk") => {
-    const normalizedUrl = normalizeTikTokUrlInput(url);
+  const handleAnalyze = async (lang: "ru" | "kk", overrideUrl?: string) => {
+    const normalizedUrl = normalizeTikTokUrlInput(overrideUrl ?? url);
     if (!normalizedUrl) return;
 
     if (!isValidTikTokUrl(normalizedUrl)) {
@@ -112,7 +112,7 @@ export default function VideoAnalysis() {
     autoScriptRef.current = wantScript;
     setUrl(urlParam);
     // fire async; handleAnalyze validates + checks limits
-    handleAnalyze(langParam);
+    handleAnalyze(langParam, urlParam);
     // clean query so refresh doesn't re-trigger
     const next = new URLSearchParams(searchParams);
     next.delete("url");
