@@ -435,12 +435,12 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
         {!chatOpen && (
           <button
             onClick={() => setChatOpen(true)}
-            className="md:hidden fixed bottom-24 left-4 z-[99997] flex items-center gap-2.5 pl-4 pr-5 h-12 rounded-full bg-primary text-primary-foreground shadow-xl active:scale-95 transition-transform animate-fade-in"
-            style={{ boxShadow: "0 4px 24px hsl(72 100% 50% / 0.35)" }}
+            className="md:hidden fixed left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2.5 pl-4 pr-5 h-12 rounded-full bg-primary text-primary-foreground shadow-glow-primary active:scale-95 transition-transform animate-fade-in"
+            style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)" }}
           >
             <Sparkles className="h-5 w-5 shrink-0" />
             <span className="text-sm font-bold whitespace-nowrap">
-              {isKk ? "AI редактор" : "AI редактор"}
+              {isKk ? "AI редактор" : "AI редактор сценария"}
             </span>
           </button>
         )}
