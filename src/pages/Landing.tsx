@@ -30,12 +30,8 @@ function LandingNav() {
       scrolled ? "glass border-b border-border" : "bg-transparent"
     }`}>
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center relative">
-            <div className="w-3 h-3 rounded-full bg-viral" />
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-viral animate-ping" />
-          </div>
-          <span className="font-bold text-[17px] tracking-tight text-foreground">trendme</span>
+        <Link to="/" className="flex items-center">
+          <TrendMeWordmark size="lg" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 text-[14px] font-medium text-muted-foreground">
