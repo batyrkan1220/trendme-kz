@@ -5,6 +5,7 @@ import {
   TrendingUp, Search, Sparkles, Users, Wand2, BarChart3,
   ChevronDown, Flame, Heart, Instagram, Youtube,
 } from "lucide-react";
+import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 
 /* ───────── NAV ───────── */
 function LandingNav() {
