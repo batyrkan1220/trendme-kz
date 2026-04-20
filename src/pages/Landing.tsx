@@ -102,50 +102,52 @@ function Pill({ children, className = "" }: { children: React.ReactNode; classNa
 /* ───────── HERO ───────── */
 function Hero() {
   return (
-    <section className="relative pt-32 pb-24 overflow-hidden gradient-mesh">
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-[1.15fr,1fr] gap-16 items-center">
-        <div className="animate-fade-in">
-          <Pill className="bg-viral-soft text-foreground border border-viral/40 mb-6">
+    <section className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden gradient-mesh">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 grid lg:grid-cols-[1.15fr,1fr] gap-10 lg:gap-16 items-center">
+        <div className="animate-fade-in text-center lg:text-left">
+          <Pill className="bg-viral-soft text-foreground border border-viral/40 mb-5 md:mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-viral animate-pulse" />
-            Новое · ИИ-сценарии для TikTok
+            <span className="hidden sm:inline">Новое · ИИ-сценарии для TikTok</span>
+            <span className="sm:hidden">ИИ-сценарии</span>
           </Pill>
 
-          <h1 className="text-[clamp(2.5rem,5.5vw,4.5rem)] font-bold leading-[1.02] tracking-tight text-foreground">
+          <h1 className="text-[clamp(2rem,8vw,4.5rem)] font-bold leading-[1.05] tracking-tight text-foreground">
             Находите <span className="gradient-text">вирусные тренды</span>
-            <br />раньше конкурентов
+            <br className="hidden sm:block" />
+            <span className="sm:inline"> раньше конкурентов</span>
           </h1>
 
-          <p className="mt-6 text-[18px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[560px]">
+          <p className="mt-5 md:mt-6 text-[15px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[560px] mx-auto lg:mx-0">
             Платформа для мониторинга TikTok-трендов, разведки конкурентов и генерации ИИ-сценариев.{" "}
             <span className="text-foreground font-medium">5M+ видео</span>,{" "}
             <span className="text-foreground font-medium">150+ ниш</span>, обновление в реальном времени.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-7 md:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center lg:justify-start gap-3">
             <Link
               to="/auth"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
             >
               Попробовать бесплатно
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
               href="#product"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold text-foreground border border-border bg-background hover:bg-muted transition"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold text-foreground border border-border bg-background hover:bg-muted transition"
             >
               <Play className="w-4 h-4" />
               Смотреть демо · 2 мин
             </a>
           </div>
 
-          <div className="mt-10 flex items-center gap-4 text-[13px] text-muted-foreground">
+          <div className="mt-8 md:mt-10 flex items-center justify-center lg:justify-start gap-4 text-[13px] text-muted-foreground">
             <div className="flex -space-x-2">
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-pink-400 to-orange-400" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-purple-400 to-blue-500" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-emerald-400 to-cyan-500" />
               <div className="w-8 h-8 rounded-full border-2 border-background bg-gradient-to-br from-amber-400 to-rose-500" />
             </div>
-            <div>
+            <div className="text-left">
               <div className="flex items-center gap-1 text-amber-500">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
@@ -153,7 +155,7 @@ function Hero() {
                 <span className="ml-1.5 text-foreground font-semibold">5.0</span>
               </div>
               <div className="mt-0.5">
-                Более <span className="text-foreground font-semibold">2 400 креаторов</span> уже используют
+                <span className="text-foreground font-semibold">2 400+ креаторов</span>
               </div>
             </div>
           </div>
