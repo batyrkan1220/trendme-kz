@@ -144,37 +144,45 @@ export default function VideoAnalysis() {
   return (
     <AppLayout>
       {!analysis || isPending ? (
-        /* Input state — centered, full screen */
-        <div className="flex flex-col items-center justify-center px-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
-          <div className="w-full max-w-lg flex flex-col items-center gap-5">
+        /* Input state — centered, premium */
+        <div className="flex flex-col items-center justify-center px-4 animate-fade-in bg-background-subtle" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+          <div className="w-full max-w-lg flex flex-col items-center gap-6">
             {isPending ? <MagicAnalysisLoader /> : (
-              <h1 className="text-xl md:text-3xl font-bold text-foreground text-center">
-                {language === "kk" ? "Видео талдау" : "Анализ видео"}
-              </h1>
+              <div className="text-center space-y-2">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                  AI Анализ
+                </p>
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+                  {language === "kk" ? "Видео талдау" : "Анализ видео"}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Вставьте ссылку на TikTok видео — получите глубокий разбор
+                </p>
+              </div>
             )}
             <div className="flex flex-col gap-3 w-full">
               <Input
-                placeholder="Вставьте ссылку на TikTok видео..."
+                placeholder="https://tiktok.com/..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !isPending && url.trim() && handleAnalyze("ru")}
-                className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-base"
+                className="flex-1 h-12 bg-card border-border rounded-xl shadow-soft text-base"
               />
               {!isPending && (
                 <div className="flex flex-col gap-2">
-                  <p className="text-[11px] text-muted-foreground text-center font-medium">Тілді таңдаңыз / Выберите язык</p>
+                  <p className="text-[11px] text-muted-foreground text-center font-semibold uppercase tracking-wide">Тілді таңдаңыз / Выберите язык</p>
                   <div className="flex gap-2">
-                    <Button onClick={() => handleAnalyze("kk")} disabled={!url.trim()} className="flex-1 h-11 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm">
+                    <Button onClick={() => handleAnalyze("kk")} disabled={!url.trim()} className="flex-1 h-11 bg-foreground text-background hover:bg-foreground/90 border-0 transition-opacity rounded-xl font-semibold text-sm shadow-soft">
                       🇰🇿 Қазақша
                     </Button>
-                    <Button onClick={() => handleAnalyze("ru")} disabled={!url.trim()} className="flex-1 h-11 gradient-hero text-primary-foreground border-0 glow-primary hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm">
+                    <Button onClick={() => handleAnalyze("ru")} disabled={!url.trim()} className="flex-1 h-11 bg-primary text-primary-foreground hover:bg-primary-hover border-0 transition-opacity rounded-xl font-semibold text-sm shadow-glow-primary">
                       🇷🇺 Русский
                     </Button>
                   </div>
                 </div>
               )}
               {isPending && (
-                <Button disabled className="h-11 gradient-hero text-primary-foreground border-0 rounded-xl font-semibold text-sm">
+                <Button disabled className="h-11 bg-primary text-primary-foreground border-0 rounded-xl font-semibold text-sm">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />Анализируем...
                 </Button>
               )}
@@ -183,7 +191,7 @@ export default function VideoAnalysis() {
         </div>
       ) : (
         /* Results state */
-        <div className="animate-magic-reveal pb-20 md:pb-8" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 4px, 4px)" }}>
+        <div className="animate-magic-reveal pb-20 md:pb-8 bg-background-subtle min-h-full" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 4px, 4px)" }}>
           {/* Top bar with input — compact on mobile */}
           <div className="px-2.5 md:px-4 lg:px-6 pb-2">
             <div className="flex gap-1.5">
@@ -192,12 +200,12 @@ export default function VideoAnalysis() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !isPending && url.trim() && handleAnalyze(language || "ru")}
-                className="flex-1 h-9 md:h-11 bg-card border-border rounded-lg md:rounded-xl card-shadow text-xs md:text-sm"
+                className="flex-1 h-9 md:h-11 bg-card border-border rounded-lg md:rounded-xl shadow-soft text-xs md:text-sm"
               />
-              <Button onClick={() => handleAnalyze("kk")} disabled={isPending} size="sm" className="h-9 md:h-11 gradient-hero text-primary-foreground border-0 px-2.5 md:px-3 rounded-lg md:rounded-xl font-semibold text-[11px] md:text-xs">
+              <Button onClick={() => handleAnalyze("kk")} disabled={isPending} size="sm" className="h-9 md:h-11 bg-foreground text-background hover:bg-foreground/90 border-0 px-2.5 md:px-3 rounded-lg md:rounded-xl font-semibold text-[11px] md:text-xs">
                 {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "🇰🇿"}
               </Button>
-              <Button onClick={() => handleAnalyze("ru")} disabled={isPending} size="sm" className="h-9 md:h-11 gradient-hero text-primary-foreground border-0 px-2.5 md:px-3 rounded-lg md:rounded-xl font-semibold text-[11px] md:text-xs">
+              <Button onClick={() => handleAnalyze("ru")} disabled={isPending} size="sm" className="h-9 md:h-11 bg-primary text-primary-foreground hover:bg-primary-hover border-0 px-2.5 md:px-3 rounded-lg md:rounded-xl font-semibold text-[11px] md:text-xs">
                 {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "🇷🇺"}
               </Button>
             </div>
@@ -232,7 +240,7 @@ export default function VideoAnalysis() {
             </div>
 
             {/* Analysis Results */}
-            <div className="flex-1 overflow-y-auto p-2.5 md:p-5 bg-card rounded-xl md:rounded-2xl border border-border/50 card-shadow">
+            <div className="flex-1 overflow-y-auto p-2.5 md:p-5 bg-card rounded-xl md:rounded-2xl border border-border shadow-card">
               <VideoAnalysisResults
                 summary={summary}
                 transcript={transcript}
