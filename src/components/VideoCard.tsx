@@ -623,13 +623,13 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             <button
               onClick={(e) => { e.stopPropagation(); onScript(video); }}
               className={cn(
-                "group/btn relative w-full py-2.5 rounded-xl text-[12px] font-bold tracking-wide transition-all active:scale-[0.97] inline-flex items-center justify-center gap-1.5 ring-1 ring-viral/30 overflow-hidden",
-                "bg-viral/15 text-foreground hover:bg-viral hover:ring-viral/60",
+                "group/btn relative w-full py-2.5 rounded-xl text-[12px] font-bold tracking-wide transition-all active:scale-[0.97] inline-flex items-center justify-center gap-1.5 ring-1 ring-viral/40 overflow-hidden",
+                "bg-viral text-foreground hover:brightness-110",
                 !(showAnalyzeButton && onAnalyze) && "col-span-2"
               )}
-              style={{ boxShadow: "0 4px 16px -6px hsl(var(--viral) / 0.4)" }}
+              style={{ boxShadow: "0 6px 20px -6px hsl(var(--viral) / 0.55)" }}
             >
-              <Sparkles className="h-3.5 w-3.5 text-viral transition-all group-hover/btn:text-foreground group-hover/btn:rotate-12" />
+              <Sparkles className="h-3.5 w-3.5 text-foreground transition-transform group-hover/btn:rotate-12" />
               Сценарий
             </button>
           )}
