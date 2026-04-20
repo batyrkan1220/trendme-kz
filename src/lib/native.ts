@@ -1,11 +1,16 @@
-import { Capacitor } from "@capacitor/core";
-
 /**
  * Returns true when running inside a native iOS/Android shell.
  * Uses both Capacitor bridge detection and URL param fallback for remote URL mode.
  */
 const checkNative = () => {
-  const capacitorNative = Capacitor.isNativePlatform();
+  let capacitorNative = false;
+  try {
+    // @ts-ignore - optional dependency, only present in native builds
+    const cap = (window as any)?.Capacitor;
+    capacitorNative = !!cap?.isNativePlatform?.();
+  } catch {
+    capacitorNative = false;
+  }
   const urlParams = new URLSearchParams(window.location.search);
   const urlNative = urlParams.has("native");
   console.log("[native] Capacitor.isNativePlatform():", capacitorNative);
