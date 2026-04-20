@@ -96,7 +96,7 @@ export default function Library() {
             Избранное
           </div>
           <h1 className="text-[22px] md:text-[32px] leading-[1.1] font-semibold tracking-tight text-foreground">
-            Сохранённые <span className="text-viral" style={{ color: "hsl(var(--viral))" }}>тренды</span>
+            Сохранённые <span className="text-foreground">тренды</span>
           </h1>
           {displayFavorites.length > 0 && (
             <p className="mt-1.5 text-[12.5px] md:text-[13.5px] text-muted-foreground">
