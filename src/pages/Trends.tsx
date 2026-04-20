@@ -339,7 +339,7 @@ export default function Trends() {
   const chipInactive =
     "bg-card/70 md:bg-white/60 md:backdrop-blur-md border-border/60 text-foreground/65 hover:bg-white hover:text-foreground hover:border-border-strong/70";
   const chipActive =
-    "gradient-brand text-primary-foreground border-transparent shadow-glow-primary";
+    "bg-viral text-viral-foreground border-transparent shadow-glow-viral";
 
   // Segmented control button (period switcher)
   const segBase =
