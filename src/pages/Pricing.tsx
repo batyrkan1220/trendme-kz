@@ -102,7 +102,7 @@ export default function Pricing() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
               {sortedPlans.map((plan: any) => {
                 const isPaid = plan.price_rub > 0;
-                const isFeatured = plan.duration_days === 30;
+                const isFeatured = plan.duration_days === 30 && plan.price_rub > 0;
                 const isActive = activePlanName === plan.name;
                 const features = Array.isArray(plan.features) ? plan.features as string[] : [];
                 const usageLimits = plan.usage_limits as Record<string, number> | null;
