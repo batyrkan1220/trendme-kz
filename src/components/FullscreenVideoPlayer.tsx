@@ -35,6 +35,7 @@ interface FullscreenVideoPlayerProps {
   isFavorite: boolean;
   onToggleFav: (id: string) => void;
   onAnalyze?: (video: VideoInfo) => void;
+  onScript?: (video: VideoInfo) => void;
 }
 
 const fmt = (n: number) => {
