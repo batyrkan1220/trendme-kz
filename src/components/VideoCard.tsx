@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
 import {
   Eye, Heart, MessageCircle, Play, ExternalLink, X,
-  Loader2, Maximize, Flag, Sparkles
+  Loader2, Maximize, Flag, Sparkles, Flame, TrendingUp, Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -203,11 +203,26 @@ const getTier = (views: number): TrendTier | null => {
   return null;
 };
 
-/** Light premium pill styling — viral lime for HOT, white pills for TOP/RISING */
-const tierConfig: Record<TrendTier, { label: string; className: string }> = {
-  strong: { label: "🔥 HOT",     className: "bg-viral text-foreground" },
-  mid:    { label: "⭐ TOP",     className: "bg-white text-foreground border border-border" },
-  micro:  { label: "📈 RISING",  className: "bg-white text-foreground border border-border" },
+/** Premium tier pills — icon + label, viral lime for HOT, glass for TOP/RISING */
+const tierConfig: Record<TrendTier, { label: string; icon: typeof Flame; className: string; iconClassName: string }> = {
+  strong: {
+    label: "HOT",
+    icon: Flame,
+    className: "bg-viral text-foreground",
+    iconClassName: "fill-foreground/20",
+  },
+  mid: {
+    label: "TOP",
+    icon: Star,
+    className: "bg-white/90 text-foreground border border-border/60 backdrop-blur-md",
+    iconClassName: "fill-amber-400 text-amber-500",
+  },
+  micro: {
+    label: "RISING",
+    icon: TrendingUp,
+    className: "bg-white/90 text-foreground border border-border/60 backdrop-blur-md",
+    iconClassName: "text-emerald-500",
+  },
 };
 
 export interface VideoCardData {
@@ -493,20 +508,30 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
             {/* Top bar — HOT/TOP pill (left) + favorite (right) */}
             <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-2.5 z-20 gap-2">
-              {tier ? (
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold tracking-wide shadow-soft",
-                    tierConfig[tier].className,
-                    tier === "strong" && "animate-viral-pulse",
-                  )}
-                >
-                  {tierConfig[tier].label}
-                  {velViews >= 500 && tier === "strong" && (
-                    <span className="ml-0.5 opacity-80">+{fmt(Math.round(velViews))}/ч</span>
-                  )}
-                </span>
-              ) : <span />}
+              {tier ? (() => {
+                const TierIcon = tierConfig[tier].icon;
+                const showVel = velViews >= 500 && tier === "strong";
+                return (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 pl-1.5 pr-2 py-[3px] rounded-full text-[10px] font-bold tracking-wide shadow-soft",
+                      tierConfig[tier].className,
+                      tier === "strong" && "animate-viral-pulse",
+                    )}
+                  >
+                    <TierIcon className={cn("h-3 w-3", tierConfig[tier].iconClassName)} strokeWidth={2.5} />
+                    <span className="leading-none">{tierConfig[tier].label}</span>
+                    {showVel && (
+                      <>
+                        <span className="opacity-30">·</span>
+                        <span className="opacity-80 font-semibold tabular-nums">
+                          {fmt(Math.round(velViews))}/ч
+                        </span>
+                      </>
+                    )}
+                  </span>
+                );
+              })() : <span />}
 
               <button
                 type="button"
