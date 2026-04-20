@@ -714,10 +714,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-[2fr,1fr,1fr,1fr] gap-10">
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center">
-              <div className="w-3 h-3 rounded-full bg-viral" />
-            </div>
-            <span className="font-bold text-[17px] tracking-tight text-foreground">trendme</span>
+            <TrendMeWordmark size="lg" animated={false} />
           </div>
           <p className="text-[14px] text-muted-foreground max-w-sm leading-relaxed">
             Платформа для мониторинга трендов TikTok, аналитики вирусного контента и генерации ИИ-сценариев.
