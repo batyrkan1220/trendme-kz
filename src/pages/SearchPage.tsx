@@ -438,9 +438,10 @@ export default function SearchPage() {
                             isFavorite={userFavorites.includes(video.id)}
                             onToggleFav={toggleFav}
                             onAnalyze={(v) => setAnalysisVideo(video)}
+                            onScript={(v) => setScriptVideo(video)}
                             showTier={true}
                             showAuthor={true}
-                            showAnalyzeButton={true}
+                            showScriptButton={true}
                           />
                         </div>
                       );
