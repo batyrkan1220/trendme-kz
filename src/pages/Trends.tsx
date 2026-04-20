@@ -16,6 +16,7 @@ import { TREND_CATEGORIES } from "@/config/trendCategories";
 import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
+import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,7 @@ export default function Trends() {
   // removed activeCategory state
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const [scriptVideo, setScriptVideo] = useState<any>(null);
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
@@ -168,8 +170,8 @@ export default function Trends() {
 
   const openAnalysis = useCallback((v: any) => setAnalysisVideo(v), []);
   const openScript = useCallback((v: any) => {
-    navigate(`/video-analysis?url=${encodeURIComponent(v.url)}&script=1`);
-  }, [navigate]);
+    setScriptVideo(v);
+  }, []);
 
   const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
     onRefresh: handleRefresh,
@@ -644,6 +646,14 @@ export default function Trends() {
         open={!!analysisVideo}
         onOpenChange={(open) => {
           if (!open) setAnalysisVideo(null);
+        }}
+      />
+
+      <ScriptOnlyDialog
+        video={scriptVideo}
+        open={!!scriptVideo}
+        onOpenChange={(open) => {
+          if (!open) setScriptVideo(null);
         }}
       />
     </AppLayout>

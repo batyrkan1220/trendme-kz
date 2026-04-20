@@ -1,0 +1,150 @@
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
+import { useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+
+interface VideoData {
+  id: string;
+  url: string;
+  cover_url?: string | null;
+  caption?: string | null;
+  author_username?: string | null;
+  duration?: number | null;
+  duration_sec?: number | null;
+}
+
+interface Props {
+  video: VideoData | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+/**
+ * Бейне карточкасынан "Сценарий" батырмасын басқанда ашылатын диалог.
+ * Видео анализ бетіне өтпей, осы жерде:
+ *  1) тіл таңдау (RU / KK)
+ *  2) бірден Gemini арқылы сценарий генерациясы + AI ассистент чат
+ */
+export function ScriptOnlyDialog({ video, open, onOpenChange }: Props) {
+  const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
+  const { checkAndLog } = useSubscription();
+
+  // Reset state on close
+  useEffect(() => {
+    if (!open) setLanguage(null);
+  }, [open]);
+
+  const startScript = async (lang: "ru" | "kk") => {
+    if (!video) return;
+    // Лимитті алдын ала тексереміз (списание ScriptGenerationPanel-да token-mен жүреді,
+    // бірақ usage limit-ті осы жерде логтаймыз — VideoAnalysis-те де солай)
+    const ok = await checkAndLog("ai_script", `AI Сценарий: ${video.url}`);
+    if (!ok) return;
+    setLanguage(lang);
+  };
+
+  if (!video) return null;
+
+  const isKk = language === "kk";
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-3xl p-0 gap-0 border-l border-border/50 overflow-hidden [&>button]:hidden"
+        aria-describedby={undefined}
+        style={{ zIndex: 99998 }}
+      >
+        <SheetTitle className="sr-only">AI Сценарий</SheetTitle>
+
+        {language ? (
+          <ScriptGenerationPanel
+            transcript=""
+            summary={{
+              topic: video.caption || "",
+              summary: video.caption || "",
+              duration_sec: Number(video.duration_sec || video.duration || 30),
+            }}
+            caption={video.caption || ""}
+            language={language}
+            videoUrl={video.url}
+            coverUrl={video.cover_url}
+            onBack={() => onOpenChange(false)}
+          />
+        ) : (
+          <div className="flex flex-col h-full bg-background-subtle">
+            {/* Header */}
+            <div
+              className="flex items-center justify-between px-4 py-3 border-b border-border bg-card"
+              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary leading-none mb-0.5">
+                    AI Сценарист
+                  </p>
+                  <h2 className="text-sm font-bold text-foreground leading-none">
+                    Создать сценарий
+                  </h2>
+                </div>
+              </div>
+              <button
+                onClick={() => onOpenChange(false)}
+                className="text-xs text-muted-foreground hover:text-foreground font-semibold px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                Закрыть
+              </button>
+            </div>
+
+            {/* Language picker */}
+            <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 animate-fade-in">
+              <div className="w-full max-w-sm flex flex-col items-center gap-5">
+                {/* Cover preview */}
+                {video.cover_url && (
+                  <div className="w-24 h-32 rounded-2xl overflow-hidden shadow-card border border-border">
+                    <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+
+                <div className="text-center space-y-1.5">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                    Шаг 1 / 2
+                  </p>
+                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                    Выберите язык сценария
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Тілді таңдаңыз — AI бірден сценарий жазып бастайды
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2 w-full">
+                  <button
+                    onClick={() => startScript("kk")}
+                    className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 rounded-xl font-semibold text-sm shadow-soft transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                  >
+                    🇰🇿 Қазақша
+                  </button>
+                  <button
+                    onClick={() => startScript("ru")}
+                    className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-hover rounded-xl font-semibold text-sm shadow-glow-primary transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                  >
+                    🇷🇺 Русский
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-muted-foreground text-center">
+                  После выбора языка AI-ассистент сразу начнёт писать сценарий и поможет улучшить его в чате
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
