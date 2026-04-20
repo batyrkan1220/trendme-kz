@@ -115,23 +115,28 @@ export default function SearchPage() {
     <AppLayout>
       {!searchResults && !isSearching ? (
       /* Centered empty state */
-      <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+      <div className="flex flex-col items-center justify-center p-4 animate-fade-in bg-background-subtle" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск</h1>
-            
-            
+            <div className="text-center space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                Поиск трендов
+              </p>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Найдите свои тренды</h1>
+              <p className="text-sm text-muted-foreground">Введите ключевое слово — соберём релевантные TikTok видео</p>
+            </div>
+
             <form onSubmit={(e) => {e.preventDefault();handleSearch();}} className="flex flex-col sm:flex-row gap-2 w-full">
               <Input
               placeholder="Введите ключевое слово..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="flex-1 h-12 bg-card border-border rounded-xl card-shadow text-base" />
-            
+              className="flex-1 h-12 bg-card border-border rounded-xl shadow-soft text-base" />
+
               <Button
               type="submit"
               disabled={isSearching}
-              className="h-12 gradient-hero text-primary-foreground border-0 px-7 hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm relative z-10">
-              
+              className="h-12 bg-foreground text-background hover:bg-foreground/90 border-0 px-7 transition-opacity rounded-xl font-semibold text-sm relative z-10 shadow-soft">
+
                 <SearchIcon className="h-4 w-4 mr-2" />Искать
               </Button>
             </form>
@@ -150,8 +155,8 @@ export default function SearchPage() {
                   setQuery(q.query_text);
                   handleSearchDirect(q.query_text);
                 }}
-                className="px-4 py-2 rounded-xl bg-card border border-border/50 text-sm font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-colors card-shadow">
-                
+                className="px-4 py-2 rounded-xl bg-card border border-border text-sm font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-colors shadow-soft">
+
                       {q.query_text}
                     </button>
               )}
@@ -162,9 +167,9 @@ export default function SearchPage() {
         </div>) :
       isSearching && !searchResults ? (
       /* Centered loading */
-      <div className="flex flex-col items-center justify-center p-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
+      <div className="flex flex-col items-center justify-center p-4 animate-fade-in bg-background-subtle" style={{ minHeight: "calc(100dvh - 8rem)", paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)" }}>
           <div className="w-full max-w-lg flex flex-col items-center gap-5">
-            <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center glow-primary animate-scale-in">
+            <div className="w-20 h-20 rounded-2xl bg-primary flex items-center justify-center shadow-glow-primary animate-scale-in">
               <Sparkles className="h-9 w-9 text-primary-foreground animate-pulse" />
             </div>
             <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
@@ -177,25 +182,30 @@ export default function SearchPage() {
 
       <>
       <div
-          className="animate-fade-in"
+          className="animate-fade-in bg-background-subtle min-h-full"
           style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)", paddingBottom: "6rem" }}>
-          
+
         <div className="px-4 pb-3 md:p-6 lg:p-8">
           <div className="space-y-4 md:space-y-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center">Поиск</h1>
+            <div className="text-center space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                Поиск трендов
+              </p>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Результаты</h1>
+            </div>
 
             <form onSubmit={(e) => {e.preventDefault();handleSearch();}} className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto w-full">
               <Input
                   placeholder="Введите ключевое слово..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl card-shadow text-base" />
-                
+                  className="flex-1 h-11 md:h-12 bg-card border-border rounded-xl shadow-soft text-base" />
+
               <Button
                   type="submit"
                   disabled={isSearching}
-                  className="h-11 md:h-12 gradient-hero text-primary-foreground border-0 px-5 md:px-7 hover:opacity-90 transition-opacity rounded-xl font-semibold text-sm relative z-10">
-                  
+                  className="h-11 md:h-12 bg-foreground text-background hover:bg-foreground/90 border-0 px-5 md:px-7 transition-opacity rounded-xl font-semibold text-sm relative z-10 shadow-soft">
+
                 {isSearching ?
                   <Loader2 className="h-4 w-4 animate-spin" /> :
 
@@ -209,8 +219,8 @@ export default function SearchPage() {
 
           {results.length === 0 && searchResults && !isSearching &&
               <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in" style={{ minHeight: "calc(100dvh - 14rem)" }}>
-              <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
-                <SearchIcon className="h-8 w-8 text-muted-foreground/30" />
+              <div className="h-16 w-16 rounded-full bg-background-muted flex items-center justify-center">
+                <SearchIcon className="h-8 w-8 text-muted-foreground/40" />
               </div>
               <p className="text-lg font-semibold text-foreground">Ничего не найдено</p>
               <p className="text-sm text-muted-foreground text-center max-w-sm">
@@ -222,7 +232,7 @@ export default function SearchPage() {
           {results.length > 0 &&
               <>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{results.length}</span> видео найдено
+              <span className="font-bold text-foreground">{results.length}</span> видео найдено
             </div>
 
             {relatedKeywords.length > 0 &&
@@ -234,8 +244,8 @@ export default function SearchPage() {
                       setQuery(kw);
                       doSearch(kw);
                     }}
-                    className="px-4 py-2 rounded-xl bg-card border border-border/50 text-sm font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-colors card-shadow">
-                    
+                    className="px-4 py-2 rounded-xl bg-card border border-border text-sm font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-colors shadow-soft">
+
                     {kw}
                   </button>
                   )}
@@ -272,8 +282,7 @@ export default function SearchPage() {
                         onAnalyze={(v) => setAnalysisVideo(video)}
                         showTier={true}
                         showAuthor={true}
-                        showAnalyzeButton={true}
-                        darkMode />);
+                        showAnalyzeButton={true} />);
 
 
                   })}
@@ -281,9 +290,9 @@ export default function SearchPage() {
 
             {/* Recent queries - only shown when results exist */}
             <div className="w-full xl:w-72 shrink-0 mt-4">
-              <div className="bg-card rounded-2xl p-4 md:p-5 border border-border/50 card-shadow">
+              <div className="bg-card rounded-2xl p-4 md:p-5 border border-border shadow-card">
                 <div className="flex items-center gap-2 mb-3 md:mb-4">
-                  <div className="h-7 w-7 rounded-lg gradient-card flex items-center justify-center">
+                  <div className="h-7 w-7 rounded-lg bg-primary-soft flex items-center justify-center">
                     <Clock className="h-3.5 w-3.5 text-primary" />
                   </div>
                   <h3 className="font-semibold text-sm text-foreground">Последние запросы</h3>
@@ -297,8 +306,8 @@ export default function SearchPage() {
                           setQuery(q.query_text);
                           doSearch(q.query_text);
                         }}
-                        className="text-left px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors truncate border border-border/30">
-                        
+                        className="text-left px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-background-muted transition-colors truncate border border-border">
+
                         {q.query_text}
                       </button>
                       )}
@@ -317,7 +326,7 @@ export default function SearchPage() {
           video={analysisVideo}
           open={!!analysisVideo}
           onOpenChange={(open) => {if (!open) setAnalysisVideo(null);}} />
-        
+
       </>
       }
     </AppLayout>);
