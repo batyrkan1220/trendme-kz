@@ -57,19 +57,22 @@ export default function Library() {
 
   const favVideoIds = new Set(isNativePlatform ? localFavorites : favorites.map((f: any) => f.video_id));
 
-  const removeFav = async (videoId: string) => {
+  const toggleFav = async (videoId: string) => {
     if (isNativePlatform) {
       toggleLocalFav(videoId);
-      toast.success("Удалено из избранного");
       return;
     }
     const fav = favorites.find((f: any) => f.video_id === videoId);
-    if (!fav) return;
-    await supabase.from("favorites").delete().eq("id", fav.id);
+    if (fav) {
+      await supabase.from("favorites").delete().eq("id", fav.id);
+      toast.success("Удалено из избранного");
+    } else {
+      await supabase.from("favorites").insert({ user_id: user!.id, video_id: videoId });
+      toast.success("Добавлено в избранное");
+    }
     queryClient.invalidateQueries({ queryKey: ["favorites-list"] });
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
-    toast.success("Удалено из избранного");
   };
 
   const handleAnalyze = (video: VideoCardData) => {
@@ -143,7 +146,7 @@ export default function Library() {
                   playingId={playingId}
                   onPlay={setPlayingId}
                   isFavorite={favVideoIds.has(video.id)}
-                  onToggleFav={removeFav}
+                  onToggleFav={toggleFav}
                   onAnalyze={handleAnalyze}
                   onScript={handleScript}
                   showTier={true}
