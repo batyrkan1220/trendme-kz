@@ -612,27 +612,16 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         </span>
       </div>
 
-      {/* Action buttons — Analyze + Script (адаптивті: ықшам) */}
-      {(showAnalyzeButton && onAnalyze) || (showScriptButton && onScript) ? (
-        <div className="px-2.5 pb-2.5 mt-auto grid grid-cols-2 gap-1.5">
-          {showAnalyzeButton && onAnalyze && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-              className="min-w-0 min-h-[36px] py-2 px-2 rounded-xl text-[11.5px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-viral shrink-0" />
-              <span className="truncate">Анализ</span>
-            </button>
-          )}
-          {showScriptButton && onScript && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onScript(video); }}
-              className="min-w-0 min-h-[36px] py-2 px-2 rounded-xl text-[11.5px] font-semibold transition-all active:scale-[0.98] bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground inline-flex items-center justify-center gap-1 border border-primary/20"
-            >
-              <Sparkles className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">Сценарий</span>
-            </button>
-          )}
+      {/* Action button — Script only */}
+      {showScriptButton && onScript ? (
+        <div className="px-2.5 pb-2.5 mt-auto">
+          <button
+            onClick={(e) => { e.stopPropagation(); onScript(video); }}
+            className="w-full min-h-[36px] py-2 px-3 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground inline-flex items-center justify-center gap-1.5 border border-primary/20"
+          >
+            <Sparkles className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Сценарий</span>
+          </button>
         </div>
       ) : null}
 
