@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, memo } from "react";
 import { MemoVideoCard } from "@/components/VideoCard";
 import { ChevronRight } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
@@ -16,7 +16,7 @@ interface TrendNicheRowProps {
   darkMode?: boolean;
 }
 
-export function TrendNicheRow({
+function TrendNicheRowImpl({
   group,
   videos,
   userFavorites,
@@ -114,3 +114,5 @@ export function TrendNicheRow({
     </section>
   );
 }
+
+export const TrendNicheRow = memo(TrendNicheRowImpl);

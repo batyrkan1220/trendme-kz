@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, memo } from "react";
 import { TrendNicheRow } from "./TrendNicheRow";
 import { NicheGroup } from "@/config/niches";
 
@@ -14,7 +14,7 @@ interface LazyNicheRowProps {
   darkMode?: boolean;
 }
 
-export function LazyNicheRow(props: LazyNicheRowProps) {
+function LazyNicheRowImpl(props: LazyNicheRowProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -56,3 +56,5 @@ export function LazyNicheRow(props: LazyNicheRowProps) {
 
   return <TrendNicheRow {...props} />;
 }
+
+export const LazyNicheRow = memo(LazyNicheRowImpl);
