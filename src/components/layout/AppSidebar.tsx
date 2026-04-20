@@ -41,11 +41,21 @@ interface AppSidebarProps {
 export function AppSidebar(_props: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
 
   const initial = (user?.email?.[0] || "U").toUpperCase();
   const displayName = (user?.user_metadata as any)?.name || user?.email?.split("@")[0] || "Гость";
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Вы вышли из аккаунта");
+      navigate("/auth", { replace: true });
+    } catch (e: any) {
+      toast.error(e?.message || "Не удалось выйти");
+    }
+  };
 
   const renderItem = (item: NavItem) => {
     const active = location.pathname === item.path;
