@@ -163,7 +163,7 @@ export function MobileSidebarDrawer({ open, onClose }: Props) {
 
           <nav className="flex-1 py-3 px-3 overflow-y-auto min-h-0">
             {renderGroup("Поиск контента", searchItems)}
-            {renderGroup("Инструменты", toolItems)}
+            
             {renderGroup("Идеи", ideaItems)}
             {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
           </nav>
