@@ -94,10 +94,10 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
 function LockedCard({ video, freeLimit, onNavigate }: { video: any; freeLimit: number; onNavigate: () => void }) {
   return (
     <div
-      className="group bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col cursor-pointer"
+      className="group h-full bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col cursor-pointer"
       onClick={onNavigate}
     >
-      <div className="relative aspect-[9/16] bg-black overflow-hidden rounded-2xl m-2">
+      <div className="relative aspect-[9/14] bg-black overflow-hidden">
         {video.cover_url ? (
           <img
             src={video.cover_url}
@@ -113,16 +113,18 @@ function LockedCard({ video, freeLimit, onNavigate }: { video: any; freeLimit: n
           <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
             <Lock className="h-5 w-5 text-white" />
           </div>
-          <p className="text-white text-[13px] font-semibold leading-snug drop-shadow-md text-center">
+          <p className="text-white text-[12px] font-semibold leading-snug drop-shadow-md text-center">
             В демо-режиме доступны<br />только первые {freeLimit} видео
           </p>
-          <button
-            onClick={(e) => { e.stopPropagation(); onNavigate(); }}
-            className="mt-1 px-5 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/30"
-          >
-            Открыть доступ
-          </button>
         </div>
+      </div>
+      <div className="px-2.5 pb-2.5 pt-2 mt-auto">
+        <button
+          onClick={(e) => { e.stopPropagation(); onNavigate(); }}
+          className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-[11.5px] font-bold hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-soft"
+        >
+          Открыть доступ
+        </button>
       </div>
     </div>
   );
