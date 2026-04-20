@@ -333,17 +333,17 @@ export default function Trends() {
   );
 
   /* ======================= shared styles (lux) ======================= */
-  // Glass chips — soft border, hairline, premium hover
+  // Glass chips — compact on mobile, lux on desktop
   const chipBase =
-    "shrink-0 inline-flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[12.5px] font-medium transition-all whitespace-nowrap border";
+    "shrink-0 inline-flex items-center gap-1.5 px-3 h-7 md:h-8 rounded-full text-[12px] md:text-[12.5px] font-medium transition-all whitespace-nowrap border";
   const chipInactive =
-    "bg-white/60 backdrop-blur-md border-border/60 text-foreground/65 hover:bg-white hover:text-foreground hover:border-border-strong/70 hover:-translate-y-px";
+    "bg-card/70 md:bg-white/60 md:backdrop-blur-md border-border/60 text-foreground/65 hover:bg-white hover:text-foreground hover:border-border-strong/70";
   const chipActive =
     "gradient-brand text-primary-foreground border-transparent shadow-glow-primary";
 
   // Segmented control button (period switcher)
   const segBase =
-    "px-3.5 h-7 rounded-md text-[12px] font-semibold transition-all";
+    "px-3 md:px-3.5 h-7 rounded-md text-[12px] font-semibold transition-all";
   const segActive = "bg-white text-foreground shadow-soft";
   const segInactive = "text-foreground/55 hover:text-foreground";
 
@@ -352,8 +352,7 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-x-hidden overflow-y-auto h-full text-foreground relative bg-background"
-        style={{ backgroundImage: "var(--gradient-mesh)" }}
+        className="overflow-x-hidden overflow-y-auto h-full text-foreground relative bg-background md:[background-image:var(--gradient-mesh)]"
       >
         <PullToRefreshIndicator
           pullDistance={pullDistance}
@@ -500,12 +499,12 @@ export default function Trends() {
             <>
               {/* =================== MAIN VIEW =================== */}
 
-              {/* Header — lux row (eyebrow + gradient title + glass period) */}
+              {/* Header — compact on mobile, lux on desktop */}
               <div
-                className="px-4 md:px-6 lg:px-8 pt-6 md:pt-8"
-                style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 24px)" }}
+                className="px-4 md:px-6 lg:px-8 pt-4 md:pt-8"
+                style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
               >
-                <div className="eyebrow mb-2">
+                <div className="eyebrow mb-1.5 text-[11px] md:text-[12px]">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
@@ -513,16 +512,16 @@ export default function Trends() {
                   Live trends
                 </div>
 
-                <div className="flex items-end justify-between gap-4 flex-wrap">
+                <div className="flex items-center md:items-end justify-between gap-3 md:gap-4 flex-wrap">
                   <div className="min-w-0">
-                    <h1 className="text-[32px] md:text-[40px] leading-[1.05] font-semibold tracking-tight text-foreground">
+                    <h1 className="text-[22px] md:text-[40px] leading-[1.1] md:leading-[1.05] font-semibold tracking-tight text-foreground">
                       Что взрывается{" "}
-                      <span className="gradient-text">прямо сейчас</span>
+                      <span className="gradient-text">сейчас</span>
                     </h1>
                   </div>
 
-                  {/* Period segmented control — glass */}
-                  <div className="inline-flex items-center gap-0.5 p-1 rounded-xl glass shadow-soft">
+                  {/* Period segmented control */}
+                  <div className="inline-flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg md:rounded-xl bg-background-muted md:glass md:shadow-soft">
                     {HEADER_PERIODS.map((p) => (
                       <button
                         key={p.value}
@@ -541,18 +540,18 @@ export default function Trends() {
                   </div>
                 </div>
 
-                {/* Inline stats — premium spacing */}
-                <p className="mt-3 text-[13.5px] text-muted-foreground">
+                {/* Inline stats */}
+                <p className="mt-2 md:mt-3 text-[12.5px] md:text-[13.5px] text-muted-foreground">
                   <span className="tabular-nums font-semibold text-foreground">
                     {formatNum(inlineStats.totalVideos)}
                   </span>{" "}
                   видео
-                  <span className="mx-2 text-foreground/20">·</span>
+                  <span className="mx-1.5 md:mx-2 text-foreground/20">·</span>
                   <span className="tabular-nums font-semibold text-foreground">
                     {formatNum(inlineStats.viralCount)}
                   </span>{" "}
                   вирусных
-                  <span className="mx-2 text-foreground/20">·</span>
+                  <span className="mx-1.5 md:mx-2 text-foreground/20">·</span>
                   <span className="tabular-nums font-semibold text-foreground">
                     {inlineStats.activeNiches}
                   </span>{" "}
@@ -601,10 +600,10 @@ export default function Trends() {
               </div>
 
               {/* Separator — subtle */}
-              <div className="mx-4 md:mx-6 lg:mx-8 mt-6 border-t border-border/60" />
+              <div className="mx-4 md:mx-6 lg:mx-8 mt-4 md:mt-6 border-t border-border/60" />
 
               {/* Niche rows */}
-              <div className="px-4 md:px-6 lg:px-8 mt-6 space-y-10">
+              <div className="px-4 md:px-6 lg:px-8 mt-4 md:mt-6 space-y-6 md:space-y-10">
                 {isLoading ? (
                   <div className="space-y-8">
                     {Array.from({ length: 3 }).map((_, i) => (
