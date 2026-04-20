@@ -588,15 +588,30 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         </span>
       </div>
 
-      {showScriptButton && onScript ? (
-        <div className="px-3 pb-3 mt-auto">
-          <button
-            onClick={(e) => { e.stopPropagation(); onScript(video); }}
-            className="w-full py-2 rounded-xl text-[12.5px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1.5"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-viral" />
-            Сценарий
-          </button>
+      {(showAnalyzeButton && onAnalyze) || (showScriptButton && onScript) ? (
+        <div className="px-3 pb-3 mt-auto grid grid-cols-2 gap-2">
+          {showAnalyzeButton && onAnalyze && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
+              className="w-full py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-viral" />
+              Анализ
+            </button>
+          )}
+          {showScriptButton && onScript && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onScript(video); }}
+              className={cn(
+                "w-full py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] inline-flex items-center justify-center gap-1 border border-primary/20",
+                "bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground",
+                !(showAnalyzeButton && onAnalyze) && "col-span-2"
+              )}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Сценарий
+            </button>
+          )}
         </div>
       ) : null}
 
