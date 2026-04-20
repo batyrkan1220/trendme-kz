@@ -457,26 +457,32 @@ export default function Trends() {
             </>
           ) : (
             <>
-              {/* Page header — eyebrow + h1 + KPI strip + niche tabs */}
+              {/* Page header — lux: eyebrow + h1 + KPI + niche tabs */}
               <div className="px-4 md:px-6 lg:px-8 space-y-5">
                 <div className="space-y-1.5">
                   <div className="flex items-end justify-between gap-4 flex-wrap">
-                    <div>
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+                        Тренды
+                      </p>
                       <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                        Тренды TikTok
+                        Тренды TikTok 🔥
                       </h1>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-[13px] md:text-sm text-muted-foreground">
                         Лучшее за последние 24 часа в твоей нише
                       </p>
                     </div>
-                    {/* Period switcher */}
-                    <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-card border border-border">
+                    {/* Period switcher — lux glass */}
+                    <div
+                      className="inline-flex items-center gap-0.5 p-1 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 shadow-soft"
+                      style={{ boxShadow: "0 1px 0 0 hsl(0 0% 100% / 0.04) inset, 0 4px 16px -8px rgba(0,0,0,0.3)" }}
+                    >
                       {HEADER_PERIODS.map((p) => (
                         <button
                           key={p.value}
-                          onClick={() => setHeaderPeriod(p.value)}
+                          onClick={() => { setHeaderPeriod(p.value); hapticLight(); }}
                           className={cn(
-                            "px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all",
+                            "px-3.5 py-1.5 rounded-xl text-[12px] font-bold transition-all active:scale-95",
                             headerPeriod === p.value
                               ? "bg-foreground text-background shadow-soft"
                               : "text-muted-foreground hover:text-foreground"
@@ -489,47 +495,60 @@ export default function Trends() {
                   </div>
                 </div>
 
-                {/* KPI strip — 4 cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* KPI strip — lux glass cards with viral accent on Вирусных */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
                   {[
                     {
                       label: "Всего видео",
                       value: formatNum(kpiStats.totalVideos),
                       icon: Layers,
-                      tint: "bg-primary-soft text-primary",
+                      iconBg: "bg-primary/15 text-primary ring-1 ring-primary/25",
+                      glow: "0 8px 24px -12px hsl(var(--primary) / 0.25)",
+                      accent: false,
                     },
                     {
                       label: "Вирусных",
                       value: formatNum(kpiStats.viralCount),
                       icon: Flame,
-                      tint: "bg-viral/20 text-foreground",
+                      iconBg: "bg-viral/20 text-foreground ring-1 ring-viral/40",
+                      glow: "0 8px 24px -10px hsl(var(--viral) / 0.45)",
                       accent: true,
                     },
                     {
                       label: "Средний охват",
                       value: formatNum(kpiStats.avgViews),
                       icon: Eye,
-                      tint: "bg-blue-500/10 text-blue-600",
+                      iconBg: "bg-blue-500/15 text-blue-500 ring-1 ring-blue-500/25",
+                      glow: "0 8px 24px -12px hsl(217 91% 60% / 0.25)",
+                      accent: false,
                     },
                     {
                       label: "Активных ниш",
                       value: String(kpiStats.activeNiches),
                       icon: Sparkles,
-                      tint: "bg-violet-500/10 text-violet-600",
+                      iconBg: "bg-violet-500/15 text-violet-500 ring-1 ring-violet-500/25",
+                      glow: "0 8px 24px -12px hsl(262 83% 60% / 0.25)",
+                      accent: false,
                     },
                   ].map((kpi) => (
                     <div
                       key={kpi.label}
-                      className="rounded-2xl bg-card border border-border p-3.5 flex items-center gap-3 hover:shadow-card transition-shadow"
+                      className={cn(
+                        "rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 p-3.5 flex items-center gap-3 transition-all hover:-translate-y-0.5 hover:border-border",
+                        kpi.accent && "ring-1 ring-viral/20"
+                      )}
+                      style={{
+                        boxShadow: `0 1px 0 0 hsl(0 0% 100% / 0.04) inset, ${kpi.glow}`,
+                      }}
                     >
-                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", kpi.tint)}>
+                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", kpi.iconBg)}>
                         <kpi.icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide truncate">
+                        <div className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-[0.08em] truncate">
                           {kpi.label}
                         </div>
-                        <div className="text-lg md:text-xl font-bold text-foreground leading-tight">
+                        <div className="text-lg md:text-xl font-bold text-foreground leading-tight tabular-nums">
                           {kpi.value}
                         </div>
                       </div>
@@ -537,15 +556,15 @@ export default function Trends() {
                   ))}
                 </div>
 
-                {/* Niche pill-tabs (emoji chips) */}
-                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+                {/* Niche pill-tabs — lux glass chips */}
+                <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
                   <button
-                    onClick={() => setActiveNicheFilter(null)}
+                    onClick={() => { setActiveNicheFilter(null); hapticLight(); }}
                     className={cn(
-                      "shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold transition-all whitespace-nowrap border",
+                      "shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold transition-all whitespace-nowrap active:scale-95",
                       !activeNicheFilter
-                        ? "bg-foreground text-background border-foreground shadow-soft"
-                        : "bg-card text-foreground/70 border-border hover:bg-muted"
+                        ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
+                        : "bg-card/70 backdrop-blur-md text-foreground/70 border border-border/60 hover:bg-muted hover:text-foreground"
                     )}
                   >
                     Все
@@ -556,12 +575,12 @@ export default function Trends() {
                     return (
                       <button
                         key={g.key}
-                        onClick={() => setActiveNicheFilter(active ? null : g.key)}
+                        onClick={() => { setActiveNicheFilter(active ? null : g.key); hapticLight(); }}
                         className={cn(
-                          "shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold transition-all whitespace-nowrap border flex items-center gap-1.5",
+                          "shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold transition-all whitespace-nowrap flex items-center gap-1.5 active:scale-95",
                           active
-                            ? "bg-foreground text-background border-foreground shadow-soft"
-                            : "bg-card text-foreground/70 border-border hover:bg-muted"
+                            ? "bg-foreground text-background shadow-soft ring-1 ring-foreground/10"
+                            : "bg-card/70 backdrop-blur-md text-foreground/70 border border-border/60 hover:bg-muted hover:text-foreground"
                         )}
                       >
                         <span>{g.emoji}</span>
@@ -569,7 +588,7 @@ export default function Trends() {
                         {count > 0 && (
                           <span
                             className={cn(
-                              "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                              "text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums",
                               active ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
                             )}
                           >
