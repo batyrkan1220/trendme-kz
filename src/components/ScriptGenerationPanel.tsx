@@ -82,7 +82,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [scriptContent, setScriptContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [chatInput, setChatInput] = useState("");
-  const [chatOpen, setChatOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(typeof window !== "undefined" && window.innerWidth >= 768);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [sheetDragY, setSheetDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
