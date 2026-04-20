@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import {
   X, Eye, Heart, MessageCircle, Share2, Flag, ShieldX,
   Flame, Rocket, Zap, TrendingUp, Loader2, ExternalLink,
-  Play, RotateCcw
+  Play, RotateCcw, Sparkles, FileText
 } from "lucide-react";
 import { ReportContentDialog } from "./ReportContentDialog";
 import { supabase } from "@/integrations/supabase/client";
