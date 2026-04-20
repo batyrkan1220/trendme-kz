@@ -606,9 +606,10 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           {showAnalyzeButton && onAnalyze && (
             <button
               onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-              className="w-full py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1"
+              className="group/btn relative w-full py-2.5 rounded-xl text-[12px] font-bold tracking-wide transition-all active:scale-[0.97] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1.5 ring-1 ring-foreground/10 overflow-hidden"
+              style={{ boxShadow: "0 4px 16px -4px rgba(0,0,0,0.3), 0 0 0 1px hsl(0 0% 100% / 0.04) inset" }}
             >
-              <Sparkles className="h-3.5 w-3.5 text-viral" />
+              <Sparkles className="h-3.5 w-3.5 text-viral transition-transform group-hover/btn:rotate-12" />
               Анализ
             </button>
           )}
@@ -616,12 +617,13 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             <button
               onClick={(e) => { e.stopPropagation(); onScript(video); }}
               className={cn(
-                "w-full py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] inline-flex items-center justify-center gap-1 border border-primary/20",
-                "bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground",
+                "group/btn relative w-full py-2.5 rounded-xl text-[12px] font-bold tracking-wide transition-all active:scale-[0.97] inline-flex items-center justify-center gap-1.5 ring-1 ring-viral/30 overflow-hidden",
+                "bg-viral/15 text-foreground hover:bg-viral hover:ring-viral/60",
                 !(showAnalyzeButton && onAnalyze) && "col-span-2"
               )}
+              style={{ boxShadow: "0 4px 16px -6px hsl(var(--viral) / 0.4)" }}
             >
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="h-3.5 w-3.5 text-viral transition-all group-hover/btn:text-foreground group-hover/btn:rotate-12" />
               Сценарий
             </button>
           )}
