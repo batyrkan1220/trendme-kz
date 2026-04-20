@@ -362,7 +362,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   return (
     <div
       ref={ref}
-      className="group h-full rounded-2xl overflow-hidden transition-all duration-300 relative flex flex-col bg-card border border-border shadow-soft hover:shadow-card hover:-translate-y-0.5"
+      className="group h-full rounded-[20px] overflow-hidden transition-all duration-300 relative flex flex-col bg-card/80 backdrop-blur-xl border border-border/60 shadow-soft hover:shadow-card hover:-translate-y-0.5 hover:border-border"
+      style={{ boxShadow: "0 1px 0 0 hsl(0 0% 100% / 0.04) inset, 0 8px 24px -12px rgba(0,0,0,0.4)" }}
       onMouseEnter={handlePreload}
       onMouseLeave={handlePreloadCancel}
     >
@@ -450,18 +451,30 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   alt=""
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                   onClick={handlePlay}
                   onError={() => handleCoverError()}
                 />
-                <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div
+                {/* Soft top vignette for top-bar legibility */}
+                <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/55 via-black/15 to-transparent pointer-events-none" />
+                {/* Bottom vignette for caption */}
+                <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
+                {/* Lux neon play button — always visible, scales on hover */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <button
+                    type="button"
                     onClick={handlePlay}
-                    className="h-12 w-12 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center pointer-events-auto cursor-pointer"
+                    aria-label="Воспроизвести"
+                    className="pointer-events-auto relative h-14 w-14 rounded-full bg-white/15 backdrop-blur-2xl ring-1 ring-white/30 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-viral group-hover:ring-viral/50 active:scale-95"
+                    style={{
+                      WebkitTapHighlightColor: "transparent",
+                      boxShadow: "0 8px 32px -8px rgba(0,0,0,0.6), 0 0 0 1px hsl(0 0% 100% / 0.1) inset",
+                    }}
                   >
-                    <Play className="h-5 w-5 text-white ml-0.5" fill="currentColor" />
-                  </div>
+                    {/* Glow halo on hover */}
+                    <span className="absolute inset-0 rounded-full bg-viral/40 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                    <Play className="h-5 w-5 text-white ml-0.5 transition-colors duration-300 group-hover:text-foreground" fill="currentColor" />
+                  </button>
                 </div>
               </div>
             ) : (
@@ -499,14 +512,14 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 type="button"
                 onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
-                className="w-8 h-8 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-95 transition-transform"
+                className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-2xl ring-1 ring-white/25 flex items-center justify-center shadow-soft active:scale-90 transition-all hover:bg-white/25"
                 style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 aria-label="Избранное"
               >
                 <Heart
                   className={cn(
                     "h-4 w-4 transition-all",
-                    isFavorite ? "text-rose-400 fill-rose-400" : "text-white",
+                    isFavorite ? "text-rose-400 fill-rose-400 drop-shadow-[0_0_6px_rgba(251,113,133,0.6)]" : "text-white",
                   )}
                 />
               </button>
@@ -593,9 +606,10 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
           {showAnalyzeButton && onAnalyze && (
             <button
               onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-              className="w-full py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1"
+              className="group/btn relative w-full py-2.5 rounded-xl text-[12px] font-bold tracking-wide transition-all active:scale-[0.97] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1.5 ring-1 ring-foreground/10 overflow-hidden"
+              style={{ boxShadow: "0 4px 16px -4px rgba(0,0,0,0.3), 0 0 0 1px hsl(0 0% 100% / 0.04) inset" }}
             >
-              <Sparkles className="h-3.5 w-3.5 text-viral" />
+              <Sparkles className="h-3.5 w-3.5 text-viral transition-transform group-hover/btn:rotate-12" />
               Анализ
             </button>
           )}
@@ -603,12 +617,13 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             <button
               onClick={(e) => { e.stopPropagation(); onScript(video); }}
               className={cn(
-                "w-full py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] inline-flex items-center justify-center gap-1 border border-primary/20",
-                "bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground",
+                "group/btn relative w-full py-2.5 rounded-xl text-[12px] font-bold tracking-wide transition-all active:scale-[0.97] inline-flex items-center justify-center gap-1.5 ring-1 ring-viral/30 overflow-hidden",
+                "bg-viral/15 text-foreground hover:bg-viral hover:ring-viral/60",
                 !(showAnalyzeButton && onAnalyze) && "col-span-2"
               )}
+              style={{ boxShadow: "0 4px 16px -6px hsl(var(--viral) / 0.4)" }}
             >
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="h-3.5 w-3.5 text-viral transition-all group-hover/btn:text-foreground group-hover/btn:rotate-12" />
               Сценарий
             </button>
           )}
