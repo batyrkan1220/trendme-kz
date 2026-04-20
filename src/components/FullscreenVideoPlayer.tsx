@@ -473,7 +473,7 @@ export function FullscreenVideoPlayer({
                 {onAnalyze && (
                   <button
                     onClick={(e) => { e.stopPropagation(); onAnalyze(video); onClose(); }}
-                    className="group/btn relative flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-white/12 backdrop-blur-2xl text-white ring-1 ring-white/25 active:scale-[0.97] transition-all hover:bg-white/20"
+                    className="group/btn relative flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-white text-foreground ring-1 ring-white/40 active:scale-[0.97] transition-all hover:brightness-95"
                     style={{ boxShadow: "0 6px 24px -6px rgba(0,0,0,0.5)" }}
                   >
                     <Sparkles className="h-4 w-4 text-viral transition-transform group-hover/btn:rotate-12" />
