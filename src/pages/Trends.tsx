@@ -339,15 +339,15 @@ export default function Trends() {
                       {opt.label}
                     </button>
                   ))}
-                  <span className="text-white/40 ml-1">· {drillTotalFiltered} видео</span>
+                  <span className="text-muted-foreground ml-1">· {drillTotalFiltered} видео</span>
                 </div>
 
                 {/* Sub-niche chips */}
                 {drillGroup.subNiches.length > 0 && (
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-neon/80 uppercase tracking-wider">Под-темы ↓</span>
-                      <div className="h-px flex-1 bg-gradient-to-r from-neon/20 to-transparent" />
+                      <span className="text-[11px] font-semibold text-primary uppercase tracking-wider">Под-темы ↓</span>
+                      <div className="h-px flex-1 bg-gradient-to-r from-primary/20 to-transparent" />
                     </div>
                     <div ref={chipScrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
                       <button
@@ -356,8 +356,8 @@ export default function Trends() {
                         className={cn(
                           "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                           !drillSubNiche
-                            ? "bg-neon text-black"
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground/70 hover:bg-muted/70"
                         )}
                       >
                         Все
@@ -372,8 +372,8 @@ export default function Trends() {
                             className={cn(
                               "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                               drillSubNiche === sub.key
-                                ? "bg-neon text-black"
-                                : "bg-white/10 text-white/70 hover:bg-white/20"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted text-foreground/70 hover:bg-muted/70"
                             )}
                           >
                             {sub.label}{count > 0 && <span className="ml-1 opacity-60">{count}</span>}
