@@ -206,19 +206,19 @@ const getTier = (views: number): TrendTier | null => {
 /** Premium tier pills — icon + label, viral lime for HOT, glass for TOP/RISING */
 const tierConfig: Record<TrendTier, { label: string; icon: typeof Flame; className: string; iconClassName: string }> = {
   strong: {
-    label: "HOT",
+    label: "Горячий",
     icon: Flame,
     className: "bg-viral text-foreground",
     iconClassName: "fill-foreground/20",
   },
   mid: {
-    label: "TOP",
+    label: "Набирает",
     icon: Star,
     className: "bg-white/90 text-foreground border border-border/60 backdrop-blur-md",
     iconClassName: "fill-amber-400 text-amber-500",
   },
   micro: {
-    label: "RISING",
+    label: "Растущий",
     icon: TrendingUp,
     className: "bg-white/90 text-foreground border border-border/60 backdrop-blur-md",
     iconClassName: "text-emerald-500",
@@ -514,17 +514,17 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 return (
                   <span
                     className={cn(
-                      "inline-flex items-center gap-1 pl-1.5 pr-2 py-[3px] rounded-full text-[10px] font-bold tracking-wide shadow-soft",
+                      "inline-flex items-center gap-1 pl-1.5 pr-1.5 sm:pr-2 py-[3px] rounded-full text-[9px] sm:text-[10px] font-bold tracking-wide shadow-soft max-w-[calc(100%-40px)]",
                       tierConfig[tier].className,
                       tier === "strong" && "animate-viral-pulse",
                     )}
                   >
-                    <TierIcon className={cn("h-3 w-3", tierConfig[tier].iconClassName)} strokeWidth={2.5} />
-                    <span className="leading-none">{tierConfig[tier].label}</span>
+                    <TierIcon className={cn("h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0", tierConfig[tier].iconClassName)} strokeWidth={2.5} />
+                    <span className="leading-none truncate">{tierConfig[tier].label}</span>
                     {showVel && (
                       <>
-                        <span className="opacity-30">·</span>
-                        <span className="opacity-80 font-semibold tabular-nums">
+                        <span className="opacity-30 hidden sm:inline">·</span>
+                        <span className="opacity-80 font-semibold tabular-nums hidden sm:inline">
                           {fmt(Math.round(velViews))}/ч
                         </span>
                       </>
