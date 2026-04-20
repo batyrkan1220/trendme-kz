@@ -235,7 +235,7 @@ export default function VideoAnalysis() {
         </div>
       ) : (
         /* Results state */
-        <div className="animate-magic-reveal pb-20 md:pb-8 bg-background-subtle min-h-full" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 4px, 4px)" }}>
+        <div className="animate-magic-reveal bg-background-subtle min-h-full" style={{ paddingTop: "max(env(safe-area-inset-top, 0px) + 4px, 4px)" }}>
           {/* Top bar with input — compact on mobile */}
           <div className="px-2.5 md:px-4 lg:px-6 pb-2">
             <div className="flex gap-1.5">
