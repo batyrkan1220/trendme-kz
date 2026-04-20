@@ -8,9 +8,7 @@ const mainNavItems = [
   { icon: Search, path: "/search", label: "Поиск" },
 ];
 
-const toolsMenuItems = [
-  { icon: UserSearch, path: "/account-analysis", label: "Анализ аккаунта" },
-];
+const toolsMenuItems: { icon: any; path: string; label: string }[] = [];
 
 interface MobileBottomNavProps {
   onMenuOpen: () => void;
