@@ -3,10 +3,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import {
-  LayoutDashboard, TrendingUp, Search,
-  Video, UserCircle, Heart, ScrollText,
-  ArrowRight, Shield,
-  LogOut, ChevronLeft, ChevronRight, CreditCard
+  TrendingUp, Search, Heart, CreditCard,
+  LogOut, ChevronLeft, ChevronRight, UserCircle, Shield,
 } from "lucide-react";
 import { TrendMeLogo } from "@/components/TrendMeLogo";
 
@@ -15,23 +13,14 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   path: string;
   iconColor?: string;
-  badge?: string;
 }
 
-const searchItems: NavItem[] = [
-  { label: "Тренды", icon: TrendingUp, path: "/trends", iconColor: "text-rose-500" },
-  { label: "Поиск по слову", icon: Search, path: "/search", iconColor: "text-blue-500" },
-];
-
-const aiVideoItems: NavItem[] = [
-  { label: "Анализ видео", icon: Video, path: "/video-analysis", iconColor: "text-orange-500" },
-  
-  { label: "Анализ профиля", icon: UserCircle, path: "/account-analysis", iconColor: "text-violet-500" },
-];
-
-const ideaItems: NavItem[] = [
-  { label: "Избранные", icon: Heart, path: "/library", iconColor: "text-rose-500" },
-  { label: "Подписка", icon: CreditCard, path: "/subscription", iconColor: "text-primary" },
+const mainItems: NavItem[] = [
+  { label: "Тренды",         icon: TrendingUp,  path: "/trends",           iconColor: "text-rose-500" },
+  { label: "Поиск",          icon: Search,       path: "/search",           iconColor: "text-blue-500" },
+  { label: "Избранное",      icon: Heart,        path: "/library",          iconColor: "text-pink-500" },
+  { label: "Анализ профиля", icon: UserCircle,   path: "/account-analysis", iconColor: "text-violet-500" },
+  { label: "Подписка",       icon: CreditCard,   path: "/subscription",     iconColor: "text-primary" },
 ];
 
 interface AppSidebarProps {
@@ -50,100 +39,66 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     navigate("/auth");
   };
 
-  const renderGroup = (label: string, items: NavItem[]) => (
-    <div className="mb-2">
-      {!collapsed && <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-wider px-3 mb-1.5">{label}</p>}
-      <div className="space-y-0.5">
-        {items.map((item) => {
+  return (
+    <aside
+      className={cn(
+        "flex flex-col h-full border-r border-border/50 bg-sidebar-background transition-all duration-300 shrink-0",
+        collapsed ? "w-16" : "w-56"
+      )}
+    >
+      {/* Logo */}
+      <div className={cn("flex items-center h-14 px-4 border-b border-border/30", collapsed && "justify-center px-0")}>
+        {!collapsed && <TrendMeLogo className="h-7" />}
+        {collapsed && <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center"><div className="w-3 h-3 rounded-full bg-viral" /></div>}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+        {mainItems.map((item) => {
           const active = location.pathname === item.path;
-          const disabled = item.path === "#";
           return (
             <Link
-              key={item.label}
-              to={disabled ? "#" : item.path}
-              onClick={disabled ? (e) => e.preventDefault() : undefined}
+              key={item.path}
+              to={item.path}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all duration-150 group relative",
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                  : "text-foreground/80 hover:bg-muted/50",
-                disabled && "opacity-60 cursor-default",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all duration-150",
+                active ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold" : "text-foreground/70 hover:bg-muted/50",
                 collapsed && "justify-center px-0"
               )}
             >
               <item.icon className={cn("h-5 w-5 shrink-0", item.iconColor)} />
-              {!collapsed && (
-                <>
-                  <span className="flex-1">{item.label}</span>
-                  {item.badge && (
-                    <span className="text-[10px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                </>
-              )}
+              {!collapsed && <span className="flex-1">{item.label}</span>}
             </Link>
           );
         })}
-      </div>
-    </div>
-  );
 
-  return (
-    <aside
-      className={cn(
-        "h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 shrink-0 z-30",
-        collapsed ? "w-[64px]" : "w-[240px]"
-      )}
-    >
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
-        <TrendMeLogo size={32} />
-        {!collapsed && (
-          <div className="flex items-center gap-1.5">
-            <span className="font-bold text-base tracking-tight text-foreground">trendme</span>
-          </div>
+        {isAdmin && (
+          <Link
+            to="/admin"
+            title={collapsed ? "Admin" : undefined}
+            className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] transition-all text-muted-foreground hover:bg-muted/50", collapsed && "justify-center px-0")}
+          >
+            <Shield className="h-5 w-5 shrink-0 text-amber-500" />
+            {!collapsed && <span>Admin</span>}
+          </Link>
         )}
-      </div>
-
-      {/* Main Nav */}
-      <nav className="flex-1 py-3 px-2 overflow-y-auto">
-        {renderGroup("Поиск контента", searchItems)}
-        {renderGroup("Инструменты", aiVideoItems)}
-        {renderGroup("Идеи", ideaItems)}
-        {isAdmin && renderGroup("Админ", [{ label: "Управление", icon: Shield, path: "/admin", iconColor: "text-emerald-500" }])}
       </nav>
 
-      {/* Bottom */}
-      <div className="border-t border-sidebar-border py-3 px-2 space-y-2 shrink-0">
-        {/* Logout */}
+      {/* Footer */}
+      <div className="p-2 border-t border-border/30">
         <button
           onClick={handleLogout}
-          title="Выйти"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 w-full transition-colors",
-            collapsed && "justify-center px-0"
-          )}
+          className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] text-muted-foreground hover:bg-muted/50 transition-all w-full", collapsed && "justify-center px-0")}
         >
-          <LogOut className="h-4 w-4 shrink-0" />
+          <LogOut className="h-5 w-5 shrink-0" />
           {!collapsed && <span>Выйти</span>}
         </button>
-
-        {/* Collapse Toggle */}
         <button
           onClick={onToggle}
-          className={cn(
-            "flex items-center gap-3 px-3 py-1.5 rounded-xl text-xs text-muted-foreground/50 hover:text-foreground w-full transition-colors",
-            collapsed && "justify-center px-0"
-          )}
+          className={cn("flex items-center gap-3 px-3 py-2 rounded-xl text-[12px] text-muted-foreground/50 hover:bg-muted/30 transition-all w-full mt-1", collapsed && "justify-center px-0")}
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : (
-            <>
-              <ChevronLeft className="h-4 w-4" />
-              <span>Свернуть</span>
-            </>
-          )}
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <><ChevronLeft className="h-4 w-4" /><span>Свернуть</span></>}
         </button>
       </div>
     </aside>
