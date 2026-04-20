@@ -6,6 +6,7 @@
       "name": "vite_react_shadcn_ts",
       "dependencies": {
         "@capacitor/android": "^8.2.0",
+        "@capacitor/core": "^8.3.1",
         "@capacitor/haptics": "^8.0.1",
         "@capacitor/ios": "^8.2.0",
         "@capacitor/status-bar": "^8.0.1",
