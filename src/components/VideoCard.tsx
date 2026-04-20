@@ -457,13 +457,10 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 {/* Top + bottom gradient overlays for pill/text legibility */}
                 <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/55 via-black/15 to-transparent pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-                {/* Hover play — lux premium */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  {/* Soft outer glow ring */}
+                {/* Desktop hover play — lux premium centered (hidden on mobile) */}
+                <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300">
                   <div className="absolute h-20 w-20 rounded-full bg-viral/20 blur-2xl animate-pulse" />
-                  {/* Outer ping ring */}
                   <div className="absolute h-16 w-16 rounded-full border border-white/30 animate-ping" style={{ animationDuration: "2s" }} />
-                  {/* Play button */}
                   <button
                     type="button"
                     onClick={handlePlay}
@@ -473,6 +470,17 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     <Play className="h-5 w-5 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
                   </button>
                 </div>
+
+                {/* Mobile play — always visible, compact, bottom-left, doesn't block content */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handlePlay(); }}
+                  aria-label="Воспроизвести"
+                  className="md:hidden absolute left-2 bottom-14 z-20 h-10 w-10 rounded-full bg-white/85 backdrop-blur-xl flex items-center justify-center ring-1 ring-white/50 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.4),0_0_16px_-4px_hsl(var(--viral)/0.5)] active:scale-90 transition-transform"
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                >
+                  <Play className="h-4 w-4 text-foreground ml-0.5" fill="currentColor" strokeWidth={0} />
+                </button>
               </div>
             ) : (
               <div
