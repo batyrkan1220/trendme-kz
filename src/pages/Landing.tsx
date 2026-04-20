@@ -713,13 +713,13 @@ function FinalCTA() {
 /* ───────── FOOTER ───────── */
 function Footer() {
   return (
-    <footer className="border-t border-border py-14 bg-background-subtle">
-      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-[2fr,1fr,1fr,1fr] gap-10">
-        <div>
-          <div className="flex items-center gap-2 mb-4">
+    <footer className="border-t border-border py-10 md:py-14 bg-background-subtle">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-2 md:grid-cols-[2fr,1fr,1fr,1fr] gap-8 md:gap-10">
+        <div className="col-span-2 md:col-span-1">
+          <div className="flex items-center gap-2 mb-3 md:mb-4">
             <TrendMeWordmark size="lg" animated={false} />
           </div>
-          <p className="text-[14px] text-muted-foreground max-w-sm leading-relaxed">
+          <p className="text-[13.5px] md:text-[14px] text-muted-foreground max-w-sm leading-relaxed">
             Платформа для мониторинга трендов TikTok, аналитики вирусного контента и генерации ИИ-сценариев.
           </p>
         </div>
@@ -729,8 +729,8 @@ function Footer() {
           { title: "Правовое", links: [["Условия", "/terms"], ["Конфиденциальность", "/privacy"]] },
         ].map((col) => (
           <div key={col.title}>
-            <div className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-4">{col.title}</div>
-            <ul className="space-y-2 text-[14px] text-foreground/80">
+            <div className="text-[11px] md:text-[12px] font-semibold uppercase tracking-wider text-muted-foreground mb-3 md:mb-4">{col.title}</div>
+            <ul className="space-y-2 text-[13.5px] md:text-[14px] text-foreground/80">
               {col.links.map(([label, href]) => (
                 <li key={label}>
                   <a href={href} className="hover:text-foreground transition">{label}</a>
@@ -740,8 +740,8 @@ function Footer() {
           </div>
         ))}
       </div>
-      <div className="max-w-7xl mx-auto px-6 mt-10 pt-6 border-t border-border flex flex-wrap items-center justify-between gap-4">
-        <div className="text-[13px] text-muted-foreground">© 2026 trendme. Все права защищены.</div>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-8 md:mt-10 pt-6 border-t border-border flex flex-wrap items-center justify-between gap-4">
+        <div className="text-[12px] md:text-[13px] text-muted-foreground">© 2026 trendme. Все права защищены.</div>
         <div className="flex items-center gap-3 text-muted-foreground">
           <a href="#" className="hover:text-foreground transition" aria-label="Instagram"><Instagram className="w-5 h-5" /></a>
           <a href="#" className="hover:text-foreground transition" aria-label="YouTube"><Youtube className="w-5 h-5" /></a>
