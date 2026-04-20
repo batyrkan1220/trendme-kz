@@ -1,7 +1,8 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Loader2, Sparkles } from "lucide-react";
 import { VideoCard } from "@/components/VideoCard";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +51,9 @@ export default function VideoAnalysis() {
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
   const { checkAndLog } = useSubscription();
   const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const autoScriptRef = useRef(false);
+  const autoTriggeredRef = useRef(false);
 
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
