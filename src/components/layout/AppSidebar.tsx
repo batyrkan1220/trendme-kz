@@ -8,7 +8,7 @@ import {
   ArrowRight, Shield,
   LogOut, ChevronLeft, ChevronRight, CreditCard
 } from "lucide-react";
-import { TrendMeLogo } from "@/components/TrendMeLogo";
+import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 
 interface NavItem {
   label: string;
@@ -98,12 +98,19 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
-        <TrendMeLogo size={32} />
-        {!collapsed && (
-          <div className="flex items-center gap-1.5">
-            <span className="font-bold text-base tracking-tight text-foreground">trendme</span>
-          </div>
+      <div className="flex items-center gap-2.5 px-4 h-16 border-b border-sidebar-border shrink-0">
+        {collapsed ? (
+          <span
+            className="inline-block rounded-full mx-auto"
+            style={{
+              width: 14,
+              height: 14,
+              background: "var(--gradient-brand)",
+              boxShadow: "0 0 0 4px hsl(var(--primary) / 0.12)",
+            }}
+          />
+        ) : (
+          <TrendMeWordmark size="lg" />
         )}
       </div>
 
