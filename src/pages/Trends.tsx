@@ -460,9 +460,6 @@ export default function Trends() {
               {/* Page header — eyebrow + h1 + KPI strip + niche tabs */}
               <div className="px-4 md:px-6 lg:px-8 space-y-5">
                 <div className="space-y-1.5">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                    Дашборд трендов
-                  </p>
                   <div className="flex items-end justify-between gap-4 flex-wrap">
                     <div>
                       <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
