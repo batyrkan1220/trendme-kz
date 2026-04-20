@@ -5,7 +5,7 @@ import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
 
 import { trackAddToFavorites } from "@/components/TrackingPixels";
-import { TrendingUp, WifiOff } from "lucide-react";
+import { TrendingUp, WifiOff, Flame, Eye, Sparkles, Layers } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { useOnlineStatus, saveTrendsCache, loadTrendsCache } from "@/hooks/useOfflineCache";
@@ -34,6 +34,8 @@ export default function Trends() {
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
+  const [headerPeriod, setHeaderPeriod] = useState<number>(1); // 1 / 7 / 30 days
+  const [activeNicheFilter, setActiveNicheFilter] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const chipScrollRef = useRef<HTMLDivElement>(null);
@@ -226,6 +228,39 @@ export default function Trends() {
     { value: 14, label: "14 дней" },
   ];
 
+  const HEADER_PERIODS = [
+    { value: 1, label: "24ч" },
+    { value: 7, label: "7д" },
+    { value: 30, label: "30д" },
+  ];
+
+  // KPI metrics for header strip
+  const kpiStats = useMemo(() => {
+    const since = Date.now() - headerPeriod * 86400000;
+    const inWindow = effectiveVideos.filter(
+      (v) => v.published_at && new Date(v.published_at).getTime() >= since
+    );
+    const totalVideos = inWindow.length;
+    const viralCount = inWindow.filter((v) => (v.trend_score || 0) >= 70).length;
+    const avgViews =
+      inWindow.length > 0
+        ? Math.round(inWindow.reduce((s, v) => s + (Number(v.views) || 0), 0) / inWindow.length)
+        : 0;
+    const activeNiches = new Set(inWindow.map((v) => v.niche).filter(Boolean)).size;
+    return { totalVideos, viralCount, avgViews, activeNiches };
+  }, [effectiveVideos, headerPeriod]);
+
+  const formatNum = (n: number) => {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+    return String(n);
+  };
+
+  const filteredGroups = useMemo(
+    () => (activeNicheFilter ? allGroups.filter((g) => g.key === activeNicheFilter) : allGroups),
+    [allGroups, activeNicheFilter]
+  );
+
   const handleViewAll = (nicheKey: string, subNicheKey?: string) => {
     setDrillNiche(nicheKey);
     setDrillSubNiche(subNicheKey || null);
@@ -282,7 +317,10 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-x-hidden overflow-y-auto h-full bg-background text-foreground relative pb-16 md:pb-8"
+        className={cn(
+          "overflow-x-hidden overflow-y-auto h-full text-foreground relative pb-16 md:pb-8",
+          drillNiche ? "bg-background" : "bg-background-subtle"
+        )}
         style={{ paddingTop: drillNiche ? "0px" : "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
         <PullToRefreshIndicator
@@ -412,9 +450,136 @@ export default function Trends() {
             </>
           ) : (
             <>
+              {/* Page header — eyebrow + h1 + KPI strip + niche tabs */}
+              <div className="px-4 md:px-6 lg:px-8 space-y-5">
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                    Дашборд трендов
+                  </p>
+                  <div className="flex items-end justify-between gap-4 flex-wrap">
+                    <div>
+                      <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+                        Тренды TikTok
+                      </h1>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Лучшее за последние 24 часа в твоей нише
+                      </p>
+                    </div>
+                    {/* Period switcher */}
+                    <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-card border border-border">
+                      {HEADER_PERIODS.map((p) => (
+                        <button
+                          key={p.value}
+                          onClick={() => setHeaderPeriod(p.value)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all",
+                            headerPeriod === p.value
+                              ? "bg-foreground text-background shadow-soft"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-              {/* Content below hero */}
-              <div className="px-4 md:px-6 lg:px-8 space-y-6">
+                {/* KPI strip — 4 cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    {
+                      label: "Всего видео",
+                      value: formatNum(kpiStats.totalVideos),
+                      icon: Layers,
+                      tint: "bg-primary-soft text-primary",
+                    },
+                    {
+                      label: "Вирусных",
+                      value: formatNum(kpiStats.viralCount),
+                      icon: Flame,
+                      tint: "bg-viral/20 text-foreground",
+                      accent: true,
+                    },
+                    {
+                      label: "Средний охват",
+                      value: formatNum(kpiStats.avgViews),
+                      icon: Eye,
+                      tint: "bg-blue-500/10 text-blue-600",
+                    },
+                    {
+                      label: "Активных ниш",
+                      value: String(kpiStats.activeNiches),
+                      icon: Sparkles,
+                      tint: "bg-violet-500/10 text-violet-600",
+                    },
+                  ].map((kpi) => (
+                    <div
+                      key={kpi.label}
+                      className="rounded-2xl bg-card border border-border p-3.5 flex items-center gap-3 hover:shadow-card transition-shadow"
+                    >
+                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", kpi.tint)}>
+                        <kpi.icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide truncate">
+                          {kpi.label}
+                        </div>
+                        <div className="text-lg md:text-xl font-bold text-foreground leading-tight">
+                          {kpi.value}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Niche pill-tabs (emoji chips) */}
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+                  <button
+                    onClick={() => setActiveNicheFilter(null)}
+                    className={cn(
+                      "shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold transition-all whitespace-nowrap border",
+                      !activeNicheFilter
+                        ? "bg-foreground text-background border-foreground shadow-soft"
+                        : "bg-card text-foreground/70 border-border hover:bg-muted"
+                    )}
+                  >
+                    🌍 Все
+                  </button>
+                  {allGroups.map((g) => {
+                    const count = (videosByNiche[g.key] || []).length;
+                    const active = activeNicheFilter === g.key;
+                    return (
+                      <button
+                        key={g.key}
+                        onClick={() => setActiveNicheFilter(active ? null : g.key)}
+                        className={cn(
+                          "shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold transition-all whitespace-nowrap border flex items-center gap-1.5",
+                          active
+                            ? "bg-foreground text-background border-foreground shadow-soft"
+                            : "bg-card text-foreground/70 border-border hover:bg-muted"
+                        )}
+                      >
+                        <span>{g.emoji}</span>
+                        <span>{g.label}</span>
+                        {count > 0 && (
+                          <span
+                            className={cn(
+                              "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                              active ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
+                            )}
+                          >
+                            {count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Content rows */}
+              <div className="px-4 md:px-6 lg:px-8 space-y-6 pt-2">
                 {isLoading ? (
                   <div className="space-y-6">
                     {Array.from({ length: 3 }).map((_, i) => (
@@ -436,7 +601,7 @@ export default function Trends() {
                   </div>
                 ) : (
                   <>
-                    {allGroups.map((group) => (
+                    {filteredGroups.map((group) => (
                       <LazyNicheRow
                         key={group.key}
                         group={group}
@@ -451,7 +616,7 @@ export default function Trends() {
                       />
                     ))}
 
-                    {allGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
+                    {filteredGroups.every((g) => !(videosByNiche[g.key]?.length)) && (
                       <div className="text-center py-20">
                         <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
                           <TrendingUp className="h-10 w-10 text-white/20" />
