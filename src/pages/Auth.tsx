@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 import { isNativePlatform } from "@/lib/native";
+import { cn } from "@/lib/utils";
 
 type Mode = "login" | "register" | "forgot";
 
