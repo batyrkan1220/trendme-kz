@@ -466,12 +466,12 @@ function Product() {
         </div>
 
         {/* Steps */}
-        <div className="mt-14 grid md:grid-cols-3 gap-5">
+        <div className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
           {steps.map((s) => (
-            <div key={s.n} className="bg-card border border-border rounded-2xl p-6 hover-lift shadow-card-hover">
-              <div className="w-9 h-9 rounded-lg bg-foreground text-background flex items-center justify-center font-bold mb-4">{s.n}</div>
-              <h3 className="text-[17px] font-semibold text-foreground">{s.title}</h3>
-              <p className="mt-2 text-[14px] text-muted-foreground leading-relaxed">{s.desc}</p>
+            <div key={s.n} className="bg-card border border-border rounded-2xl p-5 md:p-6 hover-lift shadow-card-hover">
+              <div className="w-9 h-9 rounded-lg bg-foreground text-background flex items-center justify-center font-bold mb-3 md:mb-4">{s.n}</div>
+              <h3 className="text-[16px] md:text-[17px] font-semibold text-foreground">{s.title}</h3>
+              <p className="mt-1.5 md:mt-2 text-[13.5px] md:text-[14px] text-muted-foreground leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
