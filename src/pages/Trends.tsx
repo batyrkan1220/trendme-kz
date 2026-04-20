@@ -317,7 +317,10 @@ export default function Trends() {
     <AppLayout>
       <div
         ref={containerRef}
-        className="overflow-x-hidden overflow-y-auto h-full bg-background text-foreground relative pb-16 md:pb-8"
+        className={cn(
+          "overflow-x-hidden overflow-y-auto h-full text-foreground relative pb-16 md:pb-8",
+          drillNiche ? "bg-background" : "bg-background-subtle"
+        )}
         style={{ paddingTop: drillNiche ? "0px" : "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
         <PullToRefreshIndicator
