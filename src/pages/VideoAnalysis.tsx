@@ -172,17 +172,25 @@ export default function VideoAnalysis() {
                 <div className="flex flex-col gap-2">
                   <p className="text-[11px] text-muted-foreground text-center font-semibold uppercase tracking-wide">Тілді таңдаңыз / Выберите язык</p>
                   <div className="flex gap-2">
-                    <Button onClick={() => handleAnalyze("kk")} disabled={!url.trim()} className="flex-1 h-11 bg-foreground text-background hover:bg-foreground/90 border-0 transition-opacity rounded-xl font-semibold text-sm shadow-soft">
+                    <Button
+                      onClick={() => handleAnalyze("kk")}
+                      disabled={!url.trim()}
+                      className="flex-1 h-11 bg-foreground text-background hover:bg-foreground/90 disabled:bg-foreground/40 disabled:text-background disabled:opacity-100 border-0 transition-all rounded-xl font-semibold text-sm shadow-soft"
+                    >
                       🇰🇿 Қазақша
                     </Button>
-                    <Button onClick={() => handleAnalyze("ru")} disabled={!url.trim()} className="flex-1 h-11 bg-primary text-primary-foreground hover:bg-primary-hover border-0 transition-opacity rounded-xl font-semibold text-sm shadow-glow-primary">
+                    <Button
+                      onClick={() => handleAnalyze("ru")}
+                      disabled={!url.trim()}
+                      className="flex-1 h-11 bg-primary text-primary-foreground hover:bg-primary-hover disabled:bg-primary/40 disabled:text-primary-foreground disabled:opacity-100 border-0 transition-all rounded-xl font-semibold text-sm shadow-glow-primary"
+                    >
                       🇷🇺 Русский
                     </Button>
                   </div>
                 </div>
               )}
               {isPending && (
-                <Button disabled className="h-11 bg-primary text-primary-foreground border-0 rounded-xl font-semibold text-sm">
+                <Button disabled className="h-11 bg-primary text-primary-foreground border-0 rounded-xl font-semibold text-sm disabled:opacity-100">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />Анализируем...
                 </Button>
               )}

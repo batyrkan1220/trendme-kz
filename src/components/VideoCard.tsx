@@ -237,9 +237,11 @@ interface VideoCardProps {
   isFavorite: boolean;
   onToggleFav: (id: string) => void;
   onAnalyze?: (video: VideoCardData) => void;
+  onScript?: (video: VideoCardData) => void;
   showTier?: boolean;
   showAuthor?: boolean;
   showAnalyzeButton?: boolean;
+  showScriptButton?: boolean;
   darkMode?: boolean;
   isMobileOverride?: boolean;
 }
@@ -251,9 +253,11 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   isFavorite,
   onToggleFav,
   onAnalyze,
+  onScript,
   showTier = true,
   showAuthor = true,
   showAnalyzeButton = true,
+  showScriptButton = true,
   darkMode: _darkMode, // deprecated — kept for backward compatibility, ignored
   isMobileOverride,
 }, ref) {
@@ -450,7 +454,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   onClick={handlePlay}
                   onError={() => handleCoverError()}
                 />
-                {/* Bottom gradient (dashboard style) */}
+                {/* Top + bottom gradient overlays for pill/text legibility */}
+                <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/55 via-black/15 to-transparent pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
                 {/* Hover play */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
@@ -586,18 +591,29 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         </span>
       </div>
 
-      {/* Analyze button */}
-      {showAnalyzeButton && onAnalyze && (
-        <div className="px-3 pb-3 mt-auto">
-          <button
-            onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-            className="w-full py-2 rounded-xl text-[12.5px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1.5"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-viral" />
-            ИИ-анализ
-          </button>
+      {/* Action buttons — Analyze + Script */}
+      {(showAnalyzeButton && onAnalyze) || (showScriptButton && onScript) ? (
+        <div className="px-3 pb-3 mt-auto flex items-center gap-1.5">
+          {showAnalyzeButton && onAnalyze && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
+              className="flex-1 py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-viral" />
+              Анализ
+            </button>
+          )}
+          {showScriptButton && onScript && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onScript(video); }}
+              className="flex-1 py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-[0.98] bg-primary-soft text-primary hover:bg-primary hover:text-primary-foreground inline-flex items-center justify-center gap-1.5 border border-primary/20"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Сценарий
+            </button>
+          )}
         </div>
-      )}
+      ) : null}
 
       {/* Fullscreen video player overlay (mobile) */}
       {showFullscreen && isMobile && (

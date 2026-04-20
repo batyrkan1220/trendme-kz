@@ -167,6 +167,9 @@ export default function Trends() {
   }, [queryClient]);
 
   const openAnalysis = useCallback((v: any) => setAnalysisVideo(v), []);
+  const openScript = useCallback((v: any) => {
+    navigate(`/video-analysis?url=${encodeURIComponent(v.url)}&script=1`);
+  }, [navigate]);
 
   const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
     onRefresh: handleRefresh,
@@ -441,7 +444,8 @@ export default function Trends() {
                   onPlay={setPlayingId}
                   userFavorites={userFavorites}
                   onToggleFav={toggleFav}
-                  onAnalyze={(v) => setAnalysisVideo(v)}
+                  onAnalyze={openAnalysis}
+                  onScript={openScript}
                   isFreePlan={isFreePlan}
                   freeLimit={FREE_LIMIT}
                   hasMore={drillTotalFiltered > visibleCount}
@@ -610,6 +614,7 @@ export default function Trends() {
                         userFavorites={userFavorites}
                         onToggleFav={toggleFav}
                         onAnalyze={openAnalysis}
+                        onScript={openScript}
                         playingId={playingId}
                         onPlay={setPlayingId}
                         onViewAll={handleViewAll}

@@ -8,6 +8,7 @@ interface LazyNicheRowProps {
   userFavorites: string[];
   onToggleFav: (id: string) => void;
   onAnalyze: (v: any) => void;
+  onScript?: (v: any) => void;
   playingId: string | null;
   onPlay: (id: string | null) => void;
   onViewAll: (nicheKey: string, subNicheKey?: string) => void;
