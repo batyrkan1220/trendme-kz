@@ -674,31 +674,31 @@ function FAQ() {
 /* ───────── FINAL CTA ───────── */
 function FinalCTA() {
   return (
-    <section className="py-28">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="relative bg-foreground rounded-[32px] p-12 md:p-16 overflow-hidden">
-          <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 blur-3xl" />
-          <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-viral/20 blur-3xl" />
+    <section className="py-16 md:py-28">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
+        <div className="relative bg-foreground rounded-2xl md:rounded-[32px] p-8 md:p-16 overflow-hidden">
+          <div className="absolute -right-20 -top-20 w-72 md:w-80 h-72 md:h-80 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 blur-3xl" />
+          <div className="absolute -left-20 -bottom-20 w-72 md:w-80 h-72 md:h-80 rounded-full bg-viral/20 blur-3xl" />
 
           <div className="relative">
-            <h2 className="text-background text-[clamp(2rem,4vw,3rem)] font-bold tracking-tight max-w-2xl leading-[1.05]">
+            <h2 className="text-background text-[clamp(1.5rem,5.5vw,3rem)] font-bold tracking-tight max-w-2xl leading-[1.08]">
               Перестаньте угадывать.<br />
               <span className="gradient-text">Работайте с трендами на фактах.</span>
             </h2>
-            <p className="mt-4 text-background/70 text-[17px] max-w-xl leading-relaxed">
+            <p className="mt-3 md:mt-4 text-background/70 text-[14.5px] md:text-[17px] max-w-xl leading-relaxed">
               Попробуйте trendme бесплатно — 10 видео в день, 3 ниши, без карты.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
               <Link
                 to="/auth"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-viral text-foreground text-[15px] font-semibold hover:opacity-90 transition"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-viral text-foreground text-[15px] font-semibold hover:opacity-90 transition"
               >
                 Начать бесплатно
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <a
                 href="#pricing"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-background/10 text-background text-[15px] font-semibold hover:bg-background/15 transition"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-background/10 text-background text-[15px] font-semibold hover:bg-background/15 transition"
               >
                 Сравнить тарифы
               </a>
