@@ -614,6 +614,7 @@ export default function Trends() {
                         userFavorites={userFavorites}
                         onToggleFav={toggleFav}
                         onAnalyze={openAnalysis}
+                        onScript={openScript}
                         playingId={playingId}
                         onPlay={setPlayingId}
                         onViewAll={handleViewAll}
