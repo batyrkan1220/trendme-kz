@@ -132,6 +132,7 @@ export function useSubscription() {
   };
 
   return {
+    subscription,
     plan,
     isFreeTrial,
     hasActiveSubscription,
