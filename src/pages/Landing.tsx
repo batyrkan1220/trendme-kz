@@ -186,13 +186,16 @@ function Hero() {
         <div className="relative h-[520px] hidden lg:block">
           <div className="absolute inset-0 bg-dots opacity-60 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]" />
 
-          {/* Card 1 */}
-          <div className="video-card absolute w-[200px] left-0 top-10 bg-gradient-to-br from-pink-500 via-rose-400 to-orange-400 animate-[floatA_6s_ease-in-out_infinite]">
-            <Pill className="absolute top-3 left-3 bg-background/95 text-foreground">
+          {/* Card 1 — Beauty */}
+          <div
+            className="video-card absolute w-[200px] left-0 top-10 animate-[floatA_6s_ease-in-out_infinite] bg-cover bg-center"
+            style={{ backgroundImage: `url(${trendBeauty})` }}
+          >
+            <Pill className="absolute top-3 left-3 bg-background/95 text-foreground z-10">
               <Heart className="w-3 h-3 text-rose-500 fill-current" />
               Вирус
             </Pill>
-            <div className="absolute bottom-3 left-3 right-3 text-white">
+            <div className="absolute bottom-3 left-3 right-3 text-white z-10">
               <div className="text-[11px] opacity-80 mb-0.5">@beauty.trend</div>
               <div className="text-[13px] font-semibold leading-tight">Тренд-макияж за 30 секунд</div>
               <div className="mt-1.5 flex items-center gap-3 text-[11px] opacity-90">
@@ -201,18 +204,21 @@ function Hero() {
             </div>
           </div>
 
-          {/* Card 2 */}
-          <div className="video-card absolute w-[230px] left-[170px] top-0 z-10 bg-gradient-to-br from-primary via-purple-500 to-fuchsia-500 animate-[floatB_7s_ease-in-out_infinite]">
-            <Pill className="absolute top-3 left-3 bg-viral text-foreground">
+          {/* Card 2 — Food */}
+          <div
+            className="video-card absolute w-[230px] left-[170px] top-0 z-10 animate-[floatB_7s_ease-in-out_infinite] bg-cover bg-center"
+            style={{ backgroundImage: `url(${trendFood})` }}
+          >
+            <Pill className="absolute top-3 left-3 bg-viral text-foreground z-10">
               <Star className="w-3 h-3 fill-current" />
               TOP 1
             </Pill>
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center z-10">
               <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
                 <Play className="w-6 h-6 text-white ml-1 fill-current" />
               </div>
             </div>
-            <div className="absolute bottom-3 left-3 right-3 text-white">
+            <div className="absolute bottom-3 left-3 right-3 text-white z-10">
               <div className="text-[11px] opacity-80 mb-0.5">@food.viral</div>
               <div className="text-[13px] font-semibold leading-tight">5 рецептов, которые взорвали TikTok</div>
               <div className="mt-1.5 flex items-center gap-3 text-[11px] opacity-90">
@@ -221,8 +227,11 @@ function Hero() {
             </div>
           </div>
 
-          {/* Card 3 */}
-          <div className="video-card absolute w-[180px] right-0 top-16 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 animate-[floatC_8s_ease-in-out_infinite]">
+          {/* Card 3 — Fitness */}
+          <div
+            className="video-card absolute w-[180px] right-0 top-16 animate-[floatC_8s_ease-in-out_infinite] bg-cover bg-center"
+            style={{ backgroundImage: `url(${trendFitness})` }}
+          >
             <Pill className="absolute top-3 left-3 bg-background/95 text-foreground">
               <ArrowRight className="w-3 h-3 text-emerald-600" />
               +420%
