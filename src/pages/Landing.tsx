@@ -7,6 +7,11 @@ import {
   ShieldCheck, Rocket,
 } from "lucide-react";
 import { TrendMeWordmark } from "@/components/TrendMeWordmark";
+import trendBeauty from "@/assets/landing-trend-beauty.jpg";
+import trendFood from "@/assets/landing-trend-food.jpg";
+import trendFitness from "@/assets/landing-trend-fitness.jpg";
+import trendEdu from "@/assets/landing-trend-edu.jpg";
+import trendTravel from "@/assets/landing-trend-travel.jpg";
 
 /* ───────── NAV ───────── */
 function LandingNav() {
