@@ -22,6 +22,20 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 const SCRIPT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`;
 
+const getReadableSummaryValue = (...values: unknown[]) => {
+  for (const value of values) {
+    if (typeof value !== "string") continue;
+    const normalized = value.trim();
+    const lowered = normalized.toLowerCase();
+    if (!normalized) continue;
+    if (["—", "-", "n/a", "none", "null", "undefined", "unknown", "неизвестно", "нет", "не указано"].includes(lowered)) {
+      continue;
+    }
+    return normalized;
+  }
+  return null;
+};
+
 async function streamScript({
   transcript, summary, caption, language, messages, onDelta, onDone, onError,
 }: {
