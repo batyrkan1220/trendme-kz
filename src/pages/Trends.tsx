@@ -19,8 +19,10 @@ import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
+import { PaywallDialog } from "@/components/PaywallDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
+import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -39,7 +41,6 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 30;
 const EMPTY_ARR: any[] = [];
-const FREE_LIMIT = 5;
 
 const PERIOD_OPTIONS = [
   { value: 3, label: "3 дня" },
@@ -57,6 +58,8 @@ export default function Trends() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [scriptVideo, setScriptVideo] = useState<any>(null);
+  const [paywallVideo, setPaywallVideo] = useState<any>(null);
+  const [paywallFeature, setPaywallFeature] = useState<"analysis" | "script">("analysis");
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
@@ -74,24 +77,7 @@ export default function Trends() {
   const { isBlocked } = useBlockedUsers();
 
   /* ======================= subscription ======================= */
-  const { data: userSub } = useQuery({
-    queryKey: ["user-subscription", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("user_subscriptions")
-        .select("*, plans(price_rub)")
-        .eq("user_id", user!.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-  const isFreePlan = isNativePlatform
-    ? false
-    : !userSub || (userSub.plans as any)?.price_rub === 0;
+  const { isFreePlan } = useIsFreePlan();
 
   /* ======================= all videos ======================= */
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
@@ -201,8 +187,29 @@ export default function Trends() {
   const { containerRef, pullDistance, isRefreshing, progress } =
     usePullToRefresh({ onRefresh: handleRefresh });
 
-  const openAnalysis = useCallback((v: any) => setAnalysisVideo(v), []);
-  const openScript = useCallback((v: any) => setScriptVideo(v), []);
+  const openAnalysis = useCallback(
+    (v: any) => {
+      if (isFreePlan) {
+        setPaywallFeature("analysis");
+        // Soft 200ms delay → feels like loading instead of an instant block
+        setTimeout(() => setPaywallVideo(v), 200);
+        return;
+      }
+      setAnalysisVideo(v);
+    },
+    [isFreePlan]
+  );
+  const openScript = useCallback(
+    (v: any) => {
+      if (isFreePlan) {
+        setPaywallFeature("script");
+        setTimeout(() => setPaywallVideo(v), 200);
+        return;
+      }
+      setScriptVideo(v);
+    },
+    [isFreePlan]
+  );
   const allGroups = NICHE_GROUPS;
 
   /* ======================= drill-down ======================= */
