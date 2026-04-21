@@ -363,6 +363,11 @@ export default function AccountAnalysis() {
         
       </>
       }
+      <PaywallDialog
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        feature="account"
+      />
     </AppLayout>);
 
 }
