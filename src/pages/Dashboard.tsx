@@ -29,7 +29,7 @@ const actions = [
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { limits, getRemaining, isFreeTrial, hasActiveSubscription, isLoading: subLoading } = useSubscription();
+  const { subscription, plan, limits, getRemaining, isFreeTrial, hasActiveSubscription, isLoading: subLoading } = useSubscription();
   const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
