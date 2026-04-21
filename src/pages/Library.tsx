@@ -91,10 +91,8 @@ export default function Library() {
       >
         {/* Header — landing/trends style */}
         <div>
-          <div className="eyebrow mb-1.5 text-[11px] md:text-[12px]">
-            <Heart className="h-3 w-3 fill-current" />
-            Избранное
-          </div>
+
+
           <h1 className="text-[22px] md:text-[32px] leading-[1.1] font-semibold tracking-tight text-foreground">
             Сохранённые <span className="text-foreground">тренды</span>
           </h1>
