@@ -55,11 +55,12 @@ Deno.serve(async (req) => {
       // Get all roles
       const { data: allRoles } = await adminClient.from("user_roles").select("*");
 
-      // Get all active subscriptions with plan info
+      // Get all active subscriptions with plan info (newest first for priority)
       const { data: allSubs } = await adminClient
         .from("user_subscriptions")
         .select("*, plans(*)")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
 
       // Get all token balances
       const { data: allTokens } = await adminClient.from("user_tokens").select("*");
