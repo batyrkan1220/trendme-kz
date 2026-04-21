@@ -553,15 +553,16 @@ function Product() {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { bg: "from-pink-500 via-rose-400 to-orange-400", badge: "🔥 +420%", badgeBg: "bg-viral text-foreground", user: "@beauty.viral", title: "Макияж за 30 сек", views: "▶ 2.4M" },
-                    { bg: "from-primary via-purple-500 to-fuchsia-500", badge: "⭐ TOP", badgeBg: "bg-background text-foreground", user: "@food.hub", title: "5 рецептов", views: "▶ 8.1M" },
-                    { bg: "from-emerald-500 via-teal-500 to-cyan-500", badge: "↑ +183%", badgeBg: "bg-background text-foreground", user: "@fit.pro", title: "5 мин тренировка", views: "▶ 960K" },
-                    { bg: "from-amber-500 via-orange-400 to-rose-400", badge: "🔥 Hot", badgeBg: "bg-background text-foreground", user: "@edu.kz", title: "IELTS за месяц", views: "▶ 1.1M" },
+                    { img: trendBeauty, badge: "🔥 +420%", badgeBg: "bg-viral text-foreground", user: "@beauty.viral", title: "Макияж за 30 сек", views: "▶ 2.4M" },
+                    { img: trendFood, badge: "⭐ TOP", badgeBg: "bg-background text-foreground", user: "@food.hub", title: "5 рецептов", views: "▶ 8.1M" },
+                    { img: trendFitness, badge: "↑ +183%", badgeBg: "bg-background text-foreground", user: "@fit.pro", title: "5 мин тренировка", views: "▶ 960K" },
+                    { img: trendTravel, badge: "🔥 Hot", badgeBg: "bg-background text-foreground", user: "@travel.kz", title: "Алтын-Эмель за 60 сек", views: "▶ 1.1M" },
                   ].map((c, i) => (
-                    <div key={i} className={`relative aspect-[9/14] rounded-xl overflow-hidden bg-gradient-to-br ${c.bg}`}>
-                      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${c.badgeBg}`}>{c.badge}</div>
-                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 to-transparent" />
-                      <div className="absolute bottom-2 left-2 right-2 text-white">
+                    <div key={i} className="relative aspect-[9/14] rounded-xl overflow-hidden bg-muted">
+                      <img src={c.img} alt={c.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${c.badgeBg} z-10`}>{c.badge}</div>
+                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
+                      <div className="absolute bottom-2 left-2 right-2 text-white z-10">
                         <div className="text-[10px] opacity-80">{c.user}</div>
                         <div className="text-[11px] font-bold">{c.title}</div>
                         <div className="text-[10px] opacity-90 mt-0.5">{c.views}</div>
