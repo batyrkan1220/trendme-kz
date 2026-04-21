@@ -273,17 +273,7 @@ export function FullscreenVideoPlayer({
 
       {/* Video area — full screen, no controls */}
       <div className="absolute inset-0 flex items-center justify-center">
-        {loading ? (
-          <div className="flex flex-col items-center gap-3">
-            {video.cover_url && (
-              <img src={video.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm" />
-            )}
-            <div className="relative z-10 h-14 w-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
-              <Loader2 className="h-6 w-6 text-white animate-spin" />
-            </div>
-            <span className="relative z-10 text-white/50 text-xs animate-pulse">Загрузка...</span>
-          </div>
-        ) : playUrl === "tiktok_embed_fallback" ? (
+        {playUrl === "tiktok_embed_fallback" ? (
           <iframe
             src={`https://www.tiktok.com/player/v1/${videoId}?&music_info=0&description=0&rel=0`}
             className="w-full h-full border-0"
@@ -291,19 +281,43 @@ export function FullscreenVideoPlayer({
             allowFullScreen
             scrolling="no"
           />
-        ) : playUrl ? (
+        ) : !loading && !playUrl ? (
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-white/50 text-xs">Видео недоступно</p>
+            <button
+              onClick={() => window.open(video.url, '_blank')}
+              className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium"
+            >
+              Открыть в TikTok
+            </button>
+          </div>
+        ) : (
           <>
+            {/* Video element is ALWAYS mounted so play() can be called as soon as src arrives */}
             <video
               ref={videoRef}
-              src={playUrl}
+              src={playUrl && playUrl !== "tiktok_embed_fallback" ? playUrl : undefined}
               className="w-full h-full object-contain"
               autoPlay
               playsInline
               preload="auto"
               loop={false}
+              poster={video.cover_url || undefined}
             />
+            {/* Loading overlay while play URL is being fetched */}
+            {loading && !playUrl && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
+                {video.cover_url && (
+                  <img src={video.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm" />
+                )}
+                <div className="relative z-10 h-14 w-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                </div>
+                <span className="relative z-10 text-white/50 text-xs animate-pulse">Загрузка...</span>
+              </div>
+            )}
             {/* Tap pause/play indicator */}
-            {showPauseIcon && (
+            {showPauseIcon && playUrl && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
                 <div className="h-20 w-20 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center animate-fade-in">
                   {ended ? (
@@ -320,7 +334,7 @@ export function FullscreenVideoPlayer({
               </div>
             )}
             {/* Ended — replay overlay (clickable) */}
-            {ended && !showPauseIcon && (
+            {ended && !showPauseIcon && playUrl && (
               <div className="absolute inset-0 flex items-center justify-center z-30">
                 <button
                   type="button"
@@ -346,16 +360,6 @@ export function FullscreenVideoPlayer({
               </div>
             )}
           </>
-        ) : (
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-white/50 text-xs">Видео недоступно</p>
-            <button
-              onClick={() => window.open(video.url, '_blank')}
-              className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium"
-            >
-              Открыть в TikTok
-            </button>
-          </div>
         )}
       </div>
 
