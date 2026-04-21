@@ -53,6 +53,23 @@ const FEATURE_HEADLINES: Record<NonNullable<PaywallDialogProps["feature"]>, stri
 
 export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" }: PaywallDialogProps) {
   const navigate = useNavigate();
+  const [monthlyPrice, setMonthlyPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!open || monthlyPrice !== null) return;
+    supabase
+      .from("plans")
+      .select("price_rub")
+      .eq("is_active", true)
+      .eq("duration_days", 30)
+      .gt("price_rub", 0)
+      .order("price_rub", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.price_rub) setMonthlyPrice(data.price_rub);
+      });
+  }, [open, monthlyPrice]);
 
   const cover = video?.cover_url || video?.cover || null;
   const views = Number(video?.views || 0);
