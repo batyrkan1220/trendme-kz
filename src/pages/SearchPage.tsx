@@ -157,7 +157,7 @@ export default function SearchPage() {
               <div className="space-y-1.5">
                 <span className="eyebrow">Поиск</span>
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                  Найдите свои тренды 🔍
+                  Найдите свои тренды
                 </h1>
                 <p className="text-[13px] md:text-sm text-muted-foreground">
                   Введите ключевое слово — соберём релевантные TikTok видео
