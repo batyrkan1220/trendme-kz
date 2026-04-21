@@ -103,7 +103,7 @@ export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" 
         )}
 
         {/* Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-5 sm:p-6 space-y-4 sm:space-y-5">
           {!showHook && (
             <div className="flex justify-center">
               <div className="h-14 w-14 rounded-2xl bg-viral/15 flex items-center justify-center ring-1 ring-viral/30">
