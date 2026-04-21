@@ -66,7 +66,7 @@ export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="p-0 max-w-[420px] gap-0 overflow-hidden border-border/60 bg-card rounded-2xl"
+        className="p-0 gap-0 overflow-hidden border-border/60 bg-card rounded-2xl w-[calc(100vw-24px)] max-w-[420px] max-h-[calc(100dvh-32px)] overflow-y-auto"
         style={{ boxShadow: "0 30px 80px -20px rgba(0,0,0,0.5), 0 0 0 1px hsl(0 0% 100% / 0.04) inset" }}
       >
         <button
@@ -103,7 +103,7 @@ export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" 
         )}
 
         {/* Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-5 sm:p-6 space-y-4 sm:space-y-5">
           {!showHook && (
             <div className="flex justify-center">
               <div className="h-14 w-14 rounded-2xl bg-viral/15 flex items-center justify-center ring-1 ring-viral/30">
