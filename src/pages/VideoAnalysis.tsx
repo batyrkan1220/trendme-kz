@@ -10,6 +10,8 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ScriptGenerationPanel } from "@/components/ScriptGenerationPanel";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { PaywallDialog } from "@/components/PaywallDialog";
 import { MagicAnalysisLoader } from "@/components/MagicAnalysisLoader";
 import { hapticSuccess } from "@/lib/haptics";
 import { VideoAnalysisResults } from "@/components/VideoAnalysisResults";
@@ -49,7 +51,9 @@ export default function VideoAnalysis() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
   const { checkAndLog } = useSubscription();
+  const { isFreePlan } = useIsFreePlan();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const autoScriptRef = useRef(false);
@@ -88,6 +92,12 @@ export default function VideoAnalysis() {
     const isProfileUrl = /@[\w.]+\/?(\?|$)/.test(normalizedUrl) && !hasVideoPath;
     if (isProfileUrl) {
       toast.error("Это ссылка на профиль 👤\nВставьте ссылку на видео", { duration: 5000 });
+      return;
+    }
+
+    // Pro gate — free users see paywall, never trigger backend call
+    if (isFreePlan) {
+      setTimeout(() => setShowPaywall(true), 200);
       return;
     }
 
