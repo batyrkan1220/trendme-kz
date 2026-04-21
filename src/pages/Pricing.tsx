@@ -92,6 +92,54 @@ export default function Pricing() {
             </p>
           </div>
 
+          {/* Active subscription card */}
+          {userSub && (() => {
+            const sub: any = userSub;
+            const planName = displayNames[sub.plans?.name] || sub.plans?.name || "—";
+            const expiresAt = sub.expires_at ? new Date(sub.expires_at) : null;
+            const daysLeft = expiresAt
+              ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000))
+              : null;
+            const expiresStr = expiresAt
+              ? expiresAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+              : "—";
+            const lowDays = daysLeft !== null && daysLeft <= 7;
+            return (
+              <div
+                className={cn(
+                  "mx-auto mb-8 md:mb-10 max-w-2xl rounded-2xl border p-5 md:p-6 bg-card shadow-card-hover",
+                  lowDays ? "border-viral/40" : "border-border"
+                )}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <div className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Ваша подписка
+                    </div>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="text-[20px] md:text-[22px] font-bold text-foreground">{planName}</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-500">
+                        Активна
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[12px] text-muted-foreground">Действует до</div>
+                    <div className="text-[15px] font-semibold text-foreground">{expiresStr}</div>
+                    {daysLeft !== null && (
+                      <div className={cn(
+                        "mt-0.5 text-[12px] font-semibold",
+                        lowDays ? "text-viral" : "text-muted-foreground"
+                      )}>
+                        Осталось {daysLeft} {pluralDays(daysLeft)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {[1, 2, 3].map(i => (
