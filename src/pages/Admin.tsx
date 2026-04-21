@@ -2395,7 +2395,8 @@ function RecategorizeSection() {
 }
 
 /* ==================== TARIFFS TAB ==================== */
-function TariffsTab() {
+// Tariffs management UI removed — subscriptions are assigned via UsersTab.
+
   const queryClient = useQueryClient();
   const [editPlan, setEditPlan] = useState<any | null>(null);
   const [assignDialog, setAssignDialog] = useState<{ open: boolean }>({ open: false });
