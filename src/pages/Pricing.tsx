@@ -48,7 +48,7 @@ export default function Pricing() {
     queryFn: async () => {
       const { data } = await supabase
         .from("user_subscriptions")
-        .select("*, plans(name)")
+        .select("*, plans(name, price_rub)")
         .eq("user_id", user!.id)
         .eq("is_active", true)
         .maybeSingle();
