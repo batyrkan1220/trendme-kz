@@ -30,7 +30,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
 
 export default ReauthenticationEmail
 
-const LOGO = 'https://oacmuheaobrluhvkwayc.supabase.co/storage/v1/object/public/email-assets/wordmark.png'
+const LOGO = 'https://oacmuheaobrluhvkwayc.supabase.co/storage/v1/object/public/email-assets/wordmark-dark.png'
 const NEON = '#BFFF00'; const NEON_DIM = 'rgba(191,255,0,0.18)'
 const BG = '#0a0a0a'; const SURFACE = '#111111'; const BORDER = 'rgba(255,255,255,0.08)'
 const INK = '#FAFAFA'; const MUTED = '#A1A1AA'
