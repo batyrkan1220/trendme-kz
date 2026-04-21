@@ -48,7 +48,7 @@ export default function Pricing() {
     queryFn: async () => {
       const { data } = await supabase
         .from("user_subscriptions")
-        .select("*, plans(name)")
+        .select("*, plans(name, price_rub)")
         .eq("user_id", user!.id)
         .eq("is_active", true)
         .maybeSingle();
@@ -101,7 +101,7 @@ export default function Pricing() {
           </div>
 
           {/* Active subscription card */}
-          {userSub && (() => {
+          {userSub && (userSub as any).plans?.price_rub > 0 && (() => {
             const sub: any = userSub;
             const planName = displayNames[sub.plans?.name] || sub.plans?.name || "—";
             const expiresAt = sub.expires_at ? new Date(sub.expires_at) : null;
