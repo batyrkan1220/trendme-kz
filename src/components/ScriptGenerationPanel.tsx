@@ -341,23 +341,30 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                           <div className="bg-card rounded-xl border border-border/50 p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <Zap className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-bold text-foreground">Visual Hook:</span>
+                              <span className="text-sm font-bold text-foreground">{isKk ? "Визуалды хук:" : "Визуальный хук:"}</span>
                             </div>
-                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.visual_hook || summary.text_hook || "—"}</p>
+                            <p className="text-xs text-foreground/70 leading-relaxed">
+                              {getReadableSummaryValue(
+                                summary.visual_hook,
+                                summary.text_hook,
+                                summary.hook_phrase,
+                                summary.summary
+                              ) || (isKk ? "Анализде визуалды хук анықталмады" : "В анализе не удалось определить визуальный хук")}
+                            </p>
                           </div>
                           <div className="bg-card rounded-xl border border-border/50 p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <Target className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-bold text-foreground">Суть:</span>
+                              <span className="text-sm font-bold text-foreground">{isKk ? "Мағынасы:" : "Суть:"}</span>
                             </div>
-                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.summary || "—"}</p>
+                            <p className="text-xs text-foreground/70 leading-relaxed">{getReadableSummaryValue(summary.summary) || "—"}</p>
                           </div>
                           <div className="bg-card rounded-xl border border-border/50 p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <Eye className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-bold text-foreground">Приёмы:</span>
+                              <span className="text-sm font-bold text-foreground">{isKk ? "Тәсілдер:" : "Приёмы:"}</span>
                             </div>
-                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.hook_phrase || "—"}</p>
+                            <p className="text-xs text-foreground/70 leading-relaxed">{getReadableSummaryValue(summary.hook_phrase, summary.text_hook) || "—"}</p>
                           </div>
                         </div>
                       </div>
