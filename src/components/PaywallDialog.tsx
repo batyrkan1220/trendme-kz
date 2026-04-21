@@ -165,7 +165,9 @@ export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" 
               onClick={handleUpgrade}
               className="w-full h-12 bg-viral text-foreground hover:brightness-110 font-bold text-[14px] rounded-xl shadow-glow-viral"
             >
-              Открыть Pro
+              {monthlyPrice
+                ? `Открыть Pro — ${monthlyPrice.toLocaleString("ru-RU")} ₸/мес`
+                : "Открыть Pro"}
             </Button>
             <button
               onClick={() => onOpenChange(false)}
