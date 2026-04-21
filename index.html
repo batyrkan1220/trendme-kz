@@ -1,12 +1,30 @@
 <!doctype html>
 <html lang="ru">
   <head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-52TQ2F4P');</script>
+    <!-- Google Tag Manager (deferred for FCP) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+      (function(){
+        function loadGTM(){
+          if (window.__gtmLoaded) return; window.__gtmLoaded = true;
+          var f=document.getElementsByTagName('script')[0],
+              j=document.createElement('script');
+          j.async=true;
+          j.src='https://www.googletagmanager.com/gtm.js?id=GTM-52TQ2F4P';
+          f.parentNode.insertBefore(j,f);
+        }
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(loadGTM, { timeout: 3500 });
+        } else {
+          setTimeout(loadGTM, 2500);
+        }
+        // Safety net: also load on first user interaction
+        ['pointerdown','keydown','scroll'].forEach(function(ev){
+          window.addEventListener(ev, loadGTM, { once: true, passive: true });
+        });
+      })();
+    </script>
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
