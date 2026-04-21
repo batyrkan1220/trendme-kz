@@ -29,7 +29,7 @@ const actions = [
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { limits, getRemaining, isFreeTrial, hasActiveSubscription, isLoading: subLoading } = useSubscription();
+  const { subscription, plan, limits, getRemaining, isFreeTrial, hasActiveSubscription, isLoading: subLoading } = useSubscription();
   const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -166,25 +166,80 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Subscription banner — only for trial users */}
-        {hasActiveSubscription && isFreeTrial && !subLoading && (
-          <Link
-            to="/subscription"
-            className="group rounded-2xl border border-primary/20 p-4 md:p-5 flex items-center gap-4 hover:border-primary/40 transition-all duration-200"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--primary) / 0.02) 100%)",
-            }}
-          >
-            <div className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Lock className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-foreground text-[13px] md:text-sm">Активируйте полный доступ</p>
-              <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5">Все функции без ограничений</p>
-            </div>
-            <ChevronRight className="shrink-0 h-5 w-5 text-primary/60 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        )}
+        {/* Subscription status banner — Trial / Active / Past due */}
+        {subscription && !subLoading && (() => {
+          const sub: any = subscription;
+          const planName = sub.plans?.name || "—";
+          const isPaid = (sub.plans?.price_rub || 0) > 0;
+          const expiresAt = sub.expires_at ? new Date(sub.expires_at) : null;
+          const expired = expiresAt ? expiresAt.getTime() < Date.now() : !hasActiveSubscription;
+          const daysLeft = expiresAt
+            ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000))
+            : null;
+          const expiresStr = expiresAt
+            ? expiresAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+            : "—";
+
+          type Status = "trial" | "active" | "past_due";
+          const status: Status = expired ? "past_due" : isPaid ? "active" : "trial";
+
+          const cfg = {
+            trial: {
+              label: "Пробный период",
+              dotClass: "bg-amber-500",
+              borderClass: "border-amber-500/30",
+              bgStyle: "linear-gradient(135deg, hsl(45 90% 55% / 0.08) 0%, hsl(45 90% 55% / 0.02) 100%)",
+              cta: "Улучшить",
+              hint: "Полный доступ ко всем функциям",
+            },
+            active: {
+              label: "Подписка активна",
+              dotClass: "bg-emerald-500",
+              borderClass: daysLeft !== null && daysLeft <= 7 ? "border-viral/40" : "border-emerald-500/20",
+              bgStyle: "linear-gradient(135deg, hsl(142 71% 45% / 0.06) 0%, hsl(142 71% 45% / 0.02) 100%)",
+              cta: "Подробнее",
+              hint: null as string | null,
+            },
+            past_due: {
+              label: "Подписка истекла",
+              dotClass: "bg-destructive",
+              borderClass: "border-destructive/40",
+              bgStyle: "linear-gradient(135deg, hsl(var(--destructive) / 0.08) 0%, hsl(var(--destructive) / 0.02) 100%)",
+              cta: "Продлить",
+              hint: "Восстановите доступ к платным функциям",
+            },
+          }[status];
+
+          return (
+            <Link
+              to="/subscription"
+              className={`group rounded-2xl border ${cfg.borderClass} p-4 md:p-5 flex items-center gap-4 hover:opacity-90 transition-all duration-200`}
+              style={{ background: cfg.bgStyle }}
+            >
+              <div className="flex flex-col items-center justify-center shrink-0 h-11 w-11 rounded-xl bg-background/60 border border-border/40">
+                <span className={`h-2 w-2 rounded-full ${cfg.dotClass} animate-pulse`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-foreground text-[13px] md:text-sm">{cfg.label}</p>
+                  <span className="text-[11px] md:text-xs text-muted-foreground">·</span>
+                  <p className="text-[11px] md:text-xs font-semibold text-foreground/80 truncate">{planName}</p>
+                </div>
+                <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5 truncate">
+                  {status === "past_due"
+                    ? `Истёк ${expiresStr}`
+                    : `до ${expiresStr}${daysLeft !== null ? ` · ${daysLeft} дн.` : ""}`}
+                  {cfg.hint ? ` · ${cfg.hint}` : ""}
+                </p>
+              </div>
+              <div className="hidden md:flex items-center gap-1 text-[12px] font-semibold text-foreground/70 group-hover:text-foreground">
+                {cfg.cta}
+                <ChevronRight className="h-4 w-4" />
+              </div>
+              <ChevronRight className="md:hidden shrink-0 h-5 w-5 text-foreground/40 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          );
+        })()}
       </div>
     </AppLayout>
   );
