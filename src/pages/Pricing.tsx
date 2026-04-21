@@ -51,6 +51,8 @@ export default function Pricing() {
         .select("*, plans(name, price_rub)")
         .eq("user_id", user!.id)
         .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       return data;
     },
@@ -100,44 +102,80 @@ export default function Pricing() {
             </p>
           </div>
 
-          {/* Active subscription card */}
-          {userSub && (userSub as any).plans?.price_rub > 0 && (() => {
+          {/* Subscription status banner — Trial / Active / Past due */}
+          {userSub && (() => {
             const sub: any = userSub;
+            const isPaid = (sub.plans?.price_rub || 0) > 0;
             const planName = displayNames[sub.plans?.name] || sub.plans?.name || "—";
             const expiresAt = sub.expires_at ? new Date(sub.expires_at) : null;
+            const expired = expiresAt ? expiresAt.getTime() < Date.now() : false;
             const daysLeft = expiresAt
               ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000))
               : null;
             const expiresStr = expiresAt
               ? expiresAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
               : "—";
-            const lowDays = daysLeft !== null && daysLeft <= 7;
+
+            type Status = "trial" | "active" | "past_due";
+            const status: Status = expired ? "past_due" : isPaid ? "active" : "trial";
+
+            const config = {
+              trial: {
+                label: "Пробный период",
+                badgeClass: "bg-amber-500/15 text-amber-500",
+                borderClass: "border-amber-500/30",
+                eyebrow: "Демо режим",
+                hint: "Для полного доступа выберите платный тариф ниже",
+              },
+              active: {
+                label: "Активна",
+                badgeClass: "bg-emerald-500/15 text-emerald-500",
+                borderClass: daysLeft !== null && daysLeft <= 7 ? "border-viral/40" : "border-border",
+                eyebrow: "Ваша подписка",
+                hint: null as string | null,
+              },
+              past_due: {
+                label: "Истёк",
+                badgeClass: "bg-destructive/15 text-destructive",
+                borderClass: "border-destructive/40",
+                eyebrow: "Подписка завершена",
+                hint: "Продлите подписку, чтобы вернуть полный доступ" as string | null,
+              },
+            }[status];
+
             return (
               <div
                 className={cn(
                   "mx-auto mb-8 md:mb-10 max-w-2xl rounded-2xl border p-5 md:p-6 bg-card shadow-card-hover",
-                  lowDays ? "border-viral/40" : "border-border"
+                  config.borderClass
                 )}
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <div className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Ваша подписка
+                      {config.eyebrow}
                     </div>
-                    <div className="mt-1 flex items-baseline gap-2">
+                    <div className="mt-1 flex items-baseline gap-2 flex-wrap">
                       <span className="text-[20px] md:text-[22px] font-bold text-foreground">{planName}</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-500">
-                        Активна
+                      <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold", config.badgeClass)}>
+                        {config.label}
                       </span>
                     </div>
+                    {config.hint && (
+                      <div className="mt-2 text-[12.5px] text-muted-foreground leading-snug max-w-md">
+                        {config.hint}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
-                    <div className="text-[12px] text-muted-foreground">Действует до</div>
+                    <div className="text-[12px] text-muted-foreground">
+                      {status === "past_due" ? "Истёк" : "Действует до"}
+                    </div>
                     <div className="text-[15px] font-semibold text-foreground">{expiresStr}</div>
-                    {daysLeft !== null && (
+                    {daysLeft !== null && status !== "past_due" && (
                       <div className={cn(
                         "mt-0.5 text-[12px] font-semibold",
-                        lowDays ? "text-viral" : "text-muted-foreground"
+                        daysLeft <= 7 ? "text-viral" : "text-muted-foreground"
                       )}>
                         Осталось {daysLeft} {pluralDays(daysLeft)}
                       </div>
