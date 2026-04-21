@@ -545,23 +545,8 @@ export default function Trends() {
                   </div>
                 </div>
 
-                {/* Inline stats */}
-                <p className="mt-2 md:mt-3 text-[12.5px] md:text-[13.5px] text-muted-foreground">
-                  <span className="tabular-nums font-semibold text-foreground">
-                    {formatNum(inlineStats.totalVideos)}
-                  </span>{" "}
-                  видео
-                  <span className="mx-1.5 md:mx-2 text-foreground/20">·</span>
-                  <span className="tabular-nums font-semibold text-foreground">
-                    {formatNum(inlineStats.viralCount)}
-                  </span>{" "}
-                  вирусных
-                  <span className="mx-1.5 md:mx-2 text-foreground/20">·</span>
-                  <span className="tabular-nums font-semibold text-foreground">
-                    {inlineStats.activeNiches}
-                  </span>{" "}
-                  ниш
-                </p>
+
+
 
                 {/* Niche filter chips */}
                 <div className="mt-5 flex items-center gap-1 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
