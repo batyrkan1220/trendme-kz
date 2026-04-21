@@ -22,6 +22,20 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 const SCRIPT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-script`;
 
+const getReadableSummaryValue = (...values: unknown[]) => {
+  for (const value of values) {
+    if (typeof value !== "string") continue;
+    const normalized = value.trim();
+    const lowered = normalized.toLowerCase();
+    if (!normalized) continue;
+    if (["—", "-", "n/a", "none", "null", "undefined", "unknown", "неизвестно", "нет", "не указано"].includes(lowered)) {
+      continue;
+    }
+    return normalized;
+  }
+  return null;
+};
+
 async function streamScript({
   transcript, summary, caption, language, messages, onDelta, onDone, onError,
 }: {
@@ -327,23 +341,30 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                           <div className="bg-card rounded-xl border border-border/50 p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <Zap className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-bold text-foreground">Visual Hook:</span>
+                              <span className="text-sm font-bold text-foreground">{isKk ? "Визуалды хук:" : "Визуальный хук:"}</span>
                             </div>
-                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.visual_hook || summary.text_hook || "—"}</p>
+                            <p className="text-xs text-foreground/70 leading-relaxed">
+                              {getReadableSummaryValue(
+                                summary.visual_hook,
+                                summary.text_hook,
+                                summary.hook_phrase,
+                                summary.summary
+                              ) || (isKk ? "Анализде визуалды хук анықталмады" : "В анализе не удалось определить визуальный хук")}
+                            </p>
                           </div>
                           <div className="bg-card rounded-xl border border-border/50 p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <Target className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-bold text-foreground">Суть:</span>
+                              <span className="text-sm font-bold text-foreground">{isKk ? "Мағынасы:" : "Суть:"}</span>
                             </div>
-                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.summary || "—"}</p>
+                            <p className="text-xs text-foreground/70 leading-relaxed">{getReadableSummaryValue(summary.summary) || "—"}</p>
                           </div>
                           <div className="bg-card rounded-xl border border-border/50 p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <Eye className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-bold text-foreground">Приёмы:</span>
+                              <span className="text-sm font-bold text-foreground">{isKk ? "Тәсілдер:" : "Приёмы:"}</span>
                             </div>
-                            <p className="text-xs text-foreground/70 leading-relaxed">{summary.hook_phrase || "—"}</p>
+                            <p className="text-xs text-foreground/70 leading-relaxed">{getReadableSummaryValue(summary.hook_phrase, summary.text_hook) || "—"}</p>
                           </div>
                         </div>
                       </div>
