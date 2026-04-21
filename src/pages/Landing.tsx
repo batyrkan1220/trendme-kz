@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   ArrowRight, Check, X, Star, Play, Menu, X as Close,
-  TrendingUp, Search, Sparkles, Users, Wand2, BarChart3,
-  ChevronDown, Flame, Heart, Instagram, Youtube,
+  TrendingUp, Search, Sparkles, Wand2, BarChart3, Clock,
+  ChevronDown, Flame, Heart, Instagram, Youtube, Zap, Target,
+  ShieldCheck, Rocket,
 } from "lucide-react";
 import { TrendMeWordmark } from "@/components/TrendMeWordmark";
 
@@ -20,8 +21,8 @@ function LandingNav() {
   }, []);
 
   const links = [
+    { href: "#how", label: "Как это работает" },
     { href: "#features", label: "Возможности" },
-    { href: "#product", label: "Продукт" },
     { href: "#pricing", label: "Тарифы" },
     { href: "#faq", label: "FAQ" },
   ];
@@ -46,9 +47,15 @@ function LandingNav() {
         <div className="flex items-center gap-1.5 md:gap-2">
           <Link
             to="/auth"
+            className="hidden md:inline-flex items-center px-3 py-2 rounded-lg text-[14px] font-medium text-foreground hover:bg-muted transition"
+          >
+            Войти
+          </Link>
+          <Link
+            to="/auth"
             className="inline-flex items-center gap-1 md:gap-1.5 px-3 md:px-4 py-2 rounded-lg text-[13px] md:text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap"
           >
-            Вход
+            Начать бесплатно
             <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </Link>
           <button
@@ -103,20 +110,17 @@ function Hero() {
         <div className="animate-fade-in text-center lg:text-left">
           <Pill className="bg-viral-soft text-foreground border border-viral/40 mb-5 md:mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-viral animate-pulse" />
-            <span className="hidden sm:inline">Новое · ИИ-сценарии для TikTok</span>
-            <span className="sm:hidden">ИИ-сценарии</span>
+            <span>База обновляется каждый час</span>
           </Pill>
 
-          <h1 className="text-[clamp(2rem,8vw,4.5rem)] font-bold leading-[1.05] tracking-tight text-foreground">
-            Смотри <span className="gradient-text">тренды бесплатно</span>.
+          <h1 className="text-[clamp(2rem,7.5vw,4.5rem)] font-bold leading-[1.05] tracking-tight text-foreground">
+            Найди <span className="gradient-text">вирусный тренд</span>
             <br className="hidden sm:block" />
-            <span className="sm:inline"> Анализируй — в Pro.</span>
+            <span className="sm:inline"> за 5 минут.</span>
           </h1>
 
-          <p className="mt-5 md:mt-6 text-[15px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[560px] mx-auto lg:mx-0">
-            Открытый каталог TikTok-трендов и поиск без лимитов. ИИ-разбор, сценарии и анализ конкурентов — в Pro.{" "}
-            <span className="text-foreground font-medium">5M+ видео</span>,{" "}
-            <span className="text-foreground font-medium">150+ ниш</span>, обновление в реальном времени.
+          <p className="mt-5 md:mt-6 text-[15px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[580px] mx-auto lg:mx-0">
+            Перестань листать TikTok часами. Открывай тренды своей ниши, разбирай их с ИИ и получай готовый сценарий — пока тренд ещё на взлёте.
           </p>
 
           <div className="mt-7 md:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center lg:justify-start gap-3">
@@ -124,16 +128,32 @@ function Hero() {
               to="/auth"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
             >
-              Смотреть тренды бесплатно
+              Начать бесплатно
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
-              href="#product"
+              href="#how"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold text-foreground border border-border bg-background hover:bg-muted transition"
             >
               <Play className="w-4 h-4" />
-              Смотреть демо · 2 мин
+              Как это работает
             </a>
+          </div>
+
+          {/* Trust row */}
+          <div className="mt-6 md:mt-7 flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <Check className="w-4 h-4 text-emerald-500" strokeWidth={3} />
+              Без карты
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Check className="w-4 h-4 text-emerald-500" strokeWidth={3} />
+              Отмена в 1 клик
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Check className="w-4 h-4 text-emerald-500" strokeWidth={3} />
+              Русский и казахский
+            </span>
           </div>
 
           <div className="mt-8 md:mt-10 flex items-center justify-center lg:justify-start gap-4 text-[13px] text-muted-foreground">
@@ -148,10 +168,10 @@ function Hero() {
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
-                <span className="ml-1.5 text-foreground font-semibold">5.0</span>
+                <span className="ml-1.5 text-foreground font-semibold">4.9</span>
               </div>
               <div className="mt-0.5">
-                <span className="text-foreground font-semibold">2 400+ креаторов</span>
+                <span className="text-foreground font-semibold">2 400+ креаторов</span> уже растут с нами
               </div>
             </div>
           </div>
@@ -169,7 +189,7 @@ function Hero() {
             </Pill>
             <div className="absolute bottom-3 left-3 right-3 text-white">
               <div className="text-[11px] opacity-80 mb-0.5">@beauty.trend</div>
-              <div className="text-[13px] font-semibold leading-tight">Как сделать тренд-макияж за 30 сек</div>
+              <div className="text-[13px] font-semibold leading-tight">Тренд-макияж за 30 секунд</div>
               <div className="mt-1.5 flex items-center gap-3 text-[11px] opacity-90">
                 <span>▶ 2.4M</span><span>♥ 340K</span>
               </div>
@@ -264,24 +284,107 @@ function Hero() {
   );
 }
 
-/* ───────── LOGO MARQUEE ───────── */
-function Trust() {
-  const brands = ["AURORA", "BeautyLab", "Kaspi Media", "SMM Agency", "ViralCo", "FoodieHub", "FitnessPro", "ContentHouse"];
+/* ───────── PROBLEM (Pain points) ───────── */
+function Problem() {
+  const pains = [
+    { emoji: "😩", title: "Часами листаешь ленту", desc: "А идеи всё равно появляются у конкурентов раньше." },
+    { emoji: "🐢", title: "Заходишь в тренд поздно", desc: "Когда снимаешь — алгоритм уже не подхватывает." },
+    { emoji: "🤔", title: "Не понимаешь, почему зашло", desc: "Копируешь форму, но без структуры и хука." },
+  ];
+
   return (
-    <section className="py-10 md:py-12 border-y border-border bg-background-subtle overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
-        <p className="text-center text-[11px] md:text-[12px] uppercase font-semibold tracking-[0.16em] text-muted-foreground mb-6 md:mb-8">
-          Нам доверяют команды и агентства
+    <section className="py-14 md:py-20 border-y border-border bg-background-subtle">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 text-center">
+        <span className="eyebrow">Знакомо?</span>
+        <h2 className="mt-3 text-[clamp(1.5rem,4.5vw,2.4rem)] font-bold tracking-tight text-foreground leading-tight max-w-2xl mx-auto">
+          TikTok съедает время — а охваты стоят на месте
+        </h2>
+        <div className="mt-8 md:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-5">
+          {pains.map((p) => (
+            <div key={p.title} className="bg-card border border-border rounded-2xl p-5 md:p-6 text-left">
+              <div className="text-[28px] mb-2">{p.emoji}</div>
+              <h3 className="text-[15px] md:text-[16px] font-semibold text-foreground">{p.title}</h3>
+              <p className="mt-1 text-[13.5px] md:text-[14px] text-muted-foreground leading-relaxed">{p.desc}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-8 md:mt-10 text-[15px] md:text-[17px] text-foreground/80 max-w-xl mx-auto">
+          <span className="font-semibold text-foreground">trendme</span> делает за тебя самую муторную часть — поиск и разбор. Тебе остаётся только снять.
         </p>
-        <div className="overflow-hidden">
-          <div className="flex gap-8 md:gap-14 text-border-strong font-bold text-[16px] md:text-[22px] whitespace-nowrap animate-[marq_30s_linear_infinite]">
-            {[...brands, ...brands, ...brands].map((b, i) => (
-              <span key={i} className="shrink-0">{b} ·</span>
-            ))}
-          </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────── HOW IT WORKS ───────── */
+function HowItWorks() {
+  const steps = [
+    {
+      n: 1, icon: Target,
+      title: "Выбери свою нишу",
+      desc: "150+ ниш и категорий: beauty, food, fitness, edu, бизнес, лайфстайл. Тренды только по твоей теме — ничего лишнего.",
+      time: "30 секунд",
+    },
+    {
+      n: 2, icon: Zap,
+      title: "Открой ленту трендов",
+      desc: "Видео отсортированы по вирусности и динамике роста. Ты сразу видишь, что взлетает прямо сейчас в Казахстане и СНГ.",
+      time: "2 минуты",
+    },
+    {
+      n: 3, icon: Wand2,
+      title: "Получи ИИ-сценарий",
+      desc: "Один клик — и ИИ выдаёт готовый сценарий под твою нишу: хук, структура, CTA, идея для звука. Снимай и публикуй.",
+      time: "12 секунд",
+    },
+  ];
+
+  return (
+    <section id="how" className="py-16 md:py-28">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
+          <span className="eyebrow">Как это работает</span>
+          <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
+            От «хочу снять» до готового сценария — 5 минут
+          </h2>
+          <p className="mt-3 md:mt-4 text-[15px] md:text-[17px] text-muted-foreground leading-relaxed">
+            Без таблиц, без бесконечного скролла, без догадок.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+          {steps.map((s) => {
+            const Icon = s.icon;
+            return (
+              <div key={s.n} className="relative bg-card border border-border rounded-2xl p-6 md:p-7 hover-lift shadow-card-hover">
+                <div className="absolute top-5 right-5 inline-flex items-center gap-1 text-[11.5px] font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                  <Clock className="w-3 h-3" />
+                  {s.time}
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary-soft text-primary flex items-center justify-center">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Шаг 0{s.n}</span>
+                </div>
+                <h3 className="text-[17px] md:text-[18px] font-semibold text-foreground">{s.title}</h3>
+                <p className="mt-2 text-[13.5px] md:text-[14.5px] text-muted-foreground leading-relaxed">{s.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-10 md:mt-12 text-center">
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
+          >
+            Попробовать бесплатно
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+          <p className="mt-3 text-[13px] text-muted-foreground">Регистрация за 10 секунд · без карты</p>
         </div>
       </div>
-      <style>{`@keyframes marq { from { transform: translateX(0); } to { transform: translateX(-50%); } }`}</style>
     </section>
   );
 }
@@ -289,13 +392,13 @@ function Trust() {
 /* ───────── STATS ───────── */
 function Stats() {
   const items = [
-    { value: "5M+", label: "Видео в базе", note: "Обновляется каждый час" },
-    { value: "150+", label: "Ниш и категорий", note: "От beauty до edtech" },
-    { value: "24/7", label: "Мониторинг", note: "Тренды в реальном времени" },
-    { value: "12s", label: "Генерация сценария", note: "ИИ на основе тренда" },
+    { value: "5M+", label: "видео в базе", note: "Обновляются каждый час" },
+    { value: "150+", label: "ниш и категорий", note: "От beauty до бизнеса" },
+    { value: "2 400+", label: "креаторов и брендов", note: "Уже растут с trendme" },
+    { value: "12s", label: "средняя генерация", note: "Сценарий под твою нишу" },
   ];
   return (
-    <section className="py-14 md:py-24">
+    <section className="py-14 md:py-20 bg-background-subtle border-y border-border">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
           {items.map((s) => (
@@ -314,12 +417,12 @@ function Stats() {
 /* ───────── FEATURES ───────── */
 function Features() {
   const features = [
-    { icon: TrendingUp, color: "rose", title: "Реальные тренды 24/7", desc: "Ловите тренд на взлёте: каждое видео в базе получает score вирусности и динамику за 24 ч / 7 д." },
-    { icon: Search, color: "blue", title: "Умный поиск по слову", desc: "Ищите по хэштегу, ключевой фразе или звуку. Фильтры по нише, дате, охвату и росту." },
-    { icon: Wand2, color: "orange", title: "ИИ-анализ видео", desc: "Разбор хука, структуры, CTA и причин вирусности. Готовый чек-лист для повторения." },
-    { icon: Users, color: "violet", title: "Разведка конкурентов", desc: "Полный профиль аккаунта: что заходит, что нет, расписание публикаций, рост за период." },
-    { icon: Sparkles, color: "primary", title: "ИИ-сценарии", desc: "Готовый сценарий на основе любого тренда за 12 секунд. Хук, структура, CTA, звук — всё адаптировано под вашу нишу." },
-    { icon: BarChart3, color: "emerald", title: "Аналитика ниши", desc: "Средние охваты, лучшие форматы, часы публикаций и сезонные пики — все метрики вашего рынка." },
+    { icon: TrendingUp, color: "rose", title: "Реальные тренды 24/7", desc: "Каждое видео получает score вирусности и динамику за 24 часа и 7 дней. Ловишь тренд на взлёте, а не на спаде." },
+    { icon: Search, color: "blue", title: "Поиск по слову или хэштегу", desc: "Ищи по ключевой фразе, хэштегу или звуку. Фильтры по нише, дате, охвату и языку (RU / KK / EN)." },
+    { icon: Wand2, color: "orange", title: "ИИ-разбор любого видео", desc: "Загрузи ссылку — получи разбор хука, структуры, CTA и причин, почему ролик зашёл. Готовый чек-лист для повторения." },
+    { icon: Sparkles, color: "primary", title: "ИИ-сценарии под твою нишу", desc: "Сценарий с хуком, тайм-кодами и CTA за 12 секунд. На русском или казахском, под твой tone-of-voice." },
+    { icon: BarChart3, color: "emerald", title: "Аналитика конкурентов", desc: "Полный профиль аккаунта: что заходит, что нет, лучшие часы публикаций, рост за период." },
+    { icon: Rocket, color: "violet", title: "Контент-журнал и идеи", desc: "Сохраняй вирусные ролики в избранное, копи библиотеку идей и сценариев — всё в одном месте." },
   ];
 
   const colorMap: Record<string, string> = {
@@ -337,10 +440,10 @@ function Features() {
         <div className="max-w-2xl">
           <span className="eyebrow">Возможности</span>
           <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
-            Всё, что нужно для работы с вирусным контентом TikTok
+            Всё для работы с TikTok — на одной платформе
           </h2>
           <p className="mt-3 md:mt-4 text-[15px] md:text-[17px] text-muted-foreground leading-relaxed">
-            От поиска тренда до готового сценария — одна платформа. Без ручного листания ленты и гаданий.
+            От поиска тренда до готового сценария. Без вкладок, экспорта и лишних движений.
           </p>
         </div>
 
@@ -363,25 +466,21 @@ function Features() {
   );
 }
 
-/* ───────── PRODUCT ───────── */
+/* ───────── PRODUCT (mockup) ───────── */
 function Product() {
-  const steps = [
-    { n: 1, title: "Находите тренд", desc: "Откройте ленту трендов вашей ниши или найдите видео по ключевому слову." },
-    { n: 2, title: "Анализируете ИИ", desc: "ИИ раскладывает ролик на хук, структуру, CTA и причины вирусности." },
-    { n: 3, title: "Снимаете своё", desc: "Получаете готовый сценарий под вашу нишу и запускаете ролик в нужный момент." },
-  ];
-
   return (
     <section id="product" className="py-16 md:py-28">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
-        <div className="max-w-2xl mb-8 md:mb-14">
-          <span className="eyebrow">Продукт</span>
+        <div className="max-w-2xl mb-8 md:mb-12">
+          <span className="eyebrow">Внутри платформы</span>
           <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
-            От ленты до сценария — за 3 шага
+            Чистый интерфейс. Только нужное.
           </h2>
+          <p className="mt-3 md:mt-4 text-[15px] md:text-[17px] text-muted-foreground leading-relaxed">
+            Лента трендов, поиск и ИИ — в одном окне. Никаких 7 вкладок и Excel-таблиц.
+          </p>
         </div>
 
-        {/* Dashboard mockup */}
         <div className="bg-gradient-to-br from-background-subtle to-primary-soft/40 p-3 md:p-10 rounded-2xl md:rounded-[28px] border border-border shadow-card">
           <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-card">
             <div className="flex items-center gap-2 px-4 h-10 border-b border-border bg-background-subtle">
@@ -415,7 +514,7 @@ function Product() {
                   <Play className="w-4 h-4 text-orange-500" /> Анализ видео
                 </div>
                 <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-foreground/80 text-[13px] hover:bg-muted">
-                  <Users className="w-4 h-4 text-violet-500" /> Анализ профиля
+                  <Sparkles className="w-4 h-4 text-violet-500" /> ИИ-сценарий
                 </div>
               </aside>
 
@@ -460,17 +559,6 @@ function Product() {
             </div>
           </div>
         </div>
-
-        {/* Steps */}
-        <div className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
-          {steps.map((s) => (
-            <div key={s.n} className="bg-card border border-border rounded-2xl p-5 md:p-6 hover-lift shadow-card-hover">
-              <div className="w-9 h-9 rounded-lg bg-foreground text-background flex items-center justify-center font-bold mb-3 md:mb-4">{s.n}</div>
-              <h3 className="text-[16px] md:text-[17px] font-semibold text-foreground">{s.title}</h3>
-              <p className="mt-1.5 md:mt-2 text-[13.5px] md:text-[14px] text-muted-foreground leading-relaxed">{s.desc}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -480,36 +568,36 @@ function Product() {
 function Pricing() {
   const plans = [
     {
-      name: "Старт", price: "0 ₽", desc: "Для первого знакомства",
+      name: "Демо", price: "0 ₸", period: "навсегда",
+      desc: "Познакомиться с платформой",
       cta: "Начать бесплатно", featured: false,
       features: [
-        { ok: true, label: "10 видео в день" },
-        { ok: true, label: "3 ниши" },
-        { ok: true, label: "Поиск по слову" },
-        { ok: false, label: "ИИ-сценарии" },
-        { ok: false, label: "Анализ конкурентов" },
+        { ok: true, label: "5 поисков, 10 видео в день" },
+        { ok: true, label: "5 ИИ-разборов" },
+        { ok: true, label: "5 ИИ-сценариев" },
+        { ok: false, label: "Безлимит и приоритет" },
       ],
     },
     {
-      name: "Про", price: "2 990 ₽", desc: "Для активных креаторов",
-      cta: "Выбрать Про", featured: true,
+      name: "1 месяц", price: "17 900 ₸", period: "/мес",
+      desc: "Для активных креаторов",
+      cta: "Выбрать", featured: true, badge: "★ Популярный",
       features: [
-        { ok: true, label: "Безлимитный доступ" },
-        { ok: true, label: "Все 150+ ниш" },
-        { ok: true, label: "50 ИИ-сценариев/мес" },
+        { ok: true, label: "Безлимит трендов и поиска" },
+        { ok: true, label: "Безлимит ИИ-сценариев" },
         { ok: true, label: "Анализ видео и профилей" },
         { ok: true, label: "Приоритетная поддержка" },
       ],
     },
     {
-      name: "Бизнес", price: "9 990 ₽", desc: "Для команд и агентств",
-      cta: "Выбрать Бизнес", featured: false,
+      name: "3 месяца", price: "45 600 ₸", period: "/3 мес",
+      desc: "Экономия 15% — лучший выбор",
+      cta: "Выбрать", featured: false, badge: "−15%",
       features: [
-        { ok: true, label: "Всё из Про" },
-        { ok: true, label: "Безлимит ИИ-сценариев" },
-        { ok: true, label: "Командный доступ (до 10)" },
-        { ok: true, label: "API-доступ" },
-        { ok: true, label: "Персональный менеджер" },
+        { ok: true, label: "Всё из тарифа «1 месяц»" },
+        { ok: true, label: "Цена 15 200 ₸/мес" },
+        { ok: true, label: "Экономия 8 100 ₸" },
+        { ok: true, label: "Доступ ко всем будущим обновлениям" },
       ],
     },
   ];
@@ -520,10 +608,10 @@ function Pricing() {
         <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
           <span className="eyebrow">Тарифы</span>
           <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
-            Простые тарифы для любого масштаба
+            Один тариф окупается одним вирусным видео
           </h2>
           <p className="mt-3 md:mt-4 text-[15px] md:text-[17px] text-muted-foreground leading-relaxed">
-            Начните бесплатно. Отмените в любой момент.
+            Начни бесплатно. Без карты. Отмена в один клик.
           </p>
         </div>
 
@@ -537,15 +625,17 @@ function Pricing() {
                   : "bg-card border border-border shadow-card-hover"
               }`}
             >
-              {p.featured && (
-                <Pill className="absolute -top-3 left-1/2 -translate-x-1/2 bg-viral text-foreground">
-                  ★ Популярный
+              {p.badge && (
+                <Pill className={`absolute -top-3 left-1/2 -translate-x-1/2 ${
+                  p.featured ? "bg-viral text-foreground" : "bg-emerald-500 text-white"
+                }`}>
+                  {p.badge}
                 </Pill>
               )}
               <div className={`text-[14px] font-semibold ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.name}</div>
               <div className="mt-2 md:mt-3 flex items-baseline gap-1">
-                <span className="text-[36px] md:text-[44px] font-bold tracking-tight">{p.price}</span>
-                <span className={`text-[13px] md:text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>/мес</span>
+                <span className="text-[34px] md:text-[42px] font-bold tracking-tight">{p.price}</span>
+                <span className={`text-[13px] md:text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.period}</span>
               </div>
               <p className={`mt-1.5 md:mt-2 text-[13.5px] md:text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.desc}</p>
               <Link
@@ -577,6 +667,21 @@ function Pricing() {
             </div>
           ))}
         </div>
+
+        <div className="mt-8 md:mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            Безопасная оплата · Freedom Pay
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="w-4 h-4 text-emerald-500" strokeWidth={3} />
+            Отмена в 1 клик
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="w-4 h-4 text-emerald-500" strokeWidth={3} />
+            Без скрытых комиссий
+          </span>
+        </div>
       </div>
     </section>
   );
@@ -586,16 +691,19 @@ function Pricing() {
 function Testimonials() {
   const items = [
     {
-      text: "За две недели подняли охваты на 3.2M. Главное — ловишь тренд до того, как он станет массовым. ИИ-сценарии реально работают.",
-      name: "Айгерим К.", role: "SMM-менеджер · Almaty", grad: "from-pink-400 to-orange-400",
+      text: "За две недели подняли охваты на 3.2M. Главное — ловишь тренд до того, как он стал массовым. ИИ-сценарии экономят кучу времени.",
+      name: "Айгерим К.", role: "SMM-менеджер · Алматы", grad: "from-pink-400 to-orange-400",
+      result: "+3.2M охвата за 14 дней",
     },
     {
-      text: "Экономит 5-7 часов в неделю на ручном поиске. Анализ конкурентов — это золото для агентства.",
+      text: "Раньше тратил 2 часа в день на поиск идей. Сейчас — 15 минут утром, и контент-план готов. Анализ конкурентов — отдельный кайф.",
       name: "Данияр Т.", role: "Founder · Content Studio", grad: "from-purple-400 to-blue-500",
+      result: "−7 часов в неделю",
     },
     {
-      text: "Пробовали 3 других сервиса — trendme единственный реально понимает ру-сегмент и СНГ-тренды. Ну и интерфейс огонь.",
-      name: "Мария Р.", role: "Content Creator · 1.2M подписчиков", grad: "from-emerald-400 to-cyan-500",
+      text: "Пробовала 3 других сервиса — trendme единственный, кто реально понимает СНГ-тренды и казахский контент. Интерфейс — огонь.",
+      name: "Мария Р.", role: "Креатор · 1.2M подписчиков", grad: "from-emerald-400 to-cyan-500",
+      result: "5 вирусных видео за месяц",
     },
   ];
 
@@ -605,19 +713,23 @@ function Testimonials() {
         <div className="max-w-2xl mb-8 md:mb-14">
           <span className="eyebrow">Отзывы</span>
           <h2 className="mt-3 text-[clamp(1.6rem,5vw,2.75rem)] font-bold tracking-tight text-foreground leading-tight">
-            Что говорят пользователи
+            Реальные результаты пользователей
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {items.map((t) => (
-            <div key={t.name} className="bg-card border border-border rounded-2xl p-5 md:p-7 hover-lift shadow-card-hover">
+            <div key={t.name} className="bg-card border border-border rounded-2xl p-5 md:p-7 hover-lift shadow-card-hover flex flex-col">
               <div className="flex gap-0.5 text-amber-500 mb-3 md:mb-4">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
                 ))}
               </div>
-              <p className="text-[14px] md:text-[15px] leading-relaxed text-foreground">«{t.text}»</p>
-              <div className="mt-5 md:mt-6 flex items-center gap-3">
+              <p className="text-[14px] md:text-[15px] leading-relaxed text-foreground flex-1">«{t.text}»</p>
+              <div className="mt-4 inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-[12px] font-semibold border border-emerald-200">
+                <TrendingUp className="w-3.5 h-3.5" />
+                {t.result}
+              </div>
+              <div className="mt-5 flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.grad}`} />
                 <div>
                   <div className="text-[13.5px] md:text-[14px] font-semibold text-foreground">{t.name}</div>
@@ -635,11 +747,12 @@ function Testimonials() {
 /* ───────── FAQ ───────── */
 function FAQ() {
   const faqs = [
-    { q: "Откуда берутся данные?", a: "Мы агрегируем публичные данные TikTok, фильтруем по качеству и обогащаем собственными метриками вирусности. Всё легально." },
-    { q: "Работает ли для Казахстана и СНГ?", a: "Да, trendme создан в первую очередь для русско- и казахоязычного контента. Фильтры по стране, языку и региону." },
-    { q: "Можно ли отменить подписку?", a: "Да, в любой момент — в один клик в настройках. Без скрытых комиссий." },
-    { q: "Есть ли бесплатная версия?", a: "Да — тариф Старт навсегда бесплатный. 10 видео в день, 3 ниши, без карты." },
-    { q: "Как работает ИИ-сценарий?", a: "Выбираете тренд → указываете свою нишу и tone-of-voice → ИИ выдаёт готовый сценарий с хуком, структурой и CTA за 12 секунд." },
+    { q: "Можно начать бесплатно без карты?", a: "Да. Тариф «Демо» — навсегда бесплатный: 5 поисков и 10 трендов в день, 5 ИИ-разборов и 5 сценариев. Карту указывать не нужно." },
+    { q: "Подходит ли для Казахстана и казахского контента?", a: "Да, trendme создан в первую очередь для русско- и казахоязычного контента. Есть фильтры по стране и языку, ИИ-сценарии генерируются на русском или казахском." },
+    { q: "Откуда берутся данные о трендах?", a: "Мы агрегируем публичные данные TikTok, обновляем каждый час и обогащаем собственными метриками вирусности (score, динамика за 24 ч / 7 дней)." },
+    { q: "Как работает ИИ-сценарий?", a: "Выбираешь любой тренд → указываешь свою нишу и tone-of-voice → ИИ выдаёт готовый сценарий с хуком, тайм-кодами, CTA и идеей звука. Около 12 секунд." },
+    { q: "Можно отменить подписку?", a: "Да, в один клик в настройках. Деньги за неиспользованный период не сгорают — доступ остаётся до конца оплаченного срока." },
+    { q: "Подходит ли для агентств и команд?", a: "Да. Если нужно несколько мест или API-доступ — напишите нам, подберём индивидуальные условия." },
   ];
 
   return (
@@ -677,19 +790,23 @@ function FinalCTA() {
           <div className="absolute -left-20 -bottom-20 w-72 md:w-80 h-72 md:h-80 rounded-full bg-viral/20 blur-3xl" />
 
           <div className="relative">
-            <h2 className="text-background text-[clamp(1.5rem,5.5vw,3rem)] font-bold tracking-tight max-w-2xl leading-[1.08]">
-              Перестаньте угадывать.<br />
-              <span className="gradient-text">Работайте с трендами на фактах.</span>
+            <Pill className="bg-viral text-foreground mb-5">
+              <Flame className="w-3.5 h-3.5" />
+              Старт за 30 секунд
+            </Pill>
+            <h2 className="text-background text-[clamp(1.6rem,5.5vw,3rem)] font-bold tracking-tight max-w-2xl leading-[1.08]">
+              Твой следующий вирусный ролик —<br />
+              <span className="gradient-text">уже в ленте трендов.</span>
             </h2>
             <p className="mt-3 md:mt-4 text-background/70 text-[14.5px] md:text-[17px] max-w-xl leading-relaxed">
-              Попробуйте trendme бесплатно — 10 видео в день, 3 ниши, без карты.
+              Начни бесплатно — без карты. 5 поисков, 10 видео в день, ИИ-сценарии в подарок.
             </p>
             <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
               <Link
                 to="/auth"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-viral text-foreground text-[15px] font-semibold hover:opacity-90 transition"
               >
-                Начать бесплатно
+                Найти свой тренд бесплатно
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <a
@@ -698,6 +815,17 @@ function FinalCTA() {
               >
                 Сравнить тарифы
               </a>
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-background/60">
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-viral" strokeWidth={3} /> Без карты
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-viral" strokeWidth={3} /> Регистрация 10 секунд
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-viral" strokeWidth={3} /> Отмена в 1 клик
+              </span>
             </div>
           </div>
         </div>
@@ -716,12 +844,12 @@ function Footer() {
             <TrendMeWordmark size="lg" animated={false} />
           </div>
           <p className="text-[13.5px] md:text-[14px] text-muted-foreground max-w-sm leading-relaxed">
-            Платформа для мониторинга трендов TikTok, аналитики вирусного контента и генерации ИИ-сценариев.
+            Платформа №1 в Казахстане для поиска TikTok-трендов, разбора вирусного контента и генерации ИИ-сценариев.
           </p>
         </div>
         {[
-          { title: "Продукт", links: [["Возможности", "#features"], ["Тарифы", "#pricing"], ["Интеграции", "#"], ["API", "#"]] },
-          { title: "Компания", links: [["О нас", "#"], ["Блог", "#"], ["Контакты", "#"]] },
+          { title: "Продукт", links: [["Возможности", "#features"], ["Как работает", "#how"], ["Тарифы", "#pricing"], ["FAQ", "#faq"]] },
+          { title: "Компания", links: [["Контакты", "/contacts"]] },
           { title: "Правовое", links: [["Условия", "/terms"], ["Конфиденциальность", "/privacy"]] },
         ].map((col) => (
           <div key={col.title}>
@@ -755,7 +883,8 @@ export default function Landing() {
       <LandingNav />
       <main>
         <Hero />
-        <Trust />
+        <Problem />
+        <HowItWorks />
         <Stats />
         <Features />
         <Product />
