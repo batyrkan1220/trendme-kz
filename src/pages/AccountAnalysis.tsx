@@ -13,6 +13,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { PaywallDialog } from "@/components/PaywallDialog";
 
 const isValidTikTokUrl = (url: string): boolean => {
   try {
@@ -71,9 +73,11 @@ export default function AccountAnalysis() {
   const [url, setUrl] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { checkAndLog } = useSubscription();
+  const { isFreePlan } = useIsFreePlan();
 
 
 
@@ -127,6 +131,12 @@ export default function AccountAnalysis() {
 
     if (!isValidTikTokUrl(normalizedUrl)) {
       toast.error("Используйте ссылку на TikTok профиль (например: https://www.tiktok.com/@username)");
+      return;
+    }
+
+    // Pro gate — free users see paywall
+    if (isFreePlan) {
+      setTimeout(() => setShowPaywall(true), 200);
       return;
     }
 
@@ -353,6 +363,11 @@ export default function AccountAnalysis() {
         
       </>
       }
+      <PaywallDialog
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        feature="account"
+      />
     </AppLayout>);
 
 }

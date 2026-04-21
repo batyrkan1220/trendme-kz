@@ -108,13 +108,13 @@ function Hero() {
           </Pill>
 
           <h1 className="text-[clamp(2rem,8vw,4.5rem)] font-bold leading-[1.05] tracking-tight text-foreground">
-            Находите <span className="gradient-text">вирусные тренды</span>
+            Смотри <span className="gradient-text">тренды бесплатно</span>.
             <br className="hidden sm:block" />
-            <span className="sm:inline"> раньше конкурентов</span>
+            <span className="sm:inline"> Анализируй — в Pro.</span>
           </h1>
 
           <p className="mt-5 md:mt-6 text-[15px] md:text-[19px] leading-relaxed text-muted-foreground max-w-[560px] mx-auto lg:mx-0">
-            Платформа для мониторинга TikTok-трендов, разведки конкурентов и генерации ИИ-сценариев.{" "}
+            Открытый каталог TikTok-трендов и поиск без лимитов. ИИ-разбор, сценарии и анализ конкурентов — в Pro.{" "}
             <span className="text-foreground font-medium">5M+ видео</span>,{" "}
             <span className="text-foreground font-medium">150+ ниш</span>, обновление в реальном времени.
           </p>
@@ -124,7 +124,7 @@ function Hero() {
               to="/auth"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
             >
-              Попробовать бесплатно
+              Смотреть тренды бесплатно
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a

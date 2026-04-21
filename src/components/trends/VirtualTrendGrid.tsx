@@ -1,7 +1,5 @@
 import { useRef, useEffect, forwardRef } from "react";
 import { MemoVideoCard } from "@/components/VideoCard";
-import { Lock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface VirtualTrendGridProps {
   videos: any[];
@@ -11,8 +9,6 @@ interface VirtualTrendGridProps {
   onToggleFav: (id: string) => void;
   onAnalyze: (v: any) => void;
   onScript?: (v: any) => void;
-  isFreePlan: boolean;
-  freeLimit: number;
   hasMore: boolean;
   onLoadMore: () => void;
   darkMode?: boolean;
@@ -26,12 +22,9 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
   onToggleFav,
   onAnalyze,
   onScript,
-  isFreePlan,
-  freeLimit,
   hasMore,
   onLoadMore,
 }, ref) {
-  const navigate = useNavigate();
   const loaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,36 +43,21 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4">
-        {videos.map((video: any, i: number) => {
-          const isLocked = i >= freeLimit && isFreePlan;
-
-          if (isLocked) {
-            return (
-              <LockedCard
-                key={video.id}
-                video={video}
-                freeLimit={freeLimit}
-                onNavigate={() => navigate("/subscription")}
-              />
-            );
-          }
-
-          return (
-            <MemoVideoCard
-              key={video.id}
-              video={video}
-              playingId={playingId}
-              onPlay={onPlay}
-              isFavorite={userFavorites.includes(video.id)}
-              onToggleFav={onToggleFav}
-              onAnalyze={onAnalyze}
-              onScript={onScript}
-              showTier={true}
-              showAuthor={true}
-              showScriptButton={!!onScript}
-            />
-          );
-        })}
+        {videos.map((video: any) => (
+          <MemoVideoCard
+            key={video.id}
+            video={video}
+            playingId={playingId}
+            onPlay={onPlay}
+            isFavorite={userFavorites.includes(video.id)}
+            onToggleFav={onToggleFav}
+            onAnalyze={onAnalyze}
+            onScript={onScript}
+            showTier={true}
+            showAuthor={true}
+            showScriptButton={!!onScript}
+          />
+        ))}
       </div>
 
       {hasMore && (
@@ -90,42 +68,3 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
     </>
   );
 });
-
-function LockedCard({ video, freeLimit, onNavigate }: { video: any; freeLimit: number; onNavigate: () => void }) {
-  return (
-    <div
-      className="group h-full bg-card rounded-2xl border border-border/40 overflow-hidden relative flex flex-col cursor-pointer"
-      onClick={onNavigate}
-    >
-      <div className="relative aspect-[9/14] bg-black overflow-hidden">
-        {video.cover_url ? (
-          <img
-            src={video.cover_url}
-            alt=""
-            loading="lazy"
-            className="w-full h-full object-cover blur-[5px] brightness-[0.65] scale-105"
-          />
-        ) : (
-          <div className="w-full h-full bg-muted/60" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
-          <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg">
-            <Lock className="h-5 w-5 text-white" />
-          </div>
-          <p className="text-white text-[12px] font-semibold leading-snug drop-shadow-md text-center">
-            В демо-режиме доступны<br />только первые {freeLimit} видео
-          </p>
-        </div>
-      </div>
-      <div className="px-2.5 pb-2.5 pt-2 mt-auto">
-        <button
-          onClick={(e) => { e.stopPropagation(); onNavigate(); }}
-          className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-[11.5px] font-bold hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-soft"
-        >
-          Открыть доступ
-        </button>
-      </div>
-    </div>
-  );
-}
