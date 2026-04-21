@@ -63,7 +63,6 @@ export default function Admin() {
             <TabsTrigger value="platform"><Activity className="h-4 w-4 mr-1" />Платформа</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Пользователи</TabsTrigger>
             <TabsTrigger value="moderation"><Flag className="h-4 w-4 mr-1" />Модерация</TabsTrigger>
-            <TabsTrigger value="tariffs"><CreditCard className="h-4 w-4 mr-1" />Тарифы</TabsTrigger>
             <TabsTrigger value="trends"><RefreshCw className="h-4 w-4 mr-1" />Тренды</TabsTrigger>
             <TabsTrigger value="integrations"><Link2 className="h-4 w-4 mr-1" />Интеграции</TabsTrigger>
           </TabsList>
@@ -71,7 +70,6 @@ export default function Admin() {
           <TabsContent value="platform"><PlatformTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="moderation"><ModerationTab /></TabsContent>
-          <TabsContent value="tariffs"><TariffsTab /></TabsContent>
           <TabsContent value="trends"><TrendsManagementTab /></TabsContent>
           <TabsContent value="integrations"><IntegrationsTab /></TabsContent>
         </Tabs>
