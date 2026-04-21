@@ -495,8 +495,6 @@ export default function Trends() {
                   onToggleFav={toggleFav}
                   onAnalyze={openAnalysis}
                   onScript={openScript}
-                  isFreePlan={isFreePlan}
-                  freeLimit={FREE_LIMIT}
                   hasMore={drillTotalFiltered > visibleCount}
                   onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
                 />
