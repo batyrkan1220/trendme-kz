@@ -364,7 +364,15 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                               <Eye className="h-4 w-4 text-primary" />
                               <span className="text-sm font-bold text-foreground">{isKk ? "Тәсілдер:" : "Приёмы:"}</span>
                             </div>
-                            <p className="text-xs text-foreground/70 leading-relaxed">{getReadableSummaryValue(summary.hook_phrase, summary.text_hook) || "—"}</p>
+                            <p className="text-xs text-foreground/70 leading-relaxed">
+                              {getReadableSummaryValue(
+                                summary.hook_phrase,
+                                summary.text_hook,
+                                summary.why_viral,
+                                Array.isArray(summary.strengths) ? summary.strengths[0] : null,
+                                Array.isArray(summary.recommendations) ? summary.recommendations[0] : null
+                              ) || (isKk ? "Анализде негізгі приёмдар анықталмады" : "В анализе не удалось определить ключевые приёмы")}
+                            </p>
                           </div>
                         </div>
                       </div>
