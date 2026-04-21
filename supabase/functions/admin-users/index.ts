@@ -55,11 +55,12 @@ Deno.serve(async (req) => {
       // Get all roles
       const { data: allRoles } = await adminClient.from("user_roles").select("*");
 
-      // Get all active subscriptions with plan info
+      // Get all active subscriptions with plan info (newest first for priority)
       const { data: allSubs } = await adminClient
         .from("user_subscriptions")
         .select("*, plans(*)")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
 
       // Get all token balances
       const { data: allTokens } = await adminClient.from("user_tokens").select("*");
@@ -222,14 +223,22 @@ Deno.serve(async (req) => {
         return { email: u?.email || uid, actions: count };
       });
 
-      // Subscription stats
+      // Subscription stats (newest first to dedupe per user)
       const { data: allSubs } = await adminClient
         .from("user_subscriptions")
         .select("*, plans(name)")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+
+      const seenUsers = new Set<string>();
+      const dedupedSubs = (allSubs || []).filter((s: any) => {
+        if (seenUsers.has(s.user_id)) return false;
+        seenUsers.add(s.user_id);
+        return true;
+      });
 
       const planDistribution: Record<string, number> = {};
-      for (const s of allSubs || []) {
+      for (const s of dedupedSubs) {
         const name = (s as any).plans?.name || "Без тарифа";
         planDistribution[name] = (planDistribution[name] || 0) + 1;
       }
