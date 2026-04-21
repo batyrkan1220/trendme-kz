@@ -7,6 +7,11 @@ import {
   ShieldCheck, Rocket,
 } from "lucide-react";
 import { TrendMeWordmark } from "@/components/TrendMeWordmark";
+import trendBeauty from "@/assets/landing-trend-beauty.jpg";
+import trendFood from "@/assets/landing-trend-food.jpg";
+import trendFitness from "@/assets/landing-trend-fitness.jpg";
+import trendEdu from "@/assets/landing-trend-edu.jpg";
+import trendTravel from "@/assets/landing-trend-travel.jpg";
 
 /* ───────── NAV ───────── */
 function LandingNav() {
@@ -181,13 +186,16 @@ function Hero() {
         <div className="relative h-[520px] hidden lg:block">
           <div className="absolute inset-0 bg-dots opacity-60 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]" />
 
-          {/* Card 1 */}
-          <div className="video-card absolute w-[200px] left-0 top-10 bg-gradient-to-br from-pink-500 via-rose-400 to-orange-400 animate-[floatA_6s_ease-in-out_infinite]">
-            <Pill className="absolute top-3 left-3 bg-background/95 text-foreground">
+          {/* Card 1 — Beauty */}
+          <div
+            className="video-card absolute w-[200px] left-0 top-10 animate-[floatA_6s_ease-in-out_infinite] bg-cover bg-center"
+            style={{ backgroundImage: `url(${trendBeauty})` }}
+          >
+            <Pill className="absolute top-3 left-3 bg-background/95 text-foreground z-10">
               <Heart className="w-3 h-3 text-rose-500 fill-current" />
               Вирус
             </Pill>
-            <div className="absolute bottom-3 left-3 right-3 text-white">
+            <div className="absolute bottom-3 left-3 right-3 text-white z-10">
               <div className="text-[11px] opacity-80 mb-0.5">@beauty.trend</div>
               <div className="text-[13px] font-semibold leading-tight">Тренд-макияж за 30 секунд</div>
               <div className="mt-1.5 flex items-center gap-3 text-[11px] opacity-90">
@@ -196,18 +204,21 @@ function Hero() {
             </div>
           </div>
 
-          {/* Card 2 */}
-          <div className="video-card absolute w-[230px] left-[170px] top-0 z-10 bg-gradient-to-br from-primary via-purple-500 to-fuchsia-500 animate-[floatB_7s_ease-in-out_infinite]">
-            <Pill className="absolute top-3 left-3 bg-viral text-foreground">
+          {/* Card 2 — Food */}
+          <div
+            className="video-card absolute w-[230px] left-[170px] top-0 z-10 animate-[floatB_7s_ease-in-out_infinite] bg-cover bg-center"
+            style={{ backgroundImage: `url(${trendFood})` }}
+          >
+            <Pill className="absolute top-3 left-3 bg-viral text-foreground z-10">
               <Star className="w-3 h-3 fill-current" />
               TOP 1
             </Pill>
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center z-10">
               <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
                 <Play className="w-6 h-6 text-white ml-1 fill-current" />
               </div>
             </div>
-            <div className="absolute bottom-3 left-3 right-3 text-white">
+            <div className="absolute bottom-3 left-3 right-3 text-white z-10">
               <div className="text-[11px] opacity-80 mb-0.5">@food.viral</div>
               <div className="text-[13px] font-semibold leading-tight">5 рецептов, которые взорвали TikTok</div>
               <div className="mt-1.5 flex items-center gap-3 text-[11px] opacity-90">
@@ -216,8 +227,11 @@ function Hero() {
             </div>
           </div>
 
-          {/* Card 3 */}
-          <div className="video-card absolute w-[180px] right-0 top-16 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 animate-[floatC_8s_ease-in-out_infinite]">
+          {/* Card 3 — Fitness */}
+          <div
+            className="video-card absolute w-[180px] right-0 top-16 animate-[floatC_8s_ease-in-out_infinite] bg-cover bg-center"
+            style={{ backgroundImage: `url(${trendFitness})` }}
+          >
             <Pill className="absolute top-3 left-3 bg-background/95 text-foreground">
               <ArrowRight className="w-3 h-3 text-emerald-600" />
               +420%
@@ -539,15 +553,16 @@ function Product() {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { bg: "from-pink-500 via-rose-400 to-orange-400", badge: "🔥 +420%", badgeBg: "bg-viral text-foreground", user: "@beauty.viral", title: "Макияж за 30 сек", views: "▶ 2.4M" },
-                    { bg: "from-primary via-purple-500 to-fuchsia-500", badge: "⭐ TOP", badgeBg: "bg-background text-foreground", user: "@food.hub", title: "5 рецептов", views: "▶ 8.1M" },
-                    { bg: "from-emerald-500 via-teal-500 to-cyan-500", badge: "↑ +183%", badgeBg: "bg-background text-foreground", user: "@fit.pro", title: "5 мин тренировка", views: "▶ 960K" },
-                    { bg: "from-amber-500 via-orange-400 to-rose-400", badge: "🔥 Hot", badgeBg: "bg-background text-foreground", user: "@edu.kz", title: "IELTS за месяц", views: "▶ 1.1M" },
+                    { img: trendBeauty, badge: "🔥 +420%", badgeBg: "bg-viral text-foreground", user: "@beauty.viral", title: "Макияж за 30 сек", views: "▶ 2.4M" },
+                    { img: trendFood, badge: "⭐ TOP", badgeBg: "bg-background text-foreground", user: "@food.hub", title: "5 рецептов", views: "▶ 8.1M" },
+                    { img: trendFitness, badge: "↑ +183%", badgeBg: "bg-background text-foreground", user: "@fit.pro", title: "5 мин тренировка", views: "▶ 960K" },
+                    { img: trendTravel, badge: "🔥 Hot", badgeBg: "bg-background text-foreground", user: "@travel.kz", title: "Алтын-Эмель за 60 сек", views: "▶ 1.1M" },
                   ].map((c, i) => (
-                    <div key={i} className={`relative aspect-[9/14] rounded-xl overflow-hidden bg-gradient-to-br ${c.bg}`}>
-                      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${c.badgeBg}`}>{c.badge}</div>
-                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 to-transparent" />
-                      <div className="absolute bottom-2 left-2 right-2 text-white">
+                    <div key={i} className="relative aspect-[9/14] rounded-xl overflow-hidden bg-muted">
+                      <img src={c.img} alt={c.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${c.badgeBg} z-10`}>{c.badge}</div>
+                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
+                      <div className="absolute bottom-2 left-2 right-2 text-white z-10">
                         <div className="text-[10px] opacity-80">{c.user}</div>
                         <div className="text-[11px] font-bold">{c.title}</div>
                         <div className="text-[10px] opacity-90 mt-0.5">{c.views}</div>
