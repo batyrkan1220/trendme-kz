@@ -1,7 +1,9 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Check, X, TrendingUp, Eye, Heart } from "lucide-react";
+import { Sparkles, Check, X, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { hapticLight } from "@/lib/haptics";
 
 interface PaywallVideoPreview {
