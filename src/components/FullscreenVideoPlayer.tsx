@@ -179,8 +179,21 @@ export function FullscreenVideoPlayer({
 
     vid.addEventListener("ended", onEnded);
 
-    // Try auto-play
-    vid.play().catch(() => {});
+    // iOS Safari blocks unmuted autoplay after async gesture chain.
+    // Start muted (always allowed) then unmute immediately — single-tap UX.
+    vid.muted = true;
+    const playPromise = vid.play();
+    if (playPromise && typeof playPromise.then === "function") {
+      playPromise
+        .then(() => {
+          // Unmute right after playback starts
+          vid.muted = false;
+        })
+        .catch(() => {
+          // Last-resort: keep muted, user can tap to play
+          vid.muted = false;
+        });
+    }
 
     return () => {
       vid.removeEventListener("ended", onEnded);
