@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
       });
 
       const planDistribution: Record<string, number> = {};
-      for (const s of allSubs || []) {
+      for (const s of dedupedSubs) {
         const name = (s as any).plans?.name || "Без тарифа";
         planDistribution[name] = (planDistribution[name] || 0) + 1;
       }
