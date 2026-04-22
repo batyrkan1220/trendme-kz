@@ -628,40 +628,23 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         </div>
       </div>
 
-      {(showAnalyzeButton && onAnalyze) || (showScriptButton && onScript) ? (
-        <div className="px-2 sm:px-3 pb-2.5 sm:pb-3 mt-auto grid grid-cols-2 gap-2">
-          {showAnalyzeButton && onAnalyze && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-              className="group/btn relative flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-foreground text-background ring-1 ring-foreground/10 active:scale-[0.97] transition-all hover:bg-foreground/90 overflow-hidden"
-              style={{ boxShadow: "0 6px 24px -6px rgba(0,0,0,0.5), 0 0 0 1px hsl(0 0% 100% / 0.04) inset" }}
-            >
-              {/* Subtle viral gradient sheen on hover */}
-              <span
-                className="pointer-events-none absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"
-                style={{ background: "radial-gradient(120% 80% at 50% 0%, hsl(var(--viral) / 0.18), transparent 60%)" }}
-              />
-              {/* Shimmer sweep on hover */}
-              <span
-                className="pointer-events-none absolute -inset-y-1 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-0 group-hover/btn:translate-x-[400%] transition-transform duration-[900ms] ease-out"
-              />
-              <Sparkles className="relative h-4 w-4 text-viral transition-transform duration-300 group-hover/btn:rotate-12 group-hover/btn:scale-110" />
-              <span className="relative">Анализ</span>
-            </button>
-          )}
-          {showScriptButton && onScript && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onScript(video); }}
-              className={cn(
-                "group/btn relative flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-viral text-foreground active:scale-[0.97] transition-all ring-1 ring-white/30 hover:brightness-110 overflow-hidden",
-                !(showAnalyzeButton && onAnalyze) && "col-span-2"
-              )}
-              style={{ boxShadow: "0 8px 28px -6px hsl(var(--viral) / 0.6), 0 0 20px -4px hsl(var(--viral) / 0.5)" }}
-            >
-              <FileText className="h-4 w-4 transition-transform group-hover/btn:rotate-[-6deg]" />
-              Сценарий
-            </button>
-          )}
+      {showAnalyzeButton && onAnalyze ? (
+        <div className="px-2 sm:px-3 pb-2.5 sm:pb-3 mt-auto">
+          <button
+            onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
+            className="group/btn relative w-full flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-foreground text-background ring-1 ring-foreground/10 active:scale-[0.97] transition-all hover:bg-foreground/90 overflow-hidden"
+            style={{ boxShadow: "0 6px 24px -6px rgba(0,0,0,0.5), 0 0 0 1px hsl(0 0% 100% / 0.04) inset" }}
+          >
+            <span
+              className="pointer-events-none absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"
+              style={{ background: "radial-gradient(120% 80% at 50% 0%, hsl(var(--viral) / 0.18), transparent 60%)" }}
+            />
+            <span
+              className="pointer-events-none absolute -inset-y-1 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-0 group-hover/btn:translate-x-[400%] transition-transform duration-[900ms] ease-out"
+            />
+            <Sparkles className="relative h-4 w-4 text-viral transition-transform duration-300 group-hover/btn:rotate-12 group-hover/btn:scale-110" />
+            <span className="relative">Анализ</span>
+          </button>
         </div>
       ) : null}
 
