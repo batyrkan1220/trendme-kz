@@ -99,8 +99,10 @@ export default function AccountAnalysis() {
     const isFav = userFavorites.includes(videoId);
     if (isFav) {
       await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+      trackPlausible("Favorite Removed", { source: "account-analysis" });
     } else {
       await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+      trackPlausible("Favorite Added", { source: "account-analysis" });
     }
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
   }, [user, userFavorites, queryClient]);

@@ -78,9 +78,11 @@ export default function SearchPage() {
     const isFav = userFavorites.includes(videoId);
     if (isFav) {
       await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+      trackPlausible("Favorite Removed", { source: "search" });
     } else {
       await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
       trackAddToFavorites(videoId);
+      trackPlausible("Favorite Added", { source: "search" });
     }
     queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
     queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
