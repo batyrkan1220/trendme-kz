@@ -132,24 +132,8 @@ export default function VideoAnalysis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Helper: gate "open script" by paid sub OR free credit
-  const tryOpenScript = async (): Promise<boolean> => {
-    if (isFreePlan) {
-      if (scriptsLeft <= 0) {
-        setShowPaywall(true);
-        return false;
-      }
-      const remaining = await consume("script");
-      if (remaining < 0) {
-        setShowPaywall(true);
-        return false;
-      }
-      toast.success(`Использован пробный сценарий. Осталось: ${remaining}`);
-      return true;
-    }
-    const ok = await checkAndLog("ai_script", `AI Сценарий из анализа: ${url.trim()}`);
-    return ok;
-  };
+  // Helper: open script — always allowed
+  const tryOpenScript = async (): Promise<boolean> => true;
 
   // Auto-open script panel after successful analysis if requested
   useEffect(() => {
