@@ -304,6 +304,18 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           </span>
         )}
 
+        {canUndo && (
+          <button
+            onClick={handleUndo}
+            disabled={isGenerating}
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 rounded-lg text-xs font-semibold text-foreground bg-viral/15 ring-1 ring-viral/40 hover:bg-viral hover:text-viral-foreground transition-all active:scale-95 disabled:opacity-50 animate-fade-in"
+            title={isKk ? "Соңғы өзгерісті қайтару" : "Отменить последнее изменение"}
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{isKk ? "Қайтару" : "Отменить"}</span>
+          </button>
+        )}
+
         <button
           onClick={handleRegenerate}
           disabled={isGenerating}
