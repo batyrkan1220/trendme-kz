@@ -1155,7 +1155,21 @@ function UsersTab() {
       </AlertDialog>
 
       {/* User details modal */}
-      <UserDetailsDialog userId={detailUserId} onClose={() => setDetailUserId(null)} />
+      <UserDetailsDialog
+        userId={detailUserId}
+        onClose={() => setDetailUserId(null)}
+        onChangePlan={(uid, email, planId, expiresAt) => {
+          setDetailUserId(null);
+          setPlanChangeUser({ userId: uid, email, currentPlanId: planId, currentExpiresAt: expiresAt });
+        }}
+      />
+
+      {/* Change plan dialog */}
+      <ChangePlanDialog
+        target={planChangeUser}
+        plans={plans}
+        onClose={() => setPlanChangeUser(null)}
+      />
     </div>
   );
 }
