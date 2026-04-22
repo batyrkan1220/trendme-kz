@@ -38,7 +38,32 @@ export function useFreeCredits() {
       return -1;
     }
     qc.invalidateQueries({ queryKey: ["free-credits"] });
-    return (data as number) ?? -1;
+    const remaining = (data as number) ?? -1;
+    const label = kind === "script" ? "сценариев" : "анализов";
+
+    if (remaining === -1) {
+      // Уже не было кредитов — полный лимит исчерпан
+      toast.error(`Пробные ${label} закончились`, {
+        description: "Откройте Pro для безлимитного доступа",
+        action: {
+          label: "Открыть Pro",
+          onClick: () => (window.location.href = "/subscription"),
+        },
+      });
+    } else if (remaining === 0) {
+      // Только что использовали последний
+      toast.warning(`Это был последний пробный ${kind === "script" ? "сценарий" : "анализ"}`, {
+        description: "Дальше — только в Pro. Откройте безлимит.",
+        action: {
+          label: "Открыть Pro",
+          onClick: () => (window.location.href = "/subscription"),
+        },
+      });
+    } else if (remaining === 1) {
+      toast.info(`Остался 1 пробный ${kind === "script" ? "сценарий" : "анализ"}`);
+    }
+
+    return remaining;
   };
 
   return { analysesLeft, scriptsLeft, isLoading, consume };
