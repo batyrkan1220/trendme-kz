@@ -360,7 +360,7 @@ export default function Pricing() {
                     {isPaid ? (
                       <button
                         disabled={isActive || loadingPlanId === plan.id}
-                        onClick={() => { if (!isActive) handlePayment(plan.id); }}
+                        onClick={() => { if (!isActive) requestPayment(plan.id); }}
                         className={cn(
                           "mt-6 inline-flex w-full justify-center items-center py-3 rounded-xl text-[14px] font-semibold transition disabled:cursor-default",
                           isActive
