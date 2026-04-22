@@ -130,6 +130,36 @@ serve(async (req) => {
         .update({ status: "success", pg_payment_id: pgPaymentId })
         .eq("order_id", orderId);
 
+      // Send email receipt (квитанция) — fire-and-forget, must not block callback
+      try {
+        const { data: userData } = await supabase.auth.admin.getUserById(order.user_id);
+        const recipientEmail = userData?.user?.email;
+        if (recipientEmail && plan) {
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "payment-receipt",
+              recipientEmail,
+              idempotencyKey: `receipt-${orderId}`,
+              templateData: {
+                planName: plan.name,
+                amount: order.amount,
+                currency: "KZT",
+                orderId,
+                paymentId: pgPaymentId,
+                paidAt: params.pg_payment_date ?? new Date().toISOString(),
+                expiresAt: order.computed_expires_at,
+                bonusDays: order.bonus_days || 0,
+              },
+            },
+          });
+          console.log("Receipt email enqueued for", recipientEmail);
+        } else {
+          console.warn("Receipt skipped — no email for user", order.user_id);
+        }
+      } catch (emailErr) {
+        console.error("Failed to enqueue receipt email:", emailErr);
+      }
+
       // Journal entry — successful payment
       await supabase.from("activity_log").insert({
         user_id: order.user_id,
