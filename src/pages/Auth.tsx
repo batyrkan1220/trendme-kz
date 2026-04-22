@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trackRegistrationEvent } from "@/components/TrackingPixels";
+import { trackRegistrationEvent, trackPlausible } from "@/components/TrackingPixels";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Loader2, User, Phone, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -84,7 +84,7 @@ export default function Auth() {
             toast.error("Ошибка входа. Попробуйте позже.");
           }
         }
-        else navigate("/dashboard");
+        else { trackPlausible("Login"); navigate("/dashboard"); }
       } else {
         // Pre-check: does this email already exist? (Supabase signUp doesn't return a clear error for existing confirmed emails)
         try {
