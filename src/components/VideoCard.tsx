@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
 import {
   Eye, Heart, MessageCircle, Play, ExternalLink, X,
-  Loader2, Maximize, Flag, Sparkles, Flame, TrendingUp, Star
+  Loader2, Maximize, Flag, Sparkles, Flame, TrendingUp, Star, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -650,7 +650,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               )}
               style={{ boxShadow: "0 6px 20px -6px hsl(var(--viral) / 0.55)" }}
             >
-              <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-foreground transition-transform group-hover/btn:rotate-12" />
+              <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-foreground transition-transform group-hover/btn:rotate-[-6deg]" />
               Сценарий
             </button>
           )}
