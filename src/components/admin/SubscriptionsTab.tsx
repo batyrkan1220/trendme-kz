@@ -348,6 +348,7 @@ export default function SubscriptionsTab() {
     const headers = [
       "Дата", "Пользователь", "Email", "Телефон", "Тариф", "Сумма",
       "Комиссия", "Номер платежа", "Номер заказа", "Карта", "Банк", "Статус",
+      "Статус возврата", "Номер возврата", "Дата возврата", "Сумма возврата", "Причина возврата",
     ];
     const rows = filteredPayments.map(p => {
       const u = userMap[p.user_id];
@@ -365,6 +366,11 @@ export default function SubscriptionsTab() {
         p.card_mask || "",
         p.bank_code || "",
         p.status,
+        p.refund_status || "",
+        p.refund_id || "",
+        p.refunded_at ? fmtDate(p.refunded_at, true) : "",
+        p.refund_amount ?? "",
+        p.refund_reason || "",
       ];
     });
     const csv = [headers, ...rows]
