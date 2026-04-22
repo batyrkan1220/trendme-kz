@@ -77,11 +77,23 @@ Deno.serve(async (req) => {
       // Get all token balances
       const { data: allTokens } = await adminClient.from("user_tokens").select("*");
 
-      // Get all profiles (name, phone, free credits)
-      const { data: allProfiles } = await adminClient.from("profiles").select("user_id, name, phone, free_analyses_left, free_scripts_left");
+      // Get all profiles (name, phone, free credits, ban/delete flags)
+      const { data: allProfiles } = await adminClient.from("profiles").select("user_id, name, phone, free_analyses_left, free_scripts_left, is_banned, is_deleted, admin_notes");
 
       const enriched = users
-        .filter((u: any) => !search || u.email?.toLowerCase().includes(search.toLowerCase()))
+        .filter((u: any) => {
+          if (!search) return true;
+          const q = search.toLowerCase();
+          const profile = (allProfiles || []).find((p: any) => p.user_id === u.id);
+          const meta = u.user_metadata || {};
+          const name = (profile?.name || meta.name || "").toLowerCase();
+          const phone = (profile?.phone || meta.phone || "").toLowerCase();
+          return (
+            (u.email || "").toLowerCase().includes(q) ||
+            name.includes(q) ||
+            phone.includes(q)
+          );
+        })
         .map((u: any) => {
           const profile = (allProfiles || []).find((p: any) => p.user_id === u.id);
           const meta = u.user_metadata || {};
@@ -91,10 +103,14 @@ Deno.serve(async (req) => {
             created_at: u.created_at,
             last_sign_in_at: u.last_sign_in_at,
             email_confirmed_at: u.email_confirmed_at || null,
+            banned_until: (u as any).banned_until || null,
             name: profile?.name || meta.name || null,
             phone: profile?.phone || meta.phone || null,
             free_analyses_left: profile?.free_analyses_left ?? null,
             free_scripts_left: profile?.free_scripts_left ?? null,
+            is_banned: profile?.is_banned ?? false,
+            is_deleted: profile?.is_deleted ?? false,
+            admin_notes: profile?.admin_notes ?? null,
             roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
             subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
             tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
