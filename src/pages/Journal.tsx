@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ScrollText, Search, Video, UserCircle } from "lucide-react";
+import { ScrollText, Search, Video, UserCircle, CreditCard, AlertCircle, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +8,9 @@ const typeLabels: Record<string, { label: string; icon: React.ComponentType<{ cl
   search_run: { label: "Поиск", icon: Search, emoji: "🔍" },
   video_analysis: { label: "Анализ видео", icon: Video, emoji: "🎬" },
   account_analysis: { label: "Анализ аккаунта", icon: UserCircle, emoji: "👤" },
+  payment_success: { label: "Платёж успешен", icon: CreditCard, emoji: "💳" },
+  payment_failed: { label: "Платёж отклонён", icon: AlertCircle, emoji: "⚠️" },
+  subscription_expired: { label: "Подписка истекла → Пробный", icon: Clock, emoji: "⏳" },
 };
 
 export default function Journal() {

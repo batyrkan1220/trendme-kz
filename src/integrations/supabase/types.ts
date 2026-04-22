@@ -940,6 +940,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_downgrade_expired_subscriptions: { Args: never; Returns: Json }
       consume_free_credit: { Args: { _kind: string }; Returns: number }
       get_cron_jobs: {
         Args: never
