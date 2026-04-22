@@ -408,6 +408,77 @@ export default function Pricing() {
           )}
         </div>
       </section>
+
+      {/* Prorate / Renewal confirmation dialog */}
+      <Dialog open={!!confirmPlanId} onOpenChange={(open) => { if (!open) setConfirmPlanId(null); }}>
+        <DialogContent className="max-w-md">
+          {proratePreview && (() => {
+            const p = proratePreview;
+            const dateStr = p.newExpiresAt.toLocaleDateString("ru-RU", {
+              day: "numeric", month: "long", year: "numeric",
+            });
+            const titles = {
+              new: "Подключить тариф",
+              renewal: "Продление тарифа",
+              upgrade: "Улучшить тариф",
+              downgrade: "Сменить тариф",
+            } as const;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{titles[p.purchaseType]}</DialogTitle>
+                  <DialogDescription>
+                    {p.newPlan.name} · {p.newPlan.price_rub.toLocaleString("ru-RU")} ₸
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-3 py-2">
+                  {p.purchaseType === "renewal" && (
+                    <div className="rounded-xl border border-border bg-muted/30 p-3.5 text-[13.5px] text-foreground/80">
+                      Тариф будет продлён от текущей даты окончания. Новая дата окончания: <b className="text-foreground">{dateStr}</b>
+                    </div>
+                  )}
+
+                  {(p.purchaseType === "upgrade" || p.purchaseType === "downgrade") && (
+                    <div className="rounded-xl border border-viral/30 bg-viral/5 p-3.5 space-y-2 text-[13.5px]">
+                      <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                        <Sparkles className="h-4 w-4 text-viral" />
+                        Бонусные дни за остаток
+                      </div>
+                      <div className="text-foreground/75 leading-relaxed">
+                        У вас осталось <b className="text-foreground">{p.remainingDays}</b> дн. тарифа «{p.currentPlanName}» (≈ {p.remainingValueRub.toLocaleString("ru-RU")} ₸).
+                        Эта сумма пересчитана в <b className="text-foreground">+{p.bonusDays} бонусных дней</b> к новому тарифу.
+                      </div>
+                      <div className="pt-1 text-foreground/75">
+                        Действует до: <b className="text-foreground">{dateStr}</b>
+                      </div>
+                    </div>
+                  )}
+
+                  {p.purchaseType === "new" && (
+                    <div className="rounded-xl border border-border bg-muted/30 p-3.5 text-[13.5px] text-foreground/80">
+                      После оплаты тариф будет активен до: <b className="text-foreground">{dateStr}</b>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter className="gap-2 sm:gap-2">
+                  <Button variant="outline" onClick={() => setConfirmPlanId(null)} disabled={!!loadingPlanId}>
+                    Отмена
+                  </Button>
+                  <Button onClick={handlePayment} disabled={!!loadingPlanId} className="font-semibold">
+                    {loadingPlanId ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
+                    ) : (
+                      <>Оплатить {p.newPlan.price_rub.toLocaleString("ru-RU")} ₸ <ArrowRight className="h-4 w-4 ml-1.5" /></>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
