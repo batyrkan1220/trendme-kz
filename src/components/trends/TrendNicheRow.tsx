@@ -115,20 +115,22 @@ function TrendNicheRowImpl({
                   className="absolute inset-0 z-10 rounded-2xl overflow-hidden"
                   aria-label="Доступно на платном тарифе"
                 >
-                  {/* Лёгкий blur — видео сквозь плашку слегка просвечивает */}
-                  <div className="absolute inset-0 backdrop-blur-[3px] bg-foreground/25" />
+                  {/* Очень лёгкий blur — видео ясно просматривается сквозь overlay */}
+                  <div className="absolute inset-0 backdrop-blur-[1.5px] bg-foreground/10" />
+                  {/* Тонкий градиент снизу для контраста плашки */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
 
                   {/* Контент по центру */}
                   <div className="relative z-10 h-full w-full flex items-center justify-center p-2.5">
-                    <div className="w-full flex flex-col items-center gap-2 px-2.5 py-3 rounded-xl bg-foreground/92 backdrop-blur-sm border border-viral/40 shadow-glow-viral">
+                    <div className="w-full flex flex-col items-center gap-2 px-2.5 py-3 rounded-xl bg-foreground/85 backdrop-blur-md border border-viral/40 shadow-glow-viral">
                       <div className="h-9 w-9 rounded-full bg-viral flex items-center justify-center shadow-md">
                         <Lock className="h-4 w-4 text-foreground" strokeWidth={2.5} />
                       </div>
                       <div className="text-center">
-                        <p className="text-[11.5px] font-extrabold text-background leading-tight">
+                        <p className="text-[11.5px] font-extrabold text-background leading-tight drop-shadow-sm">
                           Только на платном тарифе
                         </p>
-                        <p className="text-[9.5px] text-background/70 leading-tight mt-0.5">
+                        <p className="text-[9.5px] text-background/75 leading-tight mt-0.5">
                           Откройте доступ ко всем трендам
                         </p>
                       </div>
