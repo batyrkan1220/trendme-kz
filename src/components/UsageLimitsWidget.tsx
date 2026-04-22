@@ -54,8 +54,9 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
     { key: "script", label: "AI Сценарий", remaining: scriptRemaining, total: scriptTotal, icon: Sparkles, gradient: "from-amber-500 to-orange-500" },
   ];
 
-  const totalLeft = analysisRemaining + scriptRemaining;
-  const isLow = totalLeft <= 2;
+  const totalLeft = Math.max(0, analysisRemaining) + Math.max(0, scriptRemaining);
+  const isExhausted = totalLeft === 0;
+  const isLow = !isExhausted && totalLeft <= 2;
 
   return (
     <div className={`relative overflow-hidden rounded-2xl border border-border/50 bg-card p-4 md:p-6 ${className}`}>
