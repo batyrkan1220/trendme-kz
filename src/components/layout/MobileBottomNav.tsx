@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Flame, Search, Sparkles, Heart, User } from "lucide-react";
+import { Flame, Search, Sparkles, Heart, User, type LucideIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { useFreeCredits } from "@/hooks/useFreeCredits";
@@ -12,7 +12,7 @@ interface MobileBottomNavProps {
 
 type NavItem = {
   key: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon: LucideIcon;
   label: string;
   path: string;
   /** Free-планда paywall-ге бағытталатын элемент. */
