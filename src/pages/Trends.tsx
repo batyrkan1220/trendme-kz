@@ -195,46 +195,12 @@ export default function Trends() {
   const { containerRef, pullDistance, isRefreshing, progress } =
     usePullToRefresh({ onRefresh: handleRefresh });
 
-  const openAnalysis = useCallback(
-    async (v: any) => {
-      if (isFreePlan) {
-        if (analysesLeft <= 0) {
-          setPaywallFeature("analysis");
-          setTimeout(() => setPaywallVideo(v), 200);
-          return;
-        }
-        const remaining = await consume("analysis");
-        if (remaining < 0) {
-          setPaywallFeature("analysis");
-          setTimeout(() => setPaywallVideo(v), 200);
-          return;
-        }
-        toast.success(`Использован пробный анализ. Осталось: ${remaining}`);
-      }
-      setAnalysisVideo(v);
-    },
-    [isFreePlan, analysesLeft, consume]
-  );
-  const openScript = useCallback(
-    async (v: any) => {
-      if (isFreePlan) {
-        if (scriptsLeft <= 0) {
-          setPaywallFeature("script");
-          setTimeout(() => setPaywallVideo(v), 200);
-          return;
-        }
-        const remaining = await consume("script");
-        if (remaining < 0) {
-          setPaywallFeature("script");
-          setTimeout(() => setPaywallVideo(v), 200);
-          return;
-        }
-        toast.success(`Использован пробный сценарий. Осталось: ${remaining}`);
-      }
-      setScriptVideo(v);
-    },
-    [isFreePlan, scriptsLeft, consume]
-  );
+  const openAnalysis = useCallback((v: any) => {
+    setAnalysisVideo(v);
+  }, []);
+  const openScript = useCallback((v: any) => {
+    setScriptVideo(v);
+  }, []);
   const allGroups = NICHE_GROUPS;
 
   /* ======================= drill-down ======================= */
