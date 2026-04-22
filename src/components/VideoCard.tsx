@@ -387,24 +387,20 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         {playingId === video.id && !showFullscreen ? (
           <>
             {loadingPlay ? (
-              <div className="w-full h-full relative overflow-hidden">
+              <div className="w-full h-full relative overflow-hidden animate-fade-in">
                 {activeCover && !coverFailed ? (
-                  <img src={activeCover} alt="" className="w-full h-full object-cover" />
+                  <img src={activeCover} alt="" className="w-full h-full object-cover opacity-50 blur-xl scale-110" />
                 ) : (
                   <div className="w-full h-full bg-muted/80" />
                 )}
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-32 h-32 rounded-full border-2 border-white/15 animate-ping" style={{ animationDuration: '2s' }} />
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full border-2 border-white/20 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
-                </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <div className="h-14 w-14 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/20">
-                    <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                <div className="absolute inset-0 bg-black/30" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                  {/* Clean ring spinner */}
+                  <div className="relative h-9 w-9">
+                    <div className="absolute inset-0 rounded-full border-2 border-white/15" />
+                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white animate-spin" />
                   </div>
-                  <span className="text-[11px] text-white/80 font-medium tracking-wide animate-pulse">Загрузка...</span>
+                  <span className="text-white/80 text-[13px] font-medium tracking-tight">Загрузка</span>
                 </div>
               </div>
             ) : playUrl === "tiktok_embed_fallback" ? (
