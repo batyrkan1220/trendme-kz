@@ -113,6 +113,13 @@ export function useSubscription() {
       return false;
     }
 
+    // Optimistic update — bump counter instantly so the widget reflects new usage without waiting for DB
+    const usageQueryKey = ["user-usage-counts", user.id, subscription?.started_at];
+    queryClient.setQueryData<Record<string, number>>(usageQueryKey, (prev) => ({
+      ...(prev || {}),
+      [action]: ((prev || {})[action] || 0) + 1,
+    }));
+
     // Log usage
     const { error: logError } = await supabase.from("activity_log").insert({
       user_id: user.id,
@@ -122,10 +129,15 @@ export function useSubscription() {
     if (logError) {
       console.error("Failed to log usage:", logError);
       toast.error("Не удалось записать использование");
+      // Rollback optimistic increment
+      queryClient.setQueryData<Record<string, number>>(usageQueryKey, (prev) => ({
+        ...(prev || {}),
+        [action]: Math.max(0, ((prev || {})[action] || 1) - 1),
+      }));
       return false;
     }
 
-    // Refresh usage counts immediately
+    // Reconcile with DB in background
     queryClient.invalidateQueries({ queryKey: ["user-usage-counts"] });
 
     return true;
