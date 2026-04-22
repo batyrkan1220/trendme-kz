@@ -69,7 +69,7 @@ const STEP_META = [
 
 export default function Onboarding() {
   const [step, setStep] = useState(0);
-  const [niche, setNiche] = useState("");
+  const [niches, setNiches] = useState<string[]>([]);
   const [goal, setGoal] = useState("");
   const [platform, setPlatform] = useState("");
   const [experience, setExperience] = useState("");
@@ -115,7 +115,7 @@ export default function Onboarding() {
       const { error } = await supabase
         .from("profiles")
         .update({
-          niche,
+          niche: niches.join(","),
           goal,
           platform,
           experience,
@@ -197,12 +197,18 @@ export default function Onboarding() {
 
           {/* Selection chips */}
           <div className="flex justify-center gap-1.5 flex-wrap">
-            {niche && (
-              <span className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold">
-                {NICHES.find((n) => n.value === niche)?.emoji}{" "}
-                {NICHES.find((n) => n.value === niche)?.label}
-              </span>
-            )}
+            {niches.map((nv) => {
+              const n = NICHES.find((x) => x.value === nv);
+              if (!n) return null;
+              return (
+                <span
+                  key={nv}
+                  className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold"
+                >
+                  {n.emoji} {n.label}
+                </span>
+              );
+            })}
             {platform && (
               <span className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold">
                 {PLATFORMS.find((p) => p.value === platform)?.emoji}{" "}
@@ -264,7 +270,7 @@ export default function Onboarding() {
                     В какой нише вы создаёте контент?
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Подберём тренды именно для вашей темы
+                    Можно выбрать до 5 — подберём тренды по всем
                   </p>
                 </>
               )}
@@ -310,20 +316,43 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* ── STEP 0: Ниша ─────────────────────────────────────── */}
+            {/* ── STEP 0: Ниша (multi-select, max 5) ─────────────────── */}
             {step === 0 && (
-              <div className="space-y-5">
-                <div className="max-h-[calc(100dvh-380px)] min-h-[180px] overflow-y-auto -mx-2 px-2 scrollbar-hide">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-[11px] font-semibold">
+                  <span className="text-muted-foreground">
+                    Выбрано <span className="text-foreground tabular-nums">{niches.length}</span> из 5
+                  </span>
+                  {niches.length > 0 && (
+                    <button
+                      onClick={() => setNiches([])}
+                      className="text-primary hover:underline"
+                    >
+                      Сбросить
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-[calc(100dvh-420px)] min-h-[180px] overflow-y-auto -mx-2 px-2 scrollbar-hide">
                   <div className="flex flex-wrap gap-1.5 justify-center">
                     {NICHES.map((n) => {
-                      const active = niche === n.value;
+                      const active = niches.includes(n.value);
+                      const atLimit = !active && niches.length >= 5;
                       return (
                         <button
                           key={n.value}
-                          onClick={() => setNiche(n.value)}
+                          onClick={() => {
+                            if (active) {
+                              setNiches((prev) => prev.filter((v) => v !== n.value));
+                            } else if (!atLimit) {
+                              setNiches((prev) => [...prev, n.value]);
+                            }
+                          }}
+                          disabled={atLimit}
                           className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all duration-150 press-feedback whitespace-nowrap ${
                             active
                               ? "border-primary bg-primary text-primary-foreground shadow-glow-primary"
+                              : atLimit
+                              ? "border-border bg-muted text-muted-foreground/60 cursor-not-allowed"
                               : "border-border bg-background text-foreground/80 hover:border-primary/40 hover:bg-primary-soft"
                           }`}
                         >
@@ -336,7 +365,7 @@ export default function Onboarding() {
                 </div>
                 <Button
                   onClick={() => goToStep(1)}
-                  disabled={!niche}
+                  disabled={niches.length === 0}
                   className="w-full h-12 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-[15px] font-semibold shadow-glow-primary press-feedback"
                 >
                   Продолжить <ArrowRight className="h-4 w-4 ml-1.5" />
