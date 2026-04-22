@@ -836,6 +836,29 @@ function SubscriptionDetailModal({
                 </CardContent>
               </Card>
 
+              {/* Refund info */}
+              {order?.refund_status && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4" /> Возврат
+                      <RefundBadge status={order.refund_status} />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 gap-2 text-xs">
+                    <Info label="№ операции возврата" value={order.refund_id} mono />
+                    <Info label="Дата возврата" value={fmtDate(order.refunded_at, true)} />
+                    <Info label="Сумма возврата" value={fmtMoney(order.refund_amount ?? order.amount)} />
+                    <Info label="Причина" value={order.refund_reason || "—"} />
+                    {order.refund_failure_description && (
+                      <div className="col-span-2 text-red-600">
+                        Ошибка: {order.refund_failure_description}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Timeline */}
               <Card>
                 <CardHeader className="pb-2"><CardTitle className="text-sm">Срок подписки</CardTitle></CardHeader>
