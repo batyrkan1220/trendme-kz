@@ -1,9 +1,10 @@
 import { useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MemoVideoCard } from "@/components/VideoCard";
-import { ChevronRight, Lock } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
 import { cn } from "@/lib/utils";
+import { LockedVideoOverlay } from "./LockedVideoOverlay";
 
 
 interface TrendNicheRowProps {
