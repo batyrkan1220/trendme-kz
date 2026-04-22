@@ -208,6 +208,108 @@ export function VideoAnalysisResults({
         <StatMini icon={TrendingUp} label="ER" value={er + "%"} />
       </div>
 
+      {/* Virality Score 0-100 */}
+      <div className={`rounded-xl border p-3 flex items-center justify-between ${viralityColor}`}>
+        <div className="flex items-center gap-2 min-w-0">
+          <Gauge className="h-4 w-4 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wider opacity-70">{isKk ? "Виралдық" : "Виральность"}</p>
+            <p className="text-[13px] font-bold truncate">
+              {viralityScore >= 70 ? (isKk ? "Жоғары әлеует 🔥" : "Высокий потенциал 🔥") :
+               viralityScore >= 40 ? (isKk ? "Орташа әлеует" : "Средний потенциал") :
+               (isKk ? "Төмен әлеует" : "Низкий потенциал")}
+            </p>
+          </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <span className="text-2xl font-black leading-none">{viralityScore}</span>
+          <span className="text-[11px] opacity-70">/100</span>
+        </div>
+      </div>
+
+      {/* Niche benchmark */}
+      {bench && bench.count >= 5 && (
+        <SectionCard icon={BarChart3} title={isKk ? `«${nicheKey}» нишасымен салыстыру` : `Сравнение с нишей «${nicheKey}»`}>
+          <div className="space-y-1.5">
+            {bench.avgViews > 0 && (
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="text-muted-foreground">{isKk ? "Көру" : "Просмотры"}</span>
+                <span className="font-semibold text-foreground">
+                  {views >= bench.avgViews
+                    ? `${(views / bench.avgViews).toFixed(1)}x ${isKk ? "жоғары" : "выше среднего"} ↑`
+                    : `${(bench.avgViews / Math.max(views, 1)).toFixed(1)}x ${isKk ? "төмен" : "ниже среднего"} ↓`}
+                </span>
+              </div>
+            )}
+            {bench.avgEr > 0 && (
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="text-muted-foreground">ER</span>
+                <span className="font-semibold text-foreground">
+                  {erNum.toFixed(2)}% vs {bench.avgEr.toFixed(2)}% {isKk ? "орташа" : "среднее"}
+                  <span className={erNum >= bench.avgEr ? "text-green-500 ml-1" : "text-yellow-500 ml-1"}>
+                    {erNum >= bench.avgEr ? "↑" : "↓"}
+                  </span>
+                </span>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Engagement ratios */}
+      {views > 0 && (
+        <SectionCard icon={TrendingUp} title={isKk ? "Қатысу коэффициенттері" : "Соотношения вовлечения"}>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-card border border-border/40 p-2 text-center">
+              <p className="text-[10px] text-muted-foreground">{isKk ? "Лайк/Көру" : "Лайки/Просм"}</p>
+              <p className="text-[13px] font-bold text-foreground">{(likeRatio * 100).toFixed(1)}%</p>
+              <p className={`text-[10px] font-semibold ${likeR.color}`}>{likeR.txt}</p>
+            </div>
+            <div className="rounded-lg bg-card border border-border/40 p-2 text-center">
+              <p className="text-[10px] text-muted-foreground">{isKk ? "Бөлісу/Көру" : "Репост/Просм"}</p>
+              <p className="text-[13px] font-bold text-foreground">{(shareRatio * 100).toFixed(2)}%</p>
+              <p className={`text-[10px] font-semibold ${shareR.color}`}>{shareR.txt}</p>
+            </div>
+            <div className="rounded-lg bg-card border border-border/40 p-2 text-center">
+              <p className="text-[10px] text-muted-foreground">{isKk ? "Пікір/Лайк" : "Комм/Лайки"}</p>
+              <p className="text-[13px] font-bold text-foreground">{(commentToLikeRatio * 100).toFixed(1)}%</p>
+              <p className={`text-[10px] font-semibold ${commentR.color}`}>{commentR.txt}</p>
+            </div>
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Hook strength + Duration assessment */}
+      {(hookStrength || durationAssessment) && (
+        <div className="grid grid-cols-2 gap-2">
+          {hookStrength && (
+            <div className={`rounded-xl border p-2.5 ${hookStrength.color}`}>
+              <p className="text-[10px] uppercase tracking-wider opacity-70">{isKk ? "Хук күші" : "Сила хука"}</p>
+              <p className="text-[13px] font-bold mt-0.5">{hookStrength.label} {hookStrength.emoji}</p>
+              <p className="text-[10px] opacity-70 mt-0.5">{hookStrength.words} {isKk ? "сөз" : "слов"}</p>
+            </div>
+          )}
+          {durationAssessment && (
+            <div className="rounded-xl border border-border/50 bg-muted/30 p-2.5">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{isKk ? "Ұзақтығы" : "Длина"}</p>
+              <p className="text-[13px] font-bold text-foreground mt-0.5">{durationAssessment.fmt} {durationAssessment.emoji}</p>
+              <p className={`text-[10px] font-semibold mt-0.5 ${durationAssessment.color}`}>{durationAssessment.label}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Share potential */}
+      {sharePotential && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 flex items-start gap-2">
+          <Rocket className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-[12px] font-bold text-primary">{isKk ? "Тарату әлеуеті жоғары" : "Высокий потенциал распространения"}</p>
+            <p className="text-[11px] text-foreground/70 mt-0.5">💬 {isKk ? "Адамдар белсенді бөлісуде — эмоциялық тақырып жұмыс істейді" : "Люди активно делятся — эмоциональная тема работает"}</p>
+          </div>
+        </div>
+      )}
+
       {/* Tags + Language + Format — horizontal scroll on mobile */}
       <div className="flex flex-wrap gap-1">
         {summary?.language && (
