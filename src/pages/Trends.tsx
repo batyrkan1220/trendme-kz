@@ -653,6 +653,8 @@ export default function Trends() {
                         playingId={playingId}
                         onPlay={setPlayingId}
                         onViewAll={handleViewAll}
+                        isFreePlan={isFreePlan}
+                        freeVisibleCount={3}
                       />
                     ))}
                     {filteredGroups.every((g) => !videosByNiche[g.key]?.length) && (

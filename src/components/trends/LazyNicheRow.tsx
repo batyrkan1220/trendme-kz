@@ -13,6 +13,8 @@ interface LazyNicheRowProps {
   onPlay: (id: string | null) => void;
   onViewAll: (nicheKey: string, subNicheKey?: string) => void;
   darkMode?: boolean;
+  isFreePlan?: boolean;
+  freeVisibleCount?: number;
 }
 
 function LazyNicheRowImpl(props: LazyNicheRowProps) {
