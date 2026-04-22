@@ -4,16 +4,22 @@ import {
   Search as SearchIcon, Clock, Loader2, Sparkles, TrendingUp
 } from "lucide-react";
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MemoVideoCard, VideoCardData } from "@/components/VideoCard";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
+import { LockedVideoOverlay } from "@/components/trends/LockedVideoOverlay";
+import { cn } from "@/lib/utils";
+
+const FREE_SEARCH_VISIBLE = 5;
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
@@ -24,6 +30,8 @@ export default function SearchPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { checkAndLog } = useSubscription();
+  const { isFreePlan } = useIsFreePlan();
+  const navigate = useNavigate();
 
   const { data: recentQueries } = useQuery({
     queryKey: ["search-queries", user?.id],
@@ -325,21 +333,34 @@ export default function SearchPage() {
                         duration: Number(video.duration_sec) || 0,
                       };
 
+                      const isLocked = isFreePlan && i >= FREE_SEARCH_VISIBLE;
+
                       return (
-                        <MemoVideoCard
+                        <div
                           key={video.id || i}
-                          video={cardData}
-                          playingId={playingId}
-                          onPlay={setPlayingId}
-                          isFavorite={userFavorites.includes(video.id)}
-                          onToggleFav={toggleFav}
-                          onAnalyze={() => setAnalysisVideo(video)}
-                          onScript={() => setScriptVideo(video)}
-                          showTier={true}
-                          showAuthor={true}
-                          showAnalyzeButton={true}
-                          showScriptButton={true}
-                        />
+                          className={cn(
+                            "relative",
+                            isLocked && "group/lock cursor-pointer rounded-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-glow-viral"
+                          )}
+                          onClick={isLocked ? () => navigate("/subscription") : undefined}
+                        >
+                          <div className={isLocked ? "pointer-events-none select-none" : ""}>
+                            <MemoVideoCard
+                              video={cardData}
+                              playingId={playingId}
+                              onPlay={setPlayingId}
+                              isFavorite={userFavorites.includes(video.id)}
+                              onToggleFav={toggleFav}
+                              onAnalyze={() => setAnalysisVideo(video)}
+                              onScript={() => setScriptVideo(video)}
+                              showTier={true}
+                              showAuthor={true}
+                              showAnalyzeButton={!isLocked}
+                              showScriptButton={!isLocked}
+                            />
+                          </div>
+                          {isLocked && <LockedVideoOverlay />}
+                        </div>
                       );
                     })}
                   </div>
