@@ -49,7 +49,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastAnalyzedUrl = useRef<string | null>(null);
   const preloadedUrlRef = useRef<string | null>(null);
-  const { checkAndLog } = useSubscription();
+  
 
   useEffect(() => {
     if (open && video) {
