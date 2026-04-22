@@ -331,19 +331,25 @@ export default function Pricing() {
   );
 }
 
-function FeatureRow({ featured, label }: { featured: boolean; label: React.ReactNode }) {
+function FeatureRow({ featured, label, disabled = false }: { featured: boolean; label: React.ReactNode; disabled?: boolean }) {
   return (
     <li className={cn(
-      "flex gap-2.5",
-      featured ? "" : "text-foreground/80"
+      "flex gap-2.5 items-start",
+      disabled
+        ? "text-muted-foreground/70 line-through decoration-muted-foreground/40"
+        : featured ? "" : "text-foreground/80"
     )}>
-      <Check
-        className={cn(
-          "w-5 h-5 shrink-0",
-          featured ? "text-viral" : "text-emerald-500"
-        )}
-        strokeWidth={2.5}
-      />
+      {disabled ? (
+        <X className="w-5 h-5 shrink-0 text-muted-foreground/60" strokeWidth={2.5} />
+      ) : (
+        <Check
+          className={cn(
+            "w-5 h-5 shrink-0",
+            featured ? "text-viral" : "text-emerald-500"
+          )}
+          strokeWidth={2.5}
+        />
+      )}
       <span>{label}</span>
     </li>
   );
