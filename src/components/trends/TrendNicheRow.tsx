@@ -1,7 +1,7 @@
 import { useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MemoVideoCard } from "@/components/VideoCard";
-import { ChevronRight, Lock, Crown } from "lucide-react";
+import { ChevronRight, Lock } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
 
 
@@ -114,25 +114,22 @@ function TrendNicheRowImpl({
                 <button
                   type="button"
                   onClick={() => navigate("/subscription")}
-                  className="absolute inset-0 z-10 rounded-2xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary/60"
-                  aria-label="Разблокировать в Pro"
+                  className="absolute inset-0 z-10 rounded-2xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-viral/60"
+                  aria-label="Разблокировать на платном тарифе"
                 >
-                  {/* Blur + dim overlay over the cover area */}
-                  <div className="absolute inset-0 backdrop-blur-md bg-background/55 transition-colors group-hover:bg-background/45" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-fuchsia-500/15" />
+                  {/* Лёгкий blur — видео слегка просвечивается */}
+                  <div className="absolute inset-0 backdrop-blur-[3px] bg-foreground/25 transition-colors group-hover:bg-foreground/20" />
 
-                  {/* Centered lock content */}
-                  <div className="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-3 gap-2">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
-                      <Lock className="h-5 w-5 text-white" />
+                  {/* Плашка по центру в стиле платформы (viral lime + foreground) */}
+                  <div className="relative z-10 h-full w-full flex items-center justify-center px-2">
+                    <div className="flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl bg-foreground/90 backdrop-blur-sm border border-viral/40 shadow-glow-viral group-hover:scale-105 transition-transform">
+                      <div className="h-8 w-8 rounded-full bg-viral flex items-center justify-center">
+                        <Lock className="h-4 w-4 text-foreground" strokeWidth={2.5} />
+                      </div>
+                      <p className="text-[11px] font-bold text-background leading-tight text-center">
+                        Платный тариф
+                      </p>
                     </div>
-                    <p className="text-[12px] font-bold text-foreground leading-tight">
-                      Доступно в Pro
-                    </p>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 border border-primary/30 text-[10px] font-bold text-primary">
-                      <Crown className="h-2.5 w-2.5" />
-                      Открыть
-                    </span>
                   </div>
                 </button>
               )}
