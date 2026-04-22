@@ -79,6 +79,7 @@ export default function Trends() {
 
   /* ======================= subscription ======================= */
   const { isFreePlan } = useIsFreePlan();
+  const { analysesLeft, scriptsLeft, consume } = useFreeCredits();
 
   /* ======================= all videos ======================= */
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
