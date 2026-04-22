@@ -238,16 +238,18 @@ export default function Auth() {
 
   // ───────────── Render ─────────────
   const titleByContext = () => {
-    if (step === "otp") return "Подтвердите аккаунт";
+    if (step === "new-password") return "Новый пароль";
+    if (step === "otp") return mode === "forgot" ? "Подтвердите сброс" : "Подтвердите аккаунт";
     if (mode === "login") return "С возвращением";
     if (mode === "register") return "Создайте аккаунт";
-    return "Восстановление";
+    return "Восстановление пароля";
   };
   const subtitleByContext = () => {
+    if (step === "new-password") return "Придумайте новый пароль для входа";
     if (step === "otp") return `Мы отправили 6-значный код на ${email}`;
     if (mode === "login") return "Войдите, чтобы продолжить";
     if (mode === "register") return "Начните находить тренды за минуту";
-    return "Отправим ссылку для сброса пароля";
+    return "Введите email — отправим код для сброса";
   };
 
   return (
@@ -274,7 +276,57 @@ export default function Auth() {
         </div>
 
         <div className="glass rounded-2xl shadow-card p-5 md:p-6 space-y-4">
-          {step === "otp" ? (
+          {step === "new-password" ? (
+            <form onSubmit={handleSetNewPassword} className="space-y-3">
+              <div className="space-y-2.5">
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Новый пароль"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-11 pr-11 h-12 bg-background border-border rounded-xl text-base focus-visible:ring-viral focus-visible:ring-2"
+                    disabled={loading}
+                    autoComplete="new-password"
+                    autoFocus
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" tabIndex={-1}>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Повторите новый пароль"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-11 h-12 bg-background border-border rounded-xl text-base focus-visible:ring-viral focus-visible:ring-2"
+                    disabled={loading}
+                    autoComplete="new-password"
+                  />
+                </div>
+                {password && (
+                  <div className="space-y-1.5 px-1">
+                    <div className="flex gap-1">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div key={i} className={cn("h-1 flex-1 rounded-full transition-colors", i <= strength.score ? strength.color : "bg-muted")} />
+                      ))}
+                    </div>
+                    {strength.label && (
+                      <p className="text-[11px] text-muted-foreground">
+                        Надёжность пароля: <span className="font-semibold text-foreground">{strength.label}</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <Button type="submit" disabled={loading} className="w-full h-12 bg-viral text-viral-foreground hover:bg-viral/90 rounded-xl text-base font-bold shadow-glow-viral transition-all active:scale-[0.98]">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : (<>Сохранить пароль <ArrowRight className="h-5 w-5 ml-2" /></>)}
+              </Button>
+            </form>
+          ) : step === "otp" ? (
             <div className="space-y-5 py-2">
               <OTPInput
                 length={6}
