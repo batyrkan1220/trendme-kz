@@ -64,18 +64,33 @@ export default function Pricing() {
   });
 
   const activePlanName = (userSub as any)?.plans?.name;
-  const [loadingPlanId] = useState<string | null>(null);
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
-  const handlePayment = (planId: string) => {
+  const handlePayment = async (planId: string) => {
     const plan = plans.find((p: any) => p.id === planId);
     if (!plan) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
     trackInitiateCheckout(plan.name, plan.price_rub);
     trackPlausible("Plan Upgrade", { plan: plan.duration_days === 90 ? "quarterly" : "monthly" });
-    const phone = "77770145874";
-    const duration = plan.duration_days === 90 ? "3-месячную" : "1-месячную";
-    const message = `Я хочу Купить ${duration} подписку на платформу trendme.kz`;
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
+    try {
+      setLoadingPlanId(planId);
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { plan_id: planId },
+      });
+      if (error) throw error;
+      const redirectUrl = (data as any)?.redirect_url;
+      if (!redirectUrl) throw new Error("Не получили ссылку на оплату");
+      window.location.href = redirectUrl;
+    } catch (e: any) {
+      console.error("Payment error:", e);
+      toast.error("Не удалось перейти к оплате", {
+        description: e?.message || "Попробуйте ещё раз через минуту",
+      });
+      setLoadingPlanId(null);
+    }
   };
 
   const getMonthlyPrice = (plan: any) => {
