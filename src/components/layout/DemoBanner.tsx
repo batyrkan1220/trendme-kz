@@ -25,7 +25,7 @@ export function DemoBanner() {
   return (
     <div
       id="demo-banner"
-      className="md:hidden fixed top-0 left-0 right-0 z-[100000] text-white"
+      className="fixed top-0 left-0 right-0 z-[100000] text-white"
       style={{
         paddingTop: "env(safe-area-inset-top, 0px)",
         background:
