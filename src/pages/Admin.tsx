@@ -914,10 +914,10 @@ function UsersTab() {
                           >
                             {sub ? (
                               <div className="flex flex-col gap-0.5">
-                                <Badge variant={isExpired ? "destructive" : "default"} className="text-xs w-fit">
+                                <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold w-fit", getPlanBadgeClass(sub.plans?.name), isExpired && "opacity-60 line-through")}>
                                   <CreditCard className="h-3 w-3 mr-1" />
                                   {sub.plans?.name || "—"}
-                                </Badge>
+                                </span>
                                 <span className={`text-xs ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
                                   до {new Date(sub.expires_at).toLocaleDateString("ru-RU")}
                                 </span>
