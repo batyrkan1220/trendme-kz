@@ -17,6 +17,7 @@ import { MagicAnalysisLoader } from "@/components/MagicAnalysisLoader";
 import { hapticSuccess } from "@/lib/haptics";
 import { VideoAnalysisResults } from "@/components/VideoAnalysisResults";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { trackPlausible } from "@/components/TrackingPixels";
 
 const extractVideoId = (url: string): string => {
   const patterns = [/\/video\/(\d+)/, /\/photo\/(\d+)/, /(\d{15,})/];
