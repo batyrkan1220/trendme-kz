@@ -344,11 +344,21 @@ export default function Auth() {
               <OTPInput
                 length={6}
                 value={otp}
-                onChange={setOtp}
+                onChange={(v) => { setOtp(v); if (otpErrorMsg) setOtpErrorMsg(null); }}
                 onComplete={(code) => handleVerifyOtp(code)}
                 disabled={otpVerifying}
                 errorPulse={otpError}
               />
+
+              {otpErrorMsg && (
+                <p
+                  role="alert"
+                  aria-live="polite"
+                  className="text-center text-sm font-medium text-destructive animate-fade-in"
+                >
+                  {otpErrorMsg}
+                </p>
+              )}
 
               <Button
                 type="button"
