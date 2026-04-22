@@ -13,6 +13,7 @@ import {
   TrendingUp,
   PlayCircle,
   Star,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,39 +24,48 @@ import { NICHE_GROUPS } from "@/config/niches";
 
 const NICHES = NICHE_GROUPS.map((g) => ({
   value: g.key,
-  label: `${g.emoji} ${g.label}`,
+  label: g.label,
+  emoji: g.emoji,
 }));
 
 const GOALS = [
-  { value: "grow_followers", label: "📈 Хочу быстро набрать подписчиков" },
-  { value: "find_ideas", label: "💡 Не знаю о чём снимать — нужны идеи" },
-  { value: "analyze_competitors", label: "🔍 Хочу следить за конкурентами" },
-  { value: "find_trends", label: "🔥 Хочу первым ловить вирусные тренды" },
-  { value: "grow_income", label: "💰 Хочу монетизировать контент" },
+  { value: "grow_followers", label: "Быстро набрать подписчиков", emoji: "📈" },
+  { value: "find_ideas", label: "Найти идеи для контента", emoji: "💡" },
+  { value: "analyze_competitors", label: "Следить за конкурентами", emoji: "🔍" },
+  { value: "find_trends", label: "Первым ловить вирусные тренды", emoji: "🔥" },
+  { value: "grow_income", label: "Монетизировать контент", emoji: "💰" },
 ];
 
 const PLATFORMS = [
-  { value: "tiktok", label: "🎵 TikTok" },
-  { value: "instagram", label: "📸 Instagram Reels" },
-  { value: "youtube", label: "▶️ YouTube Shorts" },
-  { value: "all", label: "🌐 Все платформы" },
+  { value: "tiktok", label: "TikTok", emoji: "🎵" },
+  { value: "instagram", label: "Instagram Reels", emoji: "📸" },
+  { value: "youtube", label: "YouTube Shorts", emoji: "▶️" },
+  { value: "all", label: "Все платформы", emoji: "🌐" },
 ];
 
 const EXPERIENCE = [
-  { value: "beginner", label: "🌱 Только начинаю", sub: "меньше 1 000 подписчиков" },
-  { value: "growing", label: "🚀 Активно расту", sub: "от 1 000 до 50 000 подписчиков" },
-  { value: "experienced", label: "⭐ Опытный автор", sub: "больше 50 000 подписчиков" },
-  { value: "agency", label: "🏢 Агентство / SMM", sub: "управляю несколькими аккаунтами" },
+  { value: "beginner", label: "Только начинаю", sub: "меньше 1 000 подписчиков", emoji: "🌱" },
+  { value: "growing", label: "Активно расту", sub: "1 000 – 50 000 подписчиков", emoji: "🚀" },
+  { value: "experienced", label: "Опытный автор", sub: "больше 50 000 подписчиков", emoji: "⭐" },
+  { value: "agency", label: "Агентство / SMM", sub: "несколько аккаунтов", emoji: "🏢" },
 ];
 
 const PREPARING_STEPS = [
-  { icon: Search, text: "Ищем тренды по вашей нише..." },
-  { icon: BarChart3, text: "Анализируем вашу платформу..." },
-  { icon: TrendingUp, text: "Подбираем контент под ваш уровень..." },
-  { icon: Zap, text: "Всё готово! Запускаем..." },
+  { icon: Search, text: "Ищем тренды по вашей нише…" },
+  { icon: BarChart3, text: "Анализируем вашу платформу…" },
+  { icon: TrendingUp, text: "Подбираем контент под ваш уровень…" },
+  { icon: Zap, text: "Всё готово! Запускаем…" },
 ];
 
 const TOTAL_STEPS = 5;
+
+const STEP_META = [
+  { eyebrow: "Шаг 1 · Ниша", icon: Sparkles },
+  { eyebrow: "Шаг 2 · Цель", icon: Target },
+  { eyebrow: "Шаг 3 · Платформа", icon: PlayCircle },
+  { eyebrow: "Шаг 4 · Опыт", icon: Star },
+  { eyebrow: "Шаг 5 · Соглашения", icon: ShieldCheck },
+];
 
 export default function Onboarding() {
   const [step, setStep] = useState(0);
@@ -82,7 +92,7 @@ export default function Onboarding() {
     setTimeout(() => {
       setStep(next);
       setTransitioning(false);
-    }, 250);
+    }, 220);
   };
 
   const doSaveAndNavigate = async () => {
@@ -142,57 +152,66 @@ export default function Onboarding() {
 
   const slideClass = transitioning
     ? direction === "forward"
-      ? "opacity-0 translate-x-8"
-      : "opacity-0 -translate-x-8"
+      ? "opacity-0 translate-x-6"
+      : "opacity-0 -translate-x-6"
     : "opacity-100 translate-x-0";
 
   // ── PREPARING SCREEN ──────────────────────────────────────────────
   if (preparing) {
+    const Icon = PREPARING_STEPS[prepStep].icon;
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-[0.08]" style={{ background: "hsl(72 100% 50%)" }} />
-        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-[0.06]" style={{ background: "hsl(82 90% 45%)" }} />
-
-        <div className="w-full max-w-sm space-y-10 text-center animate-fade-in">
-          <div className="relative mx-auto w-20 h-20">
-            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" style={{ animationDuration: "2s" }} />
-            <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-primary/10">
-              {(() => {
-                const Icon = PREPARING_STEPS[prepStep].icon;
-                return <Icon className="h-9 w-9 text-primary animate-scale-in" key={prepStep} />;
-              })()}
+      <div className="min-h-screen flex items-center justify-center bg-background gradient-mesh p-4 relative overflow-hidden">
+        <div className="w-full max-w-sm space-y-10 text-center animate-fade-in relative">
+          {/* Animated icon */}
+          <div className="relative mx-auto w-24 h-24">
+            <div
+              className="absolute inset-0 rounded-3xl bg-primary/15 blur-2xl animate-pulse"
+              style={{ animationDuration: "2.4s" }}
+            />
+            <div className="relative flex items-center justify-center w-24 h-24 rounded-3xl bg-card border border-border shadow-card">
+              <Icon className="h-10 w-10 text-primary animate-scale-in" key={prepStep} />
             </div>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-lg font-semibold text-foreground animate-fade-in" key={prepStep}>
+          {/* Step text */}
+          <div className="space-y-4">
+            <p
+              className="text-base font-semibold text-foreground animate-fade-in tracking-tight"
+              key={prepStep}
+            >
               {PREPARING_STEPS[prepStep].text}
             </p>
-            <div className="flex justify-center gap-2">
+
+            {/* Progress dots */}
+            <div className="flex justify-center gap-1.5">
               {PREPARING_STEPS.map((_, i) => (
                 <div
                   key={i}
-                  className={`h-2 rounded-full transition-all duration-500 ${
-                    i <= prepStep ? "w-8 bg-primary" : "w-2 bg-muted"
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    i <= prepStep ? "w-8 bg-primary" : "w-1.5 bg-border"
                   }`}
                 />
               ))}
             </div>
           </div>
 
-          <div className="flex justify-center gap-2 flex-wrap">
+          {/* Selection chips */}
+          <div className="flex justify-center gap-1.5 flex-wrap">
             {niche && (
-              <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              <span className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold">
+                {NICHES.find((n) => n.value === niche)?.emoji}{" "}
                 {NICHES.find((n) => n.value === niche)?.label}
               </span>
             )}
             {platform && (
-              <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              <span className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold">
+                {PLATFORMS.find((p) => p.value === platform)?.emoji}{" "}
                 {PLATFORMS.find((p) => p.value === platform)?.label}
               </span>
             )}
             {goal && (
-              <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              <span className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold">
+                {GOALS.find((g) => g.value === goal)?.emoji}{" "}
                 {GOALS.find((g) => g.value === goal)?.label}
               </span>
             )}
@@ -202,279 +221,398 @@ export default function Onboarding() {
     );
   }
 
+  const StepIcon = STEP_META[step].icon;
+
   // ── MAIN ONBOARDING ───────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-[0.08]" style={{ background: "hsl(72 100% 50%)" }} />
-      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-[0.06]" style={{ background: "hsl(82 90% 45%)" }} />
+    <div className="min-h-screen flex items-center justify-center bg-background gradient-mesh p-4 relative overflow-hidden">
+      {/* Subtle dot grid behind everything */}
+      <div className="absolute inset-0 bg-dots opacity-[0.35] pointer-events-none" />
 
-      <div className="w-full max-w-md space-y-6 animate-fade-in relative">
+      <div className="w-full max-w-md relative">
+        {/* Card */}
+        <div className="rounded-3xl border border-border bg-card/90 glass-strong shadow-card p-6 sm:p-8 space-y-6 animate-fade-in">
+          {/* Top bar: progress */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="section-label !px-0 !mb-0">{STEP_META[step].eyebrow}</span>
+              <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
+                {step + 1}/{TOTAL_STEPS}
+              </span>
+            </div>
+            <div className="flex gap-1">
+              {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                <div key={i} className="h-1 flex-1 rounded-full overflow-hidden bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+                    style={{ width: i < step ? "100%" : i === step ? "55%" : "0%" }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
-        {/* Progress bar */}
-        <div className="space-y-1.5">
-          <div className="flex gap-1.5">
-            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-              <div key={i} className="h-1 flex-1 rounded-full overflow-hidden bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
-                  style={{ width: i < step ? "100%" : i === step ? "60%" : "0%" }}
+          <div className={`transition-all duration-200 ease-out ${slideClass}`}>
+            {/* Header (shared across steps) */}
+            <div className="text-center space-y-2 mb-5">
+              <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary-soft border border-border animate-scale-in">
+                <StepIcon className="h-6 w-6 text-primary" strokeWidth={2.2} />
+              </div>
+              {step === 0 && (
+                <>
+                  <h2 className="text-[22px] font-bold text-foreground tracking-tight">
+                    В какой нише вы создаёте контент?
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Подберём тренды именно для вашей темы
+                  </p>
+                </>
+              )}
+              {step === 1 && (
+                <>
+                  <h2 className="text-[22px] font-bold text-foreground tracking-tight">
+                    Какая ваша главная цель?
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Настроим платформу под ваши задачи
+                  </p>
+                </>
+              )}
+              {step === 2 && (
+                <>
+                  <h2 className="text-[22px] font-bold text-foreground tracking-tight">
+                    На какой платформе вы снимаете?
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Будем искать тренды именно там
+                  </p>
+                </>
+              )}
+              {step === 3 && (
+                <>
+                  <h2 className="text-[22px] font-bold text-foreground tracking-tight">
+                    Какой у вас опыт в контенте?
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Подберём подходящий уровень аналитики
+                  </p>
+                </>
+              )}
+              {step === 4 && (
+                <>
+                  <h2 className="text-[22px] font-bold text-foreground tracking-tight">
+                    Почти готово!
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Примите условия использования для продолжения
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* ── STEP 0: Ниша ─────────────────────────────────────── */}
+            {step === 0 && (
+              <div className="space-y-5">
+                <div className="max-h-[calc(100dvh-380px)] min-h-[180px] overflow-y-auto -mx-2 px-2 scrollbar-hide">
+                  <div className="flex flex-wrap gap-1.5 justify-center">
+                    {NICHES.map((n) => {
+                      const active = niche === n.value;
+                      return (
+                        <button
+                          key={n.value}
+                          onClick={() => setNiche(n.value)}
+                          className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all duration-150 press-feedback whitespace-nowrap ${
+                            active
+                              ? "border-primary bg-primary text-primary-foreground shadow-glow-primary"
+                              : "border-border bg-background text-foreground/80 hover:border-primary/40 hover:bg-primary-soft"
+                          }`}
+                        >
+                          <span className="mr-1">{n.emoji}</span>
+                          {n.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <Button
+                  onClick={() => goToStep(1)}
+                  disabled={!niche}
+                  className="w-full h-12 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-[15px] font-semibold shadow-glow-primary press-feedback"
+                >
+                  Продолжить <ArrowRight className="h-4 w-4 ml-1.5" />
+                </Button>
+              </div>
+            )}
+
+            {/* ── STEP 1: Цель ─────────────────────────────────────── */}
+            {step === 1 && (
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 gap-2">
+                  {GOALS.map((g) => {
+                    const active = goal === g.value;
+                    return (
+                      <button
+                        key={g.value}
+                        onClick={() => setGoal(g.value)}
+                        className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all duration-150 press-feedback ${
+                          active
+                            ? "border-primary bg-primary-soft shadow-soft"
+                            : "border-border bg-background hover:border-primary/40 hover:bg-primary-soft/50"
+                        }`}
+                      >
+                        <span className="text-xl shrink-0">{g.emoji}</span>
+                        <span
+                          className={`text-sm font-semibold flex-1 ${
+                            active ? "text-foreground" : "text-foreground/85"
+                          }`}
+                        >
+                          {g.label}
+                        </span>
+                        {active && (
+                          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground shrink-0">
+                            <Check className="h-3 w-3" strokeWidth={3} />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <NavRow
+                  onBack={() => goToStep(0)}
+                  onNext={() => goToStep(2)}
+                  nextDisabled={!goal}
                 />
               </div>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground text-right">
-            Шаг {step + 1} из {TOTAL_STEPS}
-          </p>
-        </div>
+            )}
 
-        <div className={`transition-all duration-250 ease-out ${slideClass}`}>
-
-          {/* ── STEP 0: Ниша ─────────────────────────────────────── */}
-          {step === 0 && (
-            <div className="space-y-4">
-              <div className="text-center space-y-1.5">
-                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary/10 animate-scale-in">
-                  <Sparkles className="h-6 w-6 text-primary" />
+            {/* ── STEP 2: Платформа ────────────────────────────────── */}
+            {step === 2 && (
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 gap-2.5">
+                  {PLATFORMS.map((p) => {
+                    const active = platform === p.value;
+                    return (
+                      <button
+                        key={p.value}
+                        onClick={() => setPlatform(p.value)}
+                        className={`relative flex flex-col items-center justify-center gap-1.5 p-4 rounded-2xl border text-center transition-all duration-150 press-feedback aspect-[4/3] ${
+                          active
+                            ? "border-primary bg-primary-soft shadow-soft"
+                            : "border-border bg-background hover:border-primary/40 hover:bg-primary-soft/50"
+                        }`}
+                      >
+                        <span className="text-3xl">{p.emoji}</span>
+                        <span
+                          className={`text-[13px] font-semibold ${
+                            active ? "text-foreground" : "text-foreground/85"
+                          }`}
+                        >
+                          {p.label}
+                        </span>
+                        {active && (
+                          <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground">
+                            <Check className="h-3 w-3" strokeWidth={3} />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <h2 className="text-xl font-bold text-foreground">В какой нише вы создаёте контент?</h2>
-                <p className="text-xs text-muted-foreground">Мы подберём тренды именно для вашей темы</p>
+                <NavRow
+                  onBack={() => goToStep(1)}
+                  onNext={() => goToStep(3)}
+                  nextDisabled={!platform}
+                />
               </div>
-              <div className="max-h-[calc(100dvh-300px)] overflow-y-auto -mx-1 px-1 scrollbar-hide">
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {NICHES.map((n) => (
-                    <button
-                      key={n.value}
-                      onClick={() => setNiche(n.value)}
-                      className={`px-3 py-2 rounded-full border text-xs font-medium transition-all duration-200 active:scale-[0.95] whitespace-nowrap ${
-                        niche === n.value
-                          ? "border-primary bg-primary/15 text-foreground shadow-sm"
-                          : "border-border bg-card text-muted-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      {n.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <Button
-                onClick={() => goToStep(1)}
-                disabled={!niche}
-                className="w-full h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
-              >
-                Далее <ArrowRight className="h-5 w-5 ml-2" />
-              </Button>
-            </div>
-          )}
+            )}
 
-          {/* ── STEP 1: Цель ─────────────────────────────────────── */}
-          {step === 1 && (
-            <div className="space-y-5">
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary/10 animate-scale-in">
-                  <Target className="h-6 w-6 text-primary" />
+            {/* ── STEP 3: Опыт ─────────────────────────────────────── */}
+            {step === 3 && (
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 gap-2">
+                  {EXPERIENCE.map((e) => {
+                    const active = experience === e.value;
+                    return (
+                      <button
+                        key={e.value}
+                        onClick={() => setExperience(e.value)}
+                        className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all duration-150 press-feedback ${
+                          active
+                            ? "border-primary bg-primary-soft shadow-soft"
+                            : "border-border bg-background hover:border-primary/40 hover:bg-primary-soft/50"
+                        }`}
+                      >
+                        <span className="text-2xl shrink-0">{e.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground">{e.label}</p>
+                          <p className="text-xs text-muted-foreground">{e.sub}</p>
+                        </div>
+                        {active && (
+                          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground shrink-0">
+                            <Check className="h-3 w-3" strokeWidth={3} />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <h2 className="text-xl font-bold text-foreground">Какая ваша главная цель?</h2>
-                <p className="text-xs text-muted-foreground">Настроим платформу под ваши задачи</p>
+                <NavRow
+                  onBack={() => goToStep(2)}
+                  onNext={() => goToStep(4)}
+                  nextDisabled={!experience}
+                />
               </div>
-              <div className="grid grid-cols-1 gap-2.5">
-                {GOALS.map((g) => (
-                  <button
-                    key={g.value}
-                    onClick={() => setGoal(g.value)}
-                    className={`p-3.5 rounded-xl border text-left text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
-                      goal === g.value
-                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/50"
-                    }`}
-                  >
-                    {g.label}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => goToStep(0)} className="h-12 rounded-xl px-4">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => goToStep(2)}
-                  disabled={!goal}
-                  className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
-                >
-                  Далее <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* ── STEP 2: Платформа ────────────────────────────────── */}
-          {step === 2 && (
-            <div className="space-y-5">
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary/10 animate-scale-in">
-                  <PlayCircle className="h-6 w-6 text-primary" />
-                </div>
-                <h2 className="text-xl font-bold text-foreground">На какой платформе вы снимаете?</h2>
-                <p className="text-xs text-muted-foreground">Будем искать тренды именно там</p>
-              </div>
-              <div className="flex flex-wrap gap-2.5 justify-center">
-                {PLATFORMS.map((p) => (
-                  <button
-                    key={p.value}
-                    onClick={() => setPlatform(p.value)}
-                    className={`px-5 py-3 rounded-2xl border text-sm font-semibold transition-all duration-200 active:scale-[0.95] ${
-                      platform === p.value
-                        ? "border-primary bg-primary/15 text-foreground shadow-sm scale-[1.03]"
-                        : "border-border bg-card text-muted-foreground hover:border-primary/50"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => goToStep(1)} className="h-12 rounded-xl px-4">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => goToStep(3)}
-                  disabled={!platform}
-                  className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
-                >
-                  Далее <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 3: Опыт ─────────────────────────────────────── */}
-          {step === 3 && (
-            <div className="space-y-5">
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary/10 animate-scale-in">
-                  <Star className="h-6 w-6 text-primary" />
-                </div>
-                <h2 className="text-xl font-bold text-foreground">Какой у вас опыт в контенте?</h2>
-                <p className="text-xs text-muted-foreground">Подберём подходящий уровень аналитики</p>
-              </div>
-              <div className="grid grid-cols-1 gap-2.5">
-                {EXPERIENCE.map((e) => (
-                  <button
-                    key={e.value}
-                    onClick={() => setExperience(e.value)}
-                    className={`p-3.5 rounded-xl border text-left transition-all duration-200 active:scale-[0.97] ${
-                      experience === e.value
-                        ? "border-primary bg-primary/10 shadow-sm"
-                        : "border-border bg-card hover:border-primary/50"
-                    }`}
-                  >
-                    <p className={`text-sm font-semibold ${experience === e.value ? "text-foreground" : "text-muted-foreground"}`}>
-                      {e.label}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{e.sub}</p>
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => goToStep(2)} className="h-12 rounded-xl px-4">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => goToStep(4)}
-                  disabled={!experience}
-                  className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
-                >
-                  Далее <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 4: Соглашения ───────────────────────────────── */}
-          {step === 4 && (
-            <div className="space-y-5">
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary/10 animate-scale-in">
-                  <ShieldCheck className="h-6 w-6 text-primary" />
-                </div>
-                <h2 className="text-xl font-bold text-foreground">Почти готово!</h2>
-                <p className="text-xs text-muted-foreground">Примите условия использования для продолжения</p>
-              </div>
-
-              <div className="space-y-2.5">
-                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-card cursor-pointer select-none transition-all hover:border-primary/50 active:scale-[0.98]">
-                  <input
-                    type="checkbox"
+            {/* ── STEP 4: Соглашения ───────────────────────────────── */}
+            {step === 4 && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <ConsentRow
                     checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="mt-0.5 h-5 w-5 rounded border-border accent-primary shrink-0"
+                    onChange={setTermsAccepted}
+                    title="Пользовательское соглашение"
+                    body={
+                      <>
+                        Я принимаю{" "}
+                        <a
+                          href="/terms"
+                          target="_blank"
+                          className="text-primary hover:underline font-semibold"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Пользовательское соглашение
+                        </a>
+                      </>
+                    }
                   />
-                  <div className="space-y-0.5">
-                    <span className="text-sm font-medium text-foreground">Пользовательское соглашение</span>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Я принимаю{" "}
-                      <a href="/terms" target="_blank" className="text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>
-                        Пользовательское соглашение
-                      </a>
-                    </p>
-                  </div>
-                </label>
-
-                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-card cursor-pointer select-none transition-all hover:border-primary/50 active:scale-[0.98]">
-                  <input
-                    type="checkbox"
+                  <ConsentRow
                     checked={privacyAccepted}
-                    onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                    className="mt-0.5 h-5 w-5 rounded border-border accent-primary shrink-0"
+                    onChange={setPrivacyAccepted}
+                    title="Политика конфиденциальности"
+                    body={
+                      <>
+                        Я ознакомился с{" "}
+                        <a
+                          href="/privacy"
+                          target="_blank"
+                          className="text-primary hover:underline font-semibold"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Политикой конфиденциальности
+                        </a>
+                      </>
+                    }
                   />
-                  <div className="space-y-0.5">
-                    <span className="text-sm font-medium text-foreground">Политика конфиденциальности</span>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Я ознакомился с{" "}
-                      <a href="/privacy" target="_blank" className="text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>
-                        Политикой конфиденциальности
-                      </a>
-                    </p>
-                  </div>
-                </label>
-
-                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-card cursor-pointer select-none transition-all hover:border-primary/50 active:scale-[0.98]">
-                  <input
-                    type="checkbox"
+                  <ConsentRow
                     checked={contentRulesAccepted}
-                    onChange={(e) => setContentRulesAccepted(e.target.checked)}
-                    className="mt-0.5 h-5 w-5 rounded border-border accent-primary shrink-0"
+                    onChange={setContentRulesAccepted}
+                    title="Правила контента"
+                    body="Я понимаю, что оскорбительный и нетерпимый контент запрещён и будет удалён"
                   />
-                  <div className="space-y-0.5">
-                    <span className="text-sm font-medium text-foreground">Правила контента</span>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Я понимаю, что оскорбительный и нетерпимый контент запрещён и будет удалён
-                    </p>
-                  </div>
-                </label>
-              </div>
+                </div>
 
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => goToStep(3)} className="h-12 rounded-xl px-4">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={handleFinish}
-                  disabled={!allConsentsAccepted || saving}
-                  className="flex-1 h-12 gradient-hero text-primary-foreground border-0 glow-primary rounded-xl text-base font-semibold active:scale-[0.98] transition-transform"
-                >
-                  {saving ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <>
-                      Начать <ArrowRight className="h-5 w-5 ml-2" />
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-2.5">
+                  <Button
+                    variant="outline"
+                    onClick={() => goToStep(3)}
+                    className="h-12 rounded-xl px-4 border-border"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={handleFinish}
+                    disabled={!allConsentsAccepted || saving}
+                    className="flex-1 h-12 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-[15px] font-semibold shadow-glow-primary press-feedback"
+                  >
+                    {saving ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        Начать <ArrowRight className="h-4 w-4 ml-1.5" />
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Footer hint */}
+        <p className="text-center text-[11px] text-muted-foreground mt-4">
+          Эти данные помогут точнее подобрать тренды и аналитику
+        </p>
       </div>
     </div>
+  );
+}
+
+/* ─── Small helper components ─────────────────────────────────────── */
+
+function NavRow({
+  onBack,
+  onNext,
+  nextDisabled,
+}: {
+  onBack: () => void;
+  onNext: () => void;
+  nextDisabled: boolean;
+}) {
+  return (
+    <div className="flex gap-2.5">
+      <Button variant="outline" onClick={onBack} className="h-12 rounded-xl px-4 border-border">
+        <ArrowLeft className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={onNext}
+        disabled={nextDisabled}
+        className="flex-1 h-12 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-[15px] font-semibold shadow-glow-primary press-feedback"
+      >
+        Продолжить <ArrowRight className="h-4 w-4 ml-1.5" />
+      </Button>
+    </div>
+  );
+}
+
+function ConsentRow({
+  checked,
+  onChange,
+  title,
+  body,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  title: string;
+  body: React.ReactNode;
+}) {
+  return (
+    <label
+      className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer select-none transition-all press-feedback ${
+        checked
+          ? "border-primary/50 bg-primary-soft/60"
+          : "border-border bg-background hover:border-primary/30"
+      }`}
+    >
+      <span className="relative mt-0.5 shrink-0">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          className="peer sr-only"
+        />
+        <span
+          className={`flex items-center justify-center h-5 w-5 rounded-md border-2 transition-colors ${
+            checked ? "bg-primary border-primary" : "bg-background border-border-strong"
+          }`}
+        >
+          {checked && <Check className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />}
+        </span>
+      </span>
+      <div className="space-y-0.5 min-w-0">
+        <span className="block text-sm font-semibold text-foreground">{title}</span>
+        <p className="text-xs text-muted-foreground leading-relaxed">{body}</p>
+      </div>
+    </label>
   );
 }
