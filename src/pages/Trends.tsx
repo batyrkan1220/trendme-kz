@@ -499,22 +499,7 @@ export default function Trends() {
                 className="px-4 md:px-6 lg:px-8 pt-4 md:pt-8"
                 style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
               >
-                <div className="eyebrow mb-1.5 text-[11px] md:text-[12px]">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
-                  </span>
-                  Live trends
-                </div>
-
-                <div className="flex items-center md:items-end justify-between gap-3 md:gap-4 flex-wrap">
-                  <div className="min-w-0">
-                    <h1 className="text-[22px] md:text-[40px] leading-[1.1] md:leading-[1.05] font-semibold tracking-tight text-foreground">
-                      Что взрывается{" "}
-                      <span className="text-foreground">сейчас</span>
-                    </h1>
-                  </div>
-
+                <div className="flex items-center md:items-end justify-end gap-3 md:gap-4 flex-wrap">
                   {/* Period segmented control */}
                   <div className="inline-flex items-center gap-0.5 p-0.5 md:p-1 rounded-lg md:rounded-xl bg-background-muted md:glass md:shadow-soft">
                     {HEADER_PERIODS.map((p) => (
