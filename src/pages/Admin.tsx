@@ -1682,11 +1682,22 @@ function ChangePlanDialog({
     setReason("");
   }, [target?.userId]);
 
+  const isTrial = (() => {
+    const p = activePlans.find((x: any) => x.id === planId);
+    return p?.price_rub === 0;
+  })();
+
   // Auto-recalc expiry when plan changes (based on plan duration)
   const onPlanChange = (newId: string) => {
     setPlanId(newId);
     const p = activePlans.find((x: any) => x.id === newId);
-    if (p && startedAt) {
+    if (!p) return;
+    if (p.price_rub === 0) {
+      // Trial → no expiry
+      setExpiresAt("");
+      return;
+    }
+    if (startedAt) {
       const start = new Date(startedAt);
       const days = p.duration_days || 30;
       const end = new Date(start.getTime() + days * 86400000);
@@ -1697,7 +1708,7 @@ function ChangePlanDialog({
   const onStartChange = (v: string) => {
     setStartedAt(v);
     const p = activePlans.find((x: any) => x.id === planId);
-    if (p && v) {
+    if (p && p.price_rub !== 0 && v) {
       const end = new Date(new Date(v).getTime() + (p.duration_days || 30) * 86400000);
       setExpiresAt(end.toISOString().slice(0, 10));
     }
@@ -1705,6 +1716,7 @@ function ChangePlanDialog({
 
   const changeMutation = useMutation({
     mutationFn: async () => {
+      if (!target?.userId) throw new Error("Қате: пайдаланушы ID табылмады");
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=change-user-plan`,
@@ -1716,15 +1728,20 @@ function ChangePlanDialog({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            user_id: target?.userId,
+            user_id: target.userId,
             plan_id: planId,
             started_at: new Date(startedAt).toISOString(),
-            expires_at: new Date(expiresAt + "T23:59:59").toISOString(),
+            // Trial → expires_at null; otherwise end-of-day ISO
+            expires_at: isTrial || !expiresAt ? null : new Date(expiresAt + "T23:59:59").toISOString(),
             reason: reason || null,
           }),
         }
       );
-      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      if (!res.ok) {
+        let msg = "Failed";
+        try { msg = (await res.json()).error || msg; } catch {}
+        throw new Error(msg);
+      }
       return res.json();
     },
     onSuccess: (d) => {
@@ -1735,16 +1752,26 @@ function ChangePlanDialog({
       onClose();
     },
     onError: (e: any) => {
-      toast.error(e.message || "Не удалось изменить тариф");
+      toast.error(e?.message || "Не удалось изменить тариф");
+      // Keep modal + selection so admin can retry
       setConfirmOpen(false);
     },
   });
 
   const selectedPlan = activePlans.find((p: any) => p.id === planId);
+  const currentPlan = activePlans.find((p: any) => p.id === target?.currentPlanId);
+
+  // ===== Validation flags =====
+  const isSamePlan = !!target?.currentPlanId && planId === target.currentPlanId;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isPastExpiry = !isTrial && !!expiresAt && expiresAt < todayStr;
+  const isInvalidRange = !isTrial && !!startedAt && !!expiresAt && new Date(expiresAt) <= new Date(startedAt);
+  const isMissingUserId = !target?.userId;
+  const hasError = isSamePlan || isPastExpiry || isInvalidRange || isMissingUserId || !planId || !startedAt || (!isTrial && !expiresAt);
 
   return (
     <>
-      <Dialog open={!!target} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <Dialog open={!!target} onOpenChange={(o) => { if (!o && !changeMutation.isPending) onClose(); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1780,16 +1807,46 @@ function ChangePlanDialog({
               </RadioGroup>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium">Дата начала</label>
-                <Input type="date" value={startedAt} onChange={(e) => onStartChange(e.target.value)} className="mt-1" />
+            {isTrial ? (
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Дата начала</label>
+                  <Input type="date" value={startedAt} onChange={(e) => onStartChange(e.target.value)} className="mt-1" />
+                </div>
+                <p className="text-xs text-muted-foreground italic">Пробный тарифте мерзім белгіленбейді</p>
               </div>
-              <div>
-                <label className="text-sm font-medium">Дата окончания</label>
-                <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="mt-1" />
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Дата начала</label>
+                  <Input type="date" value={startedAt} onChange={(e) => onStartChange(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Дата окончания</label>
+                  <Input
+                    type="date"
+                    value={expiresAt}
+                    min={todayStr}
+                    onChange={(e) => setExpiresAt(e.target.value)}
+                    className={cn("mt-1", isPastExpiry && "border-destructive")}
+                  />
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Inline validation messages */}
+            {isSamePlan && (
+              <p className="text-xs text-amber-500">⚠️ Пайдаланушы қазірдің өзінде осы тарифте</p>
+            )}
+            {isPastExpiry && (
+              <p className="text-xs text-destructive">⚠️ Мерзім өткен күнді таңдау мүмкін емес</p>
+            )}
+            {isInvalidRange && !isPastExpiry && (
+              <p className="text-xs text-destructive">⚠️ Дата окончания должна быть позже даты начала</p>
+            )}
+            {isMissingUserId && (
+              <p className="text-xs text-destructive">⚠️ Қате: пайдаланушы ID табылмады</p>
+            )}
 
             <div>
               <label className="text-sm font-medium">Причина / заметка</label>
@@ -1802,15 +1859,21 @@ function ChangePlanDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={onClose}>Отмена</Button>
+            <Button variant="outline" onClick={onClose} disabled={changeMutation.isPending}>Отмена</Button>
             <Button
               onClick={() => {
+                if (isMissingUserId) return toast.error("Қате: пайдаланушы ID табылмады");
                 if (!planId) return toast.error("Выберите тариф");
-                if (!startedAt || !expiresAt) return toast.error("Укажите даты");
-                if (new Date(expiresAt) <= new Date(startedAt)) return toast.error("Дата окончания должна быть позже даты начала");
+                if (isSamePlan) return toast.error("Пайдаланушы қазірдің өзінде осы тарифте");
+                if (!startedAt) return toast.error("Укажите дату начала");
+                if (!isTrial) {
+                  if (!expiresAt) return toast.error("Укажите дату окончания");
+                  if (isPastExpiry) return toast.error("Мерзім өткен күнді таңдау мүмкін емес");
+                  if (isInvalidRange) return toast.error("Дата окончания должна быть позже даты начала");
+                }
                 setConfirmOpen(true);
               }}
-              disabled={!planId}
+              disabled={hasError || changeMutation.isPending}
             >
               Сменить
             </Button>
@@ -1818,19 +1881,26 @@ function ChangePlanDialog({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={confirmOpen} onOpenChange={(o) => { if (!changeMutation.isPending) setConfirmOpen(o); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Подтвердите смену тарифа</AlertDialogTitle>
             <AlertDialogDescription>
-              Сменить тариф пользователя <strong>{target?.email}</strong> на <strong>«{selectedPlan?.name}»</strong> до{" "}
-              <strong>{expiresAt ? new Date(expiresAt).toLocaleDateString("ru-RU") : ""}</strong>?
+              Пользователь <strong>{target?.email}</strong>:<br />
+              <strong>«{currentPlan?.name || "—"}»</strong> → <strong>«{selectedPlan?.name}»</strong>
+              {!isTrial && expiresAt && (
+                <> (до <strong>{new Date(expiresAt).toLocaleDateString("ru-RU")}</strong>)</>
+              )}
+              {isTrial && <> (без срока)</>}
               {reason && <><br /><span className="text-xs">Причина: {reason}</span></>}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={changeMutation.isPending}>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => { e.preventDefault(); changeMutation.mutate(); }} disabled={changeMutation.isPending}>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); if (!changeMutation.isPending) changeMutation.mutate(); }}
+              disabled={changeMutation.isPending}
+            >
               {changeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
               Подтвердить
             </AlertDialogAction>
