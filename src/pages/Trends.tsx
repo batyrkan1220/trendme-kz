@@ -522,6 +522,8 @@ export default function Trends() {
                   onScript={openScript}
                   hasMore={drillTotalFiltered > visibleCount}
                   onLoadMore={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  isFreePlan={isFreePlan}
+                  freeVisibleCount={3}
                 />
               </div>
             </>
