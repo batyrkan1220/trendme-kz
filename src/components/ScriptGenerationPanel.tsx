@@ -3,7 +3,7 @@ import { isNativePlatform } from "@/lib/native";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import {
   Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, MessageCircle, X,
-  Check, Wand2, Scissors, Heart, Zap, Languages, Undo2,
+  Check, Wand2, Scissors, Heart, Zap, Languages, Undo2, ChevronDown, ChevronUp, Minus,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
@@ -90,6 +90,16 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [copiedAll, setCopiedAll] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
+
+  // Mobile sheet snap: 'half' (≈55vh) or 'full' (≈90vh)
+  const [sheetSnap, setSheetSnap] = useState<"half" | "full">("half");
+  // Desktop chat width (resizable, persisted)
+  const [chatWidth, setChatWidth] = useState<number>(() => {
+    if (typeof window === "undefined") return 420;
+    const saved = parseInt(localStorage.getItem("script-chat-width") || "0", 10);
+    return saved >= 360 && saved <= 600 ? saved : 420;
+  });
+  const isResizingRef = useRef(false);
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -250,6 +260,39 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     disabled: chatOpen,
   });
 
+  // ── Desktop chat resize ───────────────────────────────
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      const w = Math.min(600, Math.max(360, window.innerWidth - e.clientX));
+      setChatWidth(w);
+    };
+    const onUp = () => {
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      localStorage.setItem("script-chat-width", String(chatWidth));
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [chatWidth]);
+
+  const startResize = () => {
+    isResizingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  // Reset snap when sheet closes
+  useEffect(() => {
+    if (!chatOpen) setSheetSnap("half");
+  }, [chatOpen]);
+
   // ── Quick action presets ───────────────────────────────
   const quickActions = useMemo(() => [
     { emoji: "🔥", label: isKk ? "Хукты күшейт" : "Сделай хук сильнее",
@@ -341,12 +384,13 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           onClick={() => setChatOpen(v => !v)}
           className={`hidden lg:inline-flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-semibold transition-all ${
             chatOpen
-              ? "bg-foreground text-background"
-              : "bg-viral text-viral-foreground hover:brightness-105"
+              ? "bg-muted text-foreground hover:bg-muted/70"
+              : "bg-viral text-viral-foreground hover:brightness-105 shadow-glow-viral"
           }`}
+          title={chatOpen ? (isKk ? "Чатты жабу" : "Скрыть чат") : (isKk ? "AI чатты ашу" : "Открыть AI чат")}
         >
           <MessageCircle className="h-3.5 w-3.5" />
-          {chatOpen ? (isKk ? "Чатты жабу" : "Скрыть чат") : (isKk ? "AI чат" : "AI чат")}
+          {chatOpen ? (isKk ? "Жабу" : "Скрыть") : (isKk ? "AI чат" : "AI чат")}
         </button>
       </header>
 
@@ -424,11 +468,25 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           </div>
         </div>
 
+        {/* Desktop resize handle (visible only when chat open) */}
+        {chatOpen && (
+          <div
+            onMouseDown={startResize}
+            className="hidden lg:block w-1.5 cursor-col-resize bg-transparent hover:bg-viral/30 active:bg-viral/50 transition-colors shrink-0 group relative"
+            title={isKk ? "Чат енін өзгерту" : "Изменить ширину чата"}
+          >
+            <span className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-border/40 group-hover:bg-viral/60 transition-colors" />
+          </div>
+        )}
+
         {/* Desktop right chat panel */}
         <aside
-          className={`hidden lg:flex flex-col border-l border-border/60 bg-card transition-all duration-300 overflow-hidden ${
-            chatOpen ? "w-[400px] xl:w-[440px]" : "w-0 border-l-0"
-          }`}
+          className="hidden lg:flex flex-col border-l border-border/60 bg-card overflow-hidden shrink-0"
+          style={{
+            width: chatOpen ? `${chatWidth}px` : "0px",
+            borderLeftWidth: chatOpen ? "1px" : "0",
+            transition: isResizingRef.current ? "none" : "width 280ms ease, border-left-width 280ms ease",
+          }}
         >
           {chatOpen && (
             <>
@@ -536,19 +594,22 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
             onClick={() => setChatOpen(false)}
           />
           <div
-            className="bg-card rounded-t-3xl border-t border-border/60 shadow-2xl flex flex-col"
+            className="bg-card rounded-t-3xl border-t border-border/60 shadow-2xl flex flex-col transition-[height] duration-300 ease-out"
             style={{
-              maxHeight: keyboardHeight > 0
+              height: keyboardHeight > 0
                 ? `${(window.visualViewport?.height || window.innerHeight) * 0.78}px`
-                : "82vh",
-              minHeight: keyboardHeight > 0 ? "240px" : "55vh",
+                : sheetSnap === "full" ? "92vh" : "58vh",
               animation: "slide-up 0.3s ease-out",
             }}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-2.5 pb-1.5 shrink-0">
-              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
-            </div>
+            {/* Drag handle (tap to toggle snap) */}
+            <button
+              onClick={() => keyboardHeight === 0 && setSheetSnap(s => s === "half" ? "full" : "half")}
+              className="flex flex-col items-center pt-2.5 pb-1 shrink-0 active:scale-95 transition-transform"
+              aria-label={sheetSnap === "half" ? "Развернуть" : "Свернуть"}
+            >
+              <div className="w-12 h-1.5 rounded-full bg-muted-foreground/40 hover:bg-muted-foreground/60 transition-colors" />
+            </button>
 
             <div className="flex items-center justify-between px-4 pb-2 border-b border-border/40 shrink-0">
               <div className="flex items-center gap-2">
@@ -559,13 +620,27 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                   {isKk ? "AI редактор" : "AI редактор"}
                 </span>
               </div>
-              <button
-                onClick={() => setChatOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-                aria-label="Закрыть"
-              >
-                <X className="h-4 w-4 text-muted-foreground" />
-              </button>
+              <div className="flex items-center gap-1">
+                {keyboardHeight === 0 && (
+                  <button
+                    onClick={() => setSheetSnap(s => s === "half" ? "full" : "half")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                    aria-label={sheetSnap === "half" ? "Развернуть" : "Свернуть"}
+                    title={sheetSnap === "half" ? (isKk ? "Жаю" : "Развернуть") : (isKk ? "Кішірейту" : "Свернуть")}
+                  >
+                    {sheetSnap === "half"
+                      ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                  </button>
+                )}
+                <button
+                  onClick={() => setChatOpen(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                  aria-label="Закрыть"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
             </div>
 
             {/* Quick chips */}
