@@ -102,11 +102,21 @@ export function OTPInput({
 
   const half = Math.floor(length / 2);
 
+  // Auto-scale slot size based on length so 8-digit OTP fits on small screens.
+  // Mobile-first: keeps total width under ~360px even for length=8.
+  const isLong = length >= 7;
+  const slotSize = isLong
+    ? "w-7 h-10 sm:w-9 sm:h-12 text-base sm:text-lg"
+    : "w-10 h-12 sm:w-12 sm:h-14 text-xl sm:text-2xl";
+  const gap = isLong ? "gap-1 sm:gap-1.5" : "gap-2 sm:gap-3";
+  const dashSize = isLong ? "text-lg sm:text-xl px-0.5" : "text-2xl sm:text-3xl px-1";
+
   return (
     <div
       key={shake}
       className={cn(
-        "flex items-center justify-center gap-2 sm:gap-3",
+        "flex items-center justify-center w-full",
+        gap,
         shake > 0 && "animate-otp-shake",
       )}
     >
@@ -115,7 +125,10 @@ export function OTPInput({
           {i === half && length % 2 === 0 && (
             <span
               aria-hidden="true"
-              className="select-none text-2xl sm:text-3xl font-bold text-muted-foreground/60 px-1"
+              className={cn(
+                "select-none font-bold text-muted-foreground/60",
+                dashSize,
+              )}
             >
               —
             </span>
@@ -132,8 +145,9 @@ export function OTPInput({
             onPaste={handlePaste}
             disabled={disabled}
             className={cn(
-              "w-11 h-14 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold",
-              "rounded-xl border-2 bg-background text-foreground",
+              "text-center font-bold shrink-0",
+              slotSize,
+              "rounded-lg sm:rounded-xl border-2 bg-background text-foreground",
               "border-border focus:border-primary focus:ring-2 focus:ring-primary/20",
               "outline-none transition-all duration-150",
               "disabled:opacity-50 disabled:cursor-not-allowed",
