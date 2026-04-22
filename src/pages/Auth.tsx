@@ -189,16 +189,22 @@ export default function Auth() {
   // ───────────── OTP verify ─────────────
   const handleVerifyOtp = async (codeOverride?: string) => {
     const code = (codeOverride ?? otp).replace(/\D/g, "");
-    if (code.length !== 6) { toast.error("Введите 6-значный код"); return; }
+    if (code.length !== 6) {
+      setOtpErrorMsg("Введите 6-значный код");
+      return;
+    }
     setOtpVerifying(true);
     const otpType: "email" | "recovery" = mode === "forgot" ? "recovery" : "email";
     const { error } = await authService.verifyOtp(email, code, otpType);
     setOtpVerifying(false);
     if (error) {
-      toast.error(error.message);
+      setOtpErrorMsg(error.message || "Неверный код, попробуйте снова");
       setOtpError((n) => n + 1);
+      // После 3 неуспешных попыток — увеличиваем задержку повторной отправки.
+      if (otpError + 1 >= 3 && canResend) startCountdown(60);
       return;
     }
+    setOtpErrorMsg(null);
     if (mode === "forgot") {
       // recovery успех — пользователь временно залогинен, показываем экран нового пароля
       toast.success("Код подтверждён. Задайте новый пароль");
@@ -219,8 +225,14 @@ export default function Auth() {
       ? await authService.resetPasswordForEmail(email)
       : await authService.resendOtp(email);
     setLoading(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Новый код отправлен"); startCountdown(60); }
+    if (error) {
+      setOtpErrorMsg(error.message);
+    } else {
+      setOtpErrorMsg(null);
+      setOtp("");
+      toast.success("Новый код отправлен");
+      startCountdown(60);
+    }
   };
 
   // ───────────── New password (after recovery OTP) ─────────────
