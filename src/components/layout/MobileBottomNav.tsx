@@ -39,17 +39,17 @@ export function MobileBottomNav({ onOpenPaywall }: MobileBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { isFreePlan } = useIsFreePlan();
-  const { hasAnalysisCredits } = useFreeCredits();
+  const { analysesLeft } = useFreeCredits();
 
   const handleClick = useCallback(
     (item: NavItem) => {
-      if (item.freeGated && isFreePlan && !hasAnalysisCredits && onOpenPaywall) {
+      if (item.freeGated && isFreePlan && analysesLeft <= 0 && onOpenPaywall) {
         onOpenPaywall();
         return;
       }
       navigate(item.path);
     },
-    [isFreePlan, hasAnalysisCredits, navigate, onOpenPaywall],
+    [isFreePlan, analysesLeft, navigate, onOpenPaywall],
   );
 
   const isActive = (item: NavItem) => location.pathname === item.path;
