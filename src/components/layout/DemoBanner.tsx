@@ -20,7 +20,8 @@ export function DemoBanner() {
   const isMobile = useIsMobile();
   const { isFreePlan, isLoading } = useIsFreePlan();
 
-  if (!isMobile || isLoading || !isFreePlan) return null;
+  // Strictly mobile + free + non-native. Hide while loading to avoid flicker.
+  if (!isMobile || isLoading || !isFreePlan || isNativePlatform) return null;
 
   return (
     <div
