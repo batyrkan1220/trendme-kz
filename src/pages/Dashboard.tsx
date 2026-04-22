@@ -8,6 +8,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
+import { UsageLimitsWidget } from "@/components/UsageLimitsWidget";
 
 const actions = [
   {
