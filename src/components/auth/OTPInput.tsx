@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, KeyboardEvent, ClipboardEvent, ChangeEvent } from "react";
+import { useEffect, useRef, useState, KeyboardEvent, ClipboardEvent, ChangeEvent, Fragment } from "react";
 import { cn } from "@/lib/utils";
 
 interface OTPInputProps {
@@ -111,10 +111,9 @@ export function OTPInput({
       )}
     >
       {Array.from({ length }).map((_, i) => (
-        <>
+        <Fragment key={i}>
           {i === half && length % 2 === 0 && (
             <span
-              key={`sep-${i}`}
               aria-hidden="true"
               className="select-none text-2xl sm:text-3xl font-bold text-muted-foreground/60 px-1"
             >
@@ -122,7 +121,6 @@ export function OTPInput({
             </span>
           )}
           <input
-            key={i}
             ref={(el) => (inputs.current[i] = el)}
             type="text"
             inputMode="numeric"
