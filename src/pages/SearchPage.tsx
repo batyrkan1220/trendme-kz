@@ -333,21 +333,34 @@ export default function SearchPage() {
                         duration: Number(video.duration_sec) || 0,
                       };
 
+                      const isLocked = isFreePlan && i >= FREE_SEARCH_VISIBLE;
+
                       return (
-                        <MemoVideoCard
+                        <div
                           key={video.id || i}
-                          video={cardData}
-                          playingId={playingId}
-                          onPlay={setPlayingId}
-                          isFavorite={userFavorites.includes(video.id)}
-                          onToggleFav={toggleFav}
-                          onAnalyze={() => setAnalysisVideo(video)}
-                          onScript={() => setScriptVideo(video)}
-                          showTier={true}
-                          showAuthor={true}
-                          showAnalyzeButton={true}
-                          showScriptButton={true}
-                        />
+                          className={cn(
+                            "relative",
+                            isLocked && "group/lock cursor-pointer rounded-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-glow-viral"
+                          )}
+                          onClick={isLocked ? () => navigate("/subscription") : undefined}
+                        >
+                          <div className={isLocked ? "pointer-events-none select-none" : ""}>
+                            <MemoVideoCard
+                              video={cardData}
+                              playingId={playingId}
+                              onPlay={setPlayingId}
+                              isFavorite={userFavorites.includes(video.id)}
+                              onToggleFav={toggleFav}
+                              onAnalyze={() => setAnalysisVideo(video)}
+                              onScript={() => setScriptVideo(video)}
+                              showTier={true}
+                              showAuthor={true}
+                              showAnalyzeButton={!isLocked}
+                              showScriptButton={!isLocked}
+                            />
+                          </div>
+                          {isLocked && <LockedVideoOverlay />}
+                        </div>
                       );
                     })}
                   </div>
