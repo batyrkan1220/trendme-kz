@@ -59,6 +59,110 @@ export function VideoAnalysisResults({
   const isKk = language === "kk";
   const duration = Number(stats?.duration || stats?.duration_sec || stats?.video?.duration || 0);
 
+  // ===== Calculated metrics =====
+  const erNum = parseFloat(er) || 0;
+  const likeRatio = views > 0 ? likes / views : 0;
+  const shareRatio = views > 0 ? shares / views : 0;
+  const commentRatio = views > 0 ? commentsCount / views : 0;
+  const commentToLikeRatio = likes > 0 ? commentsCount / likes : 0;
+
+  const viralityScore = useMemo(() => {
+    let s = 0;
+    if (erNum > 5) s += 30;
+    if (shareRatio > 0.003) s += 25;
+    if (likeRatio > 0.02) s += 25;
+    if (commentRatio > 0.0005) s += 20;
+    return s;
+  }, [erNum, shareRatio, likeRatio, commentRatio]);
+
+  const viralityColor = viralityScore > 70
+    ? "text-green-500 border-green-500/30 bg-green-500/10"
+    : viralityScore >= 40
+    ? "text-yellow-500 border-yellow-500/30 bg-yellow-500/10"
+    : "text-red-500 border-red-500/30 bg-red-500/10";
+
+  const nicheKey: string | null = summary?.niches?.[0] || null;
+  const [bench, setBench] = useState<{ avgViews: number; avgEr: number; count: number } | null>(null);
+  useEffect(() => {
+    if (!nicheKey) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("videos")
+        .select("views, likes, comments, shares")
+        .eq("niche", nicheKey)
+        .gt("views", 0)
+        .order("fetched_at", { ascending: false })
+        .limit(200);
+      if (cancelled || !data || data.length === 0) return;
+      const totalV = data.reduce((a, v: any) => a + Number(v.views || 0), 0);
+      const totalEng = data.reduce((a, v: any) => a + Number(v.likes || 0) + Number(v.comments || 0) + Number(v.shares || 0), 0);
+      const avgViews = totalV / data.length;
+      const avgEr = totalV > 0 ? (totalEng / totalV) * 100 : 0;
+      setBench({ avgViews, avgEr, count: data.length });
+    })();
+    return () => { cancelled = true; };
+  }, [nicheKey]);
+
+  const hookStrength = useMemo(() => {
+    if (!transcript) return null;
+    const words = transcript.trim().split(/\s+/).slice(0, 15);
+    const text = words.join(" ");
+    let score = 0;
+    if (words.length >= 8 && words.length <= 15) score += 2;
+    else if (words.length >= 5) score += 1;
+    if (/[?？]/.test(text)) score += 1;
+    const emo = /(шок|невероятн|секрет|никогда|почему|как|вот|представь|удивительн|потрясающ|таңғажайып|керемет|құпия|неге|қалай|мынау|wow|amazing|secret|never|how|why|shocking)/i;
+    if (emo.test(text)) score += 1;
+    if (score >= 3) return { label: isKk ? "Күшті" : "Сильный", color: "text-green-500 border-green-500/30 bg-green-500/10", emoji: "⚡", words: words.length };
+    if (score >= 2) return { label: isKk ? "Орташа" : "Средний", color: "text-yellow-500 border-yellow-500/30 bg-yellow-500/10", emoji: "✨", words: words.length };
+    return { label: isKk ? "Әлсіз" : "Слабый", color: "text-red-500 border-red-500/30 bg-red-500/10", emoji: "💤", words: words.length };
+  }, [transcript, isKk]);
+
+  const durationFromStructure = useMemo(() => {
+    const last = summary?.structure?.[summary.structure.length - 1];
+    const t: string = last?.time || last?.timestamp || "";
+    const m = t.match(/(\d+):(\d+)/);
+    if (m) return Number(m[1]) * 60 + Number(m[2]);
+    const m2 = t.match(/(\d+)\s*(сек|s)/i);
+    if (m2) return Number(m2[1]);
+    return duration;
+  }, [summary, duration]);
+
+  const durationAssessment = useMemo(() => {
+    const d = durationFromStructure;
+    if (!d) return null;
+    const mm = Math.floor(d / 60);
+    const ss = d % 60;
+    const fmtT = `${mm}:${String(ss).padStart(2, "0")}`;
+    if (d >= 15 && d <= 30) return { fmt: fmtT, label: isKk ? "TikTok үшін оптималды" : "оптимально для TikTok", color: "text-green-500", emoji: "✅" };
+    if (d < 15) return { fmt: fmtT, label: isKk ? "тым қысқа" : "слишком коротко", color: "text-yellow-500", emoji: "⚠️" };
+    if (d <= 60) return { fmt: fmtT, label: isKk ? "жақсы ұзақтық" : "хорошая длительность", color: "text-green-500", emoji: "👍" };
+    return { fmt: fmtT, label: isKk ? "ұзақтау" : "длинновато", color: "text-yellow-500", emoji: "⏱" };
+  }, [durationFromStructure, isKk]);
+
+  const sharePotential = useMemo(() => {
+    if (shares < 1000) return false;
+    const hasEmotion = (summary?.emotions?.length || 0) > 0;
+    return hasEmotion || shareRatio >= 0.005;
+  }, [shares, summary, shareRatio]);
+
+  const ratioLabel = (ratio: number, low: number, mid: number, high: number) => {
+    if (ratio >= high) return { txt: isKk ? "өте жоғары" : "очень высоко", color: "text-green-500" };
+    if (ratio >= mid) return { txt: isKk ? "жоғары" : "высоко", color: "text-green-500" };
+    if (ratio >= low) return { txt: isKk ? "орташа" : "средне", color: "text-yellow-500" };
+    return { txt: isKk ? "төмен" : "низко", color: "text-muted-foreground" };
+  };
+  const likeR = ratioLabel(likeRatio, 0.01, 0.02, 0.05);
+  const shareR = ratioLabel(shareRatio, 0.001, 0.003, 0.01);
+  const commentR = ratioLabel(commentToLikeRatio, 0.005, 0.015, 0.03);
+
+  const copyHook = () => {
+    if (!summary?.hook_phrase) return;
+    navigator.clipboard.writeText(summary.hook_phrase);
+    toast.success(isKk ? "Хук көшірілді ✅" : "Хук скопирован ✅");
+  };
+
   return (
     <div className="space-y-2.5">
       {/* Topic + Virality Score + Duration */}
