@@ -1175,7 +1175,15 @@ function UsersTab() {
 }
 
 /* ==================== USER DETAILS DIALOG ==================== */
-function UserDetailsDialog({ userId, onClose }: { userId: string | null; onClose: () => void }) {
+function UserDetailsDialog({
+  userId,
+  onClose,
+  onChangePlan,
+}: {
+  userId: string | null;
+  onClose: () => void;
+  onChangePlan?: (userId: string, email: string, planId?: string, expiresAt?: string) => void;
+}) {
   const queryClient = useQueryClient();
   const [notes, setNotes] = useState("");
   const [notesDirty, setNotesDirty] = useState(false);
