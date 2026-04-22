@@ -1,5 +1,7 @@
-import { Clock, Copy, Sparkles, Flame, Target, Users, Zap, TrendingUp, ThumbsUp, ThumbsDown, Lightbulb, MessageCircle, Eye, Heart, Share2, Timer } from "lucide-react";
+import { Clock, Copy, Sparkles, Flame, Target, Users, Zap, TrendingUp, ThumbsUp, ThumbsDown, Lightbulb, MessageCircle, Eye, Heart, Share2, Timer, BarChart3, Gauge, Rocket } from "lucide-react";
 import { toast } from "sonner";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AnalysisResultsProps {
   summary: any;
