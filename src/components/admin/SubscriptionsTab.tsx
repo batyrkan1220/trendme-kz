@@ -498,6 +498,7 @@ export default function SubscriptionsTab() {
                 <TableHead>Банк</TableHead>
                 <TableHead className="text-right">Комиссия</TableHead>
                 <TableHead>Статус</TableHead>
+                <TableHead>Возврат</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -520,12 +521,40 @@ export default function SubscriptionsTab() {
                       {fmtMoney(p.commission || 0)}
                     </TableCell>
                     <TableCell><StatusBadge status={p.status} /></TableCell>
+                    <TableCell>
+                      {p.refund_status ? (
+                        <div
+                          className="space-y-0.5"
+                          title={[
+                            p.refund_id && `№ возврата: ${p.refund_id}`,
+                            p.refunded_at && `Дата: ${fmtDate(p.refunded_at, true)}`,
+                            p.refund_amount != null && `Сумма: ${fmtMoney(p.refund_amount)}`,
+                            p.refund_reason && `Причина: ${p.refund_reason}`,
+                            p.refund_failure_description && `Ошибка: ${p.refund_failure_description}`,
+                          ].filter(Boolean).join("\n")}
+                        >
+                          <RefundBadge status={p.refund_status} />
+                          {p.refund_id && (
+                            <div className="font-mono text-[10px] text-muted-foreground">
+                              {p.refund_id}
+                            </div>
+                          )}
+                          {p.refunded_at && (
+                            <div className="text-[10px] text-muted-foreground">
+                              {fmtDate(p.refunded_at, true)}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
               {filteredPayments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                  <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
                     Нет платежей по выбранным фильтрам
                   </TableCell>
                 </TableRow>
