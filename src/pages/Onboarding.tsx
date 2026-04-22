@@ -102,16 +102,24 @@ export default function Onboarding() {
         navigate("/trends", { replace: true });
         return;
       }
-      if (!user) return;
+      if (!user) {
+        navigate("/auth", { replace: true });
+        return;
+      }
 
-      await supabase
-        .from("eula_acceptances")
-        .upsert(
-          { user_id: user.id, version: "1.0", accepted_at: new Date().toISOString() },
-          { onConflict: "user_id,version" }
-        )
-        .throwOnError();
+      // EULA acceptance — non-blocking (don't fail onboarding if this fails)
+      try {
+        await supabase
+          .from("eula_acceptances")
+          .upsert(
+            { user_id: user.id, version: "1.0", accepted_at: new Date().toISOString() },
+            { onConflict: "user_id,version" }
+          );
+      } catch (eulaErr) {
+        console.warn("[onboarding] EULA upsert failed (non-blocking):", eulaErr);
+      }
 
+      // Critical step: save profile + mark onboarding complete
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -125,9 +133,10 @@ export default function Onboarding() {
         .eq("user_id", user.id);
 
       if (error) throw error;
-      navigate("/dashboard", { replace: true });
+      navigate("/trends", { replace: true });
     } catch (err: any) {
-      toast.error("Ошибка сохранения: " + err.message);
+      console.error("[onboarding] save failed:", err);
+      toast.error("Ошибка сохранения: " + (err?.message || "неизвестная ошибка"));
       setPreparing(false);
       setSaving(false);
     }
