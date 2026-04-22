@@ -643,7 +643,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               className="pointer-events-none absolute -inset-y-1 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-0 group-hover/btn:translate-x-[400%] transition-transform duration-[900ms] ease-out"
             />
             <Sparkles className="relative h-4 w-4 text-viral transition-transform duration-300 group-hover/btn:rotate-12 group-hover/btn:scale-110" />
-            <span className="relative">Анализ</span>
+            <span className="relative">Анализ видео</span>
           </button>
         </div>
       ) : null}
