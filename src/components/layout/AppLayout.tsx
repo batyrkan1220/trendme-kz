@@ -2,28 +2,37 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
-import { MobileSidebarDrawer } from "./MobileSidebarDrawer";
+import { DemoBanner, DEMO_BANNER_OFFSET_CSS } from "./DemoBanner";
+import { PaywallDialog } from "@/components/PaywallDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { isNativePlatform } from "@/lib/native";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { ArrowLeft } from "lucide-react";
 
 /** Main tab routes — no swipe-back on these */
-const MAIN_TABS = ["/trends", "/search", "/library", "/"];
+const MAIN_TABS = ["/trends", "/search", "/library", "/account-analysis", "/"];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { isFreePlan } = useIsFreePlan();
 
   const isMainTab = MAIN_TABS.includes(location.pathname);
   const { swipeProps, swipeStyle, showIndicator, indicatorProgress } = useSwipeBack({
-    disabled: isMainTab || drawerOpen,
+    disabled: isMainTab,
   });
+
+  // DemoBanner mobile + free-планда көрінеді → main-ге top padding керек
+  const showDemoBanner = isMobile && isFreePlan;
 
   return (
     <div className="relative flex h-[100dvh] w-full overflow-hidden bg-background-subtle text-foreground">
       {!isMobile && !isNativePlatform && <AppSidebar />}
+
+      {/* DemoBanner — тек mobile + free */}
+      <DemoBanner />
 
       {/* Swipe-back edge indicator */}
       {showIndicator && (
@@ -51,19 +60,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <main
         className="flex-1 min-w-0 h-full overflow-x-hidden overflow-y-auto"
         style={{
-          // Mobile: reserve room for bottom nav (≈64px) + safe-area; Desktop: just safe-area
+          paddingTop: showDemoBanner ? DEMO_BANNER_OFFSET_CSS : undefined,
           paddingBottom: isMobile
-            ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)'
-            : 'env(safe-area-inset-bottom, 0px)',
+            ? "calc(env(safe-area-inset-bottom, 0px) + 72px)"
+            : "env(safe-area-inset-bottom, 0px)",
           ...swipeStyle,
         }}
         {...swipeProps}
       >
         {children}
       </main>
-      {/* Always render on mobile via CSS, not JS condition */}
-      <MobileBottomNav onMenuOpen={() => setDrawerOpen(true)} onDrawerClose={() => setDrawerOpen(false)} drawerOpen={drawerOpen} />
-      <MobileSidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
+      {/* Bottom nav — Analyze free-планда paywall ашады */}
+      <MobileBottomNav onOpenPaywall={() => setPaywallOpen(true)} />
+
+      <PaywallDialog
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        feature="analysis"
+      />
     </div>
   );
 }

@@ -1,81 +1,66 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Flame, Search, Heart, CreditCard, LogOut } from "lucide-react";
+import { Flame, Search, Sparkles, Heart, User, type LucideIcon } from "lucide-react";
 import { useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { useFreeCredits } from "@/hooks/useFreeCredits";
 
 interface MobileBottomNavProps {
-  /** Kept for API compatibility with AppLayout — drawer is no longer used. */
-  onMenuOpen?: () => void;
-  onDrawerClose?: () => void;
-  drawerOpen?: boolean;
+  /** Free-плана үшін Analyze басылғанда paywall ашу. */
+  onOpenPaywall?: () => void;
 }
 
+type NavItem = {
+  key: string;
+  icon: LucideIcon;
+  label: string;
+  path: string;
+  /** Free-планда paywall-ге бағытталатын элемент. */
+  freeGated?: boolean;
+};
+
+const ITEMS: NavItem[] = [
+  { key: "trends", icon: Flame, label: "Тренды", path: "/trends" },
+  { key: "search", icon: Search, label: "Поиск", path: "/search" },
+  { key: "analyze", icon: Sparkles, label: "Анализ", path: "/account-analysis", freeGated: true },
+  { key: "library", icon: Heart, label: "Избранное", path: "/library" },
+  { key: "profile", icon: User, label: "Профиль", path: "/" },
+];
+
 /**
- * Mobile bottom nav — 5 кнопок:
- * Тренды | Поиск | Избранное | Подписка | Выход
+ * Mobile bottom nav — 5 иконка, hamburger жоқ.
+ * Active күйінде иконка астында 3×3 жасыл нүкте.
+ * Analyze (freeGated) тармағы free-планда paywall-ді ашады.
+ *
+ * ⚠ trendsee.io дизайнын ҚАЙТАЛАМА — бұл TrendMe жеке стилі: жұмсақ
+ * glassmorphism фон, жасыл primary акцент, минималды иконка-зат.
  */
-export function MobileBottomNav({ drawerOpen }: MobileBottomNavProps) {
+export function MobileBottomNav({ onOpenPaywall }: MobileBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { isFreePlan } = useIsFreePlan();
+  const { analysesLeft } = useFreeCredits();
 
-  const goTo = useCallback(
-    (path: string) => navigate(path),
-    [navigate],
+  const handleClick = useCallback(
+    (item: NavItem) => {
+      if (item.freeGated && isFreePlan && analysesLeft <= 0 && onOpenPaywall) {
+        onOpenPaywall();
+        return;
+      }
+      navigate(item.path);
+    },
+    [isFreePlan, analysesLeft, navigate, onOpenPaywall],
   );
 
-  const handleLogout = useCallback(async () => {
-    await signOut();
-    navigate("/auth");
-  }, [signOut, navigate]);
-
-  const Item = ({
-    icon: Icon,
-    label,
-    active,
-    onClick,
-  }: {
-    icon: React.ComponentType<any>;
-    label: string;
-    active: boolean;
-    onClick: () => void;
-  }) => (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 rounded-[10px] font-semibold transition-all duration-150 press-feedback",
-        active
-          ? "bg-foreground text-background"
-          : "text-foreground/70 hover:bg-muted",
-      )}
-    >
-      <Icon
-        className={cn(
-          "h-[19px] w-[19px] shrink-0 transition-colors",
-          active ? "text-background" : "text-muted-foreground",
-        )}
-        strokeWidth={active ? 2.4 : 2}
-      />
-      <span className="truncate leading-none text-[10px] max-w-full">{label}</span>
-    </button>
-  );
+  const isActive = (item: NavItem) => location.pathname === item.path;
 
   return (
     <nav
       id="mobile-bottom-nav"
-      className="md:hidden"
-      style={{
-        position: "fixed",
-        bottom: 0, left: 0, right: 0,
-        zIndex: drawerOpen ? 40 : 99999,
-        pointerEvents: drawerOpen ? "none" : "auto",
-        transition: "opacity 0.2s",
-        opacity: drawerOpen ? 0 : 1,
-      }}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[99999]"
     >
       <div
-        className="px-1 pt-1.5 animate-bottom-nav-enter glass-strong"
+        className="px-1 pt-1.5 glass-strong"
         style={{
           paddingBottom: "max(6px, env(safe-area-inset-bottom, 0px))",
           borderTop: "1px solid hsl(var(--border))",
@@ -83,36 +68,42 @@ export function MobileBottomNav({ drawerOpen }: MobileBottomNavProps) {
         }}
       >
         <div className="flex items-center gap-0.5">
-          <Item
-            icon={Flame}
-            label="Тренды"
-            active={location.pathname === "/trends"}
-            onClick={() => goTo("/trends")}
-          />
-          <Item
-            icon={Search}
-            label="Поиск"
-            active={location.pathname === "/search"}
-            onClick={() => goTo("/search")}
-          />
-          <Item
-            icon={Heart}
-            label="Избранное"
-            active={location.pathname === "/library"}
-            onClick={() => goTo("/library")}
-          />
-          <Item
-            icon={CreditCard}
-            label="Подписка"
-            active={location.pathname === "/subscription"}
-            onClick={() => goTo("/subscription")}
-          />
-          <Item
-            icon={LogOut}
-            label="Выход"
-            active={false}
-            onClick={handleLogout}
-          />
+          {ITEMS.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item);
+            return (
+              <button
+                key={item.key}
+                onClick={() => handleClick(item)}
+                className={cn(
+                  "relative flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 rounded-[10px] font-semibold transition-all duration-150 press-feedback",
+                  active
+                    ? "bg-foreground text-background"
+                    : "text-foreground/70 hover:bg-muted",
+                )}
+                aria-current={active ? "page" : undefined}
+                aria-label={item.label}
+              >
+                <Icon
+                  className={cn(
+                    "h-[19px] w-[19px] shrink-0 transition-colors",
+                    active ? "text-background" : "text-muted-foreground",
+                  )}
+                  strokeWidth={active ? 2.4 : 2}
+                />
+                <span className="truncate leading-none text-[10px] max-w-full">
+                  {item.label}
+                </span>
+                {/* Active индикатор — иконка астында 3×3 жасыл нүкте */}
+                {active && (
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-[3px] h-[3px] rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.7)]"
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
     </nav>
