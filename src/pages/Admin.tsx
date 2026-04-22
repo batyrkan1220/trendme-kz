@@ -596,6 +596,7 @@ function UsersTab() {
     userId: string;
     email: string;
   } | null>(null);
+  const [planChangeUser, setPlanChangeUser] = useState<{ userId: string; email: string; currentPlanId?: string; currentExpiresAt?: string } | null>(null);
 
   const PAGE_SIZE = 20;
 
