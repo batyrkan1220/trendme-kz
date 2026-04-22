@@ -60,8 +60,6 @@ export default function Trends() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [scriptVideo, setScriptVideo] = useState<any>(null);
-  const [paywallVideo, setPaywallVideo] = useState<any>(null);
-  const [paywallFeature, setPaywallFeature] = useState<"analysis" | "script">("analysis");
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
