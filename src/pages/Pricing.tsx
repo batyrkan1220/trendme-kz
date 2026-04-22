@@ -307,9 +307,18 @@ export default function Pricing() {
 
                     {/* Features */}
                     <ul className="mt-8 space-y-3 text-[14px] flex-1">
-                      {features.map((f: string) => (
-                        <FeatureRow key={f} featured={isFeatured} label={<span dangerouslySetInnerHTML={{ __html: f }} />} />
-                      ))}
+                      {features.map((f: string) => {
+                        const muted = /text-muted-foreground/.test(f);
+                        const clean = f.replace(/<[^>]+>/g, "");
+                        return (
+                          <FeatureRow
+                            key={f}
+                            featured={isFeatured}
+                            disabled={muted}
+                            label={<span>{clean}</span>}
+                          />
+                        );
+                      })}
                     </ul>
                   </div>
                 );
