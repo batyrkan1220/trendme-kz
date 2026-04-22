@@ -3,7 +3,7 @@ import { isNativePlatform } from "@/lib/native";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import {
   Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, MessageCircle, X,
-  Check, Wand2, Scissors, Heart, Zap, Languages,
+  Check, Wand2, Scissors, Heart, Zap, Languages, Undo2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
@@ -89,6 +89,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [chatOpen, setChatOpen] = useState(typeof window !== "undefined" && window.innerWidth >= 1024);
   const [copiedAll, setCopiedAll] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
+  const [canUndo, setCanUndo] = useState(false);
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -96,6 +97,8 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const scriptRef = useRef("");
   const savedScriptId = useRef<string | null>(null);
+  const prevScriptRef = useRef<string | null>(null);
+  const prevMessagesRef = useRef<Msg[] | null>(null);
 
   // ── Initial generation ─────────────────────────────────
   useEffect(() => {
@@ -133,6 +136,11 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const sendMessage = async (text: string) => {
     if (!text || isGenerating) return;
     setChatInput("");
+
+    // Snapshot для отмены
+    prevScriptRef.current = scriptRef.current || scriptContent;
+    prevMessagesRef.current = messages;
+
     const userMsg: Msg = { role: "user", content: text };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
@@ -154,6 +162,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           role: "assistant",
           content: isKk ? "Сценарий жаңартылды ✨" : "Сценарий обновлён ✨",
         }]);
+        if (prevScriptRef.current) setCanUndo(true);
       },
       onError: (err) => { toast.error(err); setIsGenerating(false); },
     });
@@ -161,12 +170,28 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
   const handleSend = () => sendMessage(chatInput.trim());
 
+  const handleUndo = async () => {
+    const prev = prevScriptRef.current;
+    if (!prev || isGenerating) return;
+    setScriptContent(prev);
+    scriptRef.current = prev;
+    if (prevMessagesRef.current) setMessages(prevMessagesRef.current);
+    setCanUndo(false);
+    prevScriptRef.current = null;
+    prevMessagesRef.current = null;
+    await autoSaveScript();
+    toast.success(isKk ? "Өзгерістер қайтарылды" : "Изменения отменены");
+  };
+
   const handleRegenerate = async () => {
     if (!isNativePlatform || user) {
       const ok = await spend("script_generation", isKk ? "Сценарийді қайта генерациялау" : "Перегенерация сценария");
       if (!ok) return;
     }
     setMessages([greetingMsg]);
+    setCanUndo(false);
+    prevScriptRef.current = null;
+    prevMessagesRef.current = null;
     generateScript([]);
   };
 
@@ -277,6 +302,18 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
             <Check className="h-3 w-3 text-success" />
             {isKk ? "Сақталды" : "Сохранено"}
           </span>
+        )}
+
+        {canUndo && (
+          <button
+            onClick={handleUndo}
+            disabled={isGenerating}
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 rounded-lg text-xs font-semibold text-foreground bg-viral/15 ring-1 ring-viral/40 hover:bg-viral hover:text-viral-foreground transition-all active:scale-95 disabled:opacity-50 animate-fade-in"
+            title={isKk ? "Соңғы өзгерісті қайтару" : "Отменить последнее изменение"}
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{isKk ? "Қайтару" : "Отменить"}</span>
+          </button>
         )}
 
         <button
