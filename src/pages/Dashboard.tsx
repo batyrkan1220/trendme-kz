@@ -119,79 +119,131 @@ export default function Dashboard() {
         {/* Usage limits widget for trial users */}
         <UsageLimitsWidget />
 
-        {/* Subscription status banner — Trial / Active / Past due */}
+        {/* Current plan card */}
         {subscription && !subLoading && (() => {
           const sub: any = subscription;
           const planName = sub.plans?.name || "—";
-          const isPaid = (sub.plans?.price_rub || 0) > 0;
+          const priceRub = sub.plans?.price_rub || 0;
+          const isPaid = priceRub > 0;
+          const startedAt = sub.started_at ? new Date(sub.started_at) : null;
           const expiresAt = sub.expires_at ? new Date(sub.expires_at) : null;
           const expired = expiresAt ? expiresAt.getTime() < Date.now() : !hasActiveSubscription;
           const daysLeft = expiresAt
             ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000))
-            : null;
+            : 0;
+          const totalDays = startedAt && expiresAt
+            ? Math.max(1, Math.ceil((expiresAt.getTime() - startedAt.getTime()) / 86400000))
+            : 30;
+          const progress = expired ? 100 : Math.min(100, Math.max(0, ((totalDays - daysLeft) / totalDays) * 100));
           const expiresStr = expiresAt
             ? expiresAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })
             : "—";
 
-          type Status = "trial" | "active" | "past_due";
-          const status: Status = expired ? "past_due" : isPaid ? "active" : "trial";
+          type Status = "trial" | "active" | "expiring" | "expired";
+          const status: Status = expired
+            ? "expired"
+            : !isPaid
+            ? "trial"
+            : daysLeft <= 7
+            ? "expiring"
+            : "active";
 
           const cfg = {
             trial: {
-              label: "Пробный период",
+              label: "Пробный",
+              statusText: "Демо-режим",
               dotClass: "bg-amber-500",
+              barClass: "bg-amber-500",
               borderClass: "border-amber-500/30",
               bgStyle: "linear-gradient(135deg, hsl(45 90% 55% / 0.08) 0%, hsl(45 90% 55% / 0.02) 100%)",
               cta: "Улучшить",
-              hint: "Полный доступ ко всем функциям",
             },
             active: {
-              label: "Подписка активна",
+              label: "Активна",
+              statusText: "Подписка активна",
               dotClass: "bg-emerald-500",
-              borderClass: daysLeft !== null && daysLeft <= 7 ? "border-viral/40" : "border-emerald-500/20",
+              barClass: "bg-emerald-500",
+              borderClass: "border-emerald-500/20",
               bgStyle: "linear-gradient(135deg, hsl(142 71% 45% / 0.06) 0%, hsl(142 71% 45% / 0.02) 100%)",
               cta: "Подробнее",
-              hint: null as string | null,
             },
-            past_due: {
-              label: "Подписка истекла",
+            expiring: {
+              label: "Скоро истечёт",
+              statusText: "Подписка истекает",
+              dotClass: "bg-orange-500",
+              barClass: "bg-orange-500",
+              borderClass: "border-orange-500/40",
+              bgStyle: "linear-gradient(135deg, hsl(25 95% 55% / 0.08) 0%, hsl(25 95% 55% / 0.02) 100%)",
+              cta: "Продлить",
+            },
+            expired: {
+              label: "Истекла",
+              statusText: "Подписка истекла",
               dotClass: "bg-destructive",
+              barClass: "bg-destructive",
               borderClass: "border-destructive/40",
               bgStyle: "linear-gradient(135deg, hsl(var(--destructive) / 0.08) 0%, hsl(var(--destructive) / 0.02) 100%)",
               cta: "Продлить",
-              hint: "Восстановите доступ к платным функциям",
             },
           }[status];
 
           return (
             <Link
               to="/subscription"
-              className={`group rounded-2xl border ${cfg.borderClass} p-4 md:p-5 flex items-center gap-4 hover:opacity-90 transition-all duration-200`}
+              className={`group rounded-2xl border ${cfg.borderClass} p-4 md:p-5 flex flex-col gap-3 hover:opacity-95 transition-all duration-200`}
               style={{ background: cfg.bgStyle }}
             >
-              <div className="flex flex-col items-center justify-center shrink-0 h-11 w-11 rounded-xl bg-background/60 border border-border/40">
-                <span className={`h-2 w-2 rounded-full ${cfg.dotClass} animate-pulse`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-bold text-foreground text-[13px] md:text-sm">{cfg.label}</p>
-                  <span className="text-[11px] md:text-xs text-muted-foreground">·</span>
-                  <p className="text-[11px] md:text-xs font-semibold text-foreground/80 truncate">{planName}</p>
+              {/* Header row */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center shrink-0 h-11 w-11 rounded-xl bg-background/60 border border-border/40">
+                  <span className={`h-2 w-2 rounded-full ${cfg.dotClass} animate-pulse`} />
                 </div>
-                <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5 truncate">
-                  {status === "trial"
-                    ? cfg.hint
-                    : status === "past_due"
-                    ? `Истёк ${expiresStr}`
-                    : `Осталось ${daysLeft ?? 0} дн. · до ${expiresStr}`}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-[10.5px] md:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Текущий тариф
+                    </p>
+                    <span className={`text-[9.5px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full text-background ${cfg.dotClass}`}>
+                      {cfg.label}
+                    </span>
+                  </div>
+                  <p className="font-bold text-foreground text-sm md:text-base mt-0.5 truncate">
+                    {planName}
+                    {isPaid && (
+                      <span className="text-[11px] md:text-xs font-medium text-muted-foreground ml-1.5">
+                        · {priceRub.toLocaleString("ru-RU")} ₸
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div className="hidden md:flex items-center gap-1 text-[12px] font-semibold text-foreground/70 group-hover:text-foreground shrink-0">
+                  {cfg.cta}
+                  <ChevronRight className="h-4 w-4" />
+                </div>
+                <ChevronRight className="md:hidden shrink-0 h-5 w-5 text-foreground/40 group-hover:translate-x-0.5 transition-transform" />
+              </div>
 
-                </p>
+              {/* Progress bar */}
+              <div className="space-y-1.5">
+                <div className="h-1.5 w-full rounded-full bg-background/60 overflow-hidden">
+                  <div
+                    className={`h-full ${cfg.barClass} transition-all duration-500`}
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] md:text-xs">
+                  <span className="text-muted-foreground">
+                    {expired
+                      ? `Истекла ${expiresStr}`
+                      : `Действует до ${expiresStr}`}
+                  </span>
+                  {!expired && (
+                    <span className="font-semibold text-foreground/80">
+                      {daysLeft} {daysLeft === 1 ? "день" : daysLeft >= 2 && daysLeft <= 4 ? "дня" : "дней"}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="hidden md:flex items-center gap-1 text-[12px] font-semibold text-foreground/70 group-hover:text-foreground">
-                {cfg.cta}
-                <ChevronRight className="h-4 w-4" />
-              </div>
-              <ChevronRight className="md:hidden shrink-0 h-5 w-5 text-foreground/40 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           );
         })()}
