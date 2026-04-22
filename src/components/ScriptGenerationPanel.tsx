@@ -593,7 +593,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  placeholder={isKk ? "Не өзгертейік?" : "Что изменить в сценарии?"}
+                  placeholder={isKk ? "ИИ-ден сценарийді өзгертуді сұраңыз..." : "Попросите ИИ изменить сценарий..."}
                   className="flex-1 px-3.5 py-3 rounded-xl bg-background border border-border/60 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-viral/40 focus:border-viral/50"
                   disabled={isGenerating}
                 />
