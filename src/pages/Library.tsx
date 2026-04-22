@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { isNativePlatform } from "@/lib/native";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
+import { trackPlausible } from "@/components/TrackingPixels";
 
 export default function Library() {
   const { user } = useAuth();
@@ -65,9 +66,11 @@ export default function Library() {
     const fav = favorites.find((f: any) => f.video_id === videoId);
     if (fav) {
       await supabase.from("favorites").delete().eq("id", fav.id);
+      trackPlausible("Favorite Removed", { source: "library" });
       toast.success("Удалено из избранного");
     } else {
       await supabase.from("favorites").insert({ user_id: user!.id, video_id: videoId });
+      trackPlausible("Favorite Added", { source: "library" });
       toast.success("Добавлено в избранное");
     }
     queryClient.invalidateQueries({ queryKey: ["favorites-list"] });

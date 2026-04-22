@@ -168,12 +168,16 @@ export default function Trends() {
             .delete()
             .eq("user_id", user.id)
             .eq("video_id", videoId);
+          trackPlausible("Favorite Removed", { source: "trends" });
         } else {
           const { error } = await supabase
             .from("favorites")
             .insert({ user_id: user.id, video_id: videoId })
             .select();
-          if (!error) trackAddToFavorites(videoId);
+          if (!error) {
+            trackAddToFavorites(videoId);
+            trackPlausible("Favorite Added", { source: "trends" });
+          }
         }
       } catch (err) {
         console.error(err);
