@@ -66,7 +66,7 @@ serve(async (req) => {
       pg_currency: "KZT",
       pg_description: `trendme подписка: ${plan.name}`,
       pg_salt: salt,
-      pg_testing_mode: "1",
+      // pg_testing_mode omitted = production (real cards)
       pg_result_url: resultUrl,
       pg_success_url: `${appUrl}/payment-success?plan=${encodeURIComponent(plan.name)}&amount=${plan.price_rub}`,
       pg_failure_url: `${appUrl}/payment-failure`,
