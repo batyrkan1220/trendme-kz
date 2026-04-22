@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { trackPurchaseEvent } from "@/components/TrackingPixels";
+import { trackPurchaseEvent, trackPlausible } from "@/components/TrackingPixels";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -11,6 +11,8 @@ const PaymentSuccess = () => {
     const plan = searchParams.get("plan") || "Подписка";
     const amount = Number(searchParams.get("amount")) || 0;
     trackPurchaseEvent(plan, amount);
+    const isQuarterly = /3|90|квартал|quarter/i.test(plan);
+    trackPlausible("Plan Upgrade", { plan: isQuarterly ? "quarterly" : "monthly" });
   }, [searchParams]);
 
   return (
