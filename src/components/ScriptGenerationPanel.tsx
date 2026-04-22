@@ -468,11 +468,25 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           </div>
         </div>
 
+        {/* Desktop resize handle (visible only when chat open) */}
+        {chatOpen && (
+          <div
+            onMouseDown={startResize}
+            className="hidden lg:block w-1.5 cursor-col-resize bg-transparent hover:bg-viral/30 active:bg-viral/50 transition-colors shrink-0 group relative"
+            title={isKk ? "Чат енін өзгерту" : "Изменить ширину чата"}
+          >
+            <span className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-border/40 group-hover:bg-viral/60 transition-colors" />
+          </div>
+        )}
+
         {/* Desktop right chat panel */}
         <aside
-          className={`hidden lg:flex flex-col border-l border-border/60 bg-card transition-all duration-300 overflow-hidden ${
-            chatOpen ? "w-[400px] xl:w-[440px]" : "w-0 border-l-0"
-          }`}
+          className="hidden lg:flex flex-col border-l border-border/60 bg-card overflow-hidden shrink-0"
+          style={{
+            width: chatOpen ? `${chatWidth}px` : "0px",
+            borderLeftWidth: chatOpen ? "1px" : "0",
+            transition: isResizingRef.current ? "none" : "width 280ms ease, border-left-width 280ms ease",
+          }}
         >
           {chatOpen && (
             <>
