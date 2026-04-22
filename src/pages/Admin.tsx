@@ -569,6 +569,15 @@ function PlatformTab() {
   );
 }
 
+/* Plan name → tailwind classes (color-coded) */
+function getPlanBadgeClass(name?: string | null): string {
+  const n = (name || "").toLowerCase();
+  if (n.includes("проб") || n === "trial") return "bg-muted text-muted-foreground border border-border";
+  if (n.includes("1 ме") || n.includes("1 ай") || n === "monthly") return "bg-blue-500/15 text-blue-400 border border-blue-500/30";
+  if (n.includes("3 ме") || n.includes("3 ай") || n === "quarterly") return "bg-amber-500/15 text-amber-400 border border-amber-500/30";
+  return "bg-secondary text-secondary-foreground border border-border";
+}
+
 /* ==================== USERS TAB ==================== */
 function UsersTab() {
   const queryClient = useQueryClient();
