@@ -336,7 +336,7 @@ export default function VideoAnalysis() {
                 er={er}
                 language={language}
                 onGenerateScript={async () => {
-                  const ok = await checkAndLog("ai_script", `AI Сценарий из анализа: ${url.trim()}`);
+                  const ok = await tryOpenScript();
                   if (!ok) return;
                   setShowScript(true);
                 }}
