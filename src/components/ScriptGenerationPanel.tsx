@@ -432,14 +432,14 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
               {/* Quick chips */}
               <div className="px-3 pt-2 pb-1 flex gap-1.5 overflow-x-auto shrink-0 scrollbar-hide">
-                {quickActions.slice(0, 4).map((a) => (
+                {quickActions.map((a) => (
                   <button
                     key={a.label}
                     onClick={() => sendMessage(a.prompt)}
                     disabled={isGenerating}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11.5px] font-semibold border border-border/70 text-foreground hover:bg-foreground hover:text-background transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
                   >
-                    <a.icon className="h-3 w-3" />
+                    <span className="text-xs leading-none">{a.emoji}</span>
                     {a.label}
                   </button>
                 ))}
