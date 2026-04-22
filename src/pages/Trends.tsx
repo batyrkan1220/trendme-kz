@@ -190,27 +190,44 @@ export default function Trends() {
     usePullToRefresh({ onRefresh: handleRefresh });
 
   const openAnalysis = useCallback(
-    (v: any) => {
+    async (v: any) => {
       if (isFreePlan) {
-        setPaywallFeature("analysis");
-        // Soft 200ms delay → feels like loading instead of an instant block
-        setTimeout(() => setPaywallVideo(v), 200);
-        return;
+        if (analysesLeft <= 0) {
+          setPaywallFeature("analysis");
+          setTimeout(() => setPaywallVideo(v), 200);
+          return;
+        }
+        const remaining = await consume("analysis");
+        if (remaining < 0) {
+          setPaywallFeature("analysis");
+          setTimeout(() => setPaywallVideo(v), 200);
+          return;
+        }
+        toast.success(`Использован пробный анализ. Осталось: ${remaining}`);
       }
       setAnalysisVideo(v);
     },
-    [isFreePlan]
+    [isFreePlan, analysesLeft, consume]
   );
   const openScript = useCallback(
-    (v: any) => {
+    async (v: any) => {
       if (isFreePlan) {
-        setPaywallFeature("script");
-        setTimeout(() => setPaywallVideo(v), 200);
-        return;
+        if (scriptsLeft <= 0) {
+          setPaywallFeature("script");
+          setTimeout(() => setPaywallVideo(v), 200);
+          return;
+        }
+        const remaining = await consume("script");
+        if (remaining < 0) {
+          setPaywallFeature("script");
+          setTimeout(() => setPaywallVideo(v), 200);
+          return;
+        }
+        toast.success(`Использован пробный сценарий. Осталось: ${remaining}`);
       }
       setScriptVideo(v);
     },
-    [isFreePlan]
+    [isFreePlan, scriptsLeft, consume]
   );
   const allGroups = NICHE_GROUPS;
 
