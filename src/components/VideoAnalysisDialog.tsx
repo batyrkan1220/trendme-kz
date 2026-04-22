@@ -105,8 +105,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
   const startAnalysis = async (lang: "ru" | "kk") => {
     if (!video) return;
-    const ok = await checkAndLog("video_analysis", `Анализ видео: ${video.url}`);
-    if (!ok) return;
     setLanguage(lang);
     setShowLangPicker(false);
     analyze({ v: video, lang });
