@@ -30,6 +30,8 @@ export default function SearchPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { checkAndLog } = useSubscription();
+  const { isFreePlan } = useIsFreePlan();
+  const navigate = useNavigate();
 
   const { data: recentQueries } = useQuery({
     queryKey: ["search-queries", user?.id],
