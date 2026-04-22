@@ -111,27 +111,38 @@ function TrendNicheRowImpl({
               </div>
 
               {isLocked && (
-                <button
-                  type="button"
-                  onClick={() => navigate("/subscription")}
-                  className="absolute inset-0 z-10 rounded-2xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-viral/60"
-                  aria-label="Разблокировать на платном тарифе"
+                <div
+                  className="absolute inset-0 z-10 rounded-2xl overflow-hidden"
+                  aria-label="Доступно на платном тарифе"
                 >
-                  {/* Лёгкий blur — видео слегка просвечивается */}
-                  <div className="absolute inset-0 backdrop-blur-[3px] bg-foreground/25 transition-colors group-hover:bg-foreground/20" />
+                  {/* Лёгкий blur — видео сквозь плашку слегка просвечивает */}
+                  <div className="absolute inset-0 backdrop-blur-[3px] bg-foreground/25" />
 
-                  {/* Плашка по центру в стиле платформы (viral lime + foreground) */}
-                  <div className="relative z-10 h-full w-full flex items-center justify-center px-2">
-                    <div className="flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl bg-foreground/90 backdrop-blur-sm border border-viral/40 shadow-glow-viral group-hover:scale-105 transition-transform">
-                      <div className="h-8 w-8 rounded-full bg-viral flex items-center justify-center">
+                  {/* Контент по центру */}
+                  <div className="relative z-10 h-full w-full flex items-center justify-center p-2.5">
+                    <div className="w-full flex flex-col items-center gap-2 px-2.5 py-3 rounded-xl bg-foreground/92 backdrop-blur-sm border border-viral/40 shadow-glow-viral">
+                      <div className="h-9 w-9 rounded-full bg-viral flex items-center justify-center shadow-md">
                         <Lock className="h-4 w-4 text-foreground" strokeWidth={2.5} />
                       </div>
-                      <p className="text-[11px] font-bold text-background leading-tight text-center">
-                        Платный тариф
-                      </p>
+                      <div className="text-center">
+                        <p className="text-[11.5px] font-extrabold text-background leading-tight">
+                          Только на платном тарифе
+                        </p>
+                        <p className="text-[9.5px] text-background/70 leading-tight mt-0.5">
+                          Откройте доступ ко всем трендам
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); navigate("/subscription"); }}
+                        className="w-full inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-viral text-foreground text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all"
+                      >
+                        Открыть
+                        <ChevronRight className="h-3 w-3" strokeWidth={2.5} />
+                      </button>
                     </div>
                   </div>
-                </button>
+                </div>
               )}
             </div>
           );
