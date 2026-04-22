@@ -9,6 +9,9 @@ import { isNativePlatform } from "@/lib/native";
  *
  * Native iOS/Android: always returns false (App Store Guideline 4.2 — full access).
  * Web: true when user has no active paid subscription.
+ *
+ * Note: Free users still get 3 free analyses + 3 free scripts via useFreeCredits.
+ * Paywall should only be shown when free credits are exhausted.
  */
 export function useIsFreePlan() {
   const { user } = useAuth();

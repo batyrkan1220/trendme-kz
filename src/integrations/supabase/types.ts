@@ -387,6 +387,8 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          free_analyses_left: number
+          free_scripts_left: number
           goal: string | null
           id: string
           name: string | null
@@ -398,6 +400,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          free_analyses_left?: number
+          free_scripts_left?: number
           goal?: string | null
           id?: string
           name?: string | null
@@ -409,6 +413,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          free_analyses_left?: number
+          free_scripts_left?: number
           goal?: string | null
           id?: string
           name?: string | null
@@ -877,6 +883,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_free_credit: { Args: { _kind: string }; Returns: number }
       get_cron_jobs: {
         Args: never
         Returns: {

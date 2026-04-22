@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { hapticLight } from "@/lib/haptics";
+import { useFreeCredits } from "@/hooks/useFreeCredits";
 
 interface PaywallVideoPreview {
   cover_url?: string | null;
@@ -54,6 +55,9 @@ const FEATURE_HEADLINES: Record<NonNullable<PaywallDialogProps["feature"]>, stri
 export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" }: PaywallDialogProps) {
   const navigate = useNavigate();
   const [monthlyPrice, setMonthlyPrice] = useState<number | null>(null);
+  const { analysesLeft, scriptsLeft } = useFreeCredits();
+  const creditsLeft = feature === "script" ? scriptsLeft : analysesLeft;
+  const featureLabel = feature === "script" ? "сценариев" : feature === "account" ? "анализов профиля" : "анализов";
 
   useEffect(() => {
     if (!open || monthlyPrice !== null) return;
@@ -139,7 +143,11 @@ export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" 
               {FEATURE_HEADLINES[feature]} — в Pro
             </h2>
             <p className="mt-2 text-[13.5px] text-muted-foreground leading-relaxed">
-              Демо позволяет находить тренды. Чтобы понять <span className="text-foreground font-semibold">почему они работают</span> — нужен Pro.
+              {creditsLeft <= 0 ? (
+                <>Ваши <span className="text-foreground font-semibold">3 пробных {featureLabel}</span> закончились. Откройте Pro — без лимитов.</>
+              ) : (
+                <>Демо позволяет находить тренды. Чтобы понять <span className="text-foreground font-semibold">почему они работают</span> — нужен Pro.</>
+              )}
             </p>
           </div>
 

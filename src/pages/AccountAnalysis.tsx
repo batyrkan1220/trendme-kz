@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { useFreeCredits } from "@/hooks/useFreeCredits";
 import { PaywallDialog } from "@/components/PaywallDialog";
 
 const isValidTikTokUrl = (url: string): boolean => {
@@ -78,7 +79,7 @@ export default function AccountAnalysis() {
   const { user } = useAuth();
   const { checkAndLog } = useSubscription();
   const { isFreePlan } = useIsFreePlan();
-
+  const { analysesLeft, consume } = useFreeCredits();
 
 
   // Favorites
@@ -134,10 +135,18 @@ export default function AccountAnalysis() {
       return;
     }
 
-    // Pro gate — free users see paywall
+    // Free plan: try to consume an analysis credit; if exhausted → paywall
     if (isFreePlan) {
-      setTimeout(() => setShowPaywall(true), 200);
-      return;
+      if (analysesLeft <= 0) {
+        setTimeout(() => setShowPaywall(true), 200);
+        return;
+      }
+      const remaining = await consume("analysis");
+      if (remaining < 0) {
+        setTimeout(() => setShowPaywall(true), 200);
+        return;
+      }
+      toast.success(`Использован пробный анализ профиля. Осталось: ${remaining}`);
     }
 
     const ok = await checkAndLog("account_analysis", `Анализ аккаунта: ${normalizedUrl}`);
