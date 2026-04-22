@@ -143,7 +143,11 @@ export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" 
               {FEATURE_HEADLINES[feature]} — в Pro
             </h2>
             <p className="mt-2 text-[13.5px] text-muted-foreground leading-relaxed">
-              Демо позволяет находить тренды. Чтобы понять <span className="text-foreground font-semibold">почему они работают</span> — нужен Pro.
+              {creditsLeft <= 0 ? (
+                <>Ваши <span className="text-foreground font-semibold">3 пробных {featureLabel}</span> закончились. Откройте Pro — без лимитов.</>
+              ) : (
+                <>Демо позволяет находить тренды. Чтобы понять <span className="text-foreground font-semibold">почему они работают</span> — нужен Pro.</>
+              )}
             </p>
           </div>
 
