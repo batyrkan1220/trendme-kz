@@ -115,10 +115,33 @@ export function TrackingPixels() {
 }
 
 // Plausible Analytics helper — skips admin pages
+//
+// Dev debug mode: when enabled, events are logged to the console and NOT sent.
+// Toggle from devtools console:
+//   localStorage.setItem('plausible_debug', '1')   // enable
+//   localStorage.removeItem('plausible_debug')      // disable
+// Auto-enabled in dev (import.meta.env.DEV) unless explicitly set to '0'.
+function isPlausibleDebug(): boolean {
+  try {
+    if (typeof window === "undefined") return false;
+    const ls = window.localStorage?.getItem("plausible_debug");
+    if (ls === "1") return true;
+    if (ls === "0") return false;
+    return Boolean((import.meta as any).env?.DEV);
+  } catch {
+    return false;
+  }
+}
+
 export function trackPlausible(event: string, props?: Record<string, string | number | boolean>) {
   try {
     if (typeof window === "undefined") return;
     if (window.location.pathname.startsWith("/admin")) return;
+    if (isPlausibleDebug()) {
+      // eslint-disable-next-line no-console
+      console.log("%c[plausible:debug]", "color:#7c3aed;font-weight:bold", event, props ?? {});
+      return;
+    }
     const p = (window as any).plausible;
     if (typeof p === "function") {
       props ? p(event, { props }) : p(event);
