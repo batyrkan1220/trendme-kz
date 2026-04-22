@@ -399,6 +399,26 @@ export default function SubscriptionsTab() {
         <StatCard icon={<XCircle className="h-4 w-4" />} label="Истекло (30 дн.)" value={stats.churned} tone="red" />
       </div>
 
+      {/* SECTION 1b — REFUND STATS */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <StatCard
+          icon={<RefreshCw className="h-4 w-4" />}
+          label="Возвратов за месяц"
+          value={`${stats.monthRefundsCount} · ${fmtMoney(stats.monthRefundAmount)}`}
+        />
+        <StatCard
+          icon={<Clock className="h-4 w-4" />}
+          label="Возвраты в обработке"
+          value={stats.pendingRefunds}
+          tone={stats.pendingRefunds > 0 ? "amber" : undefined}
+        />
+        <StatCard
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          label="Всего возвратов"
+          value={payments.filter(p => p.refund_status === "success").length}
+        />
+      </div>
+
       {/* SECTION 2 — PAYMENTS */}
       <Card>
         <CardHeader>
