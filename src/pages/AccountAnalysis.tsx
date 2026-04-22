@@ -79,7 +79,7 @@ export default function AccountAnalysis() {
   const { user } = useAuth();
   const { checkAndLog } = useSubscription();
   const { isFreePlan } = useIsFreePlan();
-
+  const { analysesLeft, consume } = useFreeCredits();
 
 
   // Favorites
