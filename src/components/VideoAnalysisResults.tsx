@@ -379,7 +379,16 @@ export function VideoAnalysisResults({
         <div className="space-y-1.5">
           {!isUnknown(summary?.hook_phrase) && (
             <div className="p-2.5 rounded-lg border border-border/50 bg-muted/30">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">🎣 {isKk ? "Хук фраза" : "Хук фраза"}</p>
+              <div className="flex items-center justify-between mb-0.5">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">🎣 {isKk ? "Хук фраза" : "Хук фраза"}</p>
+                <button
+                  onClick={copyHook}
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50"
+                >
+                  <Copy className="h-3 w-3" />
+                  {isKk ? "Көшіру" : "Копировать"}
+                </button>
+              </div>
               <p className="text-[13px] font-medium text-foreground italic">"{summary.hook_phrase}"</p>
             </div>
           )}
