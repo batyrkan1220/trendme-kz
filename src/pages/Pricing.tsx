@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { trackInitiateCheckout, trackPlausible } from "@/components/TrackingPixels";
-import { Check, Loader2 } from "lucide-react";
+import { Check, X, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -200,7 +200,7 @@ export default function Pricing() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
               {sortedPlans.map((plan: any) => {
                 const isPaid = plan.price_rub > 0;
-                const isFeatured = plan.duration_days === 30 && plan.price_rub > 0;
+                const isFeatured = plan.duration_days === 90 && plan.price_rub > 0;
                 const isActive = activePlanName === plan.name;
                 const features = Array.isArray(plan.features) ? plan.features as string[] : [];
                 const usageLimits = plan.usage_limits as Record<string, number> | null;
@@ -288,7 +288,9 @@ export default function Pricing() {
                       >
                         {loadingPlanId === plan.id ? (
                           <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
-                        ) : isActive ? "Активен ✓" : isFeatured ? "Выбрать 1 мес" : "Выбрать"}
+                        ) : isActive
+                          ? "Активен ✓"
+                          : plan.duration_days === 90 ? "Выбрать 3 мес" : "Выбрать 1 мес"}
                       </button>
                     ) : (
                       <button
@@ -307,22 +309,18 @@ export default function Pricing() {
 
                     {/* Features */}
                     <ul className="mt-8 space-y-3 text-[14px] flex-1">
-                      {usageLimits && (
-                        <>
-                          {usageLimits.video_analysis != null && (
-                            <FeatureRow featured={isFeatured} label={<>Анализ видео — <strong>{usageLimits.video_analysis}</strong> раз</>} />
-                          )}
-                          {usageLimits.ai_script != null && (
-                            <FeatureRow featured={isFeatured} label={<>AI Сценарий — <strong>{usageLimits.ai_script}</strong> раз</>} />
-                          )}
-                        </>
-                      )}
-                      {!usageLimits && !isFree && (
-                        <FeatureRow featured={isFeatured} label={<strong>Все функции безлимитно</strong>} />
-                      )}
-                      {features.map((f: string) => (
-                        <FeatureRow key={f} featured={isFeatured} label={<span dangerouslySetInnerHTML={{ __html: f }} />} />
-                      ))}
+                      {features.map((f: string) => {
+                        const muted = /text-muted-foreground/.test(f);
+                        const clean = f.replace(/<[^>]+>/g, "");
+                        return (
+                          <FeatureRow
+                            key={f}
+                            featured={isFeatured}
+                            disabled={muted}
+                            label={<span>{clean}</span>}
+                          />
+                        );
+                      })}
                     </ul>
                   </div>
                 );
@@ -335,19 +333,25 @@ export default function Pricing() {
   );
 }
 
-function FeatureRow({ featured, label }: { featured: boolean; label: React.ReactNode }) {
+function FeatureRow({ featured, label, disabled = false }: { featured: boolean; label: React.ReactNode; disabled?: boolean }) {
   return (
     <li className={cn(
-      "flex gap-2.5",
-      featured ? "" : "text-foreground/80"
+      "flex gap-2.5 items-start",
+      disabled
+        ? "text-muted-foreground/70 line-through decoration-muted-foreground/40"
+        : featured ? "" : "text-foreground/80"
     )}>
-      <Check
-        className={cn(
-          "w-5 h-5 shrink-0",
-          featured ? "text-viral" : "text-emerald-500"
-        )}
-        strokeWidth={2.5}
-      />
+      {disabled ? (
+        <X className="w-5 h-5 shrink-0 text-muted-foreground/60" strokeWidth={2.5} />
+      ) : (
+        <Check
+          className={cn(
+            "w-5 h-5 shrink-0",
+            featured ? "text-viral" : "text-emerald-500"
+          )}
+          strokeWidth={2.5}
+        />
+      )}
       <span>{label}</span>
     </li>
   );
