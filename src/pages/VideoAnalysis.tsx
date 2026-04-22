@@ -142,16 +142,36 @@ export default function VideoAnalysis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Helper: gate "open script" by paid sub OR free credit
+  const tryOpenScript = async (): Promise<boolean> => {
+    if (isFreePlan) {
+      if (scriptsLeft <= 0) {
+        setShowPaywall(true);
+        return false;
+      }
+      const remaining = await consume("script");
+      if (remaining < 0) {
+        setShowPaywall(true);
+        return false;
+      }
+      toast.success(`Использован пробный сценарий. Осталось: ${remaining}`);
+      return true;
+    }
+    const ok = await checkAndLog("ai_script", `AI Сценарий из анализа: ${url.trim()}`);
+    return ok;
+  };
+
   // Auto-open script panel after successful analysis if requested
   useEffect(() => {
     if (analysis && autoScriptRef.current) {
       autoScriptRef.current = false;
       (async () => {
-        const ok = await checkAndLog("ai_script", `AI Сценарий из анализа: ${url.trim()}`);
+        const ok = await tryOpenScript();
         if (ok) setShowScript(true);
       })();
     }
-  }, [analysis, checkAndLog, url]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysis]);
 
   const stats = analysis?.stats;
   const rawSummary = analysis?.summary_json;
