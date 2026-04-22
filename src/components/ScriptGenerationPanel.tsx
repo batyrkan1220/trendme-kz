@@ -7,6 +7,7 @@ import { useTokens } from "@/hooks/useTokens";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
+import { trackPlausible } from "@/components/TrackingPixels";
 
 interface ScriptPanelProps {
   transcript: string;
