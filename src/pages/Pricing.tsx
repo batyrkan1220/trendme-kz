@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { trackInitiateCheckout, trackPlausible } from "@/components/TrackingPixels";
-import { Check, Loader2 } from "lucide-react";
+import { Check, X, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
