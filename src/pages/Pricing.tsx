@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 
 const subtitles: Record<string, string> = {
