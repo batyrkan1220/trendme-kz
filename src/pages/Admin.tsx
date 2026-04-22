@@ -712,6 +712,8 @@ function UsersTab() {
     onError: () => toast.error("Не удалось подтвердить email"),
   });
 
+  const allUsers: any[] = data?.users || [];
+
   // Apply filters
   const filteredUsers = useMemo(() => {
     let list = allUsers.filter((u: any) => {
