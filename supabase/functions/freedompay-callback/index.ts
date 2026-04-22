@@ -124,10 +124,21 @@ serve(async (req) => {
         });
       }
 
-      // Update payment order status
+      // Update payment order status with full Freedom Pay metadata
       await supabase
         .from("payment_orders")
-        .update({ status: "success", pg_payment_id: pgPaymentId })
+        .update({
+          status: "success",
+          pg_payment_id: pgPaymentId,
+          card_mask: params.pg_card_pan ?? null,
+          bank_code: params.pg_bank_id ?? null,
+          mcc: params.pg_mcc ?? null,
+          payment_organization: params.pg_payment_organization ?? 'ТОО "Freedom Pay"',
+          phone: params.pg_user_phone ?? null,
+          commission: params.pg_commission ? Math.round(Number(params.pg_commission)) : 0,
+          payment_method: params.pg_payment_method ?? null,
+          paid_at: params.pg_payment_date ?? new Date().toISOString(),
+        })
         .eq("order_id", orderId);
 
       // Send email receipt (квитанция) — fire-and-forget, must not block callback
@@ -190,7 +201,12 @@ serve(async (req) => {
       // Payment failed
       await supabase
         .from("payment_orders")
-        .update({ status: "failed", pg_payment_id: pgPaymentId })
+        .update({
+          status: "failed",
+          pg_payment_id: pgPaymentId,
+          failure_code: params.pg_failure_code ?? null,
+          failure_description: params.pg_failure_description ?? null,
+        })
         .eq("order_id", orderId);
 
       // Journal entry — failed payment
