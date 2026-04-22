@@ -74,6 +74,7 @@ export default function Auth() {
   // OTP step state
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState(0);
+  const [otpErrorMsg, setOtpErrorMsg] = useState<string | null>(null);
   const [otpVerifying, setOtpVerifying] = useState(false);
   const { secondsLeft, canResend, start: startCountdown } = useResendCountdown(60);
 
