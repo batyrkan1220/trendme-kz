@@ -33,6 +33,7 @@ function pluralDays(n: number) {
 export default function Pricing() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const { data: plans = [], isLoading } = useQuery({
     queryKey: ["plans-public"],
     queryFn: async () => {
