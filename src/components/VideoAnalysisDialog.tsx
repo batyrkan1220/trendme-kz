@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { isNativePlatform } from "@/lib/native";
 import { MagicAnalysisLoader } from "./MagicAnalysisLoader";
 import { hapticSuccess } from "@/lib/haptics";
+import { VideoAnalysisResults } from "./VideoAnalysisResults";
 
 interface VideoData {
   id: string;
