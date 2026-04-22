@@ -807,6 +807,24 @@ function UsersTab() {
                         </button>
                       </td>
                       <td className="p-3">
+                        <div className="flex flex-col gap-0.5 text-xs">
+                          <span className="flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 text-viral" />
+                            <span className="text-muted-foreground">Анализ:</span>
+                            <span className={`font-bold ${(u.free_analyses_left ?? 0) === 0 ? "text-destructive" : "text-foreground"}`}>
+                              {u.free_analyses_left ?? "—"}/3
+                            </span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Zap className="h-3 w-3 text-primary" />
+                            <span className="text-muted-foreground">Сценарий:</span>
+                            <span className={`font-bold ${(u.free_scripts_left ?? 0) === 0 ? "text-destructive" : "text-foreground"}`}>
+                              {u.free_scripts_left ?? "—"}/3
+                            </span>
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-3">
                         <div className="flex gap-1">
                           {u.roles.length === 0 && (
                             <span className="text-muted-foreground text-xs">user</span>
