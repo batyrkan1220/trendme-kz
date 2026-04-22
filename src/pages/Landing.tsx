@@ -57,7 +57,7 @@ function LandingNav() {
             Войти
           </Link>
           <Link
-            to="/auth"
+            to="/auth?mode=register"
             className="inline-flex items-center gap-1 md:gap-1.5 px-3 md:px-4 py-2 rounded-lg text-[13px] md:text-[14px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap"
           >
             Начать бесплатно
@@ -130,7 +130,7 @@ function Hero() {
 
           <div className="mt-7 md:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center lg:justify-start gap-3">
             <Link
-              to="/auth"
+              to="/auth?mode=register"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
             >
               Начать бесплатно
@@ -390,7 +390,7 @@ function HowItWorks() {
 
         <div className="mt-10 md:mt-12 text-center">
           <Link
-            to="/auth"
+            to="/auth?mode=register"
             className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-foreground text-background hover:bg-foreground/90 hover:-translate-y-0.5 hover:shadow-glow-primary transition-all"
           >
             Попробовать бесплатно
@@ -654,7 +654,7 @@ function Pricing() {
               </div>
               <p className={`mt-1.5 md:mt-2 text-[13.5px] md:text-[14px] ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.desc}</p>
               <Link
-                to="/auth"
+                to="/auth?mode=register"
                 className={`mt-5 md:mt-6 inline-flex w-full justify-center py-3 rounded-xl text-[14px] font-semibold transition ${
                   p.featured
                     ? "bg-viral text-foreground hover:opacity-90"
@@ -818,7 +818,7 @@ function FinalCTA() {
             </p>
             <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
               <Link
-                to="/auth"
+                to="/auth?mode=register"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-viral text-foreground text-[15px] font-semibold hover:opacity-90 transition"
               >
                 Найти свой тренд бесплатно
