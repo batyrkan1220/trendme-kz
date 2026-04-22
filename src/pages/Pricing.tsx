@@ -314,14 +314,8 @@ export default function Pricing() {
                     <ul className="mt-8 space-y-3 text-[14px] flex-1">
                       {usageLimits && (
                         <>
-                          {usageLimits.search != null && (
-                            <FeatureRow featured={isFeatured} label={<>Поиск — <strong>{usageLimits.search}</strong> раз</>} />
-                          )}
                           {usageLimits.video_analysis != null && (
                             <FeatureRow featured={isFeatured} label={<>Анализ видео — <strong>{usageLimits.video_analysis}</strong> раз</>} />
-                          )}
-                          {usageLimits.account_analysis != null && (
-                            <FeatureRow featured={isFeatured} label={<>Анализ профиля — <strong>{usageLimits.account_analysis}</strong> раз</>} />
                           )}
                           {usageLimits.ai_script != null && (
                             <FeatureRow featured={isFeatured} label={<>AI Сценарий — <strong>{usageLimits.ai_script}</strong> раз</>} />
