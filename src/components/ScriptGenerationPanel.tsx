@@ -403,15 +403,15 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
               {isGenerating && !scriptContent ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-5 animate-fade-in">
                   <div className="relative">
-                    <span className="absolute inset-0 rounded-2xl bg-viral/40 blur-2xl -z-10" />
-                    <div className="w-20 h-20 rounded-2xl bg-viral flex items-center justify-center shadow-glow-primary animate-scale-in ring-1 ring-white/20">
-                      <Sparkles className="h-9 w-9 text-foreground animate-pulse" />
+                    <span className="absolute inset-0 rounded-2xl bg-viral/50 blur-2xl -z-10 animate-viral-pulse" />
+                    <div className="w-20 h-20 rounded-2xl bg-viral flex items-center justify-center shadow-glow-viral animate-scale-in ring-1 ring-foreground/10">
+                      <Sparkles className="h-9 w-9 text-viral-foreground animate-pulse" />
                     </div>
                   </div>
-                  <p className="text-muted-foreground font-medium text-center text-sm md:text-base">
+                  <p className="text-foreground/80 font-medium text-center text-sm md:text-base tracking-tight">
                     {isKk ? "Сценарий генерациялануда..." : "Генерируем сценарий..."}
                     <br />
-                    <span className="text-xs text-muted-foreground/70">
+                    <span className="text-xs text-muted-foreground">
                       {isKk ? "10–20 секунд" : "Это займёт 10–20 секунд"}
                     </span>
                   </p>
@@ -455,7 +455,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                         key={a.label}
                         onClick={() => sendMessage(a.prompt)}
                         disabled={isGenerating}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-card border border-border/70 text-[13px] font-semibold text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-card/70 md:bg-white/60 md:backdrop-blur-md border border-border/60 text-[12.5px] font-medium text-foreground/80 hover:bg-viral hover:text-viral-foreground hover:border-transparent hover:shadow-glow-viral transition-all active:scale-95 disabled:opacity-50"
                       >
                         <span className="text-base leading-none">{a.emoji}</span>
                         {a.label}
@@ -525,14 +525,14 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Quick chips */}
+              {/* Quick chips — desktop sidebar */}
               <div className="px-3 pt-2 pb-1 flex gap-1.5 overflow-x-auto shrink-0 scrollbar-hide">
                 {quickActions.map((a) => (
                   <button
                     key={a.label}
                     onClick={() => sendMessage(a.prompt)}
                     disabled={isGenerating}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11.5px] font-semibold border border-border/70 text-foreground hover:bg-foreground hover:text-background transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
+                    className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-medium border border-border/60 bg-card/70 text-foreground/80 hover:bg-viral hover:text-viral-foreground hover:border-transparent transition-all whitespace-nowrap shrink-0 disabled:opacity-50 active:scale-95"
                   >
                     <span className="text-xs leading-none">{a.emoji}</span>
                     {a.label}
@@ -643,15 +643,15 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
               </div>
             </div>
 
-            {/* Quick chips */}
+            {/* Quick chips — mobile sheet */}
             {keyboardHeight === 0 && (
-              <div className="px-3 py-2.5 flex gap-1.5 overflow-x-auto shrink-0 border-b border-border/30 scrollbar-hide">
+              <div className="px-3 py-2.5 flex gap-1.5 overflow-x-auto shrink-0 border-b border-border/40 scrollbar-hide">
                 {quickActions.map((a) => (
                   <button
                     key={a.label}
                     onClick={() => sendMessage(a.prompt)}
                     disabled={isGenerating}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] font-semibold border border-border/70 text-foreground hover:bg-foreground hover:text-background transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
+                    className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-medium border border-border/60 bg-card/70 text-foreground/80 hover:bg-viral hover:text-viral-foreground hover:border-transparent transition-all whitespace-nowrap shrink-0 disabled:opacity-50 active:scale-95"
                   >
                     <span className="text-sm leading-none">{a.emoji}</span>
                     {a.label}
@@ -660,7 +660,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                 <button
                   onClick={handleRegenerate}
                   disabled={isGenerating}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] font-semibold border border-viral/40 text-foreground bg-viral/10 hover:bg-viral hover:text-viral-foreground transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-semibold border border-viral/40 text-foreground bg-viral/10 hover:bg-viral hover:text-viral-foreground hover:border-transparent transition-all whitespace-nowrap shrink-0 disabled:opacity-50 active:scale-95"
                 >
                   <RefreshCw className={`h-3 w-3 ${isGenerating ? "animate-spin" : ""}`} />
                   {isKk ? "Қайта" : "Заново"}
