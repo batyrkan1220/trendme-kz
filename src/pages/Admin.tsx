@@ -21,8 +21,14 @@ import {
   RefreshCw, Hash, BarChart3, Play, Trash2, Plus, Save, Shield, Loader2,
   Users, Activity, Video, Search, Heart, UserCircle, ScrollText,
   CreditCard, Crown, X, Edit2, Sparkles, Check, Coins, Zap, Eye, Link2, ChevronRight,
-  Flag, ShieldX, AlertTriangle, MessageSquare,
+  Flag, ShieldX, AlertTriangle, MessageSquare, Download, Ban, RotateCcw, FileText,
+  ChevronLeft,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { NICHE_GROUPS } from "@/config/niches";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
