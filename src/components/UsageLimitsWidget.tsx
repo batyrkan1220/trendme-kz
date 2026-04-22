@@ -54,8 +54,9 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
     { key: "script", label: "AI Сценарий", remaining: scriptRemaining, total: scriptTotal, icon: Sparkles, gradient: "from-amber-500 to-orange-500" },
   ];
 
-  const totalLeft = analysisRemaining + scriptRemaining;
-  const isLow = totalLeft <= 2;
+  const totalLeft = Math.max(0, analysisRemaining) + Math.max(0, scriptRemaining);
+  const isExhausted = totalLeft === 0;
+  const isLow = !isExhausted && totalLeft <= 2;
 
   return (
     <div className={`relative overflow-hidden rounded-2xl border border-border/50 bg-card p-4 md:p-6 ${className}`}>
@@ -82,7 +83,7 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
           const Icon = item.icon;
           const isEmpty = remaining === 0;
           return (
-            <div key={item.key} className="rounded-xl bg-muted/40 border border-border/30 p-3">
+            <div key={item.key} className={`rounded-xl p-3 border ${isEmpty ? 'bg-destructive/5 border-destructive/30' : 'bg-muted/40 border-border/30'}`}>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className={`shrink-0 h-5 w-5 rounded-md bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
                   <Icon className="h-3 w-3 text-white" />
@@ -94,6 +95,9 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
                   {remaining}
                   <span className="text-[10px] md:text-xs font-normal text-muted-foreground">/{total}</span>
                 </span>
+                {isEmpty && (
+                  <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide text-destructive">Закончилось</span>
+                )}
               </div>
               <div className="h-1.5 w-full rounded-full bg-border/60 overflow-hidden">
                 <div
@@ -113,20 +117,32 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
       {showUpgradeLink && (
         <Link
           to="/subscription"
-          className="relative group flex items-center gap-3 rounded-xl p-3 bg-gradient-to-r from-primary/10 via-fuchsia-500/10 to-amber-500/10 border border-primary/20 hover:border-primary/40 transition-all duration-200 active:scale-[0.99]"
+          className={`relative group flex items-center gap-3 rounded-xl p-3 border transition-all duration-200 active:scale-[0.99] ${
+            isExhausted
+              ? 'bg-destructive/10 border-destructive/30 hover:border-destructive/50'
+              : 'bg-gradient-to-r from-primary/10 via-fuchsia-500/10 to-amber-500/10 border-primary/20 hover:border-primary/40'
+          }`}
         >
-          <div className="shrink-0 h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center shadow-sm">
+          <div className={`shrink-0 h-9 w-9 rounded-lg flex items-center justify-center shadow-sm ${
+            isExhausted ? 'bg-destructive' : 'bg-gradient-to-br from-primary to-fuchsia-500'
+          }`}>
             <Crown className="h-4 w-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] md:text-sm font-bold text-foreground leading-tight">
-              {isLow ? "Лимиты почти исчерпаны" : "Хотите безлимит?"}
+            <p className={`text-[12px] md:text-sm font-bold leading-tight ${isExhausted ? 'text-destructive' : 'text-foreground'}`}>
+              {isExhausted
+                ? 'Лимиты закончились'
+                : isLow
+                ? 'Лимиты почти исчерпаны'
+                : 'Хотите безлимит?'}
             </p>
             <p className="text-[10px] md:text-[11px] text-muted-foreground leading-tight mt-0.5">
-              Перейдите на платный тариф — без ограничений
+              {isExhausted
+                ? 'Откройте Pro, чтобы продолжить без ограничений'
+                : 'Перейдите на платный тариф — без ограничений'}
             </p>
           </div>
-          <ArrowRight className="shrink-0 h-4 w-4 text-primary group-hover:translate-x-0.5 transition-transform" />
+          <ArrowRight className={`shrink-0 h-4 w-4 group-hover:translate-x-0.5 transition-transform ${isExhausted ? 'text-destructive' : 'text-primary'}`} />
         </Link>
       )}
     </div>
