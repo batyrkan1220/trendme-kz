@@ -3,7 +3,7 @@ import { isNativePlatform } from "@/lib/native";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import {
   Copy, RefreshCw, Send, Sparkles, Loader2, ArrowLeft, MessageCircle, X,
-  Check, Wand2, Scissors, Heart, Zap, Languages, Undo2,
+  Check, Wand2, Scissors, Heart, Zap, Languages, Undo2, ChevronDown, ChevronUp, Minus,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
