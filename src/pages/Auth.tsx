@@ -129,6 +129,7 @@ export default function Auth() {
         }
         else {
           trackRegistrationEvent();
+          trackPlausible("Trial Start");
           toast.success("Проверьте email для подтверждения регистрации");
         }
       }
