@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { UsageLimitsWidget } from "@/components/UsageLimitsWidget";
+
 
 const subtitles: Record<string, string> = {
   "Пробный": "Для первого знакомства",
@@ -189,11 +189,6 @@ export default function Pricing() {
               </div>
             );
           })()}
-
-          {/* Usage limits widget — shown only for trial users */}
-          <div className="mx-auto max-w-2xl mb-8 md:mb-10">
-            <UsageLimitsWidget showUpgradeLink={false} />
-          </div>
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
