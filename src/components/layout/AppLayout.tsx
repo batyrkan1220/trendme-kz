@@ -17,7 +17,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { isFreePlan } = useIsFreePlan();
+  const { isFreePlan, isLoading: isPlanLoading } = useIsFreePlan();
 
   const isMainTab = MAIN_TABS.includes(location.pathname);
   const { swipeProps, swipeStyle, showIndicator, indicatorProgress } = useSwipeBack({
@@ -26,7 +26,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   // DemoBanner — strictly mobile + free + non-native (web only).
   // Must match DemoBanner internal visibility 1:1 to avoid padding/banner desync.
-  const showDemoBanner = isMobile && isFreePlan && !isNativePlatform;
+  const showDemoBanner = isMobile && isFreePlan && !isPlanLoading && !isNativePlatform;
 
   return (
     <div className="relative flex h-[100dvh] w-full overflow-hidden bg-background-subtle text-foreground">
