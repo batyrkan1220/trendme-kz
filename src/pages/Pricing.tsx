@@ -74,14 +74,73 @@ export default function Pricing() {
 
   const activePlanName = (userSub as any)?.plans?.name;
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+  const [confirmPlanId, setConfirmPlanId] = useState<string | null>(null);
 
-  const handlePayment = async (planId: string) => {
-    const plan = plans.find((p: any) => p.id === planId);
-    if (!plan) return;
+  // Compute prorate preview for a target plan based on current active sub
+  const proratePreview = useMemo(() => {
+    if (!confirmPlanId) return null;
+    const newPlan: any = plans.find((p: any) => p.id === confirmPlanId);
+    if (!newPlan) return null;
+
+    const sub: any = userSub;
+    const currentPlan = sub?.plans;
+    const currentExpiresAt = sub?.expires_at ? new Date(sub.expires_at) : null;
+    const now = new Date();
+    const isCurrentActive = currentExpiresAt && currentExpiresAt > now;
+    const isCurrentPaid = (currentPlan?.price_rub || 0) > 0;
+
+    let purchaseType: "new" | "renewal" | "upgrade" | "downgrade" = "new";
+    let bonusDays = 0;
+    let remainingDays = 0;
+    let remainingValueRub = 0;
+    let newExpiresAt: Date;
+
+    if (isCurrentActive && currentPlan && sub) {
+      remainingDays = Math.max(
+        0,
+        Math.ceil((currentExpiresAt!.getTime() - now.getTime()) / 86400000)
+      );
+
+      if (currentPlan.price_rub === newPlan.price_rub && currentPlan.duration_days === newPlan.duration_days) {
+        purchaseType = "renewal";
+        newExpiresAt = new Date(currentExpiresAt!.getTime() + newPlan.duration_days * 86400000);
+      } else if (isCurrentPaid) {
+        remainingValueRub = (currentPlan.price_rub / currentPlan.duration_days) * remainingDays;
+        const newDailyRate = newPlan.price_rub / newPlan.duration_days;
+        bonusDays = newDailyRate > 0 ? Math.floor(remainingValueRub / newDailyRate) : 0;
+        purchaseType = newPlan.price_rub > currentPlan.price_rub ? "upgrade" : "downgrade";
+        newExpiresAt = new Date(now.getTime() + (newPlan.duration_days + bonusDays) * 86400000);
+      } else {
+        newExpiresAt = new Date(now.getTime() + newPlan.duration_days * 86400000);
+      }
+    } else {
+      newExpiresAt = new Date(now.getTime() + newPlan.duration_days * 86400000);
+    }
+
+    return {
+      newPlan,
+      currentPlanName: currentPlan?.name,
+      purchaseType,
+      remainingDays,
+      remainingValueRub: Math.round(remainingValueRub),
+      bonusDays,
+      newExpiresAt,
+    };
+  }, [confirmPlanId, plans, userSub]);
+
+  const requestPayment = (planId: string) => {
     if (!user) {
       navigate("/auth");
       return;
     }
+    setConfirmPlanId(planId);
+  };
+
+  const handlePayment = async () => {
+    const planId = confirmPlanId;
+    if (!planId) return;
+    const plan = plans.find((p: any) => p.id === planId);
+    if (!plan) return;
     trackInitiateCheckout(plan.name, plan.price_rub);
     trackPlausible("Plan Upgrade", { plan: plan.duration_days === 90 ? "quarterly" : "monthly" });
     try {
