@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { trackInitiateCheckout } from "@/components/TrackingPixels";
+import { trackInitiateCheckout, trackPlausible } from "@/components/TrackingPixels";
 import { Check, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +66,7 @@ export default function Pricing() {
     const plan = plans.find((p: any) => p.id === planId);
     if (!plan) return;
     trackInitiateCheckout(plan.name, plan.price_rub);
+    trackPlausible("Plan Upgrade", { plan: plan.duration_days === 90 ? "quarterly" : "monthly" });
     const phone = "77770145874";
     const duration = plan.duration_days === 90 ? "3-месячную" : "1-месячную";
     const message = `Я хочу Купить ${duration} подписку на платформу trendme.kz`;
