@@ -632,7 +632,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         <div className="px-2 sm:px-3 pb-2.5 sm:pb-3 mt-auto">
           <button
             onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-            className="group/btn relative w-full flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-viral text-viral-foreground ring-1 ring-foreground/10 transition-all duration-300 ease-out overflow-visible hover:brightness-110 hover:-translate-y-0.5 hover:ring-2 hover:ring-viral/60 active:scale-[0.96] active:translate-y-0 active:brightness-95"
+            className="group/btn relative w-full flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-viral text-viral-foreground ring-1 ring-foreground/10 transition-all duration-300 ease-out overflow-visible hover:brightness-110 hover:-translate-y-0.5 hover:ring-2 hover:ring-viral/60 active:scale-[0.96] active:translate-y-0 active:brightness-95 focus:outline-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-viral focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:brightness-110 focus-visible:-translate-y-0.5"
             style={{ boxShadow: "0 6px 24px -6px hsl(var(--viral) / 0.55), 0 0 0 1px hsl(0 0% 100% / 0.2) inset" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.boxShadow =
