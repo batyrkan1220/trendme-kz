@@ -430,6 +430,7 @@ export type Database = {
         Row: {
           admin_notes: string | null
           created_at: string
+          experience: string | null
           free_analyses_left: number
           free_scripts_left: number
           goal: string | null
@@ -440,12 +441,14 @@ export type Database = {
           niche: string | null
           onboarding_completed: boolean
           phone: string | null
+          platform: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           admin_notes?: string | null
           created_at?: string
+          experience?: string | null
           free_analyses_left?: number
           free_scripts_left?: number
           goal?: string | null
@@ -456,12 +459,14 @@ export type Database = {
           niche?: string | null
           onboarding_completed?: boolean
           phone?: string | null
+          platform?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           admin_notes?: string | null
           created_at?: string
+          experience?: string | null
           free_analyses_left?: number
           free_scripts_left?: number
           goal?: string | null
@@ -472,6 +477,7 @@ export type Database = {
           niche?: string | null
           onboarding_completed?: boolean
           phone?: string | null
+          platform?: string | null
           updated_at?: string
           user_id?: string
         }
