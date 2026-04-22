@@ -260,6 +260,39 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
     disabled: chatOpen,
   });
 
+  // ── Desktop chat resize ───────────────────────────────
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      const w = Math.min(600, Math.max(360, window.innerWidth - e.clientX));
+      setChatWidth(w);
+    };
+    const onUp = () => {
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      localStorage.setItem("script-chat-width", String(chatWidth));
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [chatWidth]);
+
+  const startResize = () => {
+    isResizingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  // Reset snap when sheet closes
+  useEffect(() => {
+    if (!chatOpen) setSheetSnap("half");
+  }, [chatOpen]);
+
   // ── Quick action presets ───────────────────────────────
   const quickActions = useMemo(() => [
     { emoji: "🔥", label: isKk ? "Хукты күшейт" : "Сделай хук сильнее",
