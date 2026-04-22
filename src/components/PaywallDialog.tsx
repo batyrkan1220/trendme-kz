@@ -55,6 +55,9 @@ const FEATURE_HEADLINES: Record<NonNullable<PaywallDialogProps["feature"]>, stri
 export function PaywallDialog({ open, onOpenChange, video, feature = "analysis" }: PaywallDialogProps) {
   const navigate = useNavigate();
   const [monthlyPrice, setMonthlyPrice] = useState<number | null>(null);
+  const { analysesLeft, scriptsLeft } = useFreeCredits();
+  const creditsLeft = feature === "script" ? scriptsLeft : analysesLeft;
+  const featureLabel = feature === "script" ? "сценариев" : feature === "account" ? "анализов профиля" : "анализов";
 
   useEffect(() => {
     if (!open || monthlyPrice !== null) return;
