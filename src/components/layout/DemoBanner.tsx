@@ -18,11 +18,10 @@ import { Sparkles, ArrowRight } from "lucide-react";
  */
 export function DemoBanner() {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { isFreePlan, isLoading } = useIsFreePlan();
 
-  // Strictly mobile + free + non-native. Hide while loading to avoid flicker.
-  if (!isMobile || isLoading || !isFreePlan || isNativePlatform) return null;
+  // Free + non-native (web only, mobile + desktop). Hide while loading to avoid flicker.
+  if (isLoading || !isFreePlan || isNativePlatform) return null;
 
   return (
     <div
