@@ -16,6 +16,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { useFreeCredits } from "@/hooks/useFreeCredits";
 import { PaywallDialog } from "@/components/PaywallDialog";
+import { trackPlausible } from "@/components/TrackingPixels";
 
 const isValidTikTokUrl = (url: string): boolean => {
   try {
@@ -117,6 +118,8 @@ export default function AccountAnalysis() {
     onSuccess: (data) => {
       setAccount(data);
       queryClient.invalidateQueries({ queryKey: ["accounts-tracked"] });
+      const username = data?.username || data?.unique_id || data?.author_username;
+      trackPlausible("Account Tracked", username ? { username: String(username).slice(0, 60) } : undefined);
       toast.success("Аккаунт проанализирован");
     },
     onError: (err: Error) => {
