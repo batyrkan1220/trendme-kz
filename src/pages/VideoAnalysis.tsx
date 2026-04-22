@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ScriptGenerationPanel } from "@/components/ScriptGenerationPanel";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { useFreeCredits } from "@/hooks/useFreeCredits";
 import { PaywallDialog } from "@/components/PaywallDialog";
 import { MagicAnalysisLoader } from "@/components/MagicAnalysisLoader";
 import { hapticSuccess } from "@/lib/haptics";
