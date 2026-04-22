@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MemoVideoCard } from "@/components/VideoCard";
 import { ChevronRight, Lock } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
+import { cn } from "@/lib/utils";
 
 
 interface TrendNicheRowProps {
