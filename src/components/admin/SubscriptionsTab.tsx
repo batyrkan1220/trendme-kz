@@ -456,6 +456,9 @@ export default function SubscriptionsTab() {
                 <SelectItem value="success">Оплачен</SelectItem>
                 <SelectItem value="pending">Ожидает</SelectItem>
                 <SelectItem value="failed">Отменён</SelectItem>
+                <SelectItem value="refunds_all">— Все возвраты</SelectItem>
+                <SelectItem value="refund_pending">— Возврат в обработке</SelectItem>
+                <SelectItem value="refunded">— Успешно возвращено</SelectItem>
               </SelectContent>
             </Select>
             <Popover>
