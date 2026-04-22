@@ -89,6 +89,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [chatOpen, setChatOpen] = useState(typeof window !== "undefined" && window.innerWidth >= 1024);
   const [copiedAll, setCopiedAll] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
+  const [canUndo, setCanUndo] = useState(false);
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -96,6 +97,8 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const scriptRef = useRef("");
   const savedScriptId = useRef<string | null>(null);
+  const prevScriptRef = useRef<string | null>(null);
+  const prevMessagesRef = useRef<Msg[] | null>(null);
 
   // ── Initial generation ─────────────────────────────────
   useEffect(() => {
