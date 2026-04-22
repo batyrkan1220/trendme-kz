@@ -229,15 +229,6 @@ export default function VideoAnalysis() {
                       🇷🇺 Русский
                     </Button>
                   </div>
-                  {isFreePlan && (
-                    <p className="text-[11px] text-center font-semibold mt-1">
-                      {analysesLeft > 0 ? (
-                        <span className="text-viral">🎁 Осталось {analysesLeft} пробных анализов</span>
-                      ) : (
-                        <span className="text-muted-foreground">Пробные анализы закончились — откройте Pro</span>
-                      )}
-                    </p>
-                  )}
                 </div>
               )}
               {isPending && (
