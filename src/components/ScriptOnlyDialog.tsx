@@ -68,30 +68,36 @@ export function ScriptOnlyDialog({ video, open, onOpenChange }: Props) {
             onBack={() => onOpenChange(false)}
           />
         ) : (
-          <div className="flex flex-col h-full bg-background-subtle">
-            {/* Header */}
+          <div className="flex flex-col h-full bg-background md:[background-image:var(--gradient-mesh)]">
+            {/* Glass header — matches /trends */}
             <div
-              className="flex items-center justify-between px-4 py-3 border-b border-border bg-card"
-              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+              className="flex items-center justify-between px-4 py-3 border-b border-border/60 shrink-0"
+              style={{
+                paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)",
+                background: "hsl(var(--background) / 0.85)",
+                backdropFilter: "blur(20px) saturate(1.2)",
+                WebkitBackdropFilter: "blur(20px) saturate(1.2)",
+              }}
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                <div className="w-8 h-8 rounded-xl bg-viral/15 ring-1 ring-viral/30 flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-foreground" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary leading-none mb-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground leading-none mb-0.5">
                     AI Сценарист
                   </p>
-                  <h2 className="text-sm font-bold text-foreground leading-none">
+                  <h2 className="text-[15px] font-semibold text-foreground leading-none tracking-tight">
                     Создать сценарий
                   </h2>
                 </div>
               </div>
               <button
                 onClick={() => onOpenChange(false)}
-                className="text-xs text-muted-foreground hover:text-foreground font-semibold px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
+                className="h-9 w-9 rounded-full border border-border bg-background hover:bg-foreground/[0.04] flex items-center justify-center transition-colors active:scale-95"
+                aria-label="Закрыть"
               >
-                Закрыть
+                <span className="text-foreground/70 text-lg leading-none">×</span>
               </button>
             </div>
 
@@ -100,39 +106,39 @@ export function ScriptOnlyDialog({ video, open, onOpenChange }: Props) {
               <div className="w-full max-w-sm flex flex-col items-center gap-5">
                 {/* Cover preview */}
                 {video.cover_url && (
-                  <div className="w-24 h-32 rounded-2xl overflow-hidden shadow-card border border-border">
+                  <div className="w-24 h-32 rounded-2xl overflow-hidden shadow-card border border-border/60">
                     <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
                   </div>
                 )}
 
                 <div className="text-center space-y-1.5">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                     Шаг 1 / 2
                   </p>
-                  <h3 className="text-xl font-bold text-foreground tracking-tight">
+                  <h3 className="text-[22px] font-semibold text-foreground tracking-tight">
                     Выберите язык сценария
                   </h3>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[12.5px] text-muted-foreground">
                     Тілді таңдаңыз — AI бірден сценарий жазып бастайды
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-2 w-full">
                   <button
-                    onClick={() => startScript("kk")}
-                    className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 rounded-xl font-semibold text-sm shadow-soft transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
-                  >
-                    🇰🇿 Қазақша
-                  </button>
-                  <button
                     onClick={() => startScript("ru")}
-                    className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-hover rounded-xl font-semibold text-sm shadow-glow-primary transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                    className="w-full h-12 bg-viral text-viral-foreground hover:brightness-105 rounded-xl font-semibold text-sm shadow-glow-viral transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
                   >
                     🇷🇺 Русский
                   </button>
+                  <button
+                    onClick={() => startScript("kk")}
+                    className="w-full h-12 bg-card border border-border hover:border-border-strong hover:bg-foreground/[0.03] text-foreground rounded-xl font-semibold text-sm shadow-soft transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                  >
+                    🇰🇿 Қазақша
+                  </button>
                 </div>
 
-                <p className="text-[11px] text-muted-foreground text-center">
+                <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
                   После выбора языка AI-ассистент сразу начнёт писать сценарий и поможет улучшить его в чате
                 </p>
               </div>
