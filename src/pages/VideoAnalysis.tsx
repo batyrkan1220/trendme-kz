@@ -311,11 +311,6 @@ export default function VideoAnalysis() {
           </div>
         </div>
       )}
-      <PaywallDialog
-        open={showPaywall}
-        onOpenChange={setShowPaywall}
-        feature="analysis"
-      />
     </AppLayout>
   );
 }
