@@ -115,7 +115,7 @@ export default function Onboarding() {
       const { error } = await supabase
         .from("profiles")
         .update({
-          niche,
+          niche: niches.join(","),
           goal,
           platform,
           experience,
@@ -197,12 +197,18 @@ export default function Onboarding() {
 
           {/* Selection chips */}
           <div className="flex justify-center gap-1.5 flex-wrap">
-            {niche && (
-              <span className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold">
-                {NICHES.find((n) => n.value === niche)?.emoji}{" "}
-                {NICHES.find((n) => n.value === niche)?.label}
-              </span>
-            )}
+            {niches.map((nv) => {
+              const n = NICHES.find((x) => x.value === nv);
+              if (!n) return null;
+              return (
+                <span
+                  key={nv}
+                  className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold"
+                >
+                  {n.emoji} {n.label}
+                </span>
+              );
+            })}
             {platform && (
               <span className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold">
                 {PLATFORMS.find((p) => p.value === platform)?.emoji}{" "}
