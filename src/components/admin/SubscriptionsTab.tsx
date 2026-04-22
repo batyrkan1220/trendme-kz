@@ -54,6 +54,24 @@ type PaymentRow = {
   purchase_type: string | null;
   bonus_days: number | null;
   computed_expires_at: string | null;
+  refund_status: string | null;
+  refund_id: string | null;
+  refunded_at: string | null;
+  refund_amount: number | null;
+  refund_reason: string | null;
+  refund_failure_description: string | null;
+};
+
+const RefundBadge = ({ status }: { status: string | null }) => {
+  if (!status) return <span className="text-xs text-muted-foreground">—</span>;
+  const map: Record<string, { cls: string; label: string }> = {
+    initiated: { cls: "bg-sky-500/15 text-sky-600 border-sky-500/30", label: "🔄 Инициирован" },
+    processing: { cls: "bg-indigo-500/15 text-indigo-600 border-indigo-500/30", label: "⏳ Обработка" },
+    success: { cls: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30", label: "💸 Возвращён" },
+    failed: { cls: "bg-red-500/15 text-red-600 border-red-500/30", label: "⚠ Не удался" },
+  };
+  const m = map[status] || { cls: "", label: status };
+  return <Badge className={m.cls} variant="outline">{m.label}</Badge>;
 };
 
 type SubscriptionRow = {
@@ -226,6 +244,19 @@ export default function SubscriptionsTab() {
       return exp < now && exp > now - 30 * 86400000 && planMap[s.plan_id]?.price_rub > 0;
     });
 
+    // Refund stats — month
+    const monthRefunds = payments.filter(p =>
+      p.refund_status === "success" &&
+      p.refunded_at &&
+      new Date(p.refunded_at).getTime() >= monthStart,
+    );
+    const monthRefundAmount = monthRefunds.reduce(
+      (s, p) => s + (p.refund_amount ?? p.amount ?? 0), 0,
+    );
+    const pendingRefunds = payments.filter(
+      p => p.refund_status === "initiated" || p.refund_status === "processing",
+    ).length;
+
     return {
       active: activeSubs.length,
       monthRevenue,
@@ -234,13 +265,22 @@ export default function SubscriptionsTab() {
       churned: churned30.length,
       expiringList: expiringSoon,
       churnedList: churned30,
+      monthRefundsCount: monthRefunds.length,
+      monthRefundAmount,
+      pendingRefunds,
     };
   }, [subs, payments, planMap]);
 
   // ============ FILTERED PAYMENTS ============
   const filteredPayments = useMemo(() => {
     return payments.filter(p => {
-      if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (statusFilter === "refunds_all") {
+        if (!p.refund_status) return false;
+      } else if (statusFilter === "refund_pending") {
+        if (p.refund_status !== "initiated" && p.refund_status !== "processing") return false;
+      } else if (statusFilter === "refunded") {
+        if (p.refund_status !== "success") return false;
+      } else if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (planFilter !== "all" && p.plan_id !== planFilter) return false;
       const created = new Date(p.created_at).getTime();
       if (dateFrom && created < dateFrom.getTime()) return false;
@@ -249,7 +289,7 @@ export default function SubscriptionsTab() {
         const q = search.toLowerCase();
         const u = userMap[p.user_id];
         const hay = [
-          p.order_id, p.pg_payment_id, u?.email, u?.name, p.phone,
+          p.order_id, p.pg_payment_id, p.refund_id, u?.email, u?.name, p.phone,
         ].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
@@ -308,6 +348,7 @@ export default function SubscriptionsTab() {
     const headers = [
       "Дата", "Пользователь", "Email", "Телефон", "Тариф", "Сумма",
       "Комиссия", "Номер платежа", "Номер заказа", "Карта", "Банк", "Статус",
+      "Статус возврата", "Номер возврата", "Дата возврата", "Сумма возврата", "Причина возврата",
     ];
     const rows = filteredPayments.map(p => {
       const u = userMap[p.user_id];
@@ -325,6 +366,11 @@ export default function SubscriptionsTab() {
         p.card_mask || "",
         p.bank_code || "",
         p.status,
+        p.refund_status || "",
+        p.refund_id || "",
+        p.refunded_at ? fmtDate(p.refunded_at, true) : "",
+        p.refund_amount ?? "",
+        p.refund_reason || "",
       ];
     });
     const csv = [headers, ...rows]
@@ -357,6 +403,26 @@ export default function SubscriptionsTab() {
         <StatCard icon={<Wallet className="h-4 w-4" />} label="Выручка всего" value={fmtMoney(stats.totalRevenue)} />
         <StatCard icon={<Clock className="h-4 w-4" />} label="Истекает ≤ 3 дн." value={stats.expiringSoon} tone="amber" />
         <StatCard icon={<XCircle className="h-4 w-4" />} label="Истекло (30 дн.)" value={stats.churned} tone="red" />
+      </div>
+
+      {/* SECTION 1b — REFUND STATS */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <StatCard
+          icon={<RefreshCw className="h-4 w-4" />}
+          label="Возвратов за месяц"
+          value={`${stats.monthRefundsCount} · ${fmtMoney(stats.monthRefundAmount)}`}
+        />
+        <StatCard
+          icon={<Clock className="h-4 w-4" />}
+          label="Возвраты в обработке"
+          value={stats.pendingRefunds}
+          tone={stats.pendingRefunds > 0 ? "amber" : undefined}
+        />
+        <StatCard
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          label="Всего возвратов"
+          value={payments.filter(p => p.refund_status === "success").length}
+        />
       </div>
 
       {/* SECTION 2 — PAYMENTS */}
@@ -396,6 +462,9 @@ export default function SubscriptionsTab() {
                 <SelectItem value="success">Оплачен</SelectItem>
                 <SelectItem value="pending">Ожидает</SelectItem>
                 <SelectItem value="failed">Отменён</SelectItem>
+                <SelectItem value="refunds_all">— Все возвраты</SelectItem>
+                <SelectItem value="refund_pending">— Возврат в обработке</SelectItem>
+                <SelectItem value="refunded">— Успешно возвращено</SelectItem>
               </SelectContent>
             </Select>
             <Popover>
@@ -435,6 +504,7 @@ export default function SubscriptionsTab() {
                 <TableHead>Банк</TableHead>
                 <TableHead className="text-right">Комиссия</TableHead>
                 <TableHead>Статус</TableHead>
+                <TableHead>Возврат</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -457,12 +527,40 @@ export default function SubscriptionsTab() {
                       {fmtMoney(p.commission || 0)}
                     </TableCell>
                     <TableCell><StatusBadge status={p.status} /></TableCell>
+                    <TableCell>
+                      {p.refund_status ? (
+                        <div
+                          className="space-y-0.5"
+                          title={[
+                            p.refund_id && `№ возврата: ${p.refund_id}`,
+                            p.refunded_at && `Дата: ${fmtDate(p.refunded_at, true)}`,
+                            p.refund_amount != null && `Сумма: ${fmtMoney(p.refund_amount)}`,
+                            p.refund_reason && `Причина: ${p.refund_reason}`,
+                            p.refund_failure_description && `Ошибка: ${p.refund_failure_description}`,
+                          ].filter(Boolean).join("\n")}
+                        >
+                          <RefundBadge status={p.refund_status} />
+                          {p.refund_id && (
+                            <div className="font-mono text-[10px] text-muted-foreground">
+                              {p.refund_id}
+                            </div>
+                          )}
+                          {p.refunded_at && (
+                            <div className="text-[10px] text-muted-foreground">
+                              {fmtDate(p.refunded_at, true)}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
               {filteredPayments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                  <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
                     Нет платежей по выбранным фильтрам
                   </TableCell>
                 </TableRow>
@@ -737,6 +835,29 @@ function SubscriptionDetailModal({
                   <Info label="Телефон" value={order?.phone || "—"} />
                 </CardContent>
               </Card>
+
+              {/* Refund info */}
+              {order?.refund_status && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4" /> Возврат
+                      <RefundBadge status={order.refund_status} />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 gap-2 text-xs">
+                    <Info label="№ операции возврата" value={order.refund_id} mono />
+                    <Info label="Дата возврата" value={fmtDate(order.refunded_at, true)} />
+                    <Info label="Сумма возврата" value={fmtMoney(order.refund_amount ?? order.amount)} />
+                    <Info label="Причина" value={order.refund_reason || "—"} />
+                    {order.refund_failure_description && (
+                      <div className="col-span-2 text-red-600">
+                        Ошибка: {order.refund_failure_description}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Timeline */}
               <Card>
