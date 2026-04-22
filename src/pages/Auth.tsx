@@ -199,7 +199,7 @@ export default function Auth() {
       return;
     }
     setOtpVerifying(true);
-    const otpType: "email" | "recovery" = mode === "forgot" ? "recovery" : "email";
+    const otpType: "signup" | "recovery" = mode === "forgot" ? "recovery" : "signup";
     const { error } = await authService.verifyOtp(email, code, otpType);
     setOtpVerifying(false);
     if (error) {
