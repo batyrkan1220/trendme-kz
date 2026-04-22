@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { useFreeCredits } from "@/hooks/useFreeCredits";
 import { PaywallDialog } from "@/components/PaywallDialog";
 
 const isValidTikTokUrl = (url: string): boolean => {
