@@ -376,7 +376,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                         disabled={isGenerating}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-card border border-border/70 text-[13px] font-semibold text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft disabled:opacity-50"
                       >
-                        <a.icon className="h-3.5 w-3.5" />
+                        <span className="text-base leading-none">{a.emoji}</span>
                         {a.label}
                       </button>
                     ))}
