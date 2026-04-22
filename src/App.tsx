@@ -18,7 +18,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const Trends = lazy(() => import("./pages/Trends"));
-const VideoAnalysis = lazy(() => import("./pages/VideoAnalysis"));
+
 const AccountAnalysis = lazy(() => import("./pages/AccountAnalysis"));
 const Journal = lazy(() => import("./pages/Journal"));
 const Auth = lazy(() => import("./pages/Auth"));
