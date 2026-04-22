@@ -307,19 +307,6 @@ export default function Pricing() {
 
                     {/* Features */}
                     <ul className="mt-8 space-y-3 text-[14px] flex-1">
-                      {usageLimits && (
-                        <>
-                          {usageLimits.video_analysis != null && (
-                            <FeatureRow featured={isFeatured} label={<>Анализ видео — <strong>{usageLimits.video_analysis}</strong> раз</>} />
-                          )}
-                          {usageLimits.ai_script != null && (
-                            <FeatureRow featured={isFeatured} label={<>AI Сценарий — <strong>{usageLimits.ai_script}</strong> раз</>} />
-                          )}
-                        </>
-                      )}
-                      {!usageLimits && !isFree && (
-                        <FeatureRow featured={isFeatured} label={<strong>Все функции безлимитно</strong>} />
-                      )}
                       {features.map((f: string) => (
                         <FeatureRow key={f} featured={isFeatured} label={<span dangerouslySetInnerHTML={{ __html: f }} />} />
                       ))}
