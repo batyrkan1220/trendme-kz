@@ -661,12 +661,6 @@ export default function Trends() {
           if (!open) setScriptVideo(null);
         }}
       />
-      <PaywallDialog
-        open={!!paywallVideo}
-        onOpenChange={(open) => { if (!open) setPaywallVideo(null); }}
-        video={paywallVideo}
-        feature={paywallFeature}
-      />
     </AppLayout>
   );
 }
