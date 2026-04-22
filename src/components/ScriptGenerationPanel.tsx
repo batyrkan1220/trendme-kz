@@ -594,19 +594,22 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
             onClick={() => setChatOpen(false)}
           />
           <div
-            className="bg-card rounded-t-3xl border-t border-border/60 shadow-2xl flex flex-col"
+            className="bg-card rounded-t-3xl border-t border-border/60 shadow-2xl flex flex-col transition-[height] duration-300 ease-out"
             style={{
-              maxHeight: keyboardHeight > 0
+              height: keyboardHeight > 0
                 ? `${(window.visualViewport?.height || window.innerHeight) * 0.78}px`
-                : "82vh",
-              minHeight: keyboardHeight > 0 ? "240px" : "55vh",
+                : sheetSnap === "full" ? "92vh" : "58vh",
               animation: "slide-up 0.3s ease-out",
             }}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-2.5 pb-1.5 shrink-0">
-              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
-            </div>
+            {/* Drag handle (tap to toggle snap) */}
+            <button
+              onClick={() => keyboardHeight === 0 && setSheetSnap(s => s === "half" ? "full" : "half")}
+              className="flex flex-col items-center pt-2.5 pb-1 shrink-0 active:scale-95 transition-transform"
+              aria-label={sheetSnap === "half" ? "Развернуть" : "Свернуть"}
+            >
+              <div className="w-12 h-1.5 rounded-full bg-muted-foreground/40 hover:bg-muted-foreground/60 transition-colors" />
+            </button>
 
             <div className="flex items-center justify-between px-4 pb-2 border-b border-border/40 shrink-0">
               <div className="flex items-center gap-2">
@@ -617,13 +620,27 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                   {isKk ? "AI редактор" : "AI редактор"}
                 </span>
               </div>
-              <button
-                onClick={() => setChatOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-                aria-label="Закрыть"
-              >
-                <X className="h-4 w-4 text-muted-foreground" />
-              </button>
+              <div className="flex items-center gap-1">
+                {keyboardHeight === 0 && (
+                  <button
+                    onClick={() => setSheetSnap(s => s === "half" ? "full" : "half")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                    aria-label={sheetSnap === "half" ? "Развернуть" : "Свернуть"}
+                    title={sheetSnap === "half" ? (isKk ? "Жаю" : "Развернуть") : (isKk ? "Кішірейту" : "Свернуть")}
+                  >
+                    {sheetSnap === "half"
+                      ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                  </button>
+                )}
+                <button
+                  onClick={() => setChatOpen(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+                  aria-label="Закрыть"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
             </div>
 
             {/* Quick chips */}
