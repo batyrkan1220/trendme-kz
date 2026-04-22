@@ -223,8 +223,41 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background gradient-mesh p-4 relative overflow-hidden">
+      {/* Floating indigo blob — top right (landing splash style) */}
+      <div
+        className="absolute pointer-events-none rounded-full blur-3xl"
+        style={{
+          width: 480,
+          height: 480,
+          background: "hsl(243 85% 70% / 0.22)",
+          top: "-15%",
+          right: "-15%",
+        }}
+      />
+      {/* Floating viral lime blob — bottom left */}
+      <div
+        className="absolute pointer-events-none rounded-full blur-3xl"
+        style={{
+          width: 360,
+          height: 360,
+          background: "hsl(75 95% 65% / 0.20)",
+          bottom: "-12%",
+          left: "-12%",
+        }}
+      />
+      {/* Soft purple accent — middle */}
+      <div
+        className="absolute pointer-events-none rounded-full blur-3xl"
+        style={{
+          width: 300,
+          height: 300,
+          background: "hsl(262 85% 75% / 0.15)",
+          top: "40%",
+          left: "60%",
+        }}
+      />
       {/* Landing-style dot grid with radial mask */}
-      <div className="absolute inset-0 bg-dots opacity-60 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-dots opacity-50 [mask-image:radial-gradient(ellipse_at_center,black_25%,transparent_75%)] pointer-events-none" />
 
       <div className="w-full max-w-md relative">
         {/* CARD — landing-style premium card */}
