@@ -578,13 +578,35 @@ function UsersTab() {
   const [subDays, setSubDays] = useState("30");
   const [subNote, setSubNote] = useState("");
   const [userFilter, setUserFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "banned" | "deleted">("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "active">("newest");
+  const [page, setPage] = useState(1);
+  const [detailUserId, setDetailUserId] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: "ban" | "unban" | "delete" | "restore";
+    userId: string;
+    email: string;
+  } | null>(null);
+
+  const PAGE_SIZE = 20;
+
+  const adminFetch = async (path: string, init?: RequestInit) => {
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    return fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users${path}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        "Content-Type": "application/json",
+        ...(init?.headers || {}),
+      },
+    });
+  };
 
   const { data: plans = [] } = useQuery({
     queryKey: ["admin-plans-for-users"],
     queryFn: async () => {
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list-plans`, {
-        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-      });
+      const res = await adminFetch(`?action=list-plans`);
       if (!res.ok) throw new Error("Failed");
       return (await res.json()).plans || [];
     },
@@ -595,15 +617,7 @@ function UsersTab() {
     queryFn: async () => {
       const params = new URLSearchParams({ action: "list" });
       if (search) params.set("search", search);
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?${params}`,
-        {
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      const res = await adminFetch(`?${params}`);
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
@@ -612,18 +626,10 @@ function UsersTab() {
   const roleMutation = useMutation({
     mutationFn: async ({ user_id, role, remove }: { user_id: string; role: string; remove?: boolean }) => {
       const action = remove ? "remove-role" : "assign-role";
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=${action}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ user_id, role }),
-        }
-      );
+      const res = await adminFetch(`?action=${action}`, {
+        method: "POST",
+        body: JSON.stringify({ user_id, role }),
+      });
       if (!res.ok) throw new Error("Failed");
     },
     onSuccess: () => {
@@ -635,51 +641,100 @@ function UsersTab() {
 
   const subMutation = useMutation({
     mutationFn: async ({ user_id, plan_id, duration_days, note }: { user_id: string; plan_id: string; duration_days: number; note: string }) => {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=assign-subscription`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ user_id, plan_id, duration_days, note }),
-        }
-      );
+      const res = await adminFetch(`?action=assign-subscription`, {
+        method: "POST",
+        body: JSON.stringify({ user_id, plan_id, duration_days, note }),
+      });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
       setSubDialog(null);
       setSubPlanId("");
       setSubDays("30");
       setSubNote("");
-      const msg = "Тариф назначен";
-      toast.success(msg);
+      toast.success("Тариф назначен");
     },
     onError: () => toast.error("Ошибка назначения тарифа"),
   });
 
-  const allUsers = data?.users || [];
-  
-  const filteredUsers = allUsers.filter((u: any) => {
-    if (userFilter === "all") return true;
-    if (userFilter === "unconfirmed") return !u.email_confirmed_at;
-    if (userFilter === "no_plan") return !u.subscription;
-    // Filter by plan name — exclude unconfirmed users from plan filters
-    if (!u.email_confirmed_at) return false;
-    const planName = u.subscription?.plans?.name?.toLowerCase() || "";
-    return planName === userFilter.toLowerCase();
+  const moderationMutation = useMutation({
+    mutationFn: async ({ action, user_id }: { action: "ban-user" | "unban-user" | "soft-delete-user" | "restore-user"; user_id: string }) => {
+      const res = await adminFetch(`?action=${action}`, {
+        method: "POST",
+        body: JSON.stringify({ user_id }),
+      });
+      if (!res.ok) throw new Error("Failed");
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user-details"] });
+      const labels: Record<string, string> = {
+        "ban-user": "Пользователь заблокирован",
+        "unban-user": "Пользователь разблокирован",
+        "soft-delete-user": "Аккаунт удалён",
+        "restore-user": "Аккаунт восстановлен",
+      };
+      toast.success(labels[vars.action]);
+      setConfirmAction(null);
+    },
+    onError: () => {
+      toast.error("Не удалось выполнить действие");
+      setConfirmAction(null);
+    },
   });
 
-  // Count badges — exclude unconfirmed from plan counts
+  const allUsers: any[] = data?.users || [];
+
+  // Apply filters
+  const filteredUsers = useMemo(() => {
+    let list = allUsers.filter((u: any) => {
+      // Plan filter
+      if (userFilter === "unconfirmed") {
+        if (u.email_confirmed_at) return false;
+      } else if (userFilter === "no_plan") {
+        if (u.subscription) return false;
+      } else if (userFilter !== "all") {
+        if (!u.email_confirmed_at) return false;
+        const planName = u.subscription?.plans?.name?.toLowerCase() || "";
+        if (planName !== userFilter.toLowerCase()) return false;
+      }
+      // Status filter
+      if (statusFilter === "banned" && !u.is_banned) return false;
+      if (statusFilter === "deleted" && !u.is_deleted) return false;
+      if (statusFilter === "active" && (u.is_banned || u.is_deleted)) return false;
+      return true;
+    });
+
+    // Sort
+    list = [...list].sort((a, b) => {
+      if (sortBy === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (sortBy === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      // active = last_sign_in desc
+      const ta = a.last_sign_in_at ? new Date(a.last_sign_in_at).getTime() : 0;
+      const tb = b.last_sign_in_at ? new Date(b.last_sign_in_at).getTime() : 0;
+      return tb - ta;
+    });
+
+    return list;
+  }, [allUsers, userFilter, statusFilter, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // Reset page when filters change
+  useMemo(() => { setPage(1); }, [userFilter, statusFilter, sortBy, search]);
+
+  // Counts
   const planCounts: Record<string, number> = {};
   const unconfirmedCount = allUsers.filter((u: any) => !u.email_confirmed_at).length;
   const noPlanCount = allUsers.filter((u: any) => !u.subscription).length;
+  const bannedCount = allUsers.filter((u: any) => u.is_banned && !u.is_deleted).length;
+  const deletedCount = allUsers.filter((u: any) => u.is_deleted).length;
   for (const u of allUsers) {
-    if (!u.email_confirmed_at) continue; // don't count unconfirmed in plan filters
+    if (!u.email_confirmed_at) continue;
     const pn = (u as any).subscription?.plans?.name;
     if (pn) planCounts[pn] = (planCounts[pn] || 0) + 1;
   }
@@ -694,53 +749,100 @@ function UsersTab() {
     })
     .map((p: any) => p.name) as string[];
 
+  const exportCsv = () => {
+    const rows = filteredUsers;
+    const headers = [
+      "id", "email", "name", "phone", "created_at", "last_sign_in_at",
+      "email_confirmed", "plan", "plan_expires_at", "is_banned", "is_deleted",
+      "free_analyses_left", "free_scripts_left", "tokens_balance", "roles", "admin_notes",
+    ];
+    const escape = (v: any) => {
+      const s = v === null || v === undefined ? "" : String(v);
+      return `"${s.replace(/"/g, '""')}"`;
+    };
+    const csv = [
+      headers.join(","),
+      ...rows.map((u: any) => [
+        u.id, u.email, u.name, u.phone, u.created_at, u.last_sign_in_at,
+        u.email_confirmed_at ? "yes" : "no",
+        u.subscription?.plans?.name || "",
+        u.subscription?.expires_at || "",
+        u.is_banned ? "yes" : "no",
+        u.is_deleted ? "yes" : "no",
+        u.free_analyses_left, u.free_scripts_left,
+        u.tokens?.balance ?? "",
+        (u.roles || []).join("|"),
+        u.admin_notes || "",
+      ].map(escape).join(",")),
+    ].join("\n");
+    const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `trendme-users-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Экспортировано: ${rows.length} пользователей`);
+  };
+
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Поиск по email..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-sm"
-      />
+      <div className="flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
+        <Input
+          placeholder="Поиск по имени, email или телефону..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-md"
+        />
+        <div className="flex items-center gap-2">
+          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+            <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Сначала новые</SelectItem>
+              <SelectItem value="oldest">Сначала старые</SelectItem>
+              <SelectItem value="active">По активности</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="outline" onClick={exportCsv} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        </div>
+      </div>
 
-      {/* Filter tabs */}
+      {/* Plan filter tabs */}
       <div className="flex flex-wrap gap-1.5">
-        <Button
-          size="sm"
-          variant={userFilter === "all" ? "default" : "outline"}
-          onClick={() => setUserFilter("all")}
-          className="h-8 text-xs"
-        >
+        <Button size="sm" variant={userFilter === "all" ? "default" : "outline"} onClick={() => setUserFilter("all")} className="h-8 text-xs">
           Все ({allUsers.length})
         </Button>
         {allPlanNames.map((pn) => (
-          <Button
-            key={pn}
-            size="sm"
-            variant={userFilter === pn ? "default" : "outline"}
-            onClick={() => setUserFilter(pn)}
-            className="h-8 text-xs"
-          >
+          <Button key={pn} size="sm" variant={userFilter === pn ? "default" : "outline"} onClick={() => setUserFilter(pn)} className="h-8 text-xs">
             <CreditCard className="h-3 w-3 mr-1" />
             {pn} ({planCounts[pn] || 0})
           </Button>
         ))}
-        <Button
-          size="sm"
-          variant={userFilter === "no_plan" ? "default" : "outline"}
-          onClick={() => setUserFilter("no_plan")}
-          className="h-8 text-xs"
-        >
+        <Button size="sm" variant={userFilter === "no_plan" ? "default" : "outline"} onClick={() => setUserFilter("no_plan")} className="h-8 text-xs">
           Без тарифа ({noPlanCount})
         </Button>
-        <Button
-          size="sm"
-          variant={userFilter === "unconfirmed" ? "destructive" : "outline"}
-          onClick={() => setUserFilter("unconfirmed")}
-          className="h-8 text-xs"
-        >
-          <Eye className="h-3 w-3 mr-1" />
-          Не подтверждённые ({unconfirmedCount})
+        <Button size="sm" variant={userFilter === "unconfirmed" ? "destructive" : "outline"} onClick={() => setUserFilter("unconfirmed")} className="h-8 text-xs">
+          <Eye className="h-3 w-3 mr-1" /> Не подтв. ({unconfirmedCount})
+        </Button>
+      </div>
+
+      {/* Status filter */}
+      <div className="flex flex-wrap gap-1.5">
+        <Button size="sm" variant={statusFilter === "all" ? "secondary" : "ghost"} onClick={() => setStatusFilter("all")} className="h-7 text-xs">
+          Все статусы
+        </Button>
+        <Button size="sm" variant={statusFilter === "active" ? "secondary" : "ghost"} onClick={() => setStatusFilter("active")} className="h-7 text-xs">
+          <Check className="h-3 w-3 mr-1" /> Активные
+        </Button>
+        <Button size="sm" variant={statusFilter === "banned" ? "secondary" : "ghost"} onClick={() => setStatusFilter("banned")} className="h-7 text-xs">
+          <Ban className="h-3 w-3 mr-1" /> Заблок. ({bannedCount})
+        </Button>
+        <Button size="sm" variant={statusFilter === "deleted" ? "secondary" : "ghost"} onClick={() => setStatusFilter("deleted")} className="h-7 text-xs">
+          <Trash2 className="h-3 w-3 mr-1" /> Удалённые ({deletedCount})
         </Button>
       </div>
 
@@ -758,113 +860,186 @@ function UsersTab() {
                     <th className="text-left p-3 text-muted-foreground font-medium">Телефон</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Регистрация</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Тариф</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Статус</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Пробные</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Роли</th>
                     <th className="text-left p-3 text-muted-foreground font-medium">Действия</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((u: any) => {
+                  {pagedUsers.map((u: any) => {
                     const sub = u.subscription;
                     const isExpired = sub && new Date(sub.expires_at) < new Date();
-                    
                     return (
-                    <tr key={u.id} className="border-b border-border/50 hover:bg-muted/30">
-                      <td className="p-3">
-                        <span className="font-medium text-sm">{u.name || "—"}</span>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm">{u.email}</span>
-                          {!u.email_confirmed_at && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive text-destructive">
-                              не подтв.
-                            </Badge>
+                      <tr key={u.id} className={cn("border-b border-border/50 hover:bg-muted/30", u.is_deleted && "opacity-60")}>
+                        <td className="p-3">
+                          <button
+                            onClick={() => setDetailUserId(u.id)}
+                            className="font-medium text-sm text-left hover:text-primary transition-colors"
+                          >
+                            {u.name || "—"}
+                          </button>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">{u.email}</span>
+                            {!u.email_confirmed_at && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive text-destructive">
+                                не подтв.
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            Вход: {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU") : "—"}
+                          </span>
+                        </td>
+                        <td className="p-3"><span className="text-sm">{u.phone || "—"}</span></td>
+                        <td className="p-3 text-muted-foreground text-xs">
+                          {new Date(u.created_at).toLocaleDateString("ru-RU")}
+                        </td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => setSubDialog({ userId: u.id, email: u.email })}
+                            className="hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors"
+                          >
+                            {sub ? (
+                              <div className="flex flex-col gap-0.5">
+                                <Badge variant={isExpired ? "destructive" : "default"} className="text-xs w-fit">
+                                  <CreditCard className="h-3 w-3 mr-1" />
+                                  {sub.plans?.name || "—"}
+                                </Badge>
+                                <span className={`text-xs ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
+                                  до {new Date(sub.expires_at).toLocaleDateString("ru-RU")}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground hover:text-primary">+ Назначить</span>
+                            )}
+                          </button>
+                        </td>
+                        <td className="p-3">
+                          {u.is_deleted ? (
+                            <Badge variant="destructive" className="text-xs"><Trash2 className="h-3 w-3 mr-1" /> Удалён</Badge>
+                          ) : u.is_banned ? (
+                            <Badge variant="destructive" className="text-xs"><Ban className="h-3 w-3 mr-1" /> Блок</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs"><Check className="h-3 w-3 mr-1" /> Актив</Badge>
                           )}
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          Вход: {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ru-RU") : "—"}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <span className="text-sm">{u.phone || "—"}</span>
-                      </td>
-                      <td className="p-3 text-muted-foreground text-xs">
-                        {new Date(u.created_at).toLocaleDateString("ru-RU")}
-                      </td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => setSubDialog({ userId: u.id, email: u.email })}
-                          className="hover:bg-muted/50 rounded-lg px-2 py-1 transition-colors"
-                        >
-                        {sub ? (
-                          <div className="flex flex-col gap-0.5">
-                            <Badge variant={isExpired ? "destructive" : "default"} className="text-xs w-fit">
-                              <CreditCard className="h-3 w-3 mr-1" />
-                              {sub.plans?.name || "—"}
-                            </Badge>
-                            <span className={`text-xs ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
-                              до {new Date(sub.expires_at).toLocaleDateString("ru-RU")}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex flex-col gap-0.5 text-xs">
+                            <span className="flex items-center gap-1">
+                              <Sparkles className="h-3 w-3 text-viral" />
+                              <span className="text-muted-foreground">А:</span>
+                              <span className={`font-bold ${(u.free_analyses_left ?? 0) === 0 ? "text-destructive" : "text-foreground"}`}>
+                                {u.free_analyses_left ?? "—"}/3
+                              </span>
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Zap className="h-3 w-3 text-primary" />
+                              <span className="text-muted-foreground">С:</span>
+                              <span className={`font-bold ${(u.free_scripts_left ?? 0) === 0 ? "text-destructive" : "text-foreground"}`}>
+                                {u.free_scripts_left ?? "—"}/3
+                              </span>
                             </span>
                           </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground hover:text-primary">+ Назначить</span>
-                        )}
-                        </button>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-col gap-0.5 text-xs">
-                          <span className="flex items-center gap-1">
-                            <Sparkles className="h-3 w-3 text-viral" />
-                            <span className="text-muted-foreground">Анализ:</span>
-                            <span className={`font-bold ${(u.free_analyses_left ?? 0) === 0 ? "text-destructive" : "text-foreground"}`}>
-                              {u.free_analyses_left ?? "—"}/3
-                            </span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Zap className="h-3 w-3 text-primary" />
-                            <span className="text-muted-foreground">Сценарий:</span>
-                            <span className={`font-bold ${(u.free_scripts_left ?? 0) === 0 ? "text-destructive" : "text-foreground"}`}>
-                              {u.free_scripts_left ?? "—"}/3
-                            </span>
-                          </span>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex gap-1">
-                          {u.roles.length === 0 && (
-                            <span className="text-muted-foreground text-xs">user</span>
-                          )}
-                          {u.roles.map((r: string) => (
-                            <Badge
-                              key={r}
-                              variant={r === "admin" ? "default" : "secondary"}
-                              className="gap-1 pr-1 text-xs"
+                        </td>
+                        <td className="p-3">
+                          <div className="flex flex-wrap gap-1">
+                            {u.roles.length === 0 && <span className="text-muted-foreground text-xs">user</span>}
+                            {u.roles.map((r: string) => (
+                              <Badge key={r} variant={r === "admin" ? "default" : "secondary"} className="gap-1 pr-1 text-xs">
+                                {r}
+                                <button
+                                  onClick={() => roleMutation.mutate({ user_id: u.id, role: r, remove: true })}
+                                  className="ml-0.5 hover:text-destructive"
+                                >
+                                  <Trash2 className="h-2.5 w-2.5" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm" variant="ghost" className="h-7 px-2"
+                              onClick={() => setDetailUserId(u.id)}
+                              title="Подробнее"
                             >
-                              {r}
-                              <button
-                                onClick={() => roleMutation.mutate({ user_id: u.id, role: r, remove: true })}
-                                className="ml-0.5 hover:text-destructive"
+                              <Eye className="h-3.5 w-3.5" />
+                            </Button>
+                            <RoleAssigner
+                              userId={u.id}
+                              currentRoles={u.roles}
+                              onAssign={(role) => roleMutation.mutate({ user_id: u.id, role })}
+                              disabled={roleMutation.isPending}
+                            />
+                            {u.is_deleted ? (
+                              <Button
+                                size="sm" variant="ghost" className="h-7 px-2 text-viral"
+                                onClick={() => setConfirmAction({ type: "restore", userId: u.id, email: u.email })}
+                                title="Восстановить"
                               >
-                                <Trash2 className="h-2.5 w-2.5" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <RoleAssigner
-                          userId={u.id}
-                          currentRoles={u.roles}
-                          onAssign={(role) => roleMutation.mutate({ user_id: u.id, role })}
-                          disabled={roleMutation.isPending}
-                        />
-                      </td>
-                    </tr>
+                                <RotateCcw className="h-3.5 w-3.5" />
+                              </Button>
+                            ) : (
+                              <>
+                                {u.is_banned ? (
+                                  <Button
+                                    size="sm" variant="ghost" className="h-7 px-2 text-viral"
+                                    onClick={() => setConfirmAction({ type: "unban", userId: u.id, email: u.email })}
+                                    title="Разблокировать"
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5" />
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm" variant="ghost" className="h-7 px-2 text-destructive"
+                                    onClick={() => setConfirmAction({ type: "ban", userId: u.id, email: u.email })}
+                                    title="Заблокировать"
+                                  >
+                                    <Ban className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm" variant="ghost" className="h-7 px-2 text-destructive"
+                                  onClick={() => setConfirmAction({ type: "delete", userId: u.id, email: u.email })}
+                                  title="Удалить аккаунт"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
                     );
                   })}
+                  {pagedUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={9} className="p-8 text-center text-muted-foreground text-sm">
+                        Нет пользователей
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
+            </div>
+            {/* Pagination */}
+            <div className="flex items-center justify-between p-3 border-t border-border">
+              <span className="text-xs text-muted-foreground">
+                Показано {pagedUsers.length} из {filteredUsers.length} (всего {allUsers.length})
+              </span>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-7 px-2">
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <span className="text-xs text-muted-foreground">{currentPage} / {totalPages}</span>
+                <Button size="sm" variant="outline" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-7 px-2">
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -918,7 +1093,230 @@ function UsersTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation dialog */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(o) => { if (!o) setConfirmAction(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction?.type === "ban" && "Заблокировать пользователя?"}
+              {confirmAction?.type === "unban" && "Разблокировать пользователя?"}
+              {confirmAction?.type === "delete" && "Удалить аккаунт?"}
+              {confirmAction?.type === "restore" && "Восстановить аккаунт?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction?.email}
+              <br />
+              {confirmAction?.type === "ban" && "Пользователь не сможет войти в аккаунт. Данные сохранятся."}
+              {confirmAction?.type === "unban" && "Пользователь снова сможет пользоваться платформой."}
+              {confirmAction?.type === "delete" && "Аккаунт будет помечен как удалённый. Пользователь не сможет войти. Данные сохранятся для аудита."}
+              {confirmAction?.type === "restore" && "Аккаунт станет активным, пользователь снова сможет войти."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!confirmAction) return;
+                const map = {
+                  ban: "ban-user", unban: "unban-user",
+                  delete: "soft-delete-user", restore: "restore-user",
+                } as const;
+                moderationMutation.mutate({ action: map[confirmAction.type], user_id: confirmAction.userId });
+              }}
+              className={confirmAction?.type === "ban" || confirmAction?.type === "delete" ? "bg-destructive hover:bg-destructive/90" : ""}
+            >
+              {moderationMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              Подтвердить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* User details modal */}
+      <UserDetailsDialog userId={detailUserId} onClose={() => setDetailUserId(null)} />
     </div>
+  );
+}
+
+/* ==================== USER DETAILS DIALOG ==================== */
+function UserDetailsDialog({ userId, onClose }: { userId: string | null; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [notes, setNotes] = useState("");
+  const [notesDirty, setNotesDirty] = useState(false);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-user-details", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=user-details&user_id=${userId}`,
+        { headers: { Authorization: `Bearer ${token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY } }
+      );
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+
+  // sync notes when data loads
+  useMemo(() => {
+    if (data?.profile?.admin_notes !== undefined) {
+      setNotes(data.profile.admin_notes || "");
+      setNotesDirty(false);
+    }
+  }, [data?.profile?.admin_notes]);
+
+  const saveNotes = useMutation({
+    mutationFn: async () => {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=save-notes`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_id: userId, notes }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed");
+    },
+    onSuccess: () => {
+      toast.success("Заметка сохранена");
+      setNotesDirty(false);
+      queryClient.invalidateQueries({ queryKey: ["admin-user-details", userId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
+    },
+    onError: () => toast.error("Не удалось сохранить"),
+  });
+
+  return (
+    <Dialog open={!!userId} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserCircle className="h-5 w-5 text-primary" />
+            Профиль пользователя
+          </DialogTitle>
+        </DialogHeader>
+
+        {isLoading || !data ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {/* Header */}
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/30">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-base">{data.profile?.name || "Без имени"}</h3>
+                <p className="text-sm text-muted-foreground truncate">{data.auth?.email}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{data.profile?.phone || "Без телефона"}</p>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {data.profile?.is_deleted && <Badge variant="destructive" className="text-xs"><Trash2 className="h-3 w-3 mr-1" />Удалён</Badge>}
+                  {data.profile?.is_banned && !data.profile?.is_deleted && <Badge variant="destructive" className="text-xs"><Ban className="h-3 w-3 mr-1" />Блок</Badge>}
+                  {!data.profile?.is_banned && !data.profile?.is_deleted && <Badge variant="secondary" className="text-xs"><Check className="h-3 w-3 mr-1" />Активен</Badge>}
+                  {(data.roles || []).map((r: string) => (
+                    <Badge key={r} variant={r === "admin" ? "default" : "secondary"} className="text-xs">{r}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="text-right text-xs text-muted-foreground space-y-0.5">
+                <div>Регистрация: {data.auth?.created_at ? new Date(data.auth.created_at).toLocaleDateString("ru-RU") : "—"}</div>
+                <div>Последний вход: {data.auth?.last_sign_in_at ? new Date(data.auth.last_sign_in_at).toLocaleString("ru-RU") : "—"}</div>
+                <div>Email: {data.auth?.email_confirmed_at ? "✓ подтв." : "✗ не подтв."}</div>
+              </div>
+            </div>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              {[
+                { label: "Анализы", value: data.counts?.analyses, icon: Sparkles },
+                { label: "Сценарии", value: data.counts?.scripts, icon: Zap },
+                { label: "Избранное", value: data.counts?.favorites, icon: Heart },
+                { label: "Поиски", value: data.counts?.searches, icon: Search },
+                { label: "Аккаунты", value: data.counts?.tracked_accounts, icon: UserCircle },
+              ].map(({ label, value, icon: Icon }) => (
+                <div key={label} className="p-3 rounded-lg border border-border bg-card">
+                  <div className="flex items-center gap-1 text-muted-foreground text-xs mb-1">
+                    <Icon className="h-3 w-3" /> {label}
+                  </div>
+                  <div className="text-lg font-bold text-foreground">{value ?? 0}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Subscription history */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                <CreditCard className="h-4 w-4" /> История подписок
+              </h4>
+              {(data.subscriptions || []).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Нет подписок</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {(data.subscriptions || []).map((s: any) => (
+                    <div key={s.id} className="flex items-center justify-between p-2 rounded border border-border text-xs">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={s.is_active ? "default" : "outline"} className="text-[10px]">
+                          {s.is_active ? "активна" : "истекла"}
+                        </Badge>
+                        <span className="font-medium">{s.plans?.name || "—"}</span>
+                        {s.note && <span className="text-muted-foreground">· {s.note}</span>}
+                      </div>
+                      <span className="text-muted-foreground">
+                        {new Date(s.created_at).toLocaleDateString("ru-RU")} → {new Date(s.expires_at).toLocaleDateString("ru-RU")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Activity log */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                <Activity className="h-4 w-4" /> Последние действия
+              </h4>
+              {(data.activity || []).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Нет активности</p>
+              ) : (
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {(data.activity || []).map((a: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-xs p-1.5 rounded hover:bg-muted/30">
+                      <span className="text-foreground">{a.type}</span>
+                      <span className="text-muted-foreground">{new Date(a.created_at).toLocaleString("ru-RU")}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Admin notes */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                <FileText className="h-4 w-4" /> Заметки админа
+              </h4>
+              <Textarea
+                value={notes}
+                onChange={(e) => { setNotes(e.target.value); setNotesDirty(true); }}
+                placeholder="Внутренние заметки об этом пользователе..."
+                className="min-h-[80px] text-sm"
+              />
+              {notesDirty && (
+                <Button size="sm" className="mt-2" onClick={() => saveNotes.mutate()} disabled={saveNotes.isPending}>
+                  {saveNotes.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                  Сохранить
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
