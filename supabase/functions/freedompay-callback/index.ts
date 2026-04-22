@@ -138,7 +138,7 @@ serve(async (req) => {
     };
     const sorted = Object.keys(responseParams).sort();
     const values = sorted.map(k => responseParams[k]);
-    const sigString = ["result_notify", ...values, SECRET_KEY].join(";");
+    const sigString = [usedScript, ...values, SECRET_KEY].join(";");
     const responseSig = md5(sigString);
 
     return new Response(
