@@ -65,8 +65,8 @@ Deno.serve(async (req) => {
       // Get all token balances
       const { data: allTokens } = await adminClient.from("user_tokens").select("*");
 
-      // Get all profiles (name, phone)
-      const { data: allProfiles } = await adminClient.from("profiles").select("user_id, name, phone");
+      // Get all profiles (name, phone, free credits)
+      const { data: allProfiles } = await adminClient.from("profiles").select("user_id, name, phone, free_analyses_left, free_scripts_left");
 
       const enriched = users
         .filter((u: any) => !search || u.email?.toLowerCase().includes(search.toLowerCase()))
@@ -81,6 +81,8 @@ Deno.serve(async (req) => {
             email_confirmed_at: u.email_confirmed_at || null,
             name: profile?.name || meta.name || null,
             phone: profile?.phone || meta.phone || null,
+            free_analyses_left: profile?.free_analyses_left ?? null,
+            free_scripts_left: profile?.free_scripts_left ?? null,
             roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
             subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
             tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
