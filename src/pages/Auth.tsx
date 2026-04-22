@@ -86,11 +86,37 @@ export default function Auth() {
         }
         else navigate("/dashboard");
       } else {
+        // Pre-check: does this email already exist? (Supabase signUp doesn't return a clear error for existing confirmed emails)
+        try {
+          const checkRes = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-email-exists`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: email.trim().toLowerCase() }),
+            }
+          );
+          if (checkRes.ok) {
+            const { exists } = await checkRes.json();
+            if (exists) {
+              toast.error("Этот email уже зарегистрирован. Попробуйте войти.", {
+                action: { label: "Войти", onClick: () => setMode("login") },
+              });
+              setLoading(false);
+              return;
+            }
+          }
+        } catch {
+          // If pre-check fails, fall through to signUp anyway
+        }
+
         const { error } = await signUp(email, password, { name: name.trim(), phone: `${phoneCode}${phone.trim()}` });
         if (error) {
           const msg = error.message || "";
-          if (msg.includes("already registered") || msg.includes("already been registered")) {
-            toast.error("Этот email уже зарегистрирован. Попробуйте войти.");
+          if (msg.includes("already registered") || msg.includes("already been registered") || msg.includes("User already")) {
+            toast.error("Этот email уже зарегистрирован. Попробуйте войти.", {
+              action: { label: "Войти", onClick: () => setMode("login") },
+            });
           } else if (msg.includes("rate limit") || msg.includes("after 2 seconds") || msg.includes("security purposes")) {
             toast.error("Слишком частые запросы. Подождите несколько секунд.");
           } else if (msg.includes("valid email") || msg.includes("invalid")) {
