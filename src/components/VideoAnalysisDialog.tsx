@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { isNativePlatform } from "@/lib/native";
 import { MagicAnalysisLoader } from "./MagicAnalysisLoader";
 import { hapticSuccess } from "@/lib/haptics";
+import { VideoAnalysisResults } from "./VideoAnalysisResults";
 
 interface VideoData {
   id: string;
@@ -395,183 +396,24 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 <MagicAnalysisLoader />
               </div>
             ) : analysis ? (
-              <div className="animate-magic-reveal space-y-4 md:space-y-6">
-                {/* Topic */}
-                {summary?.topic && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Тема видео</p>
-                    <h2 className="text-xl font-bold text-foreground leading-tight">{summary.topic}</h2>
-                  </div>
-                )}
-
-                {/* Language */}
-                {summary?.language && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Язык:</span>
-                    <span className="font-medium text-foreground">
-                      {summary.language === "Русский" ? "🇷🇺 " : summary.language === "English" ? "🇺🇸 " : ""}
-                      {summary.language}
-                    </span>
-                  </div>
-                )}
-
-                {/* Tags */}
-                {summary?.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {summary.tags.map((tag: string, i: number) => (
-                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Niches */}
-                {summary?.niches?.length > 0 && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">К каким категориям подойдет</p>
-                    <div className="flex flex-wrap gap-2">
-                      {summary.niches.map((niche: string, i: number) => (
-                        <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-card border border-border/50 text-foreground">
-                          {niche}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Transcription */}
-                {transcript && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-lg font-bold text-foreground">Транскрибация</h3>
-                      <button
-                        onClick={() => { navigator.clipboard.writeText(transcript); toast.success("Скопировано!"); }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/50"
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                        Копировать
-                      </button>
-                    </div>
-                    <div className="bg-card rounded-xl border border-border/50 p-4 max-h-60 overflow-y-auto">
-                      <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{transcript}</p>
-                    </div>
-                  </div>
-                )}
-
-
-                {/* Summary / Суть */}
-                {summary?.summary && (
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-3">Суть</h3>
-                    <div className="bg-card rounded-xl border border-border/50 p-4">
-                      <p className="text-sm text-foreground/80 leading-relaxed">{summary.summary}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Structure / Timeline */}
-                {summary?.structure?.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-4">Структура</h3>
-                    <div className="relative pl-8 space-y-6">
-                      <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border" />
-                      {summary.structure.map((seg: any, i: number) => (
-                        <div key={i} className="relative">
-                          <div className={`absolute -left-8 top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            i === summary.structure.length - 1
-                              ? "bg-primary border-primary"
-                              : "bg-card border-border"
-                          }`}>
-                            {i === summary.structure.length - 1 && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <span className="text-xs text-muted-foreground whitespace-nowrap mt-0.5 min-w-[70px]">
-                              <Clock className="h-3 w-3 inline mr-1" />
-                              {seg.time || seg.timestamp || ""}
-                            </span>
-                            <div>
-                              <p className="text-sm font-bold text-foreground">{seg.title || seg.name || ""}</p>
-                              {seg.description && (
-                                <p className="text-xs text-foreground/70 mt-1 leading-relaxed">{seg.description}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Hooks */}
-                {!!(summary?.hook_phrase || summary?.visual_hook || summary?.text_hook) && (
-                  <div className="space-y-3">
-                    {summary?.hook_phrase && !isUnknownValue(summary.hook_phrase) && (
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">Хук фраза</h3>
-                        <p className="text-sm text-foreground/80">{summary.hook_phrase}</p>
-                      </div>
-                    )}
-
-                    {summary?.visual_hook && !isUnknownValue(summary.visual_hook) && (
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">Визуальный хук</h3>
-                        <p className="text-sm text-foreground/80">{summary.visual_hook}</p>
-                      </div>
-                    )}
-
-                    {summary?.text_hook && !isUnknownValue(summary.text_hook) && (
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">Текстовый хук</h3>
-                        <p className="text-sm text-foreground/80">{summary.text_hook}</p>
-                      </div>
-                    )}
-
-                    {isUnknownValue(summary?.hook_phrase) && isUnknownValue(summary?.text_hook) && (
-                      <div className="rounded-xl border border-border/50 bg-card p-3">
-                        <p className="text-xs text-muted-foreground">
-                          Хук-фраза и текстовый хук не найдены (в видео нет чёткой речи или экранного текста).
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Marketing funnel */}
-                {summary?.funnel && (
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-3">Воронка / Маркетинг</h3>
-                    <div className="bg-card rounded-xl border border-border/50 p-4 space-y-2">
-                      {summary.funnel.direction && (
-                        <div>
-                          <p className="text-sm font-bold text-foreground">Куда ведет</p>
-                          <p className="text-sm text-foreground/80">{summary.funnel.direction}</p>
-                        </div>
-                      )}
-                      {summary.funnel.goal && (
-                        <div>
-                          <p className="text-sm font-bold text-foreground">Цель</p>
-                          <p className="text-sm text-foreground/80">{summary.funnel.goal}</p>
-                        </div>
-                      )}
-                      {typeof summary.funnel === "string" && (
-                        <p className="text-sm text-foreground/80">{summary.funnel}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Fallback: raw JSON if no structured data */}
-                {!summary?.topic && !summary?.summary && analysis?.summary_json && (
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-3">Анализ (raw)</h3>
-                    <pre className="text-xs text-foreground/80 bg-card rounded-xl border border-border/50 p-4 overflow-auto max-h-96 whitespace-pre-wrap">
-                      {typeof analysis.summary_json === "string"
-                        ? analysis.summary_json
-                        : JSON.stringify(analysis.summary_json, null, 2)}
-                    </pre>
-                  </div>
-                )}
+              <div className="animate-magic-reveal">
+                <VideoAnalysisResults
+                  summary={summary}
+                  transcript={transcript}
+                  stats={{
+                    duration: 0,
+                    caption: video.caption,
+                    channelName: video.author_username,
+                    author: { uniqueId: video.author_username, avatarThumb: video.author_avatar_url },
+                  }}
+                  views={views}
+                  likes={likes}
+                  commentsCount={commentsCount}
+                  shares={shares}
+                  er={er}
+                  language={language}
+                  onGenerateScript={() => setShowScript(true)}
+                />
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
