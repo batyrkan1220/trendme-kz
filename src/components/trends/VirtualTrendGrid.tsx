@@ -1,5 +1,8 @@
 import { useRef, useEffect, forwardRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { MemoVideoCard } from "@/components/VideoCard";
+import { LockedVideoOverlay } from "./LockedVideoOverlay";
+import { cn } from "@/lib/utils";
 
 interface VirtualTrendGridProps {
   videos: any[];
@@ -12,6 +15,9 @@ interface VirtualTrendGridProps {
   hasMore: boolean;
   onLoadMore: () => void;
   darkMode?: boolean;
+  isFreePlan?: boolean;
+  /** Сколько видео доступно бесплатно (остальные блюрятся) */
+  freeVisibleCount?: number;
 }
 
 export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps>(function VirtualTrendGrid({
@@ -24,8 +30,11 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
   onScript,
   hasMore,
   onLoadMore,
+  isFreePlan = false,
+  freeVisibleCount = 3,
 }, ref) {
   const loaderRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!hasMore) return;
@@ -43,21 +52,36 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4">
-        {videos.map((video: any) => (
-          <MemoVideoCard
-            key={video.id}
-            video={video}
-            playingId={playingId}
-            onPlay={onPlay}
-            isFavorite={userFavorites.includes(video.id)}
-            onToggleFav={onToggleFav}
-            onAnalyze={onAnalyze}
-            onScript={onScript}
-            showTier={true}
-            showAuthor={true}
-            showScriptButton={!!onScript}
-          />
-        ))}
+        {videos.map((video: any, idx: number) => {
+          const isLocked = isFreePlan && idx >= freeVisibleCount;
+          return (
+            <div
+              key={video.id}
+              className={cn(
+                "relative",
+                isLocked && "group/lock cursor-pointer rounded-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-glow-viral"
+              )}
+              onClick={isLocked ? () => navigate("/subscription") : undefined}
+            >
+              <div className={isLocked ? "pointer-events-none select-none" : ""}>
+                <MemoVideoCard
+                  video={video}
+                  playingId={playingId}
+                  onPlay={onPlay}
+                  isFavorite={userFavorites.includes(video.id)}
+                  onToggleFav={onToggleFav}
+                  onAnalyze={onAnalyze}
+                  onScript={onScript}
+                  showTier={true}
+                  showAuthor={true}
+                  showAnalyzeButton={!isLocked}
+                  showScriptButton={!isLocked && !!onScript}
+                />
+              </div>
+              {isLocked && <LockedVideoOverlay />}
+            </div>
+          );
+        })}
       </div>
 
       {hasMore && (
