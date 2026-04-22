@@ -55,6 +55,7 @@ export default function VideoAnalysis() {
   const [showPaywall, setShowPaywall] = useState(false);
   const { checkAndLog } = useSubscription();
   const { isFreePlan } = useIsFreePlan();
+  const { analysesLeft, scriptsLeft, consume } = useFreeCredits();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const autoScriptRef = useRef(false);
