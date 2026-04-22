@@ -85,7 +85,7 @@ serve(async (req) => {
     }
 
     if (pgResult === "1") {
-      // Payment successful - activate subscription
+      // Payment successful - activate subscription with prorate data
       const { data: plan } = await supabase
         .from("plans")
         .select("*")
@@ -100,15 +100,27 @@ serve(async (req) => {
           .eq("user_id", order.user_id)
           .eq("is_active", true);
 
-        // Create new subscription
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + plan.duration_days);
+        // Use prorated expires_at computed at create-payment time.
+        // Fallback to plan.duration_days if not present (legacy orders).
+        const expiresAt = order.computed_expires_at
+          ? new Date(order.computed_expires_at)
+          : (() => {
+              const d = new Date();
+              d.setDate(d.getDate() + plan.duration_days);
+              return d;
+            })();
 
         await supabase.from("user_subscriptions").insert({
           user_id: order.user_id,
           plan_id: order.plan_id,
           expires_at: expiresAt.toISOString(),
           note: `Freedom Pay #${pgPaymentId}`,
+          amount_paid: order.amount,
+          bonus_days: order.bonus_days || 0,
+          previous_plan_name: order.previous_plan_name,
+          remaining_days_carried: order.remaining_days_carried || 0,
+          payment_provider: "freedompay",
+          order_id: orderId,
         });
       }
 
