@@ -1,7 +1,7 @@
 import { useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MemoVideoCard } from "@/components/VideoCard";
-import { ChevronRight, Lock, Crown } from "lucide-react";
+import { ChevronRight, Lock } from "lucide-react";
 import { NicheGroup } from "@/config/niches";
 
 
