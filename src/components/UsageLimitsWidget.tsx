@@ -1,7 +1,6 @@
-import { Search, Video, Heart, ArrowRight } from "lucide-react";
+import { Video, Sparkles, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 
 interface Props {
   showUpgradeLink?: boolean;
@@ -10,15 +9,15 @@ interface Props {
 
 export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Props) {
   const { limits, getRemaining, isFreeTrial, hasActiveSubscription, isLoading } = useSubscription();
-  const { favorites } = useLocalFavorites();
 
   if (!hasActiveSubscription || !isFreeTrial || !limits || isLoading) return null;
 
   const items = [
-    { key: "search" as const, label: "Поиск", limit: limits.search ?? null, icon: Search, iconBg: "bg-blue-500" },
     { key: "video_analysis" as const, label: "Видео анализ", limit: limits.video_analysis ?? null, icon: Video, iconBg: "bg-purple-500" },
-    { key: "favorites" as const, label: "Избранное", limit: null as number | null, icon: Heart, iconBg: "bg-pink-500" },
-  ];
+    { key: "ai_script" as const, label: "AI Сценарий", limit: limits.ai_script ?? null, icon: Sparkles, iconBg: "bg-amber-500" },
+  ].filter(i => i.limit != null);
+
+  if (items.length === 0) return null;
 
   return (
     <div className={`rounded-2xl border border-border/50 bg-card p-4 md:p-6 ${className}`}>
@@ -37,13 +36,11 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
         )}
       </div>
       <div className="border-t border-border/40 my-3" />
-      <div className="grid grid-cols-3 gap-2.5 md:gap-3">
+      <div className="grid grid-cols-2 gap-2.5 md:gap-3">
         {items.map(item => {
-          const isFav = item.key === "favorites";
-          const remaining = isFav ? null : getRemaining(item.key as any);
-          const total = item.limit;
-          const usedFav = favorites.length;
-          const pct = isFav ? 100 : (total && total > 0 ? ((remaining ?? 0) / total) * 100 : 0);
+          const remaining = getRemaining(item.key);
+          const total = item.limit!;
+          const pct = total > 0 ? ((remaining ?? 0) / total) * 100 : 0;
           const Icon = item.icon;
           return (
             <div key={item.key} className="rounded-xl bg-muted/40 p-3">
@@ -54,26 +51,17 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
                 <span className="text-[10px] md:text-xs font-medium text-muted-foreground truncate flex-1">{item.label}</span>
               </div>
               <div className="flex items-baseline justify-between mb-2">
-                <span className={`text-sm md:text-base font-bold ${!isFav && remaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
-                  {isFav ? usedFav : remaining}
-                  {!isFav && total != null && (
-                    <span className="text-[10px] md:text-xs font-normal text-muted-foreground">/{total}</span>
-                  )}
+                <span className={`text-sm md:text-base font-bold ${remaining === 0 ? 'text-destructive' : 'text-foreground'}`}>
+                  {remaining}
+                  <span className="text-[10px] md:text-xs font-normal text-muted-foreground">/{total}</span>
                 </span>
-                {isFav && (
-                  <span className="text-[10px] text-muted-foreground">∞</span>
-                )}
               </div>
               <div className="h-1.5 w-full rounded-full bg-border/60 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
-                    width: `${isFav ? 100 : pct}%`,
-                    background: isFav
-                      ? "hsl(330 81% 60%)"
-                      : pct > 0
-                      ? "hsl(142 71% 45%)"
-                      : "hsl(var(--destructive))",
+                    width: `${pct}%`,
+                    background: pct > 0 ? "hsl(142 71% 45%)" : "hsl(var(--destructive))",
                   }}
                 />
               </div>
