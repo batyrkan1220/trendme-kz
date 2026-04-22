@@ -19,7 +19,7 @@ import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
-import { PaywallDialog } from "@/components/PaywallDialog";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
