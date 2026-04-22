@@ -911,9 +911,19 @@ function UsersTab() {
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm">{u.email}</span>
                             {!u.email_confirmed_at && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive text-destructive">
-                                не подтв.
-                              </Badge>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`Подтвердить email ${u.email} вручную?`)) {
+                                    confirmUserMutation.mutate(u.id);
+                                  }
+                                }}
+                                disabled={confirmUserMutation.isPending}
+                                title="Кликните, чтобы подтвердить email вручную"
+                                className="inline-flex items-center rounded border border-destructive text-destructive text-[10px] px-1.5 py-0 hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-50"
+                              >
+                                не подтв. ✓
+                              </button>
                             )}
                           </div>
                           <span className="text-xs text-muted-foreground">
