@@ -23,19 +23,24 @@ serve(async (req) => {
     const MERCHANT_ID = Deno.env.get("FREEDOMPAY_MERCHANT_ID");
     const SECRET_KEY = Deno.env.get("FREEDOMPAY_SECRET_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!MERCHANT_ID) throw new Error("FREEDOMPAY_MERCHANT_ID is not configured");
     if (!SECRET_KEY) throw new Error("FREEDOMPAY_SECRET_KEY is not configured");
 
-    // Auth check
+    // Auth check — use anon client + getClaims for JWT verification (signing-keys system)
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing authorization header");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Missing authorization header");
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) throw new Error("Unauthorized");
+    const { data: claimsData, error: authError } = await authClient.auth.getClaims(token);
+    if (authError || !claimsData?.claims) throw new Error("Unauthorized");
+    const user = { id: claimsData.claims.sub as string, email: claimsData.claims.email as string | undefined };
+
+    // Service role client for DB writes (bypasses RLS)
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const { plan_id } = await req.json();
     if (!plan_id) throw new Error("plan_id is required");
