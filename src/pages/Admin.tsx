@@ -1651,6 +1651,195 @@ function ModerationTab() {
   );
 }
 
+/* ==================== CHANGE PLAN DIALOG ==================== */
+function ChangePlanDialog({
+  target,
+  plans,
+  onClose,
+}: {
+  target: { userId: string; email: string; currentPlanId?: string; currentExpiresAt?: string } | null;
+  plans: any[];
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [planId, setPlanId] = useState<string>("");
+  const [startedAt, setStartedAt] = useState<string>("");
+  const [expiresAt, setExpiresAt] = useState<string>("");
+  const [reason, setReason] = useState<string>("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const activePlans = (plans || []).filter((p: any) => p.is_active);
+
+  // Initialize when dialog opens
+  useMemo(() => {
+    if (!target) return;
+    const today = new Date();
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    setStartedAt(iso(today));
+    setPlanId(target.currentPlanId || activePlans[0]?.id || "");
+    setExpiresAt(target.currentExpiresAt ? iso(new Date(target.currentExpiresAt)) : iso(new Date(today.getTime() + 30 * 86400000)));
+    setReason("");
+  }, [target?.userId]);
+
+  // Auto-recalc expiry when plan changes (based on plan duration)
+  const onPlanChange = (newId: string) => {
+    setPlanId(newId);
+    const p = activePlans.find((x: any) => x.id === newId);
+    if (p && startedAt) {
+      const start = new Date(startedAt);
+      const days = p.duration_days || 30;
+      const end = new Date(start.getTime() + days * 86400000);
+      setExpiresAt(end.toISOString().slice(0, 10));
+    }
+  };
+
+  const onStartChange = (v: string) => {
+    setStartedAt(v);
+    const p = activePlans.find((x: any) => x.id === planId);
+    if (p && v) {
+      const end = new Date(new Date(v).getTime() + (p.duration_days || 30) * 86400000);
+      setExpiresAt(end.toISOString().slice(0, 10));
+    }
+  };
+
+  const changeMutation = useMutation({
+    mutationFn: async () => {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=change-user-plan`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: target?.userId,
+            plan_id: planId,
+            started_at: new Date(startedAt).toISOString(),
+            expires_at: new Date(expiresAt + "T23:59:59").toISOString(),
+            reason: reason || null,
+          }),
+        }
+      );
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      return res.json();
+    },
+    onSuccess: (d) => {
+      toast.success(`Тариф изменён на «${d.plan_name}»`);
+      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user-details"] });
+      setConfirmOpen(false);
+      onClose();
+    },
+    onError: (e: any) => {
+      toast.error(e.message || "Не удалось изменить тариф");
+      setConfirmOpen(false);
+    },
+  });
+
+  const selectedPlan = activePlans.find((p: any) => p.id === planId);
+
+  return (
+    <>
+      <Dialog open={!!target} onOpenChange={(o) => { if (!o) onClose(); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Сменить тариф
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{target?.email}</p>
+
+            <div>
+              <label className="text-sm font-medium">Тариф</label>
+              <RadioGroup value={planId} onValueChange={onPlanChange} className="mt-2 gap-2">
+                {activePlans.map((p: any) => (
+                  <label
+                    key={p.id}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
+                      planId === p.id ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"
+                    )}
+                  >
+                    <RadioGroupItem value={p.id} />
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold", getPlanBadgeClass(p.name))}>
+                        {p.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {p.duration_days} дн · {p.price_rub === 0 ? "Бесплатно" : `${p.price_rub.toLocaleString()} ₸`}
+                      </span>
+                    </div>
+                  </label>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Дата начала</label>
+                <Input type="date" value={startedAt} onChange={(e) => onStartChange(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Дата окончания</label>
+                <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="mt-1" />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Причина / заметка</label>
+              <Textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Необязательно — например: компенсация, тестовый доступ"
+                className="mt-1 min-h-[60px] text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>Отмена</Button>
+            <Button
+              onClick={() => {
+                if (!planId) return toast.error("Выберите тариф");
+                if (!startedAt || !expiresAt) return toast.error("Укажите даты");
+                if (new Date(expiresAt) <= new Date(startedAt)) return toast.error("Дата окончания должна быть позже даты начала");
+                setConfirmOpen(true);
+              }}
+              disabled={!planId}
+            >
+              Сменить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Подтвердите смену тарифа</AlertDialogTitle>
+            <AlertDialogDescription>
+              Сменить тариф пользователя <strong>{target?.email}</strong> на <strong>«{selectedPlan?.name}»</strong> до{" "}
+              <strong>{expiresAt ? new Date(expiresAt).toLocaleDateString("ru-RU") : ""}</strong>?
+              {reason && <><br /><span className="text-xs">Причина: {reason}</span></>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={changeMutation.isPending}>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); changeMutation.mutate(); }} disabled={changeMutation.isPending}>
+              {changeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              Подтвердить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 
 
 /* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
