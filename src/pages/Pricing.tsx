@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { UsageLimitsWidget } from "@/components/UsageLimitsWidget";
 
 const subtitles: Record<string, string> = {
   "Пробный": "Для первого знакомства",
@@ -168,32 +169,31 @@ export default function Pricing() {
                       </div>
                     )}
                   </div>
-                  <div className="text-right">
-                    {status === "trial" ? (
-                      <div className="text-[13px] font-semibold text-emerald-500">
-                        Без ограничения по дате
+                  {status !== "trial" && (
+                    <div className="text-right">
+                      <div className="text-[12px] text-muted-foreground">
+                        {status === "past_due" ? "Истёк" : "Действует до"}
                       </div>
-                    ) : (
-                      <>
-                        <div className="text-[12px] text-muted-foreground">
-                          {status === "past_due" ? "Истёк" : "Действует до"}
+                      <div className="text-[15px] font-semibold text-foreground">{expiresStr}</div>
+                      {daysLeft !== null && status !== "past_due" && (
+                        <div className={cn(
+                          "mt-0.5 text-[12px] font-semibold",
+                          daysLeft <= 7 ? "text-viral" : "text-muted-foreground"
+                        )}>
+                          Осталось {daysLeft} {pluralDays(daysLeft)}
                         </div>
-                        <div className="text-[15px] font-semibold text-foreground">{expiresStr}</div>
-                        {daysLeft !== null && status !== "past_due" && (
-                          <div className={cn(
-                            "mt-0.5 text-[12px] font-semibold",
-                            daysLeft <= 7 ? "text-viral" : "text-muted-foreground"
-                          )}>
-                            Осталось {daysLeft} {pluralDays(daysLeft)}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })()}
+
+          {/* Usage limits widget — shown only for trial users */}
+          <div className="mx-auto max-w-2xl mb-8 md:mb-10">
+            <UsageLimitsWidget showUpgradeLink={false} />
+          </div>
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
