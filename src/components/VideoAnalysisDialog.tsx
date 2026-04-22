@@ -193,28 +193,36 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           />
         ) : (
         <div className="flex flex-col md:flex-row h-full">
-          {/* Mobile: compact stats bar only (no video) */}
-          <div className="flex md:hidden items-center gap-3 p-3 border-b border-border bg-card/95 backdrop-blur-xl" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
+          {/* Mobile: compact stats bar only (no video) — glass header like /trends */}
+          <div
+            className="flex md:hidden items-center gap-3 px-4 py-2.5 border-b border-border/60 shrink-0"
+            style={{
+              paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)",
+              background: "hsl(var(--background) / 0.85)",
+              backdropFilter: "blur(20px) saturate(1.2)",
+              WebkitBackdropFilter: "blur(20px) saturate(1.2)",
+            }}
+          >
             {video.cover_url && (
-              <img src={video.cover_url} alt="" className="w-11 h-14 rounded-lg object-cover flex-shrink-0 shadow-soft" />
+              <img src={video.cover_url} alt="" className="w-10 h-13 rounded-xl object-cover flex-shrink-0 shadow-soft border border-border/60" />
             )}
             <div className="flex-1 min-w-0">
               {video.author_username && (
-                <span className="text-xs font-semibold text-primary block truncate mb-1">@{video.author_username}</span>
+                <span className="text-[12.5px] font-semibold text-foreground block truncate mb-0.5 tracking-tight">@{video.author_username}</span>
               )}
-              <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[11px] text-foreground/80">
-                <span className="flex items-center gap-1"><Eye className="h-3 w-3 text-muted-foreground" /><b className="text-foreground">{fmt(views)}</b></span>
-                <span className="flex items-center gap-1"><Heart className="h-3 w-3 text-rose-500" /><b className="text-foreground">{fmt(likes)}</b></span>
-                <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3 text-muted-foreground" /><b className="text-foreground">{fmt(commentsCount)}</b></span>
-                <span className="flex items-center gap-1"><Target className="h-3 w-3 text-muted-foreground" />ER <b className="text-foreground">{er}%</b></span>
+              <div className="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[11px] text-foreground/60 tabular-nums">
+                <span className="flex items-center gap-1"><Eye className="h-3 w-3" /><b className="text-foreground/80 font-semibold">{fmt(views)}</b></span>
+                <span className="flex items-center gap-1"><Heart className="h-3 w-3" /><b className="text-foreground/80 font-semibold">{fmt(likes)}</b></span>
+                <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" /><b className="text-foreground/80 font-semibold">{fmt(commentsCount)}</b></span>
+                <span className="flex items-center gap-1"><Target className="h-3 w-3" />ER <b className="text-foreground/80 font-semibold">{er}%</b></span>
               </div>
             </div>
             <button
               onClick={() => window.open(video.url, "_blank")}
-              className="text-muted-foreground hover:text-foreground flex-shrink-0 p-1.5 rounded-lg hover:bg-muted transition-colors"
+              className="h-8 w-8 rounded-full border border-border bg-background hover:bg-foreground/[0.04] flex items-center justify-center transition-colors active:scale-95 shrink-0"
               aria-label="Открыть в TikTok"
             >
-              <ExternalLink className="h-4 w-4" />
+              <ExternalLink className="h-3.5 w-3.5 text-foreground/70" />
             </button>
           </div>
 
@@ -313,96 +321,96 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
           {/* Right panel — analysis + sticky button */}
           <div className="flex-1 flex flex-col overflow-hidden bg-background relative">
-            {/* Fixed close button - always visible */}
+            {/* Fixed close button — premium pill, like /trends back button */}
             <button
               onClick={() => onOpenChange(false)}
-              className="absolute top-3 right-3 md:top-6 md:right-6 z-[70] w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors"
+              className="absolute top-3 right-3 md:top-5 md:right-5 z-[70] h-9 w-9 rounded-full border border-border bg-background/90 backdrop-blur-md hover:bg-foreground/[0.04] shadow-soft flex items-center justify-center transition-colors active:scale-95"
+              aria-label="Закрыть"
             >
-              <X className="h-5 w-5 text-foreground" />
+              <X className="h-4 w-4 text-foreground/70" strokeWidth={2} />
             </button>
           <div className="flex-1 overflow-y-auto p-3 md:p-6 pb-4 md:pb-6 space-y-4 md:space-y-6 relative">
             {showLangPicker ? (
-              <div className="flex flex-col h-full bg-background-subtle -m-3 md:-m-6">
-                {/* Header */}
+              <div className="flex flex-col h-full -m-3 md:-m-6 md:[background-image:var(--gradient-mesh)] bg-background">
+                {/* Glass header — matches /trends sticky header */}
                 <div
-                  className="flex items-center justify-between px-4 py-3 border-b border-border bg-card"
-                  style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+                  className="flex items-center justify-between px-4 py-3 border-b border-border/60 shrink-0"
+                  style={{
+                    paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)",
+                    background: "hsl(var(--background) / 0.85)",
+                    backdropFilter: "blur(20px) saturate(1.2)",
+                    WebkitBackdropFilter: "blur(20px) saturate(1.2)",
+                  }}
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Sparkles className="h-4 w-4 text-primary" />
+                    <div className="w-8 h-8 rounded-xl bg-viral/15 ring-1 ring-viral/30 flex items-center justify-center">
+                      <Sparkles className="h-4 w-4 text-foreground" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary leading-none mb-0.5">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground leading-none mb-0.5">
                         AI Анализ
                       </p>
-                      <h2 className="text-sm font-bold text-foreground leading-none">
+                      <h2 className="text-[15px] font-semibold text-foreground leading-none tracking-tight">
                         Анализ видео
                       </h2>
                     </div>
                   </div>
-                  <button
-                    onClick={() => onOpenChange(false)}
-                    className="text-xs text-muted-foreground hover:text-foreground font-semibold px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    Закрыть
-                  </button>
                 </div>
 
                 {/* Language picker */}
                 <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 animate-fade-in">
                   <div className="w-full max-w-sm flex flex-col items-center gap-5">
                     {video.cover_url && (
-                      <div className="w-24 h-32 rounded-2xl overflow-hidden shadow-card border border-border">
+                      <div className="w-24 h-32 rounded-2xl overflow-hidden shadow-card border border-border/60">
                         <img src={video.cover_url} alt="" className="w-full h-full object-cover" />
                       </div>
                     )}
 
                     <div className="text-center space-y-1.5">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         Шаг 1 / 2
                       </p>
-                      <h3 className="text-xl font-bold text-foreground tracking-tight">
+                      <h3 className="text-[22px] font-semibold text-foreground tracking-tight">
                         Выберите язык анализа
                       </h3>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[12.5px] text-muted-foreground">
                         Тілді таңдаңыз — AI бірден видеоны талдай бастайды
                       </p>
                     </div>
 
                     <div className="flex flex-col gap-2 w-full">
                       <button
-                        onClick={() => startAnalysis("kk")}
-                        className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 rounded-xl font-semibold text-sm shadow-soft transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
-                      >
-                        🇰🇿 Қазақша
-                      </button>
-                      <button
                         onClick={() => startAnalysis("ru")}
-                        className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-hover rounded-xl font-semibold text-sm shadow-glow-primary transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                        className="w-full h-12 bg-viral text-viral-foreground hover:brightness-105 rounded-xl font-semibold text-sm shadow-glow-viral transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
                       >
                         🇷🇺 Русский
                       </button>
+                      <button
+                        onClick={() => startAnalysis("kk")}
+                        className="w-full h-12 bg-card border border-border hover:border-border-strong hover:bg-foreground/[0.03] text-foreground rounded-xl font-semibold text-sm shadow-soft transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
+                      >
+                        🇰🇿 Қазақша
+                      </button>
                     </div>
 
-                    <p className="text-[11px] text-muted-foreground text-center">
+                    <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
                       После выбора языка AI глубоко проанализирует контент, тему, тэги и эффективность
                     </p>
                   </div>
                 </div>
               </div>
             ) : isPending ? (
-              <div className="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
+              <div className="flex flex-col items-center justify-center py-16 px-4 animate-fade-in">
                 <div className="w-full max-w-lg flex flex-col items-center gap-5">
                   <div className="relative">
-                    <span className="absolute inset-0 rounded-2xl bg-viral/40 blur-2xl -z-10" />
-                    <div className="w-20 h-20 rounded-2xl bg-viral flex items-center justify-center shadow-glow-primary animate-scale-in ring-1 ring-white/20">
-                      <Sparkles className="h-9 w-9 text-foreground animate-pulse" />
+                    <span className="absolute inset-0 rounded-2xl bg-viral/50 blur-2xl -z-10 animate-viral-pulse" />
+                    <div className="w-20 h-20 rounded-2xl bg-viral flex items-center justify-center shadow-glow-viral animate-scale-in ring-1 ring-foreground/10">
+                      <Sparkles className="h-9 w-9 text-viral-foreground animate-pulse" />
                     </div>
                   </div>
-                  <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
+                  <p className="text-foreground/80 font-medium text-center text-sm md:text-base animate-fade-in tracking-tight">
                     Анализируем видео...<br />
-                    Это займёт 1–2 минуты
+                    <span className="text-muted-foreground text-xs">Это займёт 1–2 минуты</span>
                   </p>
                   <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 </div>
@@ -437,26 +445,16 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   <p className="text-xs text-destructive/70 max-w-xs text-center">{analysisError}</p>
                 )}
                 <div className="flex flex-col items-center gap-2">
-                  {analysisError ? (
-                    <button
-                      onClick={() => {
-                        setAnalysisError(null);
-                        setShowLangPicker(true);
-                      }}
-                      className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity flex items-center gap-2"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Попробовать заново
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowLangPicker(true)}
-                      className="px-6 py-3 rounded-xl gradient-hero text-primary-foreground font-semibold text-sm glow-primary hover:opacity-90 transition-opacity flex items-center gap-2"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Анализировать
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      if (analysisError) setAnalysisError(null);
+                      setShowLangPicker(true);
+                    }}
+                    className="px-6 h-11 rounded-xl bg-viral text-viral-foreground font-semibold text-sm shadow-glow-viral hover:brightness-105 transition-all active:scale-95 flex items-center gap-2"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {analysisError ? "Попробовать заново" : "Анализировать"}
+                  </button>
                 </div>
               </div>
             )}
@@ -464,14 +462,17 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           {/* Scrollable area end */}
           </div>
 
-          {/* Sticky bottom button - only after analysis */}
+          {/* Sticky bottom CTA — viral lime button matches /trends accents */}
           {analysis && !isPending && (
-            <div className="shrink-0 p-3 md:p-4 border-t border-border/50 bg-background" style={{ paddingBottom: isNativePlatform ? "calc(env(safe-area-inset-bottom, 0px) + 12px)" : undefined }}>
+            <div
+              className="shrink-0 px-3 md:px-4 pt-3 pb-3 md:pb-4 border-t border-border/60 bg-card/85 backdrop-blur-xl"
+              style={{ paddingBottom: isNativePlatform ? "calc(env(safe-area-inset-bottom, 0px) + 12px)" : undefined }}
+            >
               <button
                 onClick={() => setShowScript(true)}
-                className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                className="w-full h-13 py-3.5 rounded-xl bg-viral text-viral-foreground font-bold text-[15px] shadow-glow-viral hover:brightness-105 active:scale-[0.99] transition-all flex items-center justify-center gap-2 ring-1 ring-foreground/10"
               >
-                <Sparkles className="h-5 w-5" />
+                <Sparkles className="h-4.5 w-4.5" />
                 Генерация сценария
               </button>
             </div>
