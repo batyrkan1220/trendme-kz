@@ -226,10 +226,12 @@ export default function Dashboard() {
                   <p className="text-[11px] md:text-xs font-semibold text-foreground/80 truncate">{planName}</p>
                 </div>
                 <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5 truncate">
-                  {status === "past_due"
+                  {status === "trial"
+                    ? cfg.hint
+                    : status === "past_due"
                     ? `Истёк ${expiresStr}`
-                    : `до ${expiresStr}${daysLeft !== null ? ` · ${daysLeft} дн.` : ""}`}
-                  {cfg.hint ? ` · ${cfg.hint}` : ""}
+                    : `Осталось ${daysLeft ?? 0} дн. · до ${expiresStr}`}
+
                 </p>
               </div>
               <div className="hidden md:flex items-center gap-1 text-[12px] font-semibold text-foreground/70 group-hover:text-foreground">
