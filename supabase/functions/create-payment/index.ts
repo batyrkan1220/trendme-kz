@@ -55,6 +55,56 @@ serve(async (req) => {
     if (planError || !plan) throw new Error("Plan not found");
     if (plan.price_rub === 0) throw new Error("Cannot purchase free plan");
 
+    // ============ PRORATING / RENEWAL LOGIC ============
+    const { data: currentSub } = await supabase
+      .from("user_subscriptions")
+      .select("*, plans(id, name, price_rub, duration_days)")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const now = new Date();
+    let purchaseType: "new" | "renewal" | "upgrade" | "downgrade" = "new";
+    let bonusDays = 0;
+    let remainingDaysCarried = 0;
+    let previousPlanName: string | null = null;
+    let previousPlanId: string | null = null;
+    let computedExpiresAt: Date;
+
+    const newPlanDays = plan.duration_days;
+    const newPlanPrice = plan.price_rub;
+    const currentPlan: any = currentSub?.plans;
+    const currentExpiresAt = currentSub?.expires_at ? new Date(currentSub.expires_at) : null;
+    const isCurrentActive = currentExpiresAt && currentExpiresAt > now;
+    const isCurrentPaid = (currentPlan?.price_rub || 0) > 0;
+
+    if (isCurrentActive && currentPlan) {
+      previousPlanName = currentPlan.name;
+      previousPlanId = currentPlan.id;
+      const remainingMs = currentExpiresAt!.getTime() - now.getTime();
+      remainingDaysCarried = Math.max(0, Math.ceil(remainingMs / 86400000));
+
+      if (currentPlan.id === plan_id) {
+        purchaseType = "renewal";
+        computedExpiresAt = new Date(currentExpiresAt!.getTime() + newPlanDays * 86400000);
+      } else if (isCurrentPaid) {
+        const remainingValueRub =
+          (currentPlan.price_rub / currentPlan.duration_days) * remainingDaysCarried;
+        const newPlanDailyRate = newPlanPrice / newPlanDays;
+        bonusDays = newPlanDailyRate > 0 ? Math.floor(remainingValueRub / newPlanDailyRate) : 0;
+        purchaseType = newPlanPrice > currentPlan.price_rub ? "upgrade" : "downgrade";
+        computedExpiresAt = new Date(now.getTime() + (newPlanDays + bonusDays) * 86400000);
+      } else {
+        purchaseType = "new";
+        computedExpiresAt = new Date(now.getTime() + newPlanDays * 86400000);
+      }
+    } else {
+      computedExpiresAt = new Date(now.getTime() + newPlanDays * 86400000);
+    }
+    // ====================================================
+
     // Create unique order ID
     const orderId = `${user.id.slice(0, 8)}-${plan_id.slice(0, 8)}-${Date.now()}`;
 
@@ -114,8 +164,7 @@ serve(async (req) => {
       throw new Error(`Freedom Pay error: ${errorDesc}`);
     }
 
-    // Store pending payment info for callback verification
-    // We'll use the order_id to match later
+    // Store pending payment + prorate data — callback will apply it
     await supabase.from("payment_orders").insert({
       order_id: orderId,
       user_id: user.id,
@@ -123,6 +172,12 @@ serve(async (req) => {
       amount: plan.price_rub,
       pg_payment_id: paymentId,
       status: "pending",
+      purchase_type: purchaseType,
+      previous_plan_id: previousPlanId,
+      previous_plan_name: previousPlanName,
+      remaining_days_carried: remainingDaysCarried,
+      bonus_days: bonusDays,
+      computed_expires_at: computedExpiresAt.toISOString(),
     });
 
     return new Response(JSON.stringify({ 
