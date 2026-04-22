@@ -140,7 +140,7 @@ export function OTPInput({
               digits[i] && digits[i] !== " " && "border-primary/60 bg-primary-soft",
             )}
           />
-        </>
+        </Fragment>
       ))}
     </div>
   );
