@@ -134,21 +134,26 @@ export default function Auth() {
     }
 
     if ((error as any).code === "email_not_confirmed" || /email not confirmed/i.test(error.message)) {
-      const conf = window.confirm("Ваш email не подтверждён. Отправить новый код?");
-      if (conf) {
-        setLoading(true);
-        const { error: rerr } = await authService.resendOtp(email);
-        setLoading(false);
-        if (rerr) {
-          toast.error(rerr.message);
-        } else {
-          toast.success("Мы отправили код на ваш email");
-          setMode("register");
-          setStep("otp");
-          setOtp("");
-          startCountdown(60);
-        }
-      }
+      toast.error("Email не подтверждён", {
+        description: "Отправим новый 6-значный код на ваш email.",
+        action: {
+          label: "Отправить код",
+          onClick: async () => {
+            setLoading(true);
+            const { error: rerr } = await authService.resendOtp(email);
+            setLoading(false);
+            if (rerr) {
+              toast.error(rerr.message);
+            } else {
+              toast.success("Мы отправили код на ваш email");
+              setStep("otp");
+              setOtp("");
+              startCountdown(60);
+            }
+          },
+        },
+        duration: 10000,
+      });
       return;
     }
 
@@ -208,6 +213,9 @@ export default function Auth() {
     }
     toast.success("Email подтверждён");
     clearFailed(email.trim().toLowerCase());
+    if (mode === "register") {
+      trackPlausible("Sign Up");
+    }
     navigate("/dashboard", { replace: true });
   };
 
