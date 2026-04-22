@@ -114,8 +114,23 @@ export function TrackingPixels() {
   return null;
 }
 
+// Plausible Analytics helper — skips admin pages
+export function trackPlausible(event: string, props?: Record<string, string | number | boolean>) {
+  try {
+    if (typeof window === "undefined") return;
+    if (window.location.pathname.startsWith("/admin")) return;
+    const p = (window as any).plausible;
+    if (typeof p === "function") {
+      props ? p(event, { props }) : p(event);
+    }
+  } catch {
+    // no-op
+  }
+}
+
 // Helper to fire conversion events from anywhere
 export function trackRegistrationEvent() {
+  trackPlausible("Register");
   // GTM dataLayer
   (window as any).dataLayer = (window as any).dataLayer || [];
   (window as any).dataLayer.push({ event: "sign_up", method: "email" });
