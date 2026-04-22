@@ -227,16 +227,16 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
   // ── Quick action presets ───────────────────────────────
   const quickActions = useMemo(() => [
-    { icon: Scissors, label: isKk ? "Қысқарт" : "Сократи",
-      prompt: isKk ? "Сценарийді 30% қысқарт, мағынасын сақта" : "Сократи сценарий на 30%, сохрани смысл" },
-    { icon: Heart, label: isKk ? "Эмоция қос" : "Эмоция",
-      prompt: isKk ? "Көбірек эмоция мен қызығушылық қос" : "Добавь больше эмоций и интриги" },
-    { icon: Zap, label: isKk ? "Жаңа хук" : "Новый хук",
-      prompt: isKk ? "Бастапқы хукты толық ауыстыр, күштірек қыл" : "Полностью замени хук, сделай его сильнее" },
-    { icon: Languages, label: isKk ? "Жеңіл тіл" : "Проще",
-      prompt: isKk ? "Қарапайым, түсінікті тілмен қайта жаз" : "Перепиши простым, разговорным языком" },
-    { icon: Wand2, label: isKk ? "Күштірек CTA" : "Сильнее CTA",
-      prompt: isKk ? "Соңында әсерлі, түрткі болатын CTA жаса" : "Сделай мощный, побуждающий CTA в финале" },
+    { emoji: "🔥", label: isKk ? "Хукты күшейт" : "Сделай хук сильнее",
+      prompt: isKk ? "Бастапқы хукты толық ауыстыр, әлдеқайда күштірек қыл" : "Сделай хук в начале значительно сильнее, замени его полностью" },
+    { emoji: "😂", label: isKk ? "Юмор қос" : "Добавь юмор",
+      prompt: isKk ? "Сценарийге жеңіл юмор мен ирония қос" : "Добавь лёгкий юмор и иронию в сценарий" },
+    { emoji: "⚡", label: isKk ? "30 секундқа қысқарт" : "Сократи до 30 сек",
+      prompt: isKk ? "Сценарийді дәл 30 секундқа қысқарт, ең маңызды бөліктерді ғана қалдыр" : "Сократи сценарий ровно до 30 секунд, оставь только самое важное" },
+    { emoji: "🎯", label: isKk ? "Instagram-ға бейімде" : "Адаптируй под Instagram",
+      prompt: isKk ? "Сценарийді Instagram Reels форматына бейімде — стиль, ұзақтық, CTA" : "Адаптируй сценарий под Instagram Reels — стиль, длительность, CTA" },
+    { emoji: "🇰🇿", label: isKk ? "Орысшаға аудар" : "Переведи на казахский",
+      prompt: isKk ? "Сценарийді орыс тіліне аудар, табиғи стильмен" : "Переведи весь сценарий на казахский язык, естественным разговорным стилем" },
   ], [isKk]);
 
   return (
@@ -376,7 +376,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                         disabled={isGenerating}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-card border border-border/70 text-[13px] font-semibold text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft disabled:opacity-50"
                       >
-                        <a.icon className="h-3.5 w-3.5" />
+                        <span className="text-base leading-none">{a.emoji}</span>
                         {a.label}
                       </button>
                     ))}
@@ -432,14 +432,14 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
               {/* Quick chips */}
               <div className="px-3 pt-2 pb-1 flex gap-1.5 overflow-x-auto shrink-0 scrollbar-hide">
-                {quickActions.slice(0, 4).map((a) => (
+                {quickActions.map((a) => (
                   <button
                     key={a.label}
                     onClick={() => sendMessage(a.prompt)}
                     disabled={isGenerating}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11.5px] font-semibold border border-border/70 text-foreground hover:bg-foreground hover:text-background transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
                   >
-                    <a.icon className="h-3 w-3" />
+                    <span className="text-xs leading-none">{a.emoji}</span>
                     {a.label}
                   </button>
                 ))}
@@ -452,7 +452,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                    placeholder={isKk ? "Не өзгертейік?" : "Что изменить?"}
+                    placeholder={isKk ? "ИИ-ден сценарийді өзгертуді сұраңыз..." : "Попросите ИИ изменить сценарий..."}
                     className="flex-1 px-3.5 py-2.5 rounded-xl bg-background border border-border/60 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-viral/40 focus:border-viral/50"
                     disabled={isGenerating}
                   />
@@ -541,7 +541,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                     disabled={isGenerating}
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] font-semibold border border-border/70 text-foreground hover:bg-foreground hover:text-background transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
                   >
-                    <a.icon className="h-3 w-3" />
+                    <span className="text-sm leading-none">{a.emoji}</span>
                     {a.label}
                   </button>
                 ))}
@@ -593,7 +593,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  placeholder={isKk ? "Не өзгертейік?" : "Что изменить в сценарии?"}
+                  placeholder={isKk ? "ИИ-ден сценарийді өзгертуді сұраңыз..." : "Попросите ИИ изменить сценарий..."}
                   className="flex-1 px-3.5 py-3 rounded-xl bg-background border border-border/60 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-viral/40 focus:border-viral/50"
                   disabled={isGenerating}
                 />
