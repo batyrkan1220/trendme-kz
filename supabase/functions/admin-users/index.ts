@@ -627,7 +627,7 @@ Deno.serve(async (req) => {
       const targetId = url.searchParams.get("user_id");
       if (!targetId) throw new Error("user_id required");
 
-      const [profileRes, subsRes, favCnt, scriptsCnt, analysesCnt, searchesCnt, accountsCnt, activityRes, txRes, rolesRes] = await Promise.all([
+      const [profileRes, subsRes, favCnt, scriptsCnt, analysesCnt, searchesCnt, accountsCnt, activityRes, txRes, rolesRes, planHistoryRes] = await Promise.all([
         adminClient.from("profiles").select("*").eq("user_id", targetId).maybeSingle(),
         adminClient.from("user_subscriptions").select("*, plans(name, price_rub)").eq("user_id", targetId).order("created_at", { ascending: false }),
         adminClient.from("favorites").select("*", { count: "exact", head: true }).eq("user_id", targetId),
@@ -638,9 +638,24 @@ Deno.serve(async (req) => {
         adminClient.from("activity_log").select("type, created_at, payload_json").eq("user_id", targetId).order("created_at", { ascending: false }).limit(30),
         adminClient.from("token_transactions").select("*").eq("user_id", targetId).order("created_at", { ascending: false }).limit(20),
         adminClient.from("user_roles").select("role").eq("user_id", targetId),
+        adminClient.from("admin_activity_log").select("*").eq("user_id", targetId).eq("action", "plan_change").order("created_at", { ascending: false }).limit(50),
       ]);
 
       const { data: authData } = await (adminClient.auth.admin as any).getUserById(targetId);
+
+      // Enrich plan history with admin emails
+      const adminIds = [...new Set((planHistoryRes.data || []).map((h: any) => h.admin_id))];
+      const adminEmailMap: Record<string, string> = {};
+      for (const aid of adminIds) {
+        try {
+          const { data: u } = await (adminClient.auth.admin as any).getUserById(aid);
+          if (u?.user?.email) adminEmailMap[aid as string] = u.user.email;
+        } catch { /* ignore */ }
+      }
+      const planHistory = (planHistoryRes.data || []).map((h: any) => ({
+        ...h,
+        admin_email: adminEmailMap[h.admin_id] || null,
+      }));
 
       return new Response(JSON.stringify({
         auth: authData?.user || null,
@@ -656,7 +671,68 @@ Deno.serve(async (req) => {
         },
         activity: activityRes.data || [],
         token_transactions: txRes.data || [],
+        plan_history: planHistory,
       }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // CHANGE USER PLAN (manual admin action with full audit)
+    if (req.method === "POST" && action === "change-user-plan") {
+      const { user_id, plan_id, started_at, expires_at, reason } = await req.json();
+      if (!user_id || !plan_id) throw new Error("user_id and plan_id required");
+      if (!started_at || !expires_at) throw new Error("started_at and expires_at required");
+
+      // Get new plan info
+      const { data: newPlan, error: planErr } = await adminClient
+        .from("plans").select("id, name, tokens_included")
+        .eq("id", plan_id).maybeSingle();
+      if (planErr || !newPlan) throw new Error("plan not found");
+
+      // Get current active subscription (for audit log)
+      const { data: currentSub } = await adminClient
+        .from("user_subscriptions")
+        .select("id, expires_at, plans(name)")
+        .eq("user_id", user_id).eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1).maybeSingle();
+
+      const oldPlanName = (currentSub as any)?.plans?.name || null;
+      const oldExpiresAt = currentSub?.expires_at || null;
+
+      // Deactivate existing active subscriptions
+      await adminClient
+        .from("user_subscriptions")
+        .update({ is_active: false })
+        .eq("user_id", user_id)
+        .eq("is_active", true);
+
+      // Insert new subscription with custom dates
+      const { error: insErr } = await adminClient.from("user_subscriptions").insert({
+        user_id,
+        plan_id,
+        started_at,
+        expires_at,
+        is_active: true,
+        assigned_by: user.id,
+        note: reason || null,
+      });
+      if (insErr) throw insErr;
+
+      // Log audit entry
+      await adminClient.from("admin_activity_log").insert({
+        admin_id: user.id,
+        user_id,
+        action: "plan_change",
+        old_plan: oldPlanName,
+        new_plan: newPlan.name,
+        old_expires_at: oldExpiresAt,
+        new_expires_at: expires_at,
+        reason: reason || null,
+        metadata: { plan_id, started_at },
+      });
+
+      return new Response(JSON.stringify({ success: true, plan_name: newPlan.name }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
