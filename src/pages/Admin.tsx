@@ -696,7 +696,21 @@ function UsersTab() {
     },
   });
 
-  const allUsers: any[] = data?.users || [];
+  const confirmUserMutation = useMutation({
+    mutationFn: async (user_id: string) => {
+      const res = await adminFetch(`?action=confirm-user`, {
+        method: "POST",
+        body: JSON.stringify({ user_id }),
+      });
+      if (!res.ok) throw new Error("Failed");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-platform-stats"] });
+      toast.success("Email подтверждён вручную");
+    },
+    onError: () => toast.error("Не удалось подтвердить email"),
+  });
 
   // Apply filters
   const filteredUsers = useMemo(() => {
