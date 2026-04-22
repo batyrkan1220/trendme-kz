@@ -83,7 +83,7 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
           const Icon = item.icon;
           const isEmpty = remaining === 0;
           return (
-            <div key={item.key} className="rounded-xl bg-muted/40 border border-border/30 p-3">
+            <div key={item.key} className={`rounded-xl p-3 border ${isEmpty ? 'bg-destructive/5 border-destructive/30' : 'bg-muted/40 border-border/30'}`}>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className={`shrink-0 h-5 w-5 rounded-md bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
                   <Icon className="h-3 w-3 text-white" />
@@ -95,6 +95,9 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
                   {remaining}
                   <span className="text-[10px] md:text-xs font-normal text-muted-foreground">/{total}</span>
                 </span>
+                {isEmpty && (
+                  <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide text-destructive">Закончилось</span>
+                )}
               </div>
               <div className="h-1.5 w-full rounded-full bg-border/60 overflow-hidden">
                 <div
