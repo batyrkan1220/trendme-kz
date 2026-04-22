@@ -169,17 +169,25 @@ export default function Pricing() {
                     )}
                   </div>
                   <div className="text-right">
-                    <div className="text-[12px] text-muted-foreground">
-                      {status === "past_due" ? "Истёк" : "Действует до"}
-                    </div>
-                    <div className="text-[15px] font-semibold text-foreground">{expiresStr}</div>
-                    {daysLeft !== null && status !== "past_due" && (
-                      <div className={cn(
-                        "mt-0.5 text-[12px] font-semibold",
-                        daysLeft <= 7 ? "text-viral" : "text-muted-foreground"
-                      )}>
-                        Осталось {daysLeft} {pluralDays(daysLeft)}
+                    {status === "trial" ? (
+                      <div className="text-[13px] font-semibold text-emerald-500">
+                        Без ограничения по дате
                       </div>
+                    ) : (
+                      <>
+                        <div className="text-[12px] text-muted-foreground">
+                          {status === "past_due" ? "Истёк" : "Действует до"}
+                        </div>
+                        <div className="text-[15px] font-semibold text-foreground">{expiresStr}</div>
+                        {daysLeft !== null && status !== "past_due" && (
+                          <div className={cn(
+                            "mt-0.5 text-[12px] font-semibold",
+                            daysLeft <= 7 ? "text-viral" : "text-muted-foreground"
+                          )}>
+                            Осталось {daysLeft} {pluralDays(daysLeft)}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
