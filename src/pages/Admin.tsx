@@ -979,6 +979,17 @@ function UsersTab() {
                             >
                               <Eye className="h-3.5 w-3.5" />
                             </Button>
+                            <Button
+                              size="sm" variant="ghost" className="h-7 px-2 text-primary"
+                              onClick={() => setPlanChangeUser({
+                                userId: u.id, email: u.email,
+                                currentPlanId: sub?.plan_id,
+                                currentExpiresAt: sub?.expires_at,
+                              })}
+                              title="Сменить тариф"
+                            >
+                              <CreditCard className="h-3.5 w-3.5" />
+                            </Button>
                             <RoleAssigner
                               userId={u.id}
                               currentRoles={u.roles}
