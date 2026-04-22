@@ -337,33 +337,51 @@ export type Database = {
       payment_orders: {
         Row: {
           amount: number
+          bonus_days: number
+          computed_expires_at: string | null
           created_at: string
           id: string
           order_id: string
           pg_payment_id: string | null
           plan_id: string
+          previous_plan_id: string | null
+          previous_plan_name: string | null
+          purchase_type: string | null
+          remaining_days_carried: number
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
           amount: number
+          bonus_days?: number
+          computed_expires_at?: string | null
           created_at?: string
           id?: string
           order_id: string
           pg_payment_id?: string | null
           plan_id: string
+          previous_plan_id?: string | null
+          previous_plan_name?: string | null
+          purchase_type?: string | null
+          remaining_days_carried?: number
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           amount?: number
+          bonus_days?: number
+          computed_expires_at?: string | null
           created_at?: string
           id?: string
           order_id?: string
           pg_payment_id?: string | null
           plan_id?: string
+          previous_plan_id?: string | null
+          previous_plan_name?: string | null
+          purchase_type?: string | null
+          remaining_days_carried?: number
           status?: string
           updated_at?: string
           user_id?: string
