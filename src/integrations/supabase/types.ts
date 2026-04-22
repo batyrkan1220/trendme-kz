@@ -424,12 +424,22 @@ export type Database = {
       payment_orders: {
         Row: {
           amount: number
+          bank_code: string | null
           bonus_days: number
+          card_mask: string | null
+          commission: number | null
           computed_expires_at: string | null
           created_at: string
+          failure_code: string | null
+          failure_description: string | null
           id: string
+          mcc: string | null
           order_id: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_organization: string | null
           pg_payment_id: string | null
+          phone: string | null
           plan_id: string
           previous_plan_id: string | null
           previous_plan_name: string | null
@@ -441,12 +451,22 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bank_code?: string | null
           bonus_days?: number
+          card_mask?: string | null
+          commission?: number | null
           computed_expires_at?: string | null
           created_at?: string
+          failure_code?: string | null
+          failure_description?: string | null
           id?: string
+          mcc?: string | null
           order_id: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_organization?: string | null
           pg_payment_id?: string | null
+          phone?: string | null
           plan_id: string
           previous_plan_id?: string | null
           previous_plan_name?: string | null
@@ -458,12 +478,22 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bank_code?: string | null
           bonus_days?: number
+          card_mask?: string | null
+          commission?: number | null
           computed_expires_at?: string | null
           created_at?: string
+          failure_code?: string | null
+          failure_description?: string | null
           id?: string
+          mcc?: string | null
           order_id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_organization?: string | null
           pg_payment_id?: string | null
+          phone?: string | null
           plan_id?: string
           previous_plan_id?: string | null
           previous_plan_name?: string | null
