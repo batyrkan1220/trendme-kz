@@ -15,11 +15,11 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-lovable-signature, x-lovable-timestamp, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
-const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
+const EMAIL_SUBJECTS: Record<string, string | ((d: any) => string)> = {
+  signup: (d: any) => d?.token ? `Ваш код подтверждения: ${d.token}` : 'Подтвердите email — trendme',
   invite: "You've been invited",
   magiclink: 'Your login link',
-  recovery: 'Reset your password',
+  recovery: 'Сброс пароля — trendme',
   email_change: 'Confirm your new email',
   reauthentication: 'Your verification code',
 }
@@ -53,6 +53,7 @@ const SAMPLE_DATA: Record<string, object> = {
     siteUrl: SAMPLE_PROJECT_URL,
     recipient: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
+    token: '482913',
   },
   magiclink: {
     siteName: SITE_NAME,
@@ -253,7 +254,9 @@ async function handleWebhook(req: Request): Promise<Response> {
         to: payload.data.email,
         from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
         sender_domain: SENDER_DOMAIN,
-        subject: EMAIL_SUBJECTS[emailType] || 'Notification',
+        subject: (typeof EMAIL_SUBJECTS[emailType] === 'function'
+          ? (EMAIL_SUBJECTS[emailType] as (d: any) => string)(payload.data)
+          : EMAIL_SUBJECTS[emailType] as string) || 'Notification',
         html,
         text,
         purpose: 'transactional',
