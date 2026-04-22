@@ -17,7 +17,7 @@ const subtitles: Record<string, string> = {
 };
 
 const displayNames: Record<string, string> = {
-  "Пробный": "Демо",
+  "Пробный": "",
 };
 
 function pluralDays(n: number) {
