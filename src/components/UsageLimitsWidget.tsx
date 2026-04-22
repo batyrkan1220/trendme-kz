@@ -1,6 +1,7 @@
 import { Video, Sparkles, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { useFreeCredits } from "@/hooks/useFreeCredits";
 
 interface Props {
   showUpgradeLink?: boolean;
@@ -8,14 +9,15 @@ interface Props {
 }
 
 export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Props) {
-  const { limits, getRemaining, isFreeTrial, hasActiveSubscription, isLoading } = useSubscription();
+  const { isFreePlan, isLoading: isPlanLoading } = useIsFreePlan();
+  const { analysesLeft, scriptsLeft, isLoading: isCreditsLoading } = useFreeCredits();
 
-  if (!hasActiveSubscription || !isFreeTrial || !limits || isLoading) return null;
+  if (isPlanLoading || isCreditsLoading || !isFreePlan) return null;
 
   const items = [
-    { key: "video_analysis" as const, label: "Видео анализ", limit: limits.video_analysis ?? null, icon: Video, iconBg: "bg-purple-500" },
-    { key: "ai_script" as const, label: "AI Сценарий", limit: limits.ai_script ?? null, icon: Sparkles, iconBg: "bg-amber-500" },
-  ].filter(i => i.limit != null);
+    { key: "analysis", label: "Видео анализ", remaining: analysesLeft, total: 3, icon: Video, iconBg: "bg-purple-500" },
+    { key: "script", label: "AI Сценарий", remaining: scriptsLeft, total: 3, icon: Sparkles, iconBg: "bg-amber-500" },
+  ];
 
   if (items.length === 0) return null;
 
@@ -38,9 +40,9 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
       <div className="border-t border-border/40 my-3" />
       <div className="grid grid-cols-2 gap-2.5 md:gap-3">
         {items.map(item => {
-          const remaining = getRemaining(item.key);
-          const total = item.limit!;
-          const pct = total > 0 ? ((remaining ?? 0) / total) * 100 : 0;
+          const remaining = item.remaining;
+          const total = item.total;
+          const pct = total > 0 ? (remaining / total) * 100 : 0;
           const Icon = item.icon;
           return (
             <div key={item.key} className="rounded-xl bg-muted/40 p-3">
