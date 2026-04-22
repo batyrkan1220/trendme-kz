@@ -91,6 +91,16 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const [savedToast, setSavedToast] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
 
+  // Mobile sheet snap: 'half' (≈55vh) or 'full' (≈90vh)
+  const [sheetSnap, setSheetSnap] = useState<"half" | "full">("half");
+  // Desktop chat width (resizable, persisted)
+  const [chatWidth, setChatWidth] = useState<number>(() => {
+    if (typeof window === "undefined") return 420;
+    const saved = parseInt(localStorage.getItem("script-chat-width") || "0", 10);
+    return saved >= 360 && saved <= 600 ? saved : 420;
+  });
+  const isResizingRef = useRef(false);
+
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
