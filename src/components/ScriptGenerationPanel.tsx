@@ -384,12 +384,13 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           onClick={() => setChatOpen(v => !v)}
           className={`hidden lg:inline-flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-semibold transition-all ${
             chatOpen
-              ? "bg-foreground text-background"
-              : "bg-viral text-viral-foreground hover:brightness-105"
+              ? "bg-muted text-foreground hover:bg-muted/70"
+              : "bg-viral text-viral-foreground hover:brightness-105 shadow-glow-viral"
           }`}
+          title={chatOpen ? (isKk ? "Чатты жабу" : "Скрыть чат") : (isKk ? "AI чатты ашу" : "Открыть AI чат")}
         >
           <MessageCircle className="h-3.5 w-3.5" />
-          {chatOpen ? (isKk ? "Чатты жабу" : "Скрыть чат") : (isKk ? "AI чат" : "AI чат")}
+          {chatOpen ? (isKk ? "Жабу" : "Скрыть") : (isKk ? "AI чат" : "AI чат")}
         </button>
       </header>
 
