@@ -195,7 +195,7 @@ export default function Auth() {
     const code = (codeOverride ?? otp).replace(/\D/g, "");
     if (code.length !== 6) { toast.error("Введите 6-значный код"); return; }
     setOtpVerifying(true);
-    const otpType: "email" | "recovery" = mode === "forgot" ? "recovery" : "email";
+    const otpType: "signup" | "recovery" = mode === "forgot" ? "recovery" : "signup";
     const { error } = await authService.verifyOtp(email, code, otpType);
     setOtpVerifying(false);
     if (error) {
