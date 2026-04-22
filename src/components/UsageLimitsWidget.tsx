@@ -79,11 +79,18 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
         {items.map(item => {
           const remaining = Math.max(0, item.remaining);
           const total = item.total;
-          const pct = total > 0 ? (remaining / total) * 100 : 0;
           const Icon = item.icon;
           const isEmpty = remaining === 0;
+
+          // Цвет реагирует на остаток — мгновенная визуальная сигнализация
+          const fillColor = isEmpty
+            ? "hsl(var(--destructive))"
+            : remaining === 1
+            ? "hsl(38 92% 50%)" // amber
+            : "hsl(142 71% 45%)"; // green
+
           return (
-            <div key={item.key} className={`rounded-xl p-3 border ${isEmpty ? 'bg-destructive/5 border-destructive/30' : 'bg-muted/40 border-border/30'}`}>
+            <div key={item.key} className={`rounded-xl p-3 border transition-colors ${isEmpty ? 'bg-destructive/5 border-destructive/30' : 'bg-muted/40 border-border/30'}`}>
               <div className="flex items-center gap-1.5 mb-2">
                 <div className={`shrink-0 h-5 w-5 rounded-md bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
                   <Icon className="h-3 w-3 text-white" />
@@ -91,22 +98,33 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
                 <span className="text-[10px] md:text-xs font-medium text-muted-foreground truncate flex-1">{item.label}</span>
               </div>
               <div className="flex items-baseline justify-between mb-2">
-                <span className={`text-sm md:text-base font-bold ${isEmpty ? 'text-destructive' : 'text-foreground'}`}>
+                <span className={`text-sm md:text-base font-bold tabular-nums ${isEmpty ? 'text-destructive' : 'text-foreground'}`}>
                   {remaining}
                   <span className="text-[10px] md:text-xs font-normal text-muted-foreground">/{total}</span>
                 </span>
-                {isEmpty && (
+                {isEmpty ? (
                   <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wide text-destructive">Закончилось</span>
+                ) : (
+                  <span className="text-[9px] md:text-[10px] font-medium text-muted-foreground">осталось</span>
                 )}
               </div>
-              <div className="h-1.5 w-full rounded-full bg-border/60 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${pct}%`,
-                    background: pct > 0 ? "hsl(142 71% 45%)" : "hsl(var(--destructive))",
-                  }}
-                />
+
+              {/* Сегментный прогресс — каждый «слот» виден отдельно, изменение заметно сразу */}
+              <div className="flex items-center gap-1" aria-label={`${remaining} из ${total} осталось`}>
+                {Array.from({ length: total }).map((_, i) => {
+                  const isActive = i < remaining;
+                  return (
+                    <div
+                      key={i}
+                      className="h-1.5 flex-1 rounded-full transition-all duration-500"
+                      style={{
+                        background: isActive ? fillColor : "hsl(var(--border) / 0.45)",
+                        boxShadow: isActive ? `0 0 6px ${fillColor}66` : "none",
+                        transform: isActive ? "scaleY(1)" : "scaleY(0.7)",
+                      }}
+                    />
+                  );
+                })}
               </div>
             </div>
           );
