@@ -62,6 +62,11 @@ export default function VideoAnalysis() {
   const autoScriptRef = useRef(false);
   const autoTriggeredRef = useRef(false);
 
+  // Page-open event (fires once per mount)
+  useEffect(() => {
+    trackPlausible("Video Analysis Opened");
+  }, []);
+
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
       const { data, error } = await supabase.functions.invoke("socialkit", {
@@ -119,6 +124,7 @@ export default function VideoAnalysis() {
     setUrl(normalizedUrl);
     setIsPlaying(false);
     setShowScript(false);
+    trackPlausible("Video Analysis Started", { lang });
     analyze({ videoUrl: normalizedUrl, lang });
   };
 
