@@ -244,6 +244,19 @@ export default function SubscriptionsTab() {
       return exp < now && exp > now - 30 * 86400000 && planMap[s.plan_id]?.price_rub > 0;
     });
 
+    // Refund stats — month
+    const monthRefunds = payments.filter(p =>
+      p.refund_status === "success" &&
+      p.refunded_at &&
+      new Date(p.refunded_at).getTime() >= monthStart,
+    );
+    const monthRefundAmount = monthRefunds.reduce(
+      (s, p) => s + (p.refund_amount ?? p.amount ?? 0), 0,
+    );
+    const pendingRefunds = payments.filter(
+      p => p.refund_status === "initiated" || p.refund_status === "processing",
+    ).length;
+
     return {
       active: activeSubs.length,
       monthRevenue,
@@ -252,13 +265,22 @@ export default function SubscriptionsTab() {
       churned: churned30.length,
       expiringList: expiringSoon,
       churnedList: churned30,
+      monthRefundsCount: monthRefunds.length,
+      monthRefundAmount,
+      pendingRefunds,
     };
   }, [subs, payments, planMap]);
 
   // ============ FILTERED PAYMENTS ============
   const filteredPayments = useMemo(() => {
     return payments.filter(p => {
-      if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (statusFilter === "refunds_all") {
+        if (!p.refund_status) return false;
+      } else if (statusFilter === "refund_pending") {
+        if (p.refund_status !== "initiated" && p.refund_status !== "processing") return false;
+      } else if (statusFilter === "refunded") {
+        if (p.refund_status !== "success") return false;
+      } else if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (planFilter !== "all" && p.plan_id !== planFilter) return false;
       const created = new Date(p.created_at).getTime();
       if (dateFrom && created < dateFrom.getTime()) return false;
@@ -267,7 +289,7 @@ export default function SubscriptionsTab() {
         const q = search.toLowerCase();
         const u = userMap[p.user_id];
         const hay = [
-          p.order_id, p.pg_payment_id, u?.email, u?.name, p.phone,
+          p.order_id, p.pg_payment_id, p.refund_id, u?.email, u?.name, p.phone,
         ].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
