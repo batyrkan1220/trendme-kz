@@ -74,6 +74,7 @@ export default function Auth() {
   // OTP step state
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState(0);
+  const [otpErrorMsg, setOtpErrorMsg] = useState<string | null>(null);
   const [otpVerifying, setOtpVerifying] = useState(false);
   const { secondsLeft, canResend, start: startCountdown } = useResendCountdown(60);
 
@@ -193,16 +194,22 @@ export default function Auth() {
   // ───────────── OTP verify ─────────────
   const handleVerifyOtp = async (codeOverride?: string) => {
     const code = (codeOverride ?? otp).replace(/\D/g, "");
-    if (code.length !== 6) { toast.error("Введите 6-значный код"); return; }
+    if (code.length !== 6) {
+      setOtpErrorMsg("Введите 6-значный код");
+      return;
+    }
     setOtpVerifying(true);
     const otpType: "email" | "recovery" = mode === "forgot" ? "recovery" : "email";
     const { error } = await authService.verifyOtp(email, code, otpType);
     setOtpVerifying(false);
     if (error) {
-      toast.error(error.message);
+      setOtpErrorMsg(error.message || "Неверный код, попробуйте снова");
       setOtpError((n) => n + 1);
+      // После 3 неуспешных попыток — увеличиваем задержку повторной отправки.
+      if (otpError + 1 >= 3 && canResend) startCountdown(60);
       return;
     }
+    setOtpErrorMsg(null);
     if (mode === "forgot") {
       // recovery успех — пользователь временно залогинен, показываем экран нового пароля
       toast.success("Код подтверждён. Задайте новый пароль");
@@ -226,8 +233,14 @@ export default function Auth() {
       ? await authService.resetPasswordForEmail(email)
       : await authService.resendOtp(email);
     setLoading(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Новый код отправлен"); startCountdown(60); }
+    if (error) {
+      setOtpErrorMsg(error.message);
+    } else {
+      setOtpErrorMsg(null);
+      setOtp("");
+      toast.success("Новый код отправлен");
+      startCountdown(60);
+    }
   };
 
   // ───────────── New password (after recovery OTP) ─────────────
@@ -339,11 +352,21 @@ export default function Auth() {
               <OTPInput
                 length={6}
                 value={otp}
-                onChange={setOtp}
+                onChange={(v) => { setOtp(v); if (otpErrorMsg) setOtpErrorMsg(null); }}
                 onComplete={(code) => handleVerifyOtp(code)}
                 disabled={otpVerifying}
                 errorPulse={otpError}
               />
+
+              {otpErrorMsg && (
+                <p
+                  role="alert"
+                  aria-live="polite"
+                  className="text-center text-sm font-medium text-destructive animate-fade-in"
+                >
+                  {otpErrorMsg}
+                </p>
+              )}
 
               <Button
                 type="button"
