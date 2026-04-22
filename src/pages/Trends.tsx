@@ -3,7 +3,7 @@ import { isNativePlatform } from "@/lib/native";
 import { useNavigate } from "react-router-dom";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 import { useBlockedUsers } from "@/hooks/useBlockedUsers";
-import { trackAddToFavorites } from "@/components/TrackingPixels";
+import { trackAddToFavorites, trackPlausible } from "@/components/TrackingPixels";
 import { TrendingUp, WifiOff, ChevronLeft } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
