@@ -444,6 +444,14 @@ export type Database = {
           previous_plan_id: string | null
           previous_plan_name: string | null
           purchase_type: string | null
+          refund_amount: number | null
+          refund_failure_description: string | null
+          refund_id: string | null
+          refund_initiated_at: string | null
+          refund_initiated_by: string | null
+          refund_reason: string | null
+          refund_status: string | null
+          refunded_at: string | null
           remaining_days_carried: number
           status: string
           updated_at: string
@@ -471,6 +479,14 @@ export type Database = {
           previous_plan_id?: string | null
           previous_plan_name?: string | null
           purchase_type?: string | null
+          refund_amount?: number | null
+          refund_failure_description?: string | null
+          refund_id?: string | null
+          refund_initiated_at?: string | null
+          refund_initiated_by?: string | null
+          refund_reason?: string | null
+          refund_status?: string | null
+          refunded_at?: string | null
           remaining_days_carried?: number
           status?: string
           updated_at?: string
@@ -498,6 +514,14 @@ export type Database = {
           previous_plan_id?: string | null
           previous_plan_name?: string | null
           purchase_type?: string | null
+          refund_amount?: number | null
+          refund_failure_description?: string | null
+          refund_id?: string | null
+          refund_initiated_at?: string | null
+          refund_initiated_by?: string | null
+          refund_reason?: string | null
+          refund_status?: string | null
+          refunded_at?: string | null
           remaining_days_carried?: number
           status?: string
           updated_at?: string
