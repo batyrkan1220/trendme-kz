@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { isNativePlatform } from "@/lib/native";
 import { Sparkles, ArrowRight } from "lucide-react";
