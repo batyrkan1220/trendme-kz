@@ -81,12 +81,13 @@ export default function Pricing() {
     return plan.price_rub;
   };
 
-  // Show only paid plans (Демо removed from pricing page)
+  // On mobile, paid first
   const sortedPlans = useMemo(() => {
-    return plans
-      .filter((p: any) => p.price_rub > 0)
-      .sort((a: any, b: any) => a.sort_order - b.sort_order);
-  }, [plans]);
+    if (!isMobile) return plans;
+    const paid = plans.filter((p: any) => p.price_rub > 0).sort((a: any, b: any) => a.sort_order - b.sort_order);
+    const free = plans.filter((p: any) => p.price_rub === 0);
+    return [...paid, ...free];
+  }, [plans, isMobile]);
 
   return (
     <AppLayout>
@@ -190,13 +191,13 @@ export default function Pricing() {
           })()}
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-              {[1, 2].map(i => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {[1, 2, 3].map(i => (
                 <Skeleton key={i} className="h-[440px] rounded-2xl" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
               {sortedPlans.map((plan: any) => {
                 const isPaid = plan.price_rub > 0;
                 const isFeatured = plan.duration_days === 90 && plan.price_rub > 0;
