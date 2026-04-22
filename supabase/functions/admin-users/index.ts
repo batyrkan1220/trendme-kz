@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
 
     // PLATFORM STATS
     if (req.method === "GET" && action === "platform-stats") {
-      const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const allUsers = await fetchAllUsers();
 
       const { count: totalVideos } = await adminClient
         .from("videos")
@@ -429,7 +429,7 @@ Deno.serve(async (req) => {
 
       // Enrich with user emails
       const userIds = [...new Set((data || []).map((s: any) => s.user_id))];
-      const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const allUsers = await fetchAllUsers();
       const userMap: Record<string, string> = {};
       for (const u of allUsers || []) {
         userMap[u.id] = u.email || "";
