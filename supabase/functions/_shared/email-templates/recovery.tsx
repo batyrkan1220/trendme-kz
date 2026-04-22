@@ -1,35 +1,49 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text,
+  Body, Container, Head, Heading, Html, Img, Preview, Section, Text,
 } from 'npm:@react-email/components@0.0.22'
 
-interface RecoveryEmailProps { siteName: string; confirmationUrl: string }
+interface RecoveryEmailProps {
+  siteName: string; recipient?: string; confirmationUrl?: string; token?: string
+}
 
-export const RecoveryEmail = ({ confirmationUrl }: RecoveryEmailProps) => (
-  <Html lang="ru" dir="ltr">
-    <Head />
-    <Preview>Сброс пароля для trendme</Preview>
-    <Body style={main}>
-      <Container style={outer}>
-        <Img src={LOGO} width="132" height="36" alt="trendme" style={logo} />
-        <Section style={card}>
-          <Heading style={h1}>Сброс пароля</Heading>
-          <Text style={text}>
-            Мы получили запрос на сброс пароля вашего аккаунта trendme. Нажмите кнопку ниже, чтобы задать новый пароль.
-          </Text>
-          <Button style={button} href={confirmationUrl}>Сбросить пароль</Button>
-          <Text style={fallback}>
-            Или скопируйте ссылку:<br />
-            <Link href={confirmationUrl} style={fallbackLink}>{confirmationUrl}</Link>
-          </Text>
-        </Section>
-        <Text style={footer}>Если вы не запрашивали сброс — просто проигнорируйте это письмо. Ваш пароль останется прежним.</Text>
-        <Text style={brandFooter}>trendme · trendme.kz</Text>
-      </Container>
-    </Body>
-  </Html>
-)
+export const RecoveryEmail = ({ recipient, token }: RecoveryEmailProps) => {
+  const code = (token || '------').toString()
+  const digits = code.padEnd(6, '•').slice(0, 6).split('')
+  return (
+    <Html lang="ru" dir="ltr">
+      <Head />
+      <Preview>Код для сброса пароля trendme: {code}</Preview>
+      <Body style={main}>
+        <Container style={outer}>
+          <Img src={LOGO} width="132" height="36" alt="trendme" style={logo} />
+          <Section style={card}>
+            <Heading style={h1}>Сброс пароля</Heading>
+            <Text style={text}>
+              {recipient ? <>Мы получили запрос на сброс пароля для <span style={emailSpan}>{recipient}</span>. </> : null}
+              Введите код ниже, чтобы задать новый пароль.
+            </Text>
+
+            <table role="presentation" cellPadding={0} cellSpacing={0} style={codeTable}>
+              <tbody>
+                <tr>
+                  {digits.map((d, i) => (
+                    <td key={i} style={codeCell}>{d}</td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+
+            <Text style={meta}>Код действителен в течение 1 часа.</Text>
+          </Section>
+          <Text style={footer}>Если вы не запрашивали сброс — просто проигнорируйте это письмо. Ваш пароль останется прежним.</Text>
+          <Text style={brandFooter}>trendme · trendme.kz</Text>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
 export default RecoveryEmail
 
@@ -54,12 +68,14 @@ const card = {
 }
 const h1 = { fontSize: '24px', fontWeight: 600 as const, color: INK, margin: '0 0 14px', letterSpacing: '-0.02em', lineHeight: '1.25' }
 const text = { fontSize: '15px', color: MUTED, lineHeight: '1.65', margin: '0 0 28px' }
-const button = {
-  backgroundColor: NEON, color: '#0a0a0a', fontSize: '15px', fontWeight: 600 as const,
-  borderRadius: '12px', padding: '14px 24px', textDecoration: 'none', display: 'inline-block',
-  boxShadow: `0 8px 24px -8px ${NEON_DIM}`,
+const emailSpan = { color: NEON, fontWeight: 500 as const }
+const codeTable = { margin: '0 auto 20px', borderCollapse: 'separate' as const, borderSpacing: '6px' }
+const codeCell = {
+  width: '44px', height: '56px', textAlign: 'center' as const, verticalAlign: 'middle' as const,
+  fontSize: '26px', fontWeight: 700 as const, color: INK, letterSpacing: '0.02em',
+  backgroundColor: 'rgba(255,255,255,0.04)',
+  border: `1px solid ${BORDER}`, borderRadius: '10px', fontFamily: "'JetBrains Mono', 'SF Mono', Menlo, monospace",
 }
-const fallback = { fontSize: '12px', color: MUTED, margin: '28px 0 0', lineHeight: '1.6', wordBreak: 'break-all' as const }
-const fallbackLink = { color: NEON, textDecoration: 'underline' }
+const meta = { fontSize: '12px', color: MUTED, textAlign: 'center' as const, margin: '4px 0 0' }
 const footer = { fontSize: '13px', color: MUTED, margin: '24px 4px 0', lineHeight: '1.6', textAlign: 'center' as const }
 const brandFooter = { fontSize: '11px', color: '#52525B', textAlign: 'center' as const, margin: '20px 0 0', letterSpacing: '0.4px' }

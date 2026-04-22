@@ -16,7 +16,7 @@ import { OTPInput } from "@/components/auth/OTPInput";
 import { useResendCountdown } from "@/hooks/useResendCountdown";
 
 type Mode = "login" | "register" | "forgot";
-type Step = "form" | "otp";
+type Step = "form" | "otp" | "new-password";
 
 const FAILED_KEY = "trendme_login_failed";
 const LOCKOUT_MS = 5 * 60 * 1000;
@@ -164,14 +164,17 @@ export default function Auth() {
     }
   };
 
-  // ───────────── FORGOT (1-кезең: link, OTP — кейін) ─────────────
+  // ───────────── FORGOT (OTP flow) ─────────────
   const handleForgot = async () => {
     if (!email) return toast.error("Введите email");
     setLoading(true);
     const { error } = await authService.resetPasswordForEmail(email);
     setLoading(false);
-    if (error) toast.error(error.message);
-    else toast.success("Ссылка для сброса отправлена на email");
+    if (error) { toast.error(error.message); return; }
+    toast.success("Мы отправили код на ваш email");
+    setStep("otp");
+    setOtp("");
+    startCountdown(60);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -187,11 +190,20 @@ export default function Auth() {
     const code = (codeOverride ?? otp).replace(/\D/g, "");
     if (code.length !== 6) { toast.error("Введите 6-значный код"); return; }
     setOtpVerifying(true);
-    const { error } = await authService.verifyOtp(email, code, "email");
+    const otpType: "email" | "recovery" = mode === "forgot" ? "recovery" : "email";
+    const { error } = await authService.verifyOtp(email, code, otpType);
     setOtpVerifying(false);
     if (error) {
       toast.error(error.message);
       setOtpError((n) => n + 1);
+      return;
+    }
+    if (mode === "forgot") {
+      // recovery успех — пользователь временно залогинен, показываем экран нового пароля
+      toast.success("Код подтверждён. Задайте новый пароль");
+      setPassword("");
+      setConfirmPassword("");
+      setStep("new-password");
       return;
     }
     toast.success("Email подтверждён");
@@ -202,24 +214,42 @@ export default function Auth() {
   const handleResendOtp = async () => {
     if (!canResend) return;
     setLoading(true);
-    const { error } = await authService.resendOtp(email);
+    const { error } = mode === "forgot"
+      ? await authService.resetPasswordForEmail(email)
+      : await authService.resendOtp(email);
     setLoading(false);
     if (error) toast.error(error.message);
     else { toast.success("Новый код отправлен"); startCountdown(60); }
   };
 
+  // ───────────── New password (after recovery OTP) ─────────────
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password) return toast.error("Введите новый пароль");
+    if (password.length < 6) return toast.error("Пароль должен быть не менее 6 символов");
+    if (password !== confirmPassword) return toast.error("Пароли не совпадают");
+    setLoading(true);
+    const { error } = await authService.updatePassword(password);
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Пароль успешно изменён");
+    navigate("/dashboard", { replace: true });
+  };
+
   // ───────────── Render ─────────────
   const titleByContext = () => {
-    if (step === "otp") return "Подтвердите аккаунт";
+    if (step === "new-password") return "Новый пароль";
+    if (step === "otp") return mode === "forgot" ? "Подтвердите сброс" : "Подтвердите аккаунт";
     if (mode === "login") return "С возвращением";
     if (mode === "register") return "Создайте аккаунт";
-    return "Восстановление";
+    return "Восстановление пароля";
   };
   const subtitleByContext = () => {
+    if (step === "new-password") return "Придумайте новый пароль для входа";
     if (step === "otp") return `Мы отправили 6-значный код на ${email}`;
     if (mode === "login") return "Войдите, чтобы продолжить";
     if (mode === "register") return "Начните находить тренды за минуту";
-    return "Отправим ссылку для сброса пароля";
+    return "Введите email — отправим код для сброса";
   };
 
   return (
@@ -246,7 +276,57 @@ export default function Auth() {
         </div>
 
         <div className="glass rounded-2xl shadow-card p-5 md:p-6 space-y-4">
-          {step === "otp" ? (
+          {step === "new-password" ? (
+            <form onSubmit={handleSetNewPassword} className="space-y-3">
+              <div className="space-y-2.5">
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Новый пароль"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-11 pr-11 h-12 bg-background border-border rounded-xl text-base focus-visible:ring-viral focus-visible:ring-2"
+                    disabled={loading}
+                    autoComplete="new-password"
+                    autoFocus
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" tabIndex={-1}>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Повторите новый пароль"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-11 h-12 bg-background border-border rounded-xl text-base focus-visible:ring-viral focus-visible:ring-2"
+                    disabled={loading}
+                    autoComplete="new-password"
+                  />
+                </div>
+                {password && (
+                  <div className="space-y-1.5 px-1">
+                    <div className="flex gap-1">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div key={i} className={cn("h-1 flex-1 rounded-full transition-colors", i <= strength.score ? strength.color : "bg-muted")} />
+                      ))}
+                    </div>
+                    {strength.label && (
+                      <p className="text-[11px] text-muted-foreground">
+                        Надёжность пароля: <span className="font-semibold text-foreground">{strength.label}</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <Button type="submit" disabled={loading} className="w-full h-12 bg-viral text-viral-foreground hover:bg-viral/90 rounded-xl text-base font-bold shadow-glow-viral transition-all active:scale-[0.98]">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : (<>Сохранить пароль <ArrowRight className="h-5 w-5 ml-2" /></>)}
+              </Button>
+            </form>
+          ) : step === "otp" ? (
             <div className="space-y-5 py-2">
               <OTPInput
                 length={6}
@@ -383,7 +463,7 @@ export default function Auth() {
                   <>
                     {mode === "login" && "Войти"}
                     {mode === "register" && "Зарегистрироваться"}
-                    {mode === "forgot" && "Отправить ссылку"}
+                    {mode === "forgot" && "Получить код"}
                     <ArrowRight className="h-5 w-5 ml-2" />
                   </>
                 )}

@@ -122,6 +122,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // CONFIRM USER EMAIL (manual confirmation by admin)
+    if (req.method === "POST" && action === "confirm-user") {
+      const { user_id } = await req.json();
+      if (!user_id) throw new Error("user_id required");
+
+      const { error } = await adminClient.auth.admin.updateUserById(user_id, {
+        email_confirm: true,
+      });
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // ASSIGN ROLE
     if (req.method === "POST" && action === "assign-role") {
       const { user_id, role } = await req.json();
