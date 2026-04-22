@@ -190,11 +190,6 @@ export default function Pricing() {
             );
           })()}
 
-          {/* Usage limits widget — shown only for trial users */}
-          <div className="mx-auto max-w-2xl mb-8 md:mb-10">
-            <UsageLimitsWidget showUpgradeLink={false} />
-          </div>
-
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {[1, 2, 3].map(i => (
