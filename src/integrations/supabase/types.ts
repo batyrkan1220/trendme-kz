@@ -337,33 +337,51 @@ export type Database = {
       payment_orders: {
         Row: {
           amount: number
+          bonus_days: number
+          computed_expires_at: string | null
           created_at: string
           id: string
           order_id: string
           pg_payment_id: string | null
           plan_id: string
+          previous_plan_id: string | null
+          previous_plan_name: string | null
+          purchase_type: string | null
+          remaining_days_carried: number
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
           amount: number
+          bonus_days?: number
+          computed_expires_at?: string | null
           created_at?: string
           id?: string
           order_id: string
           pg_payment_id?: string | null
           plan_id: string
+          previous_plan_id?: string | null
+          previous_plan_name?: string | null
+          purchase_type?: string | null
+          remaining_days_carried?: number
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           amount?: number
+          bonus_days?: number
+          computed_expires_at?: string | null
           created_at?: string
           id?: string
           order_id?: string
           pg_payment_id?: string | null
           plan_id?: string
+          previous_plan_id?: string | null
+          previous_plan_name?: string | null
+          purchase_type?: string | null
+          remaining_days_carried?: number
           status?: string
           updated_at?: string
           user_id?: string
@@ -734,35 +752,53 @@ export type Database = {
       }
       user_subscriptions: {
         Row: {
+          amount_paid: number | null
           assigned_by: string | null
+          bonus_days: number
           created_at: string
           expires_at: string
           id: string
           is_active: boolean
           note: string | null
+          order_id: string | null
+          payment_provider: string | null
           plan_id: string
+          previous_plan_name: string | null
+          remaining_days_carried: number
           started_at: string
           user_id: string
         }
         Insert: {
+          amount_paid?: number | null
           assigned_by?: string | null
+          bonus_days?: number
           created_at?: string
           expires_at: string
           id?: string
           is_active?: boolean
           note?: string | null
+          order_id?: string | null
+          payment_provider?: string | null
           plan_id: string
+          previous_plan_name?: string | null
+          remaining_days_carried?: number
           started_at?: string
           user_id: string
         }
         Update: {
+          amount_paid?: number | null
           assigned_by?: string | null
+          bonus_days?: number
           created_at?: string
           expires_at?: string
           id?: string
           is_active?: boolean
           note?: string | null
+          order_id?: string | null
+          payment_provider?: string | null
           plan_id?: string
+          previous_plan_name?: string | null
+          remaining_days_carried?: number
           started_at?: string
           user_id?: string
         }

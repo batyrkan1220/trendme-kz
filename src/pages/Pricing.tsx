@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { trackInitiateCheckout, trackPlausible } from "@/components/TrackingPixels";
-import { Check, X, Loader2 } from "lucide-react";
+import { Check, X, Loader2, Sparkles, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,6 +10,15 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 
 const subtitles: Record<string, string> = {
@@ -65,14 +74,73 @@ export default function Pricing() {
 
   const activePlanName = (userSub as any)?.plans?.name;
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+  const [confirmPlanId, setConfirmPlanId] = useState<string | null>(null);
 
-  const handlePayment = async (planId: string) => {
-    const plan = plans.find((p: any) => p.id === planId);
-    if (!plan) return;
+  // Compute prorate preview for a target plan based on current active sub
+  const proratePreview = useMemo(() => {
+    if (!confirmPlanId) return null;
+    const newPlan: any = plans.find((p: any) => p.id === confirmPlanId);
+    if (!newPlan) return null;
+
+    const sub: any = userSub;
+    const currentPlan = sub?.plans;
+    const currentExpiresAt = sub?.expires_at ? new Date(sub.expires_at) : null;
+    const now = new Date();
+    const isCurrentActive = currentExpiresAt && currentExpiresAt > now;
+    const isCurrentPaid = (currentPlan?.price_rub || 0) > 0;
+
+    let purchaseType: "new" | "renewal" | "upgrade" | "downgrade" = "new";
+    let bonusDays = 0;
+    let remainingDays = 0;
+    let remainingValueRub = 0;
+    let newExpiresAt: Date;
+
+    if (isCurrentActive && currentPlan && sub) {
+      remainingDays = Math.max(
+        0,
+        Math.ceil((currentExpiresAt!.getTime() - now.getTime()) / 86400000)
+      );
+
+      if (currentPlan.price_rub === newPlan.price_rub && currentPlan.duration_days === newPlan.duration_days) {
+        purchaseType = "renewal";
+        newExpiresAt = new Date(currentExpiresAt!.getTime() + newPlan.duration_days * 86400000);
+      } else if (isCurrentPaid) {
+        remainingValueRub = (currentPlan.price_rub / currentPlan.duration_days) * remainingDays;
+        const newDailyRate = newPlan.price_rub / newPlan.duration_days;
+        bonusDays = newDailyRate > 0 ? Math.floor(remainingValueRub / newDailyRate) : 0;
+        purchaseType = newPlan.price_rub > currentPlan.price_rub ? "upgrade" : "downgrade";
+        newExpiresAt = new Date(now.getTime() + (newPlan.duration_days + bonusDays) * 86400000);
+      } else {
+        newExpiresAt = new Date(now.getTime() + newPlan.duration_days * 86400000);
+      }
+    } else {
+      newExpiresAt = new Date(now.getTime() + newPlan.duration_days * 86400000);
+    }
+
+    return {
+      newPlan,
+      currentPlanName: currentPlan?.name,
+      purchaseType,
+      remainingDays,
+      remainingValueRub: Math.round(remainingValueRub),
+      bonusDays,
+      newExpiresAt,
+    };
+  }, [confirmPlanId, plans, userSub]);
+
+  const requestPayment = (planId: string) => {
     if (!user) {
       navigate("/auth");
       return;
     }
+    setConfirmPlanId(planId);
+  };
+
+  const handlePayment = async () => {
+    const planId = confirmPlanId;
+    if (!planId) return;
+    const plan = plans.find((p: any) => p.id === planId);
+    if (!plan) return;
     trackInitiateCheckout(plan.name, plan.price_rub);
     trackPlausible("Plan Upgrade", { plan: plan.duration_days === 90 ? "quarterly" : "monthly" });
     try {
@@ -292,7 +360,7 @@ export default function Pricing() {
                     {isPaid ? (
                       <button
                         disabled={isActive || loadingPlanId === plan.id}
-                        onClick={() => { if (!isActive) handlePayment(plan.id); }}
+                        onClick={() => { if (!isActive) requestPayment(plan.id); }}
                         className={cn(
                           "mt-6 inline-flex w-full justify-center items-center py-3 rounded-xl text-[14px] font-semibold transition disabled:cursor-default",
                           isActive
@@ -340,6 +408,77 @@ export default function Pricing() {
           )}
         </div>
       </section>
+
+      {/* Prorate / Renewal confirmation dialog */}
+      <Dialog open={!!confirmPlanId} onOpenChange={(open) => { if (!open) setConfirmPlanId(null); }}>
+        <DialogContent className="max-w-md">
+          {proratePreview && (() => {
+            const p = proratePreview;
+            const dateStr = p.newExpiresAt.toLocaleDateString("ru-RU", {
+              day: "numeric", month: "long", year: "numeric",
+            });
+            const titles = {
+              new: "Подключить тариф",
+              renewal: "Продление тарифа",
+              upgrade: "Улучшить тариф",
+              downgrade: "Сменить тариф",
+            } as const;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{titles[p.purchaseType]}</DialogTitle>
+                  <DialogDescription>
+                    {p.newPlan.name} · {p.newPlan.price_rub.toLocaleString("ru-RU")} ₸
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-3 py-2">
+                  {p.purchaseType === "renewal" && (
+                    <div className="rounded-xl border border-border bg-muted/30 p-3.5 text-[13.5px] text-foreground/80">
+                      Тариф будет продлён от текущей даты окончания. Новая дата окончания: <b className="text-foreground">{dateStr}</b>
+                    </div>
+                  )}
+
+                  {(p.purchaseType === "upgrade" || p.purchaseType === "downgrade") && (
+                    <div className="rounded-xl border border-viral/30 bg-viral/5 p-3.5 space-y-2 text-[13.5px]">
+                      <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                        <Sparkles className="h-4 w-4 text-viral" />
+                        Бонусные дни за остаток
+                      </div>
+                      <div className="text-foreground/75 leading-relaxed">
+                        У вас осталось <b className="text-foreground">{p.remainingDays}</b> дн. тарифа «{p.currentPlanName}» (≈ {p.remainingValueRub.toLocaleString("ru-RU")} ₸).
+                        Эта сумма пересчитана в <b className="text-foreground">+{p.bonusDays} бонусных дней</b> к новому тарифу.
+                      </div>
+                      <div className="pt-1 text-foreground/75">
+                        Действует до: <b className="text-foreground">{dateStr}</b>
+                      </div>
+                    </div>
+                  )}
+
+                  {p.purchaseType === "new" && (
+                    <div className="rounded-xl border border-border bg-muted/30 p-3.5 text-[13.5px] text-foreground/80">
+                      После оплаты тариф будет активен до: <b className="text-foreground">{dateStr}</b>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter className="gap-2 sm:gap-2">
+                  <Button variant="outline" onClick={() => setConfirmPlanId(null)} disabled={!!loadingPlanId}>
+                    Отмена
+                  </Button>
+                  <Button onClick={handlePayment} disabled={!!loadingPlanId} className="font-semibold">
+                    {loadingPlanId ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
+                    ) : (
+                      <>Оплатить {p.newPlan.price_rub.toLocaleString("ru-RU")} ₸ <ArrowRight className="h-4 w-4 ml-1.5" /></>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
