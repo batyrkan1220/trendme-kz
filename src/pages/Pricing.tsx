@@ -311,18 +311,11 @@ export default function Pricing() {
                           : plan.duration_days === 90 ? "Выбрать 3 мес" : "Выбрать 1 мес"}
                       </button>
                     ) : (
-                      <button
-                        disabled={isActive}
-                        onClick={() => { if (!isActive) handlePayment(plan.id); }}
-                        className={cn(
-                          "mt-6 inline-flex w-full justify-center items-center py-3 rounded-xl text-[14px] font-semibold transition disabled:cursor-default",
-                          isActive
-                            ? "bg-muted text-muted-foreground"
-                            : "bg-foreground text-background hover:bg-foreground/90"
-                        )}
-                      >
-                        {isActive ? "Активен ✓" : "Выбрать"}
-                      </button>
+                      <div className="mt-6 inline-flex w-full justify-center items-center py-3 rounded-xl text-[13px] font-medium bg-muted/50 text-muted-foreground text-center px-3">
+                        {isActive
+                          ? "Активен ✓"
+                          : "Подключается автоматически после окончания тарифа"}
+                      </div>
                     )}
 
                     {/* Features */}
