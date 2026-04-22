@@ -529,7 +529,7 @@ export function VideoAnalysisResults({
           className="w-full py-3 rounded-xl bg-foreground text-background font-bold text-sm hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2 shadow-glow-primary"
         >
           <Sparkles className="h-4 w-4 text-viral" />
-          {isKk ? "Сценарий генерациялау" : "Генерация сценария"}
+          🎬 {isKk ? "Осы видео бойынша сценарий жасау" : "Создать сценарий по этому видео"}
         </button>
       </div>
     </div>
