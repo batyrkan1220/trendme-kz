@@ -304,16 +304,62 @@ export function FullscreenVideoPlayer({
               loop={false}
               poster={video.cover_url || undefined}
             />
-            {/* Loading overlay while play URL is being fetched */}
+            {/* Loading overlay while play URL is being fetched — lux design */}
             {loading && !playUrl && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 pointer-events-none animate-fade-in">
+                {/* Blurred cover backdrop */}
                 {video.cover_url && (
-                  <img src={video.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm" />
+                  <>
+                    <img
+                      src={video.cover_url}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover opacity-40 blur-2xl scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+                  </>
                 )}
-                <div className="relative z-10 h-14 w-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
-                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+
+                {/* Animated lux loader */}
+                <div className="relative z-10 flex items-center justify-center">
+                  {/* Outer pulsing viral glow */}
+                  <div
+                    className="absolute h-24 w-24 rounded-full bg-viral/30 blur-2xl animate-pulse"
+                    style={{ animationDuration: "2s" }}
+                  />
+                  {/* Spinning gradient ring */}
+                  <div
+                    className="absolute h-20 w-20 rounded-full animate-spin"
+                    style={{
+                      background: "conic-gradient(from 0deg, transparent 0%, hsl(var(--viral)) 70%, transparent 100%)",
+                      animationDuration: "1.2s",
+                      mask: "radial-gradient(circle, transparent 60%, black 62%)",
+                      WebkitMask: "radial-gradient(circle, transparent 60%, black 62%)",
+                    }}
+                  />
+                  {/* Glassmorphism core */}
+                  <div
+                    className="relative h-16 w-16 rounded-full bg-white/10 backdrop-blur-2xl ring-1 ring-white/20 flex items-center justify-center animate-scale-in"
+                    style={{ boxShadow: "0 8px 32px -4px rgba(0,0,0,0.5), 0 0 24px -4px hsl(var(--viral) / 0.6)" }}
+                  >
+                    <Play className="h-6 w-6 text-white ml-0.5" fill="currentColor" />
+                  </div>
                 </div>
-                <span className="relative z-10 text-white/50 text-xs animate-pulse">Загрузка...</span>
+
+                {/* Label + animated dots */}
+                <div className="relative z-10 flex flex-col items-center gap-2">
+                  <span className="text-white/90 text-[13px] font-semibold tracking-wide">
+                    Загрузка видео
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        className="h-1 w-1 rounded-full bg-viral animate-pulse"
+                        style={{ animationDelay: `${i * 0.2}s`, animationDuration: "1.2s" }}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
             {/* Tap pause/play indicator */}
