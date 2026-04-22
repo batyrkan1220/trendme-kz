@@ -632,18 +632,42 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
         <div className="px-2 sm:px-3 pb-2.5 sm:pb-3 mt-auto">
           <button
             onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-            className="group/btn relative w-full flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-viral text-viral-foreground ring-1 ring-foreground/10 active:scale-[0.97] transition-all hover:bg-viral/90 overflow-hidden"
+            className="group/btn relative w-full flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-viral text-viral-foreground ring-1 ring-foreground/10 transition-all duration-300 ease-out overflow-visible hover:brightness-110 hover:-translate-y-0.5 hover:ring-2 hover:ring-viral/60 active:scale-[0.96] active:translate-y-0 active:brightness-95"
             style={{ boxShadow: "0 6px 24px -6px hsl(var(--viral) / 0.55), 0 0 0 1px hsl(0 0% 100% / 0.2) inset" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow =
+                "0 0 0 4px hsl(var(--viral) / 0.18), 0 10px 28px -4px hsl(var(--viral) / 0.85), 0 0 36px hsl(var(--viral) / 0.55), 0 0 0 1px hsl(0 0% 100% / 0.3) inset";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow =
+                "0 6px 24px -6px hsl(var(--viral) / 0.55), 0 0 0 1px hsl(0 0% 100% / 0.2) inset";
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.boxShadow =
+                "0 0 0 6px hsl(var(--viral) / 0.28), 0 4px 14px -2px hsl(var(--viral) / 0.7), 0 0 22px hsl(var(--viral) / 0.45), 0 0 0 1px hsl(0 0% 100% / 0.25) inset";
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.boxShadow =
+                "0 0 0 4px hsl(var(--viral) / 0.18), 0 10px 28px -4px hsl(var(--viral) / 0.85), 0 0 36px hsl(var(--viral) / 0.55), 0 0 0 1px hsl(0 0% 100% / 0.3) inset";
+            }}
           >
+            {/* Outer neon halo */}
             <span
-              className="pointer-events-none absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"
-              style={{ background: "radial-gradient(120% 80% at 50% 0%, hsl(0 0% 0% / 0.12), transparent 60%)" }}
+              aria-hidden
+              className="pointer-events-none absolute -inset-1 rounded-[16px] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500 blur-md -z-10"
+              style={{ background: "radial-gradient(60% 80% at 50% 50%, hsl(var(--viral) / 0.55), transparent 70%)" }}
             />
-            <span
-              className="pointer-events-none absolute -inset-y-1 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-0 group-hover/btn:translate-x-[400%] transition-transform duration-[900ms] ease-out"
-            />
-            <Sparkles className="relative h-4 w-4 text-foreground transition-transform duration-300 group-hover/btn:rotate-12 group-hover/btn:scale-110" />
-            <span className="relative">Анализ видео</span>
+            <span className="relative flex items-center justify-center gap-1.5 w-full overflow-hidden rounded-[14px]">
+              <span
+                className="pointer-events-none absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"
+                style={{ background: "radial-gradient(120% 80% at 50% 0%, hsl(0 0% 100% / 0.35), transparent 60%)" }}
+              />
+              <span
+                className="pointer-events-none absolute -inset-y-1 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/60 to-transparent translate-x-0 group-hover/btn:translate-x-[400%] transition-transform duration-[900ms] ease-out"
+              />
+              <Sparkles className="relative h-4 w-4 text-foreground transition-transform duration-300 group-hover/btn:rotate-12 group-hover/btn:scale-125 group-active/btn:scale-100" />
+              <span className="relative">Анализ видео</span>
+            </span>
           </button>
         </div>
       ) : null}
