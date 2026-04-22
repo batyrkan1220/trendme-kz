@@ -392,8 +392,20 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 </div>
               </div>
             ) : isPending ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <MagicAnalysisLoader />
+              <div className="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
+                <div className="w-full max-w-lg flex flex-col items-center gap-5">
+                  <div className="relative">
+                    <span className="absolute inset-0 rounded-2xl bg-viral/40 blur-2xl -z-10" />
+                    <div className="w-20 h-20 rounded-2xl bg-viral flex items-center justify-center shadow-glow-primary animate-scale-in ring-1 ring-white/20">
+                      <Sparkles className="h-9 w-9 text-foreground animate-pulse" />
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
+                    Анализируем видео...<br />
+                    Это займёт 1–2 минуты
+                  </p>
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                </div>
               </div>
             ) : analysis ? (
               <div className="animate-magic-reveal">
