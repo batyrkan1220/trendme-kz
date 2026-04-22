@@ -118,6 +118,26 @@ serve(async (req) => {
         .update({ status: "success", pg_payment_id: pgPaymentId })
         .eq("order_id", orderId);
 
+      // Journal entry — successful payment
+      await supabase.from("activity_log").insert({
+        user_id: order.user_id,
+        type: "payment_success",
+        payload_json: {
+          event_code: "PAYMENT_SUCCESS",
+          order_id: orderId,
+          pg_payment_id: pgPaymentId,
+          amount: order.amount,
+          currency: "KZT",
+          plan_id: order.plan_id,
+          plan_name: plan?.name ?? null,
+          provider: "freedom_pay",
+          payment_method: params.pg_payment_method ?? null,
+          card_pan: params.pg_card_pan ?? null,
+          paid_at: params.pg_payment_date ?? new Date().toISOString(),
+          occurred_at: new Date().toISOString(),
+        },
+      });
+
       console.log("Payment successful, subscription activated for user:", order.user_id);
     } else {
       // Payment failed
@@ -125,6 +145,24 @@ serve(async (req) => {
         .from("payment_orders")
         .update({ status: "failed", pg_payment_id: pgPaymentId })
         .eq("order_id", orderId);
+
+      // Journal entry — failed payment
+      await supabase.from("activity_log").insert({
+        user_id: order.user_id,
+        type: "payment_failed",
+        payload_json: {
+          event_code: "PAYMENT_FAILED",
+          order_id: orderId,
+          pg_payment_id: pgPaymentId,
+          amount: order.amount,
+          currency: "KZT",
+          plan_id: order.plan_id,
+          provider: "freedom_pay",
+          failure_code: params.pg_failure_code ?? null,
+          failure_description: params.pg_failure_description ?? null,
+          occurred_at: new Date().toISOString(),
+        },
+      });
 
       console.log("Payment failed for order:", orderId);
     }
