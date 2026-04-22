@@ -54,6 +54,24 @@ type PaymentRow = {
   purchase_type: string | null;
   bonus_days: number | null;
   computed_expires_at: string | null;
+  refund_status: string | null;
+  refund_id: string | null;
+  refunded_at: string | null;
+  refund_amount: number | null;
+  refund_reason: string | null;
+  refund_failure_description: string | null;
+};
+
+const RefundBadge = ({ status }: { status: string | null }) => {
+  if (!status) return <span className="text-xs text-muted-foreground">—</span>;
+  const map: Record<string, { cls: string; label: string }> = {
+    initiated: { cls: "bg-sky-500/15 text-sky-600 border-sky-500/30", label: "🔄 Инициирован" },
+    processing: { cls: "bg-indigo-500/15 text-indigo-600 border-indigo-500/30", label: "⏳ Обработка" },
+    success: { cls: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30", label: "💸 Возвращён" },
+    failed: { cls: "bg-red-500/15 text-red-600 border-red-500/30", label: "⚠ Не удался" },
+  };
+  const m = map[status] || { cls: "", label: status };
+  return <Badge className={m.cls} variant="outline">{m.label}</Badge>;
 };
 
 type SubscriptionRow = {
