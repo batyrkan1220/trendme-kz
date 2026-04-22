@@ -23,7 +23,7 @@ import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
-import { useFreeCredits } from "@/hooks/useFreeCredits";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
