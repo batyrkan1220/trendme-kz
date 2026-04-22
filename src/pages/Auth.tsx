@@ -463,7 +463,7 @@ export default function Auth() {
                   <>
                     {mode === "login" && "Войти"}
                     {mode === "register" && "Зарегистрироваться"}
-                    {mode === "forgot" && "Отправить ссылку"}
+                    {mode === "forgot" && "Получить код"}
                     <ArrowRight className="h-5 w-5 ml-2" />
                   </>
                 )}
