@@ -161,14 +161,15 @@ export default function Onboarding() {
     const Icon = PREPARING_STEPS[prepStep].icon;
     return (
       <div className="min-h-screen flex items-center justify-center bg-background gradient-mesh p-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-dots opacity-60 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_75%)] pointer-events-none" />
         <div className="w-full max-w-sm space-y-8 text-center relative">
           <div className="relative mx-auto w-20 h-20">
             <div
-              className="absolute inset-0 rounded-3xl bg-primary/15 blur-2xl animate-pulse"
+              className="absolute inset-0 rounded-3xl bg-viral/40 blur-2xl animate-pulse"
               style={{ animationDuration: "2.4s" }}
             />
             <div className="relative flex items-center justify-center w-20 h-20 rounded-3xl bg-card border border-border shadow-card">
-              <Icon className="h-9 w-9 text-primary animate-scale-in" key={prepStep} />
+              <Icon className="h-9 w-9 text-foreground animate-scale-in" key={prepStep} />
             </div>
           </div>
 
@@ -185,7 +186,7 @@ export default function Onboarding() {
                 <div
                   key={i}
                   className={`h-1.5 rounded-full transition-all duration-500 ${
-                    i <= prepStep ? "w-8 bg-primary" : "w-1.5 bg-border"
+                    i <= prepStep ? "w-8 bg-foreground" : "w-1.5 bg-border"
                   }`}
                 />
               ))}
@@ -199,14 +200,14 @@ export default function Onboarding() {
               return (
                 <span
                   key={nv}
-                  className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold"
+                  className="px-2.5 py-1 rounded-full bg-viral-soft border border-viral/40 text-foreground text-[11px] font-semibold"
                 >
                   {n.emoji} {n.label}
                 </span>
               );
             })}
             {platform && (
-              <span className="px-2.5 py-1 rounded-full bg-primary-soft text-accent-foreground text-[11px] font-semibold">
+              <span className="px-2.5 py-1 rounded-full bg-background border border-border text-foreground text-[11px] font-semibold shadow-soft">
                 {PLATFORMS.find((p) => p.value === platform)?.emoji}{" "}
                 {PLATFORMS.find((p) => p.value === platform)?.label}
               </span>
@@ -222,15 +223,17 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background gradient-mesh p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-dots opacity-[0.3] pointer-events-none" />
+      {/* Landing-style dot grid with radial mask */}
+      <div className="absolute inset-0 bg-dots opacity-60 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)] pointer-events-none" />
 
       <div className="w-full max-w-md relative">
-        {/* CARD — fixed width on all sizes */}
-        <div className="rounded-2xl border border-border bg-card/95 glass-strong shadow-card overflow-hidden">
+        {/* CARD — landing-style premium card */}
+        <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
           {/* HEADER (progress) — identical on every step */}
-          <div className="px-5 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5 border-b border-border/60">
+          <div className="px-5 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5 border-b border-border">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                <span className="w-1.5 h-1.5 rounded-full bg-viral animate-pulse" />
                 {meta.eyebrow}
               </span>
               <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
@@ -241,7 +244,7 @@ export default function Onboarding() {
               {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
                 <div key={i} className="h-1 flex-1 rounded-full overflow-hidden bg-muted">
                   <div
-                    className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+                    className="h-full rounded-full bg-foreground transition-all duration-500 ease-out"
                     style={{ width: i < step ? "100%" : i === step ? "55%" : "0%" }}
                   />
                 </div>
@@ -249,23 +252,22 @@ export default function Onboarding() {
             </div>
           </div>
 
-          {/* BODY — fixed min-height keeps card stable across steps */}
+          {/* BODY */}
           <div className="p-5 sm:p-6">
             <div className={`transition-all duration-200 ease-out ${slideClass}`}>
-              {/* Title block — IDENTICAL across all steps */}
+              {/* Title block — landing typography */}
               <div className="text-center space-y-2 mb-5">
-                <div className="inline-flex items-center justify-center h-11 w-11 rounded-xl bg-primary-soft border border-border">
-                  <StepIcon className="h-5 w-5 text-primary" strokeWidth={2.2} />
+                <div className="inline-flex items-center justify-center h-11 w-11 rounded-xl bg-viral-soft border border-viral/40">
+                  <StepIcon className="h-5 w-5 text-foreground" strokeWidth={2.2} />
                 </div>
-                <h2 className="text-xl sm:text-[22px] font-bold text-foreground tracking-tight leading-tight">
+                <h2 className="text-[22px] sm:text-[26px] font-bold text-foreground tracking-tight leading-[1.1]">
                   {meta.title}
                 </h2>
-                <p className="text-sm text-muted-foreground leading-snug">
+                <p className="text-[14px] text-muted-foreground leading-relaxed">
                   {meta.subtitle}
                 </p>
               </div>
 
-              {/* Step content — same min-height to prevent layout jumps */}
               <div className="min-h-[280px] flex flex-col">
                 {/* ── STEP 0: Niches ─────────────────────────────────── */}
                 {step === 0 && (
@@ -277,7 +279,7 @@ export default function Onboarding() {
                       {niches.length > 0 && (
                         <button
                           onClick={() => setNiches([])}
-                          className="text-primary hover:underline"
+                          className="text-foreground hover:underline"
                         >
                           Сбросить
                         </button>
@@ -298,10 +300,10 @@ export default function Onboarding() {
                               disabled={atLimit}
                               className={`h-8 px-3 inline-flex items-center rounded-full border text-[13px] font-medium transition-all duration-150 press-feedback whitespace-nowrap ${
                                 active
-                                  ? "border-primary bg-primary text-primary-foreground shadow-glow-primary"
+                                  ? "border-foreground bg-foreground text-background shadow-soft"
                                   : atLimit
                                   ? "border-border bg-muted text-muted-foreground/50 cursor-not-allowed"
-                                  : "border-border bg-background text-foreground/85 hover:border-primary/40 hover:bg-primary-soft"
+                                  : "border-border bg-background text-foreground hover:border-foreground/40 hover:bg-muted"
                               }`}
                             >
                               <span className="mr-1.5">{n.emoji}</span>
@@ -340,14 +342,14 @@ export default function Onboarding() {
                           onClick={() => setPlatform(p.value)}
                           className={`relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border text-center transition-all duration-150 press-feedback ${
                             active
-                              ? "border-primary bg-primary-soft shadow-soft"
-                              : "border-border bg-background hover:border-primary/40 hover:bg-primary-soft/50"
+                              ? "border-foreground bg-muted shadow-soft"
+                              : "border-border bg-background hover:border-foreground/40 hover:bg-muted/60"
                           }`}
                         >
                           <span className="text-3xl leading-none">{p.emoji}</span>
                           <span className="text-[13px] font-semibold text-foreground">{p.label}</span>
                           {active && (
-                            <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground">
+                            <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-foreground text-background">
                               <Check className="h-3 w-3" strokeWidth={3} />
                             </span>
                           )}
@@ -386,7 +388,7 @@ export default function Onboarding() {
                           <a
                             href="/terms"
                             target="_blank"
-                            className="text-primary hover:underline font-semibold"
+                            className="text-foreground underline font-semibold"
                             onClick={(e) => e.stopPropagation()}
                           >
                             Пользовательское соглашение
@@ -404,7 +406,7 @@ export default function Onboarding() {
                           <a
                             href="/privacy"
                             target="_blank"
-                            className="text-primary hover:underline font-semibold"
+                            className="text-foreground underline font-semibold"
                             onClick={(e) => e.stopPropagation()}
                           >
                             Политикой конфиденциальности
@@ -424,14 +426,14 @@ export default function Onboarding() {
             </div>
           </div>
 
-          {/* FOOTER — single nav row, identical on all steps */}
+          {/* FOOTER */}
           <div className="px-5 pb-5 sm:px-6 sm:pb-6">
             <div className="flex gap-2.5">
               {step > 0 && (
                 <Button
                   variant="outline"
                   onClick={() => goToStep(step - 1)}
-                  className="h-11 w-11 rounded-xl border-border shrink-0 p-0"
+                  className="h-12 w-12 rounded-xl border-border bg-background hover:bg-muted shrink-0 p-0"
                   aria-label="Назад"
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -449,7 +451,7 @@ export default function Onboarding() {
                   (step === 3 && !experience) ||
                   (step === 4 && (!allConsentsAccepted || saving))
                 }
-                className="flex-1 h-11 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-[15px] font-semibold shadow-glow-primary press-feedback disabled:shadow-none disabled:opacity-50"
+                className="flex-1 h-12 bg-foreground hover:bg-foreground/90 text-background rounded-xl text-[15px] font-semibold press-feedback hover:-translate-y-0.5 hover:shadow-glow-primary transition-all disabled:shadow-none disabled:opacity-50 disabled:hover:translate-y-0"
               >
                 {step === TOTAL_STEPS - 1 ? (
                   saving ? (
@@ -469,7 +471,7 @@ export default function Onboarding() {
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-muted-foreground mt-4 px-4">
+        <p className="text-center text-[12px] text-muted-foreground mt-4 px-4">
           Эти данные помогут точнее подобрать тренды и аналитику
         </p>
       </div>
@@ -477,7 +479,7 @@ export default function Onboarding() {
   );
 }
 
-/* ─── Reusable option row (identical for goal & experience) ─────── */
+/* ─── Reusable option row ─────── */
 function OptionRow({
   active,
   onClick,
@@ -494,20 +496,20 @@ function OptionRow({
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-3 min-h-[56px] px-3.5 py-3 rounded-xl border text-left transition-all duration-150 press-feedback ${
+      className={`relative flex items-center gap-3 min-h-[60px] px-4 py-3 rounded-xl border text-left transition-all duration-150 press-feedback ${
         active
-          ? "border-primary bg-primary-soft shadow-soft"
-          : "border-border bg-background hover:border-primary/40 hover:bg-primary-soft/50"
+          ? "border-foreground bg-muted shadow-soft"
+          : "border-border bg-background hover:border-foreground/40 hover:bg-muted/60"
       }`}
     >
       <span className="text-xl leading-none shrink-0 w-7 text-center">{emoji}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-semibold text-foreground leading-tight">{title}</p>
+        <p className="text-[14px] font-semibold text-foreground leading-tight tracking-tight">{title}</p>
         {subtitle && <p className="text-[12px] text-muted-foreground mt-0.5 leading-tight">{subtitle}</p>}
       </div>
       <span
         className={`flex items-center justify-center h-5 w-5 rounded-full shrink-0 transition-colors ${
-          active ? "bg-primary text-primary-foreground" : "bg-muted"
+          active ? "bg-foreground text-background" : "bg-muted border border-border"
         }`}
       >
         {active && <Check className="h-3 w-3" strokeWidth={3} />}
@@ -529,10 +531,10 @@ function ConsentRow({
 }) {
   return (
     <label
-      className={`flex items-start gap-3 min-h-[56px] p-3.5 rounded-xl border cursor-pointer select-none transition-all press-feedback ${
+      className={`flex items-start gap-3 min-h-[60px] p-4 rounded-xl border cursor-pointer select-none transition-all press-feedback ${
         checked
-          ? "border-primary/50 bg-primary-soft/60"
-          : "border-border bg-background hover:border-primary/30"
+          ? "border-foreground/30 bg-muted/60"
+          : "border-border bg-background hover:border-foreground/30"
       }`}
     >
       <span className="relative mt-0.5 shrink-0">
@@ -544,14 +546,14 @@ function ConsentRow({
         />
         <span
           className={`flex items-center justify-center h-5 w-5 rounded-md border-2 transition-colors ${
-            checked ? "bg-primary border-primary" : "bg-background border-border-strong"
+            checked ? "bg-foreground border-foreground" : "bg-background border-border-strong"
           }`}
         >
-          {checked && <Check className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />}
+          {checked && <Check className="h-3.5 w-3.5 text-background" strokeWidth={3} />}
         </span>
       </span>
       <div className="space-y-0.5 min-w-0">
-        <span className="block text-[14px] font-semibold text-foreground leading-tight">{title}</span>
+        <span className="block text-[14px] font-semibold text-foreground leading-tight tracking-tight">{title}</span>
         <p className="text-[12px] text-muted-foreground leading-relaxed">{body}</p>
       </div>
     </label>
