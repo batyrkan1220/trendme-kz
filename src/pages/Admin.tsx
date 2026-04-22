@@ -1292,29 +1292,117 @@ function UserDetailsDialog({
               ))}
             </div>
 
+            {/* Current plan + change button */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-semibold flex items-center gap-1.5">
+                  <CreditCard className="h-4 w-4" /> Текущий тариф
+                </h4>
+                {onChangePlan && (
+                  <Button
+                    size="sm" variant="outline" className="h-7 text-xs gap-1"
+                    onClick={() => {
+                      const active = (data.subscriptions || []).find((s: any) => s.is_active);
+                      onChangePlan(userId!, data.auth?.email || "", active?.plan_id, active?.expires_at);
+                    }}
+                  >
+                    <Edit2 className="h-3 w-3" /> Сменить тариф
+                  </Button>
+                )}
+              </div>
+              {(() => {
+                const active = (data.subscriptions || []).find((s: any) => s.is_active);
+                if (!active) return <p className="text-xs text-muted-foreground">Нет активного тарифа</p>;
+                const expired = new Date(active.expires_at) < new Date();
+                return (
+                  <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                    <div className="flex items-center gap-2">
+                      <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", getPlanBadgeClass(active.plans?.name))}>
+                        <CreditCard className="h-3 w-3 mr-1" />
+                        {active.plans?.name || "—"}
+                      </span>
+                      {expired && <Badge variant="destructive" className="text-[10px]">истёк</Badge>}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      до {new Date(active.expires_at).toLocaleDateString("ru-RU")}
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
+
             {/* Subscription history */}
             <div>
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
-                <CreditCard className="h-4 w-4" /> История подписок
+                <ScrollText className="h-4 w-4" /> История подписок
               </h4>
               {(data.subscriptions || []).length === 0 ? (
                 <p className="text-xs text-muted-foreground">Нет подписок</p>
               ) : (
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 max-h-40 overflow-y-auto">
                   {(data.subscriptions || []).map((s: any) => (
                     <div key={s.id} className="flex items-center justify-between p-2 rounded border border-border text-xs">
                       <div className="flex items-center gap-2">
                         <Badge variant={s.is_active ? "default" : "outline"} className="text-[10px]">
                           {s.is_active ? "активна" : "истекла"}
                         </Badge>
-                        <span className="font-medium">{s.plans?.name || "—"}</span>
-                        {s.note && <span className="text-muted-foreground">· {s.note}</span>}
+                        <span className={cn("inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold", getPlanBadgeClass(s.plans?.name))}>
+                          {s.plans?.name || "—"}
+                        </span>
+                        {s.note && <span className="text-muted-foreground truncate max-w-[200px]">· {s.note}</span>}
                       </div>
                       <span className="text-muted-foreground">
                         {new Date(s.created_at).toLocaleDateString("ru-RU")} → {new Date(s.expires_at).toLocaleDateString("ru-RU")}
                       </span>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+
+            {/* Plan change history (admin audit) */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                <Shield className="h-4 w-4" /> История смены тарифа
+              </h4>
+              {(data.plan_history || []).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Админ не менял тариф</p>
+              ) : (
+                <div className="overflow-x-auto rounded border border-border">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-muted/40 text-muted-foreground">
+                        <th className="text-left p-2 font-medium">Дата</th>
+                        <th className="text-left p-2 font-medium">Админ</th>
+                        <th className="text-left p-2 font-medium">Изменение</th>
+                        <th className="text-left p-2 font-medium">До</th>
+                        <th className="text-left p-2 font-medium">Причина</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(data.plan_history || []).map((h: any) => (
+                        <tr key={h.id} className="border-t border-border">
+                          <td className="p-2 text-muted-foreground whitespace-nowrap">
+                            {new Date(h.created_at).toLocaleString("ru-RU", { dateStyle: "short", timeStyle: "short" })}
+                          </td>
+                          <td className="p-2 text-foreground truncate max-w-[140px]">{h.admin_email || "—"}</td>
+                          <td className="p-2">
+                            <div className="flex items-center gap-1">
+                              <span className="text-muted-foreground">{h.old_plan || "—"}</span>
+                              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                              <span className={cn("inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold", getPlanBadgeClass(h.new_plan))}>
+                                {h.new_plan || "—"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-2 text-muted-foreground whitespace-nowrap">
+                            {h.new_expires_at ? new Date(h.new_expires_at).toLocaleDateString("ru-RU") : "—"}
+                          </td>
+                          <td className="p-2 text-muted-foreground truncate max-w-[200px]">{h.reason || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
