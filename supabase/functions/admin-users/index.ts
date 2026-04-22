@@ -40,17 +40,29 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
+    // Helper: fetch ALL users via pagination (Supabase Auth API caps perPage at 1000)
+    const fetchAllUsers = async (): Promise<any[]> => {
+      const all: any[] = [];
+      const perPage = 1000;
+      let page = 1;
+      // Loop until we get fewer than perPage (last page)
+      while (true) {
+        const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
+        if (error) throw error;
+        const batch = data?.users || [];
+        all.push(...batch);
+        if (batch.length < perPage) break;
+        page += 1;
+        if (page > 50) break; // safety cap (50k users)
+      }
+      return all;
+    };
+
     // LIST USERS
     if (req.method === "GET" && action === "list") {
-      const page = parseInt(url.searchParams.get("page") || "1");
-      const perPage = 50;
       const search = url.searchParams.get("search") || "";
 
-      const { data: { users }, error } = await adminClient.auth.admin.listUsers({
-        page,
-        perPage,
-      });
-      if (error) throw error;
+      const users = await fetchAllUsers();
 
       // Get all roles
       const { data: allRoles } = await adminClient.from("user_roles").select("*");
@@ -129,7 +141,7 @@ Deno.serve(async (req) => {
 
     // PLATFORM STATS
     if (req.method === "GET" && action === "platform-stats") {
-      const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const allUsers = await fetchAllUsers();
 
       const { count: totalVideos } = await adminClient
         .from("videos")
@@ -417,7 +429,7 @@ Deno.serve(async (req) => {
 
       // Enrich with user emails
       const userIds = [...new Set((data || []).map((s: any) => s.user_id))];
-      const { data: { users: allUsers } } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const allUsers = await fetchAllUsers();
       const userMap: Record<string, string> = {};
       for (const u of allUsers || []) {
         userMap[u.id] = u.email || "";
