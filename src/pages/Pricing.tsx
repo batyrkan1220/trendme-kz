@@ -236,7 +236,7 @@ export default function Pricing() {
                     <div className="mt-3 flex items-baseline gap-1">
                       {isFree ? (
                         <span className="text-[36px] md:text-[44px] font-bold tracking-tight">
-                          Бесплатно
+                          Демо
                         </span>
                       ) : (
                         <>
