@@ -24,9 +24,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     disabled: isMainTab,
   });
 
-  // DemoBanner — strictly mobile + free + non-native (web only).
+  // DemoBanner — strictly free + non-native (web mobile + desktop).
   // Must match DemoBanner internal visibility 1:1 to avoid padding/banner desync.
-  const showDemoBanner = isMobile && isFreePlan && !isPlanLoading && !isNativePlatform;
+  const showDemoBanner = isFreePlan && !isPlanLoading && !isNativePlatform;
 
   return (
     <div className="relative flex h-[100dvh] w-full overflow-hidden bg-background-subtle text-foreground">

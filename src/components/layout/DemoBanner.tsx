@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { isNativePlatform } from "@/lib/native";
 import { Sparkles, ArrowRight } from "lucide-react";
@@ -18,16 +17,15 @@ import { Sparkles, ArrowRight } from "lucide-react";
  */
 export function DemoBanner() {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { isFreePlan, isLoading } = useIsFreePlan();
 
-  // Strictly mobile + free + non-native. Hide while loading to avoid flicker.
-  if (!isMobile || isLoading || !isFreePlan || isNativePlatform) return null;
+  // Free + non-native (web only, mobile + desktop). Hide while loading to avoid flicker.
+  if (isLoading || !isFreePlan || isNativePlatform) return null;
 
   return (
     <div
       id="demo-banner"
-      className="md:hidden fixed top-0 left-0 right-0 z-[100000] text-white"
+      className="fixed top-0 left-0 right-0 z-[100000] text-white"
       style={{
         paddingTop: "env(safe-area-inset-top, 0px)",
         background:
