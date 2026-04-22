@@ -9,10 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ScriptGenerationPanel } from "@/components/ScriptGenerationPanel";
-import { useSubscription } from "@/hooks/useSubscription";
-import { useIsFreePlan } from "@/hooks/useIsFreePlan";
-import { useFreeCredits } from "@/hooks/useFreeCredits";
-import { PaywallDialog } from "@/components/PaywallDialog";
 import { MagicAnalysisLoader } from "@/components/MagicAnalysisLoader";
 import { hapticSuccess } from "@/lib/haptics";
 import { VideoAnalysisResults } from "@/components/VideoAnalysisResults";
@@ -53,10 +49,6 @@ export default function VideoAnalysis() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [language, setLanguage] = useState<"ru" | "kk" | null>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const { checkAndLog } = useSubscription();
-  const { isFreePlan } = useIsFreePlan();
-  const { analysesLeft, scriptsLeft, consume } = useFreeCredits();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const autoScriptRef = useRef(false);
@@ -103,23 +95,6 @@ export default function VideoAnalysis() {
       return;
     }
 
-    // Free plan: try to consume a free analysis credit; if exhausted → paywall
-    if (isFreePlan) {
-      if (analysesLeft <= 0) {
-        setTimeout(() => setShowPaywall(true), 200);
-        return;
-      }
-      const remaining = await consume("analysis");
-      if (remaining < 0) {
-        setTimeout(() => setShowPaywall(true), 200);
-        return;
-      }
-      toast.success(`Использован пробный анализ. Осталось: ${remaining}`);
-    }
-
-    const ok = await checkAndLog("video_analysis", `Анализ видео: ${normalizedUrl}`);
-    if (!ok) return;
-
     setLanguage(lang);
     setUrl(normalizedUrl);
     setIsPlaying(false);
@@ -149,24 +124,8 @@ export default function VideoAnalysis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Helper: gate "open script" by paid sub OR free credit
-  const tryOpenScript = async (): Promise<boolean> => {
-    if (isFreePlan) {
-      if (scriptsLeft <= 0) {
-        setShowPaywall(true);
-        return false;
-      }
-      const remaining = await consume("script");
-      if (remaining < 0) {
-        setShowPaywall(true);
-        return false;
-      }
-      toast.success(`Использован пробный сценарий. Осталось: ${remaining}`);
-      return true;
-    }
-    const ok = await checkAndLog("ai_script", `AI Сценарий из анализа: ${url.trim()}`);
-    return ok;
-  };
+  // Helper: open script — always allowed
+  const tryOpenScript = async (): Promise<boolean> => true;
 
   // Auto-open script panel after successful analysis if requested
   useEffect(() => {
@@ -270,15 +229,6 @@ export default function VideoAnalysis() {
                       🇷🇺 Русский
                     </Button>
                   </div>
-                  {isFreePlan && (
-                    <p className="text-[11px] text-center font-semibold mt-1">
-                      {analysesLeft > 0 ? (
-                        <span className="text-viral">🎁 Осталось {analysesLeft} пробных анализов</span>
-                      ) : (
-                        <span className="text-muted-foreground">Пробные анализы закончились — откройте Pro</span>
-                      )}
-                    </p>
-                  )}
                 </div>
               )}
               {isPending && (
@@ -361,11 +311,6 @@ export default function VideoAnalysis() {
           </div>
         </div>
       )}
-      <PaywallDialog
-        open={showPaywall}
-        onOpenChange={setShowPaywall}
-        feature="analysis"
-      />
     </AppLayout>
   );
 }

@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useSubscription } from "@/hooks/useSubscription";
+
 import { isNativePlatform } from "@/lib/native";
 import { MagicAnalysisLoader } from "./MagicAnalysisLoader";
 import { hapticSuccess } from "@/lib/haptics";
@@ -49,7 +49,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastAnalyzedUrl = useRef<string | null>(null);
   const preloadedUrlRef = useRef<string | null>(null);
-  const { checkAndLog } = useSubscription();
+  
 
   useEffect(() => {
     if (open && video) {
@@ -105,8 +105,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
   const startAnalysis = async (lang: "ru" | "kk") => {
     if (!video) return;
-    const ok = await checkAndLog("video_analysis", `Анализ видео: ${video.url}`);
-    if (!ok) return;
     setLanguage(lang);
     setShowLangPicker(false);
     analyze({ v: video, lang });
@@ -616,13 +614,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
           {analysis && !isPending && (
             <div className="shrink-0 p-3 md:p-4 border-t border-border/50 bg-background" style={{ paddingBottom: isNativePlatform ? "calc(env(safe-area-inset-bottom, 0px) + 12px)" : undefined }}>
               <button
-                onClick={async () => {
-                  if (!isNativePlatform) {
-                    const ok = await checkAndLog("ai_script", `AI Сценарий из трендов: ${video.url}`);
-                    if (!ok) return;
-                  }
-                  setShowScript(true);
-                }}
+                onClick={() => setShowScript(true)}
                 className="w-full py-4 rounded-xl gradient-hero text-primary-foreground font-bold text-base glow-primary hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
                 <Sparkles className="h-5 w-5" />

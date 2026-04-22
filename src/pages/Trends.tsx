@@ -19,11 +19,11 @@ import { LazyNicheRow } from "@/components/trends/LazyNicheRow";
 import { VirtualTrendGrid } from "@/components/trends/VirtualTrendGrid";
 import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
-import { PaywallDialog } from "@/components/PaywallDialog";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useTokens } from "@/hooks/useTokens";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
-import { useFreeCredits } from "@/hooks/useFreeCredits";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -60,8 +60,6 @@ export default function Trends() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [scriptVideo, setScriptVideo] = useState<any>(null);
-  const [paywallVideo, setPaywallVideo] = useState<any>(null);
-  const [paywallFeature, setPaywallFeature] = useState<"analysis" | "script">("analysis");
   const [drillNiche, setDrillNiche] = useState<string | null>(null);
   const [drillSubNiche, setDrillSubNiche] = useState<string | null>(null);
   const [drillPeriod, setDrillPeriod] = useState<number>(7);
@@ -80,7 +78,6 @@ export default function Trends() {
 
   /* ======================= subscription ======================= */
   const { isFreePlan } = useIsFreePlan();
-  const { analysesLeft, scriptsLeft, consume } = useFreeCredits();
 
   /* ======================= all videos ======================= */
   const { data: allVideos = [], isLoading } = useQuery<any[]>({
@@ -195,46 +192,12 @@ export default function Trends() {
   const { containerRef, pullDistance, isRefreshing, progress } =
     usePullToRefresh({ onRefresh: handleRefresh });
 
-  const openAnalysis = useCallback(
-    async (v: any) => {
-      if (isFreePlan) {
-        if (analysesLeft <= 0) {
-          setPaywallFeature("analysis");
-          setTimeout(() => setPaywallVideo(v), 200);
-          return;
-        }
-        const remaining = await consume("analysis");
-        if (remaining < 0) {
-          setPaywallFeature("analysis");
-          setTimeout(() => setPaywallVideo(v), 200);
-          return;
-        }
-        toast.success(`Использован пробный анализ. Осталось: ${remaining}`);
-      }
-      setAnalysisVideo(v);
-    },
-    [isFreePlan, analysesLeft, consume]
-  );
-  const openScript = useCallback(
-    async (v: any) => {
-      if (isFreePlan) {
-        if (scriptsLeft <= 0) {
-          setPaywallFeature("script");
-          setTimeout(() => setPaywallVideo(v), 200);
-          return;
-        }
-        const remaining = await consume("script");
-        if (remaining < 0) {
-          setPaywallFeature("script");
-          setTimeout(() => setPaywallVideo(v), 200);
-          return;
-        }
-        toast.success(`Использован пробный сценарий. Осталось: ${remaining}`);
-      }
-      setScriptVideo(v);
-    },
-    [isFreePlan, scriptsLeft, consume]
-  );
+  const openAnalysis = useCallback((v: any) => {
+    setAnalysisVideo(v);
+  }, []);
+  const openScript = useCallback((v: any) => {
+    setScriptVideo(v);
+  }, []);
   const allGroups = NICHE_GROUPS;
 
   /* ======================= drill-down ======================= */
@@ -696,12 +659,6 @@ export default function Trends() {
         onOpenChange={(open) => {
           if (!open) setScriptVideo(null);
         }}
-      />
-      <PaywallDialog
-        open={!!paywallVideo}
-        onOpenChange={(open) => { if (!open) setPaywallVideo(null); }}
-        video={paywallVideo}
-        feature={paywallFeature}
       />
     </AppLayout>
   );
