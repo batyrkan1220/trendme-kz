@@ -2,24 +2,59 @@ import { Video, Sparkles, ArrowRight, Sparkle, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { useFreeCredits } from "@/hooks/useFreeCredits";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface Props {
   showUpgradeLink?: boolean;
   className?: string;
 }
 
+/**
+ * Виджет лимитов в Демо тарифе.
+ *
+ * Источники истины (оба применяются параллельно в системе):
+ *  1) profiles.free_*_left — атомарно списывается через RPC consume_free_credit
+ *  2) plans.usage_limits + activity_log — учитывается в useSubscription.checkAndLog
+ *
+ * Чтобы счётчики НЕ расходились с реальной блокировкой, для каждой
+ * операции берём МИНИМАЛЬНОЕ оставшееся значение из обоих источников.
+ * Именно это число — сколько раз пользователь реально ещё сможет нажать кнопку.
+ */
 export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Props) {
   const { isFreePlan, isLoading: isPlanLoading } = useIsFreePlan();
-  const { analysesLeft, scriptsLeft, isLoading: isCreditsLoading } = useFreeCredits();
+  const { analysesLeft: freeAnalysesLeft, scriptsLeft: freeScriptsLeft, isLoading: isCreditsLoading } = useFreeCredits();
+  const { limits, getRemaining, isLoading: isSubLoading } = useSubscription();
 
-  if (isPlanLoading || isCreditsLoading || !isFreePlan) return null;
+  if (isPlanLoading || isCreditsLoading || isSubLoading || !isFreePlan) return null;
+
+  // Лимиты из плана (источник 2). Если поле undefined — безлимит по этому источнику.
+  const planAnalysisLimit = limits?.video_analysis;
+  const planScriptLimit = limits?.ai_script;
+  const subAnalysisLeft = getRemaining("video_analysis"); // null = unlimited
+  const subScriptLeft = getRemaining("ai_script");
+
+  // Берём минимум из двух источников — это реальный потолок
+  const analysisRemaining = subAnalysisLeft === null
+    ? freeAnalysesLeft
+    : Math.min(freeAnalysesLeft, subAnalysisLeft);
+  const scriptRemaining = subScriptLeft === null
+    ? freeScriptsLeft
+    : Math.min(freeScriptsLeft, subScriptLeft);
+
+  // Тотал — тоже минимум из двух источников (или 3 — дефолт free credits)
+  const analysisTotal = planAnalysisLimit !== undefined
+    ? Math.min(3, planAnalysisLimit)
+    : 3;
+  const scriptTotal = planScriptLimit !== undefined
+    ? Math.min(3, planScriptLimit)
+    : 3;
 
   const items = [
-    { key: "analysis", label: "Видео анализ", remaining: analysesLeft, total: 3, icon: Video, gradient: "from-purple-500 to-fuchsia-500" },
-    { key: "script", label: "AI Сценарий", remaining: scriptsLeft, total: 3, icon: Sparkles, gradient: "from-amber-500 to-orange-500" },
+    { key: "analysis", label: "Видео анализ", remaining: analysisRemaining, total: analysisTotal, icon: Video, gradient: "from-purple-500 to-fuchsia-500" },
+    { key: "script", label: "AI Сценарий", remaining: scriptRemaining, total: scriptTotal, icon: Sparkles, gradient: "from-amber-500 to-orange-500" },
   ];
 
-  const totalLeft = analysesLeft + scriptsLeft;
+  const totalLeft = analysisRemaining + scriptRemaining;
   const isLow = totalLeft <= 2;
 
   return (
@@ -41,7 +76,7 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
 
       <div className="relative grid grid-cols-2 gap-2.5 md:gap-3 mb-3">
         {items.map(item => {
-          const remaining = item.remaining;
+          const remaining = Math.max(0, item.remaining);
           const total = item.total;
           const pct = total > 0 ? (remaining / total) * 100 : 0;
           const Icon = item.icon;
