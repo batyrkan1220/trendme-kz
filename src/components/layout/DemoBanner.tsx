@@ -15,7 +15,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
  *
  * ⚠ Trendsee.io дизайнын қайталама — бұл TrendMe жеке стилі.
  */
-export function DemoBanner() {
+export function DemoBanner({ leftOffsetPx = 0 }: { leftOffsetPx?: number }) {
   const navigate = useNavigate();
   const { isFreePlan, isLoading } = useIsFreePlan();
 
@@ -25,8 +25,9 @@ export function DemoBanner() {
   return (
     <div
       id="demo-banner"
-      className="fixed top-0 left-0 right-0 z-[100000] text-white"
+      className="fixed top-0 right-0 z-[100000] text-white"
       style={{
+        left: leftOffsetPx ? `${leftOffsetPx}px` : 0,
         paddingTop: "env(safe-area-inset-top, 0px)",
         background:
           "linear-gradient(90deg, hsl(240 10% 4%) 0%, hsl(240 10% 6%) 50%, hsl(240 10% 4%) 100%)",

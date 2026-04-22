@@ -32,8 +32,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="relative flex h-[100dvh] w-full overflow-hidden bg-background-subtle text-foreground">
       {!isMobile && !isNativePlatform && <AppSidebar />}
 
-      {/* DemoBanner — тек mobile + free */}
-      <DemoBanner />
+      {/* DemoBanner — web mobile + desktop, free тарифте. Десктопта sidebar-дың оң жағында ғана. */}
+      <DemoBanner leftOffsetPx={!isMobile && !isNativePlatform ? 240 : 0} />
 
       {/* Swipe-back edge indicator */}
       {showIndicator && (
