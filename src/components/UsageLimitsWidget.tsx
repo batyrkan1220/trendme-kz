@@ -117,20 +117,32 @@ export function UsageLimitsWidget({ showUpgradeLink = true, className = "" }: Pr
       {showUpgradeLink && (
         <Link
           to="/subscription"
-          className="relative group flex items-center gap-3 rounded-xl p-3 bg-gradient-to-r from-primary/10 via-fuchsia-500/10 to-amber-500/10 border border-primary/20 hover:border-primary/40 transition-all duration-200 active:scale-[0.99]"
+          className={`relative group flex items-center gap-3 rounded-xl p-3 border transition-all duration-200 active:scale-[0.99] ${
+            isExhausted
+              ? 'bg-destructive/10 border-destructive/30 hover:border-destructive/50'
+              : 'bg-gradient-to-r from-primary/10 via-fuchsia-500/10 to-amber-500/10 border-primary/20 hover:border-primary/40'
+          }`}
         >
-          <div className="shrink-0 h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-fuchsia-500 flex items-center justify-center shadow-sm">
+          <div className={`shrink-0 h-9 w-9 rounded-lg flex items-center justify-center shadow-sm ${
+            isExhausted ? 'bg-destructive' : 'bg-gradient-to-br from-primary to-fuchsia-500'
+          }`}>
             <Crown className="h-4 w-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] md:text-sm font-bold text-foreground leading-tight">
-              {isLow ? "Лимиты почти исчерпаны" : "Хотите безлимит?"}
+            <p className={`text-[12px] md:text-sm font-bold leading-tight ${isExhausted ? 'text-destructive' : 'text-foreground'}`}>
+              {isExhausted
+                ? 'Лимиты закончились'
+                : isLow
+                ? 'Лимиты почти исчерпаны'
+                : 'Хотите безлимит?'}
             </p>
             <p className="text-[10px] md:text-[11px] text-muted-foreground leading-tight mt-0.5">
-              Перейдите на платный тариф — без ограничений
+              {isExhausted
+                ? 'Откройте Pro, чтобы продолжить без ограничений'
+                : 'Перейдите на платный тариф — без ограничений'}
             </p>
           </div>
-          <ArrowRight className="shrink-0 h-4 w-4 text-primary group-hover:translate-x-0.5 transition-transform" />
+          <ArrowRight className={`shrink-0 h-4 w-4 group-hover:translate-x-0.5 transition-transform ${isExhausted ? 'text-destructive' : 'text-primary'}`} />
         </Link>
       )}
     </div>
