@@ -18,7 +18,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const Trends = lazy(() => import("./pages/Trends"));
-const VideoAnalysis = lazy(() => import("./pages/VideoAnalysis"));
+
 const AccountAnalysis = lazy(() => import("./pages/AccountAnalysis"));
 const Journal = lazy(() => import("./pages/Journal"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -128,8 +128,6 @@ const AppRoutes = () => {
           <Route path="/dashboard" element={<Navigate to="/trends" replace />} />
           <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
           <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
-          <Route path="/video-analysis" element={<Navigate to="/trends" replace />} />
-          
           <Route path="/account-analysis" element={<Navigate to="/trends" replace />} />
           <Route path="/favorites" element={<Navigate to="/library" replace />} />
           <Route path="/journal" element={<Navigate to="/trends" replace />} />

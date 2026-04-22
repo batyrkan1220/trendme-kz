@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { isNativePlatform } from "@/lib/native";
 import { useLocalFavorites } from "@/hooks/useLocalFavorites";
 import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
+import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
 import { trackPlausible } from "@/components/TrackingPixels";
 
 export default function Library() {
@@ -18,6 +19,7 @@ export default function Library() {
   const navigate = useNavigate();
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [scriptVideo, setScriptVideo] = useState<VideoCardData | null>(null);
+  const [analysisVideo, setAnalysisVideo] = useState<VideoCardData | null>(null);
   const { favorites: localFavorites, toggleFavorite: toggleLocalFav } = useLocalFavorites();
 
   // Remote favorites (only on web)
@@ -79,7 +81,7 @@ export default function Library() {
   };
 
   const handleAnalyze = (video: VideoCardData) => {
-    navigate(`/video-analysis?url=${encodeURIComponent(video.url)}`);
+    setAnalysisVideo(video);
   };
 
   const handleScript = (video: VideoCardData) => {
@@ -164,6 +166,11 @@ export default function Library() {
         video={scriptVideo as any}
         open={!!scriptVideo}
         onOpenChange={(open) => { if (!open) setScriptVideo(null); }}
+      />
+      <VideoAnalysisDialog
+        video={analysisVideo as any}
+        open={!!analysisVideo}
+        onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
       />
     </AppLayout>
   );
