@@ -41,15 +41,29 @@ serve(async (req) => {
 
     console.log("Freedom Pay callback params:", JSON.stringify(params));
 
-    // Verify signature
-    const isValid = verifySignature("result_notify", params, SECRET_KEY);
+    // Verify signature — Freedom Pay uses the LAST path segment of the result_url
+    // Our callback URL ends with "freedompay-callback", so that's the script name.
+    // Try multiple variants for compatibility (Freedom Pay sometimes uses different conventions).
+    const sigCandidates = ["freedompay-callback", "result_url", "result_notify"];
+    let isValid = false;
+    let usedScript = "";
+    for (const scriptName of sigCandidates) {
+      if (verifySignature(scriptName, params, SECRET_KEY)) {
+        isValid = true;
+        usedScript = scriptName;
+        break;
+      }
+    }
+
     if (!isValid) {
-      console.error("Invalid signature in callback");
+      console.error("Invalid signature in callback. Tried:", sigCandidates.join(", "));
+      console.error("Received params:", JSON.stringify(params));
       return new Response(
         `<?xml version="1.0" encoding="utf-8"?><response><pg_status>error</pg_status><pg_description>Invalid signature</pg_description></response>`,
         { headers: { "Content-Type": "application/xml" } }
       );
     }
+    console.log("Signature verified using script name:", usedScript);
 
     const orderId = params.pg_order_id;
     const pgResult = params.pg_result; // 1 = success, 0 = failure
