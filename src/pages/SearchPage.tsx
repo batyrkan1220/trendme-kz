@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { trackSearchEvent, trackAddToFavorites } from "@/components/TrackingPixels";
+import { trackSearchEvent, trackAddToFavorites, trackPlausible } from "@/components/TrackingPixels";
 import {
   Search as SearchIcon, Clock, Loader2, Sparkles, TrendingUp
 } from "lucide-react";
@@ -52,6 +52,7 @@ export default function SearchPage() {
     },
     onSuccess: (_, query) => {
       trackSearchEvent(query);
+      trackPlausible("Search Performed", { query: String(query).slice(0, 100) });
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
     },
