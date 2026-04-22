@@ -10,7 +10,7 @@ interface SignupEmailProps {
 
 export const SignupEmail = ({ recipient, token }: SignupEmailProps) => {
   const code = (token || '------').toString()
-  const digits = code.padEnd(6, '•').slice(0, 6).split('')
+  const digits = code.split('')
   return (
     <Html lang="ru" dir="ltr">
       <Head />
@@ -35,7 +35,7 @@ export const SignupEmail = ({ recipient, token }: SignupEmailProps) => {
               </tbody>
             </table>
 
-            <Text style={meta}>Код действителен в течение 1 часа.</Text>
+            <Text style={meta}>Введите полный код из {digits.length} символов. Код действителен в течение 1 часа.</Text>
           </Section>
           <Text style={footer}>Если вы не создавали аккаунт — просто проигнорируйте это письмо.</Text>
           <Text style={brandFooter}>trendme · trendme.kz</Text>
