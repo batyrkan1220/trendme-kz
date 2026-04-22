@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { isNativePlatform } from "@/lib/native";
 import { Sparkles, ArrowRight } from "lucide-react";
 
 /**
@@ -20,7 +21,8 @@ export function DemoBanner() {
   const isMobile = useIsMobile();
   const { isFreePlan, isLoading } = useIsFreePlan();
 
-  if (!isMobile || isLoading || !isFreePlan) return null;
+  // Strictly mobile + free + non-native. Hide while loading to avoid flicker.
+  if (!isMobile || isLoading || !isFreePlan || isNativePlatform) return null;
 
   return (
     <div
