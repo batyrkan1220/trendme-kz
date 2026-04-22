@@ -16,7 +16,7 @@ import { OTPInput } from "@/components/auth/OTPInput";
 import { useResendCountdown } from "@/hooks/useResendCountdown";
 
 type Mode = "login" | "register" | "forgot";
-type Step = "form" | "otp";
+type Step = "form" | "otp" | "new-password";
 
 const FAILED_KEY = "trendme_login_failed";
 const LOCKOUT_MS = 5 * 60 * 1000;
@@ -164,14 +164,17 @@ export default function Auth() {
     }
   };
 
-  // ───────────── FORGOT (1-кезең: link, OTP — кейін) ─────────────
+  // ───────────── FORGOT (OTP flow) ─────────────
   const handleForgot = async () => {
     if (!email) return toast.error("Введите email");
     setLoading(true);
     const { error } = await authService.resetPasswordForEmail(email);
     setLoading(false);
-    if (error) toast.error(error.message);
-    else toast.success("Ссылка для сброса отправлена на email");
+    if (error) { toast.error(error.message); return; }
+    toast.success("Мы отправили код на ваш email");
+    setStep("otp");
+    setOtp("");
+    startCountdown(60);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -187,11 +190,20 @@ export default function Auth() {
     const code = (codeOverride ?? otp).replace(/\D/g, "");
     if (code.length !== 6) { toast.error("Введите 6-значный код"); return; }
     setOtpVerifying(true);
-    const { error } = await authService.verifyOtp(email, code, "email");
+    const otpType: "email" | "recovery" = mode === "forgot" ? "recovery" : "email";
+    const { error } = await authService.verifyOtp(email, code, otpType);
     setOtpVerifying(false);
     if (error) {
       toast.error(error.message);
       setOtpError((n) => n + 1);
+      return;
+    }
+    if (mode === "forgot") {
+      // recovery успех — пользователь временно залогинен, показываем экран нового пароля
+      toast.success("Код подтверждён. Задайте новый пароль");
+      setPassword("");
+      setConfirmPassword("");
+      setStep("new-password");
       return;
     }
     toast.success("Email подтверждён");
@@ -202,10 +214,26 @@ export default function Auth() {
   const handleResendOtp = async () => {
     if (!canResend) return;
     setLoading(true);
-    const { error } = await authService.resendOtp(email);
+    const { error } = mode === "forgot"
+      ? await authService.resetPasswordForEmail(email)
+      : await authService.resendOtp(email);
     setLoading(false);
     if (error) toast.error(error.message);
     else { toast.success("Новый код отправлен"); startCountdown(60); }
+  };
+
+  // ───────────── New password (after recovery OTP) ─────────────
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password) return toast.error("Введите новый пароль");
+    if (password.length < 6) return toast.error("Пароль должен быть не менее 6 символов");
+    if (password !== confirmPassword) return toast.error("Пароли не совпадают");
+    setLoading(true);
+    const { error } = await authService.updatePassword(password);
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Пароль успешно изменён");
+    navigate("/dashboard", { replace: true });
   };
 
   // ───────────── Render ─────────────
