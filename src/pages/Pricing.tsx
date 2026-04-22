@@ -288,7 +288,9 @@ export default function Pricing() {
                       >
                         {loadingPlanId === plan.id ? (
                           <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Загрузка...</>
-                        ) : isActive ? "Активен ✓" : isFeatured ? "Выбрать 1 мес" : "Выбрать"}
+                        ) : isActive
+                          ? "Активен ✓"
+                          : plan.duration_days === 90 ? "Выбрать 3 мес" : "Выбрать 1 мес"}
                       </button>
                     ) : (
                       <button
