@@ -77,11 +77,23 @@ Deno.serve(async (req) => {
       // Get all token balances
       const { data: allTokens } = await adminClient.from("user_tokens").select("*");
 
-      // Get all profiles (name, phone, free credits)
-      const { data: allProfiles } = await adminClient.from("profiles").select("user_id, name, phone, free_analyses_left, free_scripts_left");
+      // Get all profiles (name, phone, free credits, ban/delete flags)
+      const { data: allProfiles } = await adminClient.from("profiles").select("user_id, name, phone, free_analyses_left, free_scripts_left, is_banned, is_deleted, admin_notes");
 
       const enriched = users
-        .filter((u: any) => !search || u.email?.toLowerCase().includes(search.toLowerCase()))
+        .filter((u: any) => {
+          if (!search) return true;
+          const q = search.toLowerCase();
+          const profile = (allProfiles || []).find((p: any) => p.user_id === u.id);
+          const meta = u.user_metadata || {};
+          const name = (profile?.name || meta.name || "").toLowerCase();
+          const phone = (profile?.phone || meta.phone || "").toLowerCase();
+          return (
+            (u.email || "").toLowerCase().includes(q) ||
+            name.includes(q) ||
+            phone.includes(q)
+          );
+        })
         .map((u: any) => {
           const profile = (allProfiles || []).find((p: any) => p.user_id === u.id);
           const meta = u.user_metadata || {};
@@ -91,10 +103,14 @@ Deno.serve(async (req) => {
             created_at: u.created_at,
             last_sign_in_at: u.last_sign_in_at,
             email_confirmed_at: u.email_confirmed_at || null,
+            banned_until: (u as any).banned_until || null,
             name: profile?.name || meta.name || null,
             phone: profile?.phone || meta.phone || null,
             free_analyses_left: profile?.free_analyses_left ?? null,
             free_scripts_left: profile?.free_scripts_left ?? null,
+            is_banned: profile?.is_banned ?? false,
+            is_deleted: profile?.is_deleted ?? false,
+            admin_notes: profile?.admin_notes ?? null,
             roles: (allRoles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
             subscription: (allSubs || []).find((s: any) => s.user_id === u.id) || null,
             tokens: (allTokens || []).find((t: any) => t.user_id === u.id) || null,
@@ -512,6 +528,135 @@ Deno.serve(async (req) => {
       }
 
       return new Response(JSON.stringify({ byDay, byAction, totalCredits, totalCalls: usageLogs?.length || 0 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ==================== USER MODERATION ====================
+
+    if (req.method === "POST" && action === "ban-user") {
+      const { user_id, days } = await req.json();
+      if (!user_id) throw new Error("user_id required");
+      const banDays = typeof days === "number" && days > 0 ? days : 365 * 10;
+      const banDuration = `${banDays * 24}h`;
+
+      const { error: authErr } = await (adminClient.auth.admin as any).updateUserById(user_id, {
+        ban_duration: banDuration,
+      });
+      if (authErr) throw authErr;
+
+      await adminClient
+        .from("profiles")
+        .update({ is_banned: true, updated_at: new Date().toISOString() })
+        .eq("user_id", user_id);
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (req.method === "POST" && action === "unban-user") {
+      const { user_id } = await req.json();
+      if (!user_id) throw new Error("user_id required");
+
+      const { error: authErr } = await (adminClient.auth.admin as any).updateUserById(user_id, {
+        ban_duration: "none",
+      });
+      if (authErr) throw authErr;
+
+      await adminClient
+        .from("profiles")
+        .update({ is_banned: false, updated_at: new Date().toISOString() })
+        .eq("user_id", user_id);
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (req.method === "POST" && action === "soft-delete-user") {
+      const { user_id } = await req.json();
+      if (!user_id) throw new Error("user_id required");
+
+      await (adminClient.auth.admin as any).updateUserById(user_id, {
+        ban_duration: `${365 * 100 * 24}h`,
+      });
+
+      await adminClient
+        .from("profiles")
+        .update({ is_deleted: true, is_banned: true, updated_at: new Date().toISOString() })
+        .eq("user_id", user_id);
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (req.method === "POST" && action === "restore-user") {
+      const { user_id } = await req.json();
+      if (!user_id) throw new Error("user_id required");
+
+      await (adminClient.auth.admin as any).updateUserById(user_id, {
+        ban_duration: "none",
+      });
+
+      await adminClient
+        .from("profiles")
+        .update({ is_deleted: false, is_banned: false, updated_at: new Date().toISOString() })
+        .eq("user_id", user_id);
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (req.method === "POST" && action === "save-notes") {
+      const { user_id, notes } = await req.json();
+      if (!user_id) throw new Error("user_id required");
+      const { error } = await adminClient
+        .from("profiles")
+        .update({ admin_notes: notes ?? null, updated_at: new Date().toISOString() })
+        .eq("user_id", user_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (req.method === "GET" && action === "user-details") {
+      const targetId = url.searchParams.get("user_id");
+      if (!targetId) throw new Error("user_id required");
+
+      const [profileRes, subsRes, favCnt, scriptsCnt, analysesCnt, searchesCnt, accountsCnt, activityRes, txRes, rolesRes] = await Promise.all([
+        adminClient.from("profiles").select("*").eq("user_id", targetId).maybeSingle(),
+        adminClient.from("user_subscriptions").select("*, plans(name, price_rub)").eq("user_id", targetId).order("created_at", { ascending: false }),
+        adminClient.from("favorites").select("*", { count: "exact", head: true }).eq("user_id", targetId),
+        adminClient.from("saved_scripts").select("*", { count: "exact", head: true }).eq("user_id", targetId),
+        adminClient.from("video_analysis").select("*", { count: "exact", head: true }).eq("user_id", targetId),
+        adminClient.from("search_queries").select("*", { count: "exact", head: true }).eq("user_id", targetId),
+        adminClient.from("accounts_tracked").select("*", { count: "exact", head: true }).eq("user_id", targetId),
+        adminClient.from("activity_log").select("type, created_at, payload_json").eq("user_id", targetId).order("created_at", { ascending: false }).limit(30),
+        adminClient.from("token_transactions").select("*").eq("user_id", targetId).order("created_at", { ascending: false }).limit(20),
+        adminClient.from("user_roles").select("role").eq("user_id", targetId),
+      ]);
+
+      const { data: authData } = await (adminClient.auth.admin as any).getUserById(targetId);
+
+      return new Response(JSON.stringify({
+        auth: authData?.user || null,
+        profile: profileRes.data || null,
+        subscriptions: subsRes.data || [],
+        roles: (rolesRes.data || []).map((r: any) => r.role),
+        counts: {
+          favorites: favCnt.count || 0,
+          scripts: scriptsCnt.count || 0,
+          analyses: analysesCnt.count || 0,
+          searches: searchesCnt.count || 0,
+          tracked_accounts: accountsCnt.count || 0,
+        },
+        activity: activityRes.data || [],
+        token_transactions: txRes.data || [],
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

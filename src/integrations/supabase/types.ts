@@ -386,11 +386,14 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admin_notes: string | null
           created_at: string
           free_analyses_left: number
           free_scripts_left: number
           goal: string | null
           id: string
+          is_banned: boolean
+          is_deleted: boolean
           name: string | null
           niche: string | null
           onboarding_completed: boolean
@@ -399,11 +402,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           created_at?: string
           free_analyses_left?: number
           free_scripts_left?: number
           goal?: string | null
           id?: string
+          is_banned?: boolean
+          is_deleted?: boolean
           name?: string | null
           niche?: string | null
           onboarding_completed?: boolean
@@ -412,11 +418,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           created_at?: string
           free_analyses_left?: number
           free_scripts_left?: number
           goal?: string | null
           id?: string
+          is_banned?: boolean
+          is_deleted?: boolean
           name?: string | null
           niche?: string | null
           onboarding_completed?: boolean
