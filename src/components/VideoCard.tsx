@@ -629,14 +629,14 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       </div>
 
       {(showAnalyzeButton && onAnalyze) || (showScriptButton && onScript) ? (
-        <div className="px-2 sm:px-3 pb-2.5 sm:pb-3 mt-auto grid grid-cols-2 gap-1.5 sm:gap-2">
+        <div className="px-2 sm:px-3 pb-2.5 sm:pb-3 mt-auto grid grid-cols-2 gap-2">
           {showAnalyzeButton && onAnalyze && (
             <button
               onClick={(e) => { e.stopPropagation(); onAnalyze(video); }}
-              className="group/btn relative w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-[12px] font-bold tracking-wide transition-all active:scale-[0.97] bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-center gap-1 sm:gap-1.5 ring-1 ring-foreground/10 overflow-hidden"
-              style={{ boxShadow: "0 4px 16px -4px rgba(0,0,0,0.3), 0 0 0 1px hsl(0 0% 100% / 0.04) inset" }}
+              className="group/btn relative flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-foreground text-background ring-1 ring-foreground/10 active:scale-[0.97] transition-all hover:bg-foreground/90 overflow-hidden"
+              style={{ boxShadow: "0 6px 24px -6px rgba(0,0,0,0.5), 0 0 0 1px hsl(0 0% 100% / 0.04) inset" }}
             >
-              <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-viral transition-transform group-hover/btn:rotate-12" />
+              <Sparkles className="h-4 w-4 text-viral transition-transform group-hover/btn:rotate-12" />
               Анализ
             </button>
           )}
@@ -644,13 +644,12 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             <button
               onClick={(e) => { e.stopPropagation(); onScript(video); }}
               className={cn(
-                "group/btn relative w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-[12px] font-bold tracking-wide transition-all active:scale-[0.97] inline-flex items-center justify-center gap-1 sm:gap-1.5 ring-1 ring-viral/40 overflow-hidden",
-                "bg-viral text-foreground hover:brightness-110",
+                "group/btn relative flex items-center justify-center gap-1.5 py-3 rounded-[14px] text-[13px] font-bold tracking-wide bg-viral text-foreground active:scale-[0.97] transition-all ring-1 ring-white/30 hover:brightness-110 overflow-hidden",
                 !(showAnalyzeButton && onAnalyze) && "col-span-2"
               )}
-              style={{ boxShadow: "0 6px 20px -6px hsl(var(--viral) / 0.55)" }}
+              style={{ boxShadow: "0 8px 28px -6px hsl(var(--viral) / 0.6), 0 0 20px -4px hsl(var(--viral) / 0.5)" }}
             >
-              <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-foreground transition-transform group-hover/btn:rotate-[-6deg]" />
+              <FileText className="h-4 w-4 transition-transform group-hover/btn:rotate-[-6deg]" />
               Сценарий
             </button>
           )}
