@@ -69,7 +69,7 @@ const STEP_META = [
 
 export default function Onboarding() {
   const [step, setStep] = useState(0);
-  const [niche, setNiche] = useState("");
+  const [niches, setNiches] = useState<string[]>([]);
   const [goal, setGoal] = useState("");
   const [platform, setPlatform] = useState("");
   const [experience, setExperience] = useState("");
