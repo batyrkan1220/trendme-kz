@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { UsageLimitsWidget } from "@/components/UsageLimitsWidget";
+
 
 const subtitles: Record<string, string> = {
   "Пробный": "Для первого знакомства",
