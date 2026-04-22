@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, KeyboardEvent, ClipboardEvent, ChangeEvent } from "react";
+import { useEffect, useRef, useState, KeyboardEvent, ClipboardEvent, ChangeEvent, Fragment } from "react";
 import { cn } from "@/lib/utils";
 
 interface OTPInputProps {
@@ -100,6 +100,8 @@ export function OTPInput({
     if (pasted.length === length) onComplete?.(pasted);
   };
 
+  const half = Math.floor(length / 2);
+
   return (
     <div
       key={shake}
@@ -109,27 +111,36 @@ export function OTPInput({
       )}
     >
       {Array.from({ length }).map((_, i) => (
-        <input
-          key={i}
-          ref={(el) => (inputs.current[i] = el)}
-          type="text"
-          inputMode="numeric"
-          autoComplete={i === 0 ? "one-time-code" : "off"}
-          maxLength={length}
-          value={digits[i] === " " ? "" : digits[i]}
-          onChange={(e) => handleChange(i, e)}
-          onKeyDown={(e) => handleKeyDown(i, e)}
-          onPaste={handlePaste}
-          disabled={disabled}
-          className={cn(
-            "w-11 h-14 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold",
-            "rounded-xl border-2 bg-background text-foreground",
-            "border-border focus:border-primary focus:ring-2 focus:ring-primary/20",
-            "outline-none transition-all duration-150",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-            digits[i] && digits[i] !== " " && "border-primary/60 bg-primary-soft",
+        <Fragment key={i}>
+          {i === half && length % 2 === 0 && (
+            <span
+              aria-hidden="true"
+              className="select-none text-2xl sm:text-3xl font-bold text-muted-foreground/60 px-1"
+            >
+              —
+            </span>
           )}
-        />
+          <input
+            ref={(el) => (inputs.current[i] = el)}
+            type="text"
+            inputMode="numeric"
+            autoComplete={i === 0 ? "one-time-code" : "off"}
+            maxLength={length}
+            value={digits[i] === " " ? "" : digits[i]}
+            onChange={(e) => handleChange(i, e)}
+            onKeyDown={(e) => handleKeyDown(i, e)}
+            onPaste={handlePaste}
+            disabled={disabled}
+            className={cn(
+              "w-11 h-14 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold",
+              "rounded-xl border-2 bg-background text-foreground",
+              "border-border focus:border-primary focus:ring-2 focus:ring-primary/20",
+              "outline-none transition-all duration-150",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              digits[i] && digits[i] !== " " && "border-primary/60 bg-primary-soft",
+            )}
+          />
+        </Fragment>
       ))}
     </div>
   );
