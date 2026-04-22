@@ -104,6 +104,7 @@ export default function Trends() {
 
   /* ======================= offline cache ======================= */
   const cachedVideos = useMemo(() => loadTrendsCache(), []);
+  useEffect(() => { trackPlausible("Trends Viewed"); }, []);
   useEffect(() => {
     if (allVideos.length > 0) saveTrendsCache(allVideos);
   }, [allVideos]);
