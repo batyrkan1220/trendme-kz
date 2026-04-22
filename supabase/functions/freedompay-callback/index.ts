@@ -69,6 +69,14 @@ serve(async (req) => {
     const pgResult = params.pg_result; // 1 = success, 0 = failure
     const pgPaymentId = params.pg_payment_id;
 
+    // Detect refund callback — Freedom Pay sends pg_refund_* fields when notifying
+    // about refund status (after revoke.php is called or refund processed manually).
+    const isRefundCallback =
+      params.pg_refund_id != null ||
+      params.pg_refund_payment_id != null ||
+      params.pg_refund_status != null ||
+      params.pg_can_reject === "1";
+
     // Get the payment order
     const { data: order, error: orderError } = await supabase
       .from("payment_orders")
@@ -80,6 +88,88 @@ serve(async (req) => {
       console.error("Order not found:", orderId);
       return new Response(
         `<?xml version="1.0" encoding="utf-8"?><response><pg_status>error</pg_status><pg_description>Order not found</pg_description></response>`,
+        { headers: { "Content-Type": "application/xml" } }
+      );
+    }
+
+    // ============ REFUND CALLBACK ============
+    if (isRefundCallback) {
+      // Map Freedom Pay refund status to our enum
+      // pg_refund_status: 'success' | 'partial' | 'declined' | 'processing' | 'initiated'
+      const rawStatus = (params.pg_refund_status || "").toLowerCase();
+      let refundStatus: "initiated" | "processing" | "success" | "failed" = "processing";
+      if (rawStatus === "success" || rawStatus === "partial" || pgResult === "1") {
+        refundStatus = "success";
+      } else if (rawStatus === "declined" || rawStatus === "failed" || pgResult === "0") {
+        refundStatus = "failed";
+      } else if (rawStatus === "initiated") {
+        refundStatus = "initiated";
+      } else if (rawStatus === "processing") {
+        refundStatus = "processing";
+      }
+
+      const refundAmount = params.pg_refund_amount
+        ? Math.round(Number(params.pg_refund_amount))
+        : (params.pg_amount ? Math.round(Number(params.pg_amount)) : order.amount);
+
+      const refundedAt = refundStatus === "success"
+        ? (params.pg_refund_date || params.pg_payment_date || new Date().toISOString())
+        : null;
+
+      await supabase
+        .from("payment_orders")
+        .update({
+          refund_status: refundStatus,
+          refund_id: params.pg_refund_id ?? params.pg_refund_payment_id ?? order.refund_id,
+          refund_amount: refundAmount,
+          refunded_at: refundedAt,
+          refund_reason: params.pg_refund_description ?? params.pg_description ?? order.refund_reason,
+          refund_failure_description: refundStatus === "failed"
+            ? (params.pg_failure_description ?? params.pg_refund_description ?? null)
+            : null,
+        })
+        .eq("order_id", orderId);
+
+      // If refund succeeded — deactivate user subscription tied to this order
+      if (refundStatus === "success") {
+        await supabase
+          .from("user_subscriptions")
+          .update({ is_active: false, expires_at: new Date().toISOString() })
+          .eq("order_id", orderId)
+          .eq("is_active", true);
+      }
+
+      // Journal entry
+      await supabase.from("activity_log").insert({
+        user_id: order.user_id,
+        type: "payment_refund",
+        payload_json: {
+          event_code: `REFUND_${refundStatus.toUpperCase()}`,
+          order_id: orderId,
+          refund_id: params.pg_refund_id ?? params.pg_refund_payment_id ?? null,
+          refund_amount: refundAmount,
+          refund_status: refundStatus,
+          refunded_at: refundedAt,
+          provider: "freedom_pay",
+          occurred_at: new Date().toISOString(),
+        },
+      });
+
+      console.log(`Refund callback processed: order=${orderId} status=${refundStatus}`);
+
+      // Standard OK reply (built below after the success/failure branches)
+      const responseSalt = crypto.randomUUID();
+      const responseParams: Record<string, string> = {
+        pg_status: "ok",
+        pg_description: "Refund processed",
+        pg_salt: responseSalt,
+      };
+      const sorted = Object.keys(responseParams).sort();
+      const values = sorted.map(k => responseParams[k]);
+      const sigString = [usedScript, ...values, SECRET_KEY].join(";");
+      const responseSig = md5(sigString);
+      return new Response(
+        `<?xml version="1.0" encoding="utf-8"?><response><pg_status>ok</pg_status><pg_description>Refund processed</pg_description><pg_salt>${responseSalt}</pg_salt><pg_sig>${responseSig}</pg_sig></response>`,
         { headers: { "Content-Type": "application/xml" } }
       );
     }
