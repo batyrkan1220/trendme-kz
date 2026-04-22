@@ -136,6 +136,11 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
   const sendMessage = async (text: string) => {
     if (!text || isGenerating) return;
     setChatInput("");
+
+    // Snapshot для отмены
+    prevScriptRef.current = scriptRef.current || scriptContent;
+    prevMessagesRef.current = messages;
+
     const userMsg: Msg = { role: "user", content: text };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
@@ -157,6 +162,7 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
           role: "assistant",
           content: isKk ? "Сценарий жаңартылды ✨" : "Сценарий обновлён ✨",
         }]);
+        if (prevScriptRef.current) setCanUndo(true);
       },
       onError: (err) => { toast.error(err); setIsGenerating(false); },
     });
@@ -164,12 +170,28 @@ export function ScriptGenerationPanel({ transcript, summary, caption, language =
 
   const handleSend = () => sendMessage(chatInput.trim());
 
+  const handleUndo = async () => {
+    const prev = prevScriptRef.current;
+    if (!prev || isGenerating) return;
+    setScriptContent(prev);
+    scriptRef.current = prev;
+    if (prevMessagesRef.current) setMessages(prevMessagesRef.current);
+    setCanUndo(false);
+    prevScriptRef.current = null;
+    prevMessagesRef.current = null;
+    await autoSaveScript();
+    toast.success(isKk ? "Өзгерістер қайтарылды" : "Изменения отменены");
+  };
+
   const handleRegenerate = async () => {
     if (!isNativePlatform || user) {
       const ok = await spend("script_generation", isKk ? "Сценарийді қайта генерациялау" : "Перегенерация сценария");
       if (!ok) return;
     }
     setMessages([greetingMsg]);
+    setCanUndo(false);
+    prevScriptRef.current = null;
+    prevMessagesRef.current = null;
     generateScript([]);
   };
 
