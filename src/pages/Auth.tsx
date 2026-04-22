@@ -21,6 +21,7 @@ type Step = "form" | "otp" | "new-password";
 const FAILED_KEY = "trendme_login_failed";
 const LOCKOUT_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
+const OTP_LENGTH = 8;
 
 function readFailed(email: string): { count: number; firstAt: number } {
   try {
@@ -136,7 +137,7 @@ export default function Auth() {
 
     if ((error as any).code === "email_not_confirmed" || /email not confirmed/i.test(error.message)) {
       toast.error("Email не подтверждён", {
-        description: "Отправим новый 6-значный код на ваш email.",
+        description: `Отправим новый ${OTP_LENGTH}-значный код на ваш email.`,
         action: {
           label: "Отправить код",
           onClick: async () => {
@@ -194,8 +195,8 @@ export default function Auth() {
   // ───────────── OTP verify ─────────────
   const handleVerifyOtp = async (codeOverride?: string) => {
     const code = (codeOverride ?? otp).replace(/\D/g, "");
-    if (code.length !== 6) {
-      setOtpErrorMsg("Введите 6-значный код");
+    if (code.length !== OTP_LENGTH) {
+      setOtpErrorMsg(`Введите ${OTP_LENGTH}-значный код`);
       return;
     }
     setOtpVerifying(true);
@@ -267,7 +268,7 @@ export default function Auth() {
   };
   const subtitleByContext = () => {
     if (step === "new-password") return "Придумайте новый пароль для входа";
-    if (step === "otp") return `Мы отправили 6-значный код на ${email}`;
+    if (step === "otp") return `Мы отправили ${OTP_LENGTH}-значный код на ${email}`;
     if (mode === "login") return "Войдите, чтобы продолжить";
     if (mode === "register") return "Начните находить тренды за минуту";
     return "Введите email — отправим код для сброса";
@@ -350,7 +351,7 @@ export default function Auth() {
           ) : step === "otp" ? (
             <div className="space-y-5 py-2">
               <OTPInput
-                length={6}
+                length={OTP_LENGTH}
                 value={otp}
                 onChange={(v) => { setOtp(v); if (otpErrorMsg) setOtpErrorMsg(null); }}
                 onComplete={(code) => handleVerifyOtp(code)}
@@ -370,7 +371,7 @@ export default function Auth() {
 
               <Button
                 type="button"
-                disabled={otpVerifying || otp.length !== 6}
+                disabled={otpVerifying || otp.length !== OTP_LENGTH}
                 onClick={() => handleVerifyOtp()}
                 className="w-full h-12 bg-viral text-viral-foreground hover:bg-viral/90 rounded-xl text-base font-bold shadow-glow-viral transition-all active:scale-[0.98]"
               >

@@ -10,7 +10,7 @@ interface RecoveryEmailProps {
 
 export const RecoveryEmail = ({ recipient, token }: RecoveryEmailProps) => {
   const code = (token || '------').toString()
-  const digits = code.padEnd(6, '•').slice(0, 6).split('')
+  const digits = code.split('')
   return (
     <Html lang="ru" dir="ltr">
       <Head />
@@ -35,7 +35,7 @@ export const RecoveryEmail = ({ recipient, token }: RecoveryEmailProps) => {
               </tbody>
             </table>
 
-            <Text style={meta}>Код действителен в течение 1 часа.</Text>
+            <Text style={meta}>Введите полный код из {digits.length} символов. Код действителен в течение 1 часа.</Text>
           </Section>
           <Text style={footer}>Если вы не запрашивали сброс — просто проигнорируйте это письмо. Ваш пароль останется прежним.</Text>
           <Text style={brandFooter}>trendme · trendme.kz</Text>
