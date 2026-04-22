@@ -92,6 +92,48 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_activity_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          new_expires_at: string | null
+          new_plan: string | null
+          old_expires_at: string | null
+          old_plan: string | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_expires_at?: string | null
+          new_plan?: string | null
+          old_expires_at?: string | null
+          old_plan?: string | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_expires_at?: string | null
+          new_plan?: string | null
+          old_expires_at?: string | null
+          old_plan?: string | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       api_usage_log: {
         Row: {
           action: string
