@@ -17,6 +17,7 @@ import { MagicAnalysisLoader } from "@/components/MagicAnalysisLoader";
 import { hapticSuccess } from "@/lib/haptics";
 import { VideoAnalysisResults } from "@/components/VideoAnalysisResults";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { trackPlausible } from "@/components/TrackingPixels";
 
 const extractVideoId = (url: string): string => {
   const patterns = [/\/video\/(\d+)/, /\/photo\/(\d+)/, /(\d{15,})/];
@@ -60,6 +61,11 @@ export default function VideoAnalysis() {
   const [searchParams, setSearchParams] = useSearchParams();
   const autoScriptRef = useRef(false);
   const autoTriggeredRef = useRef(false);
+
+  // Page-open event (fires once per mount)
+  useEffect(() => {
+    trackPlausible("Video Analysis Opened");
+  }, []);
 
   const { data: analysis, isPending, mutate: analyze } = useMutation({
     mutationFn: async ({ videoUrl, lang }: { videoUrl: string; lang: "ru" | "kk" }) => {
@@ -118,6 +124,7 @@ export default function VideoAnalysis() {
     setUrl(normalizedUrl);
     setIsPlaying(false);
     setShowScript(false);
+    trackPlausible("Video Analysis Started", { lang });
     analyze({ videoUrl: normalizedUrl, lang });
   };
 
