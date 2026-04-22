@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import SubscriptionsTab from "@/components/admin/SubscriptionsTab";
 
 export default function Admin() {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
@@ -69,6 +70,7 @@ export default function Admin() {
           <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-3xl">
             <TabsTrigger value="platform"><Activity className="h-4 w-4 mr-1" />Платформа</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" />Пользователи</TabsTrigger>
+            <TabsTrigger value="subscriptions"><CreditCard className="h-4 w-4 mr-1" />Подписки</TabsTrigger>
             <TabsTrigger value="moderation"><Flag className="h-4 w-4 mr-1" />Модерация</TabsTrigger>
             <TabsTrigger value="trends"><RefreshCw className="h-4 w-4 mr-1" />Тренды</TabsTrigger>
             <TabsTrigger value="integrations"><Link2 className="h-4 w-4 mr-1" />Интеграции</TabsTrigger>
@@ -76,6 +78,7 @@ export default function Admin() {
 
           <TabsContent value="platform"><PlatformTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
+          <TabsContent value="subscriptions"><SubscriptionsTab /></TabsContent>
           <TabsContent value="moderation"><ModerationTab /></TabsContent>
           <TabsContent value="trends"><TrendsManagementTab /></TabsContent>
           <TabsContent value="integrations"><IntegrationsTab /></TabsContent>
