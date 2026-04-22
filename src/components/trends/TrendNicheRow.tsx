@@ -120,10 +120,10 @@ function TrendNicheRowImpl({
                   className="absolute inset-0 z-10 rounded-2xl overflow-hidden ring-1 ring-transparent transition-all duration-300 ease-out group-hover/lock:ring-viral/70"
                   aria-label="Доступно на платном тарифе"
                 >
-                  {/* Усиленный blur и затемнение для приватности контента */}
-                  <div className="absolute inset-0 backdrop-blur-md bg-foreground/55 transition-all duration-300 ease-out group-hover/lock:backdrop-blur-lg group-hover/lock:bg-foreground/60" />
+                  {/* Средний blur и затемнение */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-foreground/40 transition-all duration-300 ease-out group-hover/lock:backdrop-blur group-hover/lock:bg-foreground/45" />
                   {/* Градиент снизу для контраста плашки */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/20 to-foreground/30" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/45 via-foreground/10 to-foreground/15" />
                   {/* Viral glow при hover */}
                   <div className="absolute inset-0 opacity-0 group-hover/lock:opacity-100 transition-opacity duration-300 bg-gradient-to-tr from-viral/15 via-transparent to-viral/10" />
 
