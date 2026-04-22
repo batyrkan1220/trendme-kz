@@ -103,23 +103,6 @@ export default function VideoAnalysis() {
       return;
     }
 
-    // Free plan: try to consume a free analysis credit; if exhausted → paywall
-    if (isFreePlan) {
-      if (analysesLeft <= 0) {
-        setTimeout(() => setShowPaywall(true), 200);
-        return;
-      }
-      const remaining = await consume("analysis");
-      if (remaining < 0) {
-        setTimeout(() => setShowPaywall(true), 200);
-        return;
-      }
-      toast.success(`Использован пробный анализ. Осталось: ${remaining}`);
-    }
-
-    const ok = await checkAndLog("video_analysis", `Анализ видео: ${normalizedUrl}`);
-    if (!ok) return;
-
     setLanguage(lang);
     setUrl(normalizedUrl);
     setIsPlaying(false);
