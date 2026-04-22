@@ -1,13 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 
 /**
- * DemoBanner — 36px қара жолақ үстіңгі жағында.
+ * DemoBanner — премиум жоғарғы жолақ (Trends бетінің viral эстетикасында).
  * Тек mobile + free-plan үшін көрсетіледі.
- * Оң жақта неон-жасыл «Открыть Pro» CTA → /subscription.
- * Safe-area inset-top ескерілген (Dynamic Island астынан кетеді).
+ *
+ * Дизайн:
+ *  - Қою фон + жұмсақ viral-glow (жасыл-лайм радиалды жарық)
+ *  - Сол жақта: pulse-dot + «Демо-режим» eyebrow + кішкентай "ограничено" subtitle
+ *  - Оң жақта: viral-gradient pill CTA «Открыть Pro» + arrow icon
+ *  - Safe-area inset-top ескерілген (Dynamic Island астынан кетеді)
+ *
+ * ⚠ Trendsee.io дизайнын қайталама — бұл TrendMe жеке стилі.
  */
 export function DemoBanner() {
   const navigate = useNavigate();
@@ -19,29 +25,74 @@ export function DemoBanner() {
   return (
     <div
       id="demo-banner"
-      className="md:hidden fixed top-0 left-0 right-0 z-[100000] bg-black text-white"
+      className="md:hidden fixed top-0 left-0 right-0 z-[100000] text-white"
       style={{
         paddingTop: "env(safe-area-inset-top, 0px)",
+        background:
+          "linear-gradient(90deg, hsl(240 10% 4%) 0%, hsl(240 10% 6%) 50%, hsl(240 10% 4%) 100%)",
+        boxShadow:
+          "0 1px 0 hsl(var(--viral) / 0.18) inset, 0 6px 18px -6px hsl(var(--viral) / 0.25)",
       }}
     >
-      <div className="h-9 flex items-center justify-between gap-2 px-3">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <Sparkles className="h-3.5 w-3.5 shrink-0 text-white/80" />
-          <span className="text-[12px] font-medium truncate">
-            Демо-режим · ограничено
+      {/* viral glow accent (right side) */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 w-1/2"
+        style={{
+          background:
+            "radial-gradient(60% 120% at 80% 50%, hsl(var(--viral) / 0.18) 0%, transparent 70%)",
+        }}
+      />
+      {/* hairline bottom border (viral tint) */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, hsl(var(--viral) / 0.55), transparent)",
+        }}
+      />
+
+      <div className="relative h-10 flex items-center justify-between gap-2 px-3">
+        {/* LEFT — pulse + eyebrow */}
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="absolute inset-0 rounded-full bg-viral animate-ping opacity-70" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-viral shadow-[0_0_8px_hsl(var(--viral)/0.9)]" />
           </span>
+          <div className="flex items-baseline gap-1.5 min-w-0">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-viral">
+              Демо
+            </span>
+            <span className="text-[11px] font-medium text-white/55 truncate">
+              · ограниченный доступ
+            </span>
+          </div>
         </div>
+
+        {/* RIGHT — viral gradient CTA */}
         <button
           onClick={() => navigate("/subscription")}
-          className="shrink-0 h-7 px-3 rounded-full text-[12px] font-bold bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform shadow-[0_0_12px_hsl(var(--primary)/0.45)]"
+          className="group shrink-0 inline-flex items-center gap-1 h-7 pl-3 pr-2 rounded-full text-[11.5px] font-bold text-viral-foreground active:scale-95 transition-transform"
+          style={{
+            background: "var(--gradient-brand)",
+            boxShadow:
+              "0 0 0 1px hsl(var(--viral) / 0.5) inset, 0 4px 14px -2px hsl(var(--viral) / 0.55)",
+          }}
+          aria-label="Открыть Pro подписку"
         >
-          Открыть Pro
+          <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+          <span>Открыть Pro</span>
+          <ArrowRight
+            className="h-3 w-3 transition-transform group-active:translate-x-0.5"
+            strokeWidth={2.75}
+          />
         </button>
       </div>
     </div>
   );
 }
 
-/** Banner-дің нақты биіктігі (safe-area + 36px). Padding есептеу үшін қолданылады. */
+/** Banner-дің нақты биіктігі (safe-area + 40px). Padding есептеу үшін қолданылады. */
 export const DEMO_BANNER_OFFSET_CSS =
-  "calc(env(safe-area-inset-top, 0px) + 36px)";
+  "calc(env(safe-area-inset-top, 0px) + 40px)";
