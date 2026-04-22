@@ -24,8 +24,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     disabled: isMainTab,
   });
 
-  // DemoBanner mobile + free-планда көрінеді → main-ге top padding керек
-  const showDemoBanner = isMobile && isFreePlan;
+  // DemoBanner — strictly mobile + free + non-native (web only).
+  // Must match DemoBanner internal visibility 1:1 to avoid padding/banner desync.
+  const showDemoBanner = isMobile && isFreePlan && !isNativePlatform;
 
   return (
     <div className="relative flex h-[100dvh] w-full overflow-hidden bg-background-subtle text-foreground">
