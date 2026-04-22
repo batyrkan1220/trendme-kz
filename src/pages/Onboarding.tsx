@@ -160,14 +160,9 @@ export default function Onboarding() {
   if (preparing) {
     const Icon = PREPARING_STEPS[prepStep].icon;
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background gradient-mesh p-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-dots opacity-60 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_75%)] pointer-events-none" />
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
         <div className="w-full max-w-sm space-y-8 text-center relative">
           <div className="relative mx-auto w-20 h-20">
-            <div
-              className="absolute inset-0 rounded-3xl bg-viral/40 blur-2xl animate-pulse"
-              style={{ animationDuration: "2.4s" }}
-            />
             <div className="relative flex items-center justify-center w-20 h-20 rounded-3xl bg-card border border-border shadow-card">
               <Icon className="h-9 w-9 text-foreground animate-scale-in" key={prepStep} />
             </div>
