@@ -19,7 +19,7 @@ const EMAIL_SUBJECTS: Record<string, string | ((d: any) => string)> = {
   signup: (d: any) => d?.token ? `Ваш код подтверждения: ${d.token}` : 'Подтвердите email — trendme',
   invite: "You've been invited",
   magiclink: 'Your login link',
-  recovery: 'Сброс пароля — trendme',
+  recovery: (d: any) => d?.token ? `Код для сброса пароля: ${d.token}` : 'Сброс пароля — trendme',
   email_change: 'Confirm your new email',
   reauthentication: 'Your verification code',
 }
