@@ -27,6 +27,7 @@ import { useFreeCredits } from "@/hooks/useFreeCredits";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 /**
  * /trends — simplified Light Premium page.
