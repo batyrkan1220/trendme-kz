@@ -2015,6 +2015,25 @@ function TrendsManagementTab() {
     }
   };
 
+  const handleStop = async () => {
+    if (!lastLog?.id) return;
+    const { error } = await supabase
+      .from("trend_refresh_logs")
+      .update({
+        status: "failed",
+        finished_at: new Date().toISOString(),
+        error_message: "Остановлено вручную администратором",
+      })
+      .eq("id", lastLog.id)
+      .eq("status", "running");
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Refresh остановлен");
+      queryClient.invalidateQueries({ queryKey: ["ig-trends-last-log"] });
+    }
+  };
+
   return (
     <div className="space-y-4 max-w-2xl">
       <Card className="border-primary/30">
@@ -2081,6 +2100,18 @@ function TrendsManagementTab() {
             )}
             {isBusy ? "Обновляем..." : "🔄 Обновить тренды"}
           </Button>
+
+          {lastLog?.status === "running" && (
+            <Button
+              onClick={handleStop}
+              variant="outline"
+              className="w-full gap-2 border-red-500/40 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+              size="lg"
+            >
+              <X className="h-4 w-4" />
+              Остановить refresh
+            </Button>
+          )}
 
           <p className="text-xs text-muted-foreground leading-relaxed">
             Опрашивает курированный список вирусных Instagram-аккаунтов через EnsembleData,
