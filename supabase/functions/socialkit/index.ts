@@ -1382,6 +1382,79 @@ ${contextParts.join("\n\n")}`;
       case "get_play_url": {
         let video_url = body.video_url;
         if (!video_url) return json({ error: "video_url is required" }, 400);
+
+        // ===== Instagram branch =====
+        const igMatch = String(video_url).match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
+        if (igMatch) {
+          const shortcode = igMatch[1];
+
+          // 1. DB cache
+          const { data: cachedIg } = await adminClient
+            .from("videos")
+            .select("play_url, play_url_fetched_at")
+            .eq("platform", "instagram")
+            .eq("shortcode", shortcode)
+            .maybeSingle();
+
+          if (cachedIg?.play_url && cachedIg?.play_url_fetched_at) {
+            const age = Date.now() - new Date(cachedIg.play_url_fetched_at).getTime();
+            if (age < 2 * 60 * 60 * 1000) {
+              console.log("get_play_url: IG DB cache hit for", shortcode);
+              return json({ play_url: cachedIg.play_url, cached: true });
+            }
+          }
+
+          // 2. Fetch from EnsembleData (Instagram post details)
+          let igPlayUrl: string | null = null;
+          try {
+            const data = await callEnsemble("/instagram/post/details", { code: shortcode });
+            await logApiUsage("get_play_url", 1, { video_url, platform: "instagram" });
+
+            const root = data?.data || data;
+            const item = root?.items?.[0] || root?.media || root;
+
+            // Instagram Reels: video_versions array sorted by quality
+            const videoVersions =
+              item?.video_versions ||
+              item?.video_dash_manifest_versions ||
+              item?.carousel_media?.[0]?.video_versions ||
+              [];
+
+            if (Array.isArray(videoVersions) && videoVersions.length > 0) {
+              // Pick highest-quality (largest width)
+              const sorted = [...videoVersions].sort(
+                (a: any, b: any) => (Number(b?.width) || 0) - (Number(a?.width) || 0),
+              );
+              igPlayUrl = sorted[0]?.url || null;
+            }
+
+            // Fallback fields
+            if (!igPlayUrl) {
+              igPlayUrl =
+                item?.video_url ||
+                item?.video?.url ||
+                item?.playable_url ||
+                null;
+            }
+
+            // 3. Save to DB
+            if (igPlayUrl) {
+              adminClient
+                .from("videos")
+                .update({ play_url: igPlayUrl, play_url_fetched_at: new Date().toISOString() })
+                .eq("platform", "instagram")
+                .eq("shortcode", shortcode)
+                .then(() => {})
+                .catch(() => {});
+            }
+          } catch (e) {
+            console.error("get_play_url IG error:", (e as Error).message);
+          }
+
+          return json({ play_url: igPlayUrl });
+        }
+
+        // ===== TikTok branch (existing) =====
         if (!validateTikTokUrl(video_url)) return json({ error: "Invalid TikTok URL" }, 400);
         video_url = await resolveShortUrl(video_url);
 
