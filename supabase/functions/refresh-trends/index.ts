@@ -108,20 +108,40 @@ async function getCachedUserId(
   return (data as any)?.user_id ?? null;
 }
 
+async function fetchWithRetry(
+  url: string,
+  attempts = 3,
+  baseDelay = 400,
+): Promise<Response | null> {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 12_000);
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (res.ok) return res;
+      // Retry only on 5xx / 429
+      if (res.status < 500 && res.status !== 429) return res;
+      console.warn(`retry ${i + 1}/${attempts} -> ${res.status}`);
+    } catch (e) {
+      console.warn(`retry ${i + 1}/${attempts} net`, (e as Error).message);
+    }
+    await new Promise((r) => setTimeout(r, baseDelay * Math.pow(2, i)));
+  }
+  return null;
+}
+
 async function resolveUserId(
   supabase: ReturnType<typeof createClient>,
   username: string,
 ): Promise<string | null> {
   let userId = await getCachedUserId(supabase, username);
   if (userId) return userId;
+  const res = await fetchWithRetry(
+    `${EDA}/instagram/user/info?username=${encodeURIComponent(username)}&token=${TOKEN}`,
+  );
+  if (!res || !res.ok) return null;
   try {
-    const res = await fetch(
-      `${EDA}/instagram/user/info?username=${encodeURIComponent(username)}&token=${TOKEN}`,
-    );
-    if (!res.ok) {
-      console.warn(`user/info ${username} -> ${res.status}`);
-      return null;
-    }
     const json = await res.json();
     const pk = json?.data?.pk ?? json?.data?.user?.pk ?? json?.data?.id ?? null;
     if (!pk) return null;
@@ -131,26 +151,44 @@ async function resolveUserId(
       .upsert({ username, user_id: userId, resolved_at: new Date().toISOString() });
     return userId;
   } catch (e) {
-    console.error(`resolve ${username}`, e);
+    console.error(`resolve parse ${username}`, e);
     return null;
   }
 }
 
 async function fetchReels(userId: string): Promise<any[]> {
+  const res = await fetchWithRetry(
+    `${EDA}/instagram/user/reels?user_id=${userId}&depth=1&chunk_size=10&include_feed_video=true&token=${TOKEN}`,
+  );
+  if (!res || !res.ok) return [];
   try {
-    const res = await fetch(
-      `${EDA}/instagram/user/reels?user_id=${userId}&depth=1&chunk_size=10&include_feed_video=true&token=${TOKEN}`,
-    );
-    if (!res.ok) {
-      console.warn(`user/reels ${userId} -> ${res.status}`);
-      return [];
-    }
     const json = await res.json();
     return json?.data?.reels ?? [];
   } catch (e) {
-    console.error(`fetchReels ${userId}`, e);
+    console.error(`fetchReels parse ${userId}`, e);
     return [];
   }
+}
+
+// Process items in parallel chunks. Errors per item are swallowed so one
+// failure doesn't abort the whole batch.
+async function processInChunks<T, R>(
+  items: T[],
+  chunkSize: number,
+  worker: (item: T) => Promise<R | null>,
+): Promise<(R | null)[]> {
+  const out: (R | null)[] = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const slice = items.slice(i, i + chunkSize);
+    const results = await Promise.all(
+      slice.map((it) => worker(it).catch((e) => {
+        console.error("chunk worker error", e);
+        return null;
+      })),
+    );
+    out.push(...results);
+  }
+  return out;
 }
 
 Deno.serve(async (req) => {
@@ -204,22 +242,33 @@ Deno.serve(async (req) => {
   logId = (logRow as any)?.id ?? null;
 
   // Background job — return 202 immediately so Edge runtime doesn't time out at 150s.
+  // Strategy: process accounts in parallel chunks of 5 (with retries baked in),
+  // then upsert videos in batches of 25 so partial progress is preserved.
+  const ACCOUNT_CHUNK = 5;
+  const INSERT_BATCH = 25;
+
   const runJob = async () => {
     try {
-      const allReels: any[] = [];
-      for (const username of VIRAL_ACCOUNTS) {
-        const userId = await resolveUserId(adminClient, username);
-        if (!userId) continue;
-        const reels = await fetchReels(userId);
-        allReels.push(...reels);
-      }
+      // 1) Fetch reels for all accounts in parallel chunks
+      const reelLists = await processInChunks(
+        VIRAL_ACCOUNTS,
+        ACCOUNT_CHUNK,
+        async (username) => {
+          const userId = await resolveUserId(adminClient, username);
+          if (!userId) return [] as any[];
+          return await fetchReels(userId);
+        },
+      );
+      const allReels = reelLists.flat().filter(Boolean) as any[];
 
+      // 2) Dedupe by shortcode
       const unique = new Map<string, any>();
       for (const r of allReels) {
         const code = r?.media?.code ?? r?.code;
         if (code && !unique.has(code)) unique.set(code, r);
       }
 
+      // 3) Map + filter + score + sort + cap
       const videos = [...unique.values()]
         .map(mapReel)
         .filter((v): v is MappedVideo => v !== null && v.view_count >= MIN_VIEWS)
@@ -227,15 +276,26 @@ Deno.serve(async (req) => {
         .sort((a, b) => b.viral_score - a.viral_score)
         .slice(0, MAX_VIDEOS);
 
+      // 4) Replace previous trend rows
       await adminClient
         .from("videos")
         .delete()
         .eq("source", "trends")
         .eq("platform", "instagram");
 
-      if (videos.length > 0) {
-        const { error: insErr } = await adminClient.from("videos").insert(videos);
-        if (insErr) throw insErr;
+      // 5) Insert in batches so a transient error doesn't lose everything
+      let inserted = 0;
+      for (let i = 0; i < videos.length; i += INSERT_BATCH) {
+        const batch = videos.slice(i, i + INSERT_BATCH);
+        let attempt = 0;
+        while (attempt < 3) {
+          const { error: insErr } = await adminClient.from("videos").insert(batch);
+          if (!insErr) { inserted += batch.length; break; }
+          attempt++;
+          console.warn(`insert batch retry ${attempt}/3`, insErr.message);
+          await new Promise((r) => setTimeout(r, 500 * attempt));
+          if (attempt === 3) console.error("insert batch failed permanently", insErr);
+        }
       }
 
       if (logId) {
@@ -244,11 +304,13 @@ Deno.serve(async (req) => {
           .update({
             status: "completed",
             finished_at: new Date().toISOString(),
-            total_saved: videos.length,
-            general_saved: videos.length,
+            total_saved: inserted,
+            general_saved: inserted,
             niche_stats: {
               accounts_polled: VIRAL_ACCOUNTS.length,
               raw_reels: allReels.length,
+              chunk_size: ACCOUNT_CHUNK,
+              insert_batch: INSERT_BATCH,
             },
           })
           .eq("id", logId);
