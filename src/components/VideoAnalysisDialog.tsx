@@ -213,6 +213,20 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                     <div className="w-full h-full flex items-center justify-center bg-black">
                       <Loader2 className="h-8 w-8 text-white animate-spin" />
                     </div>
+                  ) : playUrl === "instagram_embed" ? (
+                    <iframe
+                      src={`https://www.instagram.com/reel/${video.platform_video_id}/embed/`}
+                      className="w-full h-full border-0"
+                      allow="autoplay; encrypted-media"
+                      allowFullScreen
+                    />
+                  ) : playUrl === "tiktok_embed_fallback" ? (
+                    <iframe
+                      src={`https://www.tiktok.com/player/v1/${video.platform_video_id}?music_info=1&description=0&muted=0&play_button=1&volume_control=1`}
+                      className="w-full h-full border-0"
+                      allow="autoplay; encrypted-media; fullscreen"
+                      allowFullScreen
+                    />
                   ) : playUrl ? (
                     <video
                       ref={videoRef}
