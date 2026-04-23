@@ -311,7 +311,6 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     reportBrokenCover(video.id);
   }, [video.id]);
 
-  const isInstagramUrl = (u: string) => /(?:instagram\.com|instagr\.am)/i.test(u);
   const extractInstagramShortcode = (u: string): string | null => {
     const m = u.match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
     return m ? m[1] : null;
@@ -324,12 +323,6 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       return;
     }
     onPlay(video.id);
-
-    // Instagram — use native embed (socialkit/EnsembleData supports TikTok only)
-    if (isInstagramUrl(video.url)) {
-      setPlayUrl("instagram_embed");
-      return;
-    }
 
     // Check global cache first
     const cached = playUrlCache.get(video.url);
@@ -347,17 +340,26 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
     setLoadingPlay(true);
     try {
-      // Use centralized deduped fetch
+      // Use centralized deduped fetch (works for both TikTok and Instagram via EnsembleData)
       const url = await fetchPlayUrlDeduped(video.url);
       if (!url) {
-        console.warn("Play URL unavailable, using TikTok embed fallback");
-        setPlayUrl("tiktok_embed_fallback");
+        // Platform-specific embed fallback
+        if (/instagram\.com|instagr\.am/i.test(video.url)) {
+          setPlayUrl("instagram_embed");
+        } else {
+          console.warn("Play URL unavailable, using TikTok embed fallback");
+          setPlayUrl("tiktok_embed_fallback");
+        }
       } else {
         setPlayUrl(url);
       }
     } catch (e) {
-      console.warn("Play URL fetch error, using TikTok embed fallback:", e);
-      setPlayUrl("tiktok_embed_fallback");
+      console.warn("Play URL fetch error, using embed fallback:", e);
+      if (/instagram\.com|instagr\.am/i.test(video.url)) {
+        setPlayUrl("instagram_embed");
+      } else {
+        setPlayUrl("tiktok_embed_fallback");
+      }
     } finally {
       setLoadingPlay(false);
     }
