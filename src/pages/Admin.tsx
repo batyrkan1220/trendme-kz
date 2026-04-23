@@ -1984,25 +1984,24 @@ function TrendsManagementTab() {
   const handleRefresh = async () => {
     setRunning(true);
     try {
-      const session = (await supabase.auth.getSession()).data.session;
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/refresh-trends`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session?.access_token ?? ""}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-      const json = await res.json();
-      if (!res.ok || !json.ok) {
-        toast.error(json.error || "Ошибка обновления трендов");
+      const { data, error } = await supabase.functions.invoke("refresh-trends", {
+        body: {},
+      });
+
+      if (error || !data?.ok) {
+        toast.error(data?.error || error?.message || "Ошибка обновления трендов");
       } else {
-        toast.success(`Обновлено: ${json.count} видео из ${json.raw} собранных`);
+        toast.success(`Обновлено: ${data.count} видео из ${data.raw} собранных`);
       }
     } catch (e: any) {
+      toast.error(e?.message || "Сетевая ошибка");
+    } finally {
+      setRunning(false);
+      queryClient.invalidateQueries({ queryKey: ["ig-trends-count"] });
+      queryClient.invalidateQueries({ queryKey: ["ig-trends-last-log"] });
+      queryClient.invalidateQueries({ queryKey: ["ig-trends"] });
+    }
+  };
       toast.error(e?.message || "Сетевая ошибка");
     } finally {
       setRunning(false);
