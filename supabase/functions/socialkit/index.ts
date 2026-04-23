@@ -915,22 +915,27 @@ Deno.serve(async (req: Request) => {
         // 2. Use Lovable AI to generate structured analysis
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        const caption = cleanForPrompt(body.caption || statsCaption || "", 500);
+        const caption = cleanForPrompt(body.caption || statsCaption || igCaption || "", 500);
         const analysisLang = body.language === "kk" ? "kk" : "ru";
 
-        const videoTitle = cleanForPrompt(statsCaption || body.caption || "", 500);
-        const videoDuration = skStats?.data?.duration || "";
+        const videoTitle = cleanForPrompt(statsCaption || igCaption || body.caption || "", 500);
+        const videoDuration = skStats?.data?.duration || igDuration || "";
+
+        // Merge: prefer SocialKit (TikTok), fallback to Instagram EnsembleData
+        const finalStats = videoStats.views ? videoStats : igStats;
+        const finalComments = topCommentsText || igCommentsText;
 
         // Build context for AI from all available data
         const contextParts: string[] = [];
+        if (isInstagram) contextParts.push(`Платформа: Instagram Reels`);
         if (videoTitle) contextParts.push(`Название/описание: ${videoTitle}`);
         if (videoDuration) contextParts.push(`Длительность: ${videoDuration}`);
-        if (videoStats.views) {
-          contextParts.push(`Статистика: ${videoStats.views} просмотров, ${videoStats.likes} лайков, ${videoStats.comments} комментариев, ${videoStats.shares} репостов`);
+        if (finalStats?.views) {
+          contextParts.push(`Статистика: ${finalStats.views} просмотров, ${finalStats.likes} лайков, ${finalStats.comments} комментариев, ${finalStats.shares || 0} репостов`);
         }
-        if (topCommentsText) contextParts.push(`Топ комментарии:\n${topCommentsText.slice(0, 2000)}`);
+        if (finalComments) contextParts.push(`Топ комментарии:\n${finalComments.slice(0, 2000)}`);
         if (transcriptText) contextParts.push(`Транскрипт (речь из видео):\n${transcriptText.slice(0, 5000)}`);
-        contextParts.push(`Надежность источника речи: ${transcriptText.length >= 120 ? "высокая" : "низкая"}`);
+        contextParts.push(`Надежность источника речи: ${transcriptText.length >= 120 ? "высокая" : (isInstagram ? "нет транскрипта (Instagram) — опирайся на caption и комментарии" : "низкая")}`);
 
         const hasContent = contextParts.length > 0;
 
