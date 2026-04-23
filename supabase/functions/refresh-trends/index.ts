@@ -159,17 +159,28 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
   const startedAt = new Date().toISOString();
   let logId: string | null = null;
 
   // Admin gating via JWT
   try {
-    const auth = req.headers.get("Authorization") ?? "";
-    const token = auth.replace(/^Bearer\s+/i, "");
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.toLowerCase().startsWith("bearer ")) {
+      throw new Error("missing bearer");
+    }
+    const token = authHeader.slice(7).trim();
     if (!token) throw new Error("missing token");
-    const { data: claims } = await supabase.auth.getClaims(token);
-    const uid = claims?.claims?.sub;
-    if (!uid) throw new Error("no uid");
+
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      console.error("getClaims failed", claimsErr);
+      throw new Error("invalid token");
+    }
+    const uid = claimsData.claims.sub;
     const { data: roleRow } = await supabase
       .from("user_roles")
       .select("role")
@@ -182,7 +193,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-  } catch (_e) {
+  } catch (e) {
+    console.error("auth gate failed", e);
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
