@@ -1,6 +1,6 @@
 // Instagram-only viral trends refresh via EnsembleData.
 // Strategy: curated accounts -> cache username->user_id -> fetch reels -> dedupe -> score -> top 50.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { VIRAL_ACCOUNTS, MAX_VIDEOS, MIN_VIEWS } from "./config.ts";
 
 const corsHeaders = {
@@ -158,43 +158,38 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
-  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const adminClient = createClient(SUPABASE_URL, SERVICE_KEY);
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const startedAt = new Date().toISOString();
   let logId: string | null = null;
+  let callerId: string | null = null;
 
-  // Admin gating via JWT
   try {
-    const authHeader = req.headers.get("Authorization") ?? "";
-    if (!authHeader.toLowerCase().startsWith("bearer ")) {
-      throw new Error("missing bearer");
-    }
-    const token = authHeader.slice(7).trim();
-    if (!token) throw new Error("missing token");
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Unauthorized");
 
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+    const userClient = createClient(SUPABASE_URL, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      console.error("getClaims failed", claimsErr);
-      throw new Error("invalid token");
-    }
-    const uid = claimsData.claims.sub;
-    const { data: roleRow } = await supabase
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) throw new Error("Unauthorized");
+    callerId = claimsData.claims.sub as string;
+
+    const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
-      .eq("user_id", uid)
+      .eq("user_id", callerId)
       .eq("role", "admin")
       .maybeSingle();
-    if (!roleRow) {
+    if (!roleData) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
   } catch (e) {
-    console.error("auth gate failed", e);
+    console.error("refresh-trends auth failed", e);
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -202,9 +197,9 @@ Deno.serve(async (req) => {
   }
 
   // Log start
-  const { data: logRow } = await supabase
+  const { data: logRow } = await adminClient
     .from("trend_refresh_logs")
-    .insert({ status: "running", mode: "ig-viral", started_at: startedAt })
+    .insert({ status: "running", mode: "ig-viral", started_at: startedAt, triggered_by: callerId })
     .select()
     .single();
   logId = (logRow as any)?.id ?? null;
@@ -212,7 +207,7 @@ Deno.serve(async (req) => {
   try {
     const allReels: any[] = [];
     for (const username of VIRAL_ACCOUNTS) {
-      const userId = await resolveUserId(supabase, username);
+      const userId = await resolveUserId(adminClient, username);
       if (!userId) continue;
       const reels = await fetchReels(userId);
       allReels.push(...reels);
@@ -234,19 +229,19 @@ Deno.serve(async (req) => {
       .slice(0, MAX_VIDEOS);
 
     // Replace trend rows
-    await supabase
+    await adminClient
       .from("videos")
       .delete()
       .eq("source", "trends")
       .eq("platform", "instagram");
 
     if (videos.length > 0) {
-      const { error: insErr } = await supabase.from("videos").insert(videos);
+      const { error: insErr } = await adminClient.from("videos").insert(videos);
       if (insErr) throw insErr;
     }
 
     if (logId) {
-      await supabase
+      await adminClient
         .from("trend_refresh_logs")
         .update({
           status: "completed",
@@ -274,7 +269,7 @@ Deno.serve(async (req) => {
   } catch (e: any) {
     console.error("refresh-trends error", e);
     if (logId) {
-      await supabase
+      await adminClient
         .from("trend_refresh_logs")
         .update({
           status: "failed",
