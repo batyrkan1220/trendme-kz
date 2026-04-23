@@ -123,18 +123,11 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
     setLoadingPlay(true);
     try {
-      // Use the shared deduped fetch from VideoCard to avoid duplicate API calls
-      const { fetchPlayUrlDeduped } = await import("./VideoCard");
-      const url = await fetchPlayUrlDeduped(video.url);
-      if (!url) {
-        console.error("Failed to get play URL");
-        setPlayUrl(null);
-      } else {
-        setPlayUrl(url);
-      }
-    } catch (e) {
-      console.error("Play URL fetch error:", e);
-      setPlayUrl(null);
+      // Unified playback layer — same path as VideoCard / FullscreenVideoPlayer.
+      // Always returns either a direct URL or an embed sentinel.
+      const { resolvePlayback } = await import("@/lib/api/videoPlayback");
+      const { value } = await resolvePlayback(video.url);
+      setPlayUrl(value);
     } finally {
       setLoadingPlay(false);
     }
