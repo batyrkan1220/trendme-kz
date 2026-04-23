@@ -8,6 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FullscreenVideoPlayer } from "@/components/FullscreenVideoPlayer";
 import { ReportContentDialog } from "@/components/ReportContentDialog";
+import {
+  fetchPlayUrlDeduped as _fetchPlayUrlDeduped,
+  resolvePlayback,
+  getCachedPlayUrl,
+  setCachedPlayUrl,
+  TIKTOK_EMBED_FALLBACK,
+  INSTAGRAM_EMBED,
+} from "@/lib/api/videoPlayback";
+
+// Re-export so existing call sites `import { fetchPlayUrlDeduped } from "./VideoCard"` keep working.
+export const fetchPlayUrlDeduped = _fetchPlayUrlDeduped;
 
 /** Persistent play URL cache — survives page reloads on native mobile */
 const PLAY_CACHE_KEY = "playUrlCache";
