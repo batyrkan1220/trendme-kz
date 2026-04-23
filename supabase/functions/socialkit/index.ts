@@ -781,20 +781,70 @@ Deno.serve(async (req: Request) => {
         const fallbackVideoId = String(body.platform_video_id || "").trim();
         const fallbackUsername = normalizeTikTokUsername(body.author_username || "");
 
-        if ((!video_url || !validateTikTokUrl(video_url)) && fallbackVideoId) {
+        // Detect Instagram URL
+        const igMatch = video_url.match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
+        const isInstagram = !!igMatch;
+        const igShortcode = igMatch ? igMatch[1] : null;
+
+        if (!isInstagram && (!video_url || !validateTikTokUrl(video_url)) && fallbackVideoId) {
           const builtUrl = buildFallbackVideoUrl(fallbackVideoId, fallbackUsername);
           if (builtUrl) video_url = builtUrl;
         }
 
-        const isValidVideoUrl = !!video_url && validateTikTokUrl(video_url);
+        const isValidVideoUrl = !isInstagram && !!video_url && validateTikTokUrl(video_url);
         if (isValidVideoUrl) {
           video_url = await resolveShortUrl(video_url);
-        } else {
+        } else if (!isInstagram) {
           console.warn("analyze_video: invalid or missing TikTok URL, using caption-only fallback");
         }
 
         const awemeId = (isValidVideoUrl ? extractAwemeId(video_url) : null) || fallbackVideoId || null;
-        console.log("analyze_video: resolved URL =", video_url || "[missing]", "awemeId =", awemeId);
+        console.log("analyze_video: resolved URL =", video_url || "[missing]", "platform =", isInstagram ? "instagram" : "tiktok", "awemeId =", awemeId, "igShortcode =", igShortcode);
+
+        // === Instagram analysis path: fetch post details + comments via EnsembleData ===
+        let igStats: any = {};
+        let igCaption = "";
+        let igCommentsText = "";
+        let igDuration = "";
+        let igEnsembleCalls = 0;
+        if (isInstagram && igShortcode) {
+          try {
+            const [detailsRes, commentsRes] = await Promise.allSettled([
+              callEnsemble("/instagram/post/details", { code: igShortcode }),
+              callEnsemble("/instagram/post/comments", { code: igShortcode }),
+            ]);
+
+            if (detailsRes.status === "fulfilled") {
+              igEnsembleCalls += 1;
+              const d = detailsRes.value?.data || detailsRes.value || {};
+              igCaption = String(d?.caption?.text || d?.caption || "").trim();
+              igStats = {
+                views: Number(d?.play_count || d?.video_play_count || d?.view_count || 0),
+                likes: Number(d?.like_count || 0),
+                comments: Number(d?.comment_count || 0),
+                shares: 0,
+              };
+              igDuration = d?.video_duration ? `${Math.round(Number(d.video_duration))} сек` : "";
+            } else {
+              console.error("IG details failed:", detailsRes.reason);
+            }
+
+            if (commentsRes.status === "fulfilled") {
+              igEnsembleCalls += 1;
+              const c = commentsRes.value?.data || commentsRes.value || {};
+              const list = Array.isArray(c?.comments) ? c.comments : (Array.isArray(c) ? c : []);
+              igCommentsText = list
+                .slice(0, 15)
+                .map((x: any) => String(x?.text || x?.comment || "").trim())
+                .filter(Boolean)
+                .join("\n");
+            } else {
+              console.error("IG comments failed:", commentsRes.reason);
+            }
+          } catch (e) {
+            console.error("IG analyze fetch error:", e);
+          }
+        }
 
         const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY") || "";
 
