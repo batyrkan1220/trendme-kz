@@ -203,86 +203,87 @@ Deno.serve(async (req) => {
     .single();
   logId = (logRow as any)?.id ?? null;
 
-  try {
-    const allReels: any[] = [];
-    for (const username of VIRAL_ACCOUNTS) {
-      const userId = await resolveUserId(adminClient, username);
-      if (!userId) continue;
-      const reels = await fetchReels(userId);
-      allReels.push(...reels);
-    }
+  // Background job — return 202 immediately so Edge runtime doesn't time out at 150s.
+  const runJob = async () => {
+    try {
+      const allReels: any[] = [];
+      for (const username of VIRAL_ACCOUNTS) {
+        const userId = await resolveUserId(adminClient, username);
+        if (!userId) continue;
+        const reels = await fetchReels(userId);
+        allReels.push(...reels);
+      }
 
-    // Dedupe by shortcode
-    const unique = new Map<string, any>();
-    for (const r of allReels) {
-      const code = r?.media?.code ?? r?.code;
-      if (code && !unique.has(code)) unique.set(code, r);
-    }
+      const unique = new Map<string, any>();
+      for (const r of allReels) {
+        const code = r?.media?.code ?? r?.code;
+        if (code && !unique.has(code)) unique.set(code, r);
+      }
 
-    // Map + filter + score + sort + cap
-    const videos = [...unique.values()]
-      .map(mapReel)
-      .filter((v): v is MappedVideo => v !== null && v.view_count >= MIN_VIEWS)
-      .map((v) => ({ ...v, viral_score: calcViralScore(v) }))
-      .sort((a, b) => b.viral_score - a.viral_score)
-      .slice(0, MAX_VIDEOS);
+      const videos = [...unique.values()]
+        .map(mapReel)
+        .filter((v): v is MappedVideo => v !== null && v.view_count >= MIN_VIEWS)
+        .map((v) => ({ ...v, viral_score: calcViralScore(v) }))
+        .sort((a, b) => b.viral_score - a.viral_score)
+        .slice(0, MAX_VIDEOS);
 
-    // Replace trend rows
-    await adminClient
-      .from("videos")
-      .delete()
-      .eq("source", "trends")
-      .eq("platform", "instagram");
-
-    if (videos.length > 0) {
-      const { error: insErr } = await adminClient.from("videos").insert(videos);
-      if (insErr) throw insErr;
-    }
-
-    if (logId) {
       await adminClient
-        .from("trend_refresh_logs")
-        .update({
-          status: "completed",
-          finished_at: new Date().toISOString(),
-          total_saved: videos.length,
-          general_saved: videos.length,
-          niche_stats: {
-            accounts_polled: VIRAL_ACCOUNTS.length,
-            raw_reels: allReels.length,
-          },
-        })
-        .eq("id", logId);
-    }
+        .from("videos")
+        .delete()
+        .eq("source", "trends")
+        .eq("platform", "instagram");
 
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        count: videos.length,
-        accounts: VIRAL_ACCOUNTS.length,
-        raw: allReels.length,
-        updated_at: new Date().toISOString(),
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  } catch (e: any) {
-    console.error("refresh-trends error", e);
-    if (logId) {
-      await adminClient
-        .from("trend_refresh_logs")
-        .update({
-          status: "failed",
-          finished_at: new Date().toISOString(),
-          error_message: String(e?.message ?? e),
-        })
-        .eq("id", logId);
+      if (videos.length > 0) {
+        const { error: insErr } = await adminClient.from("videos").insert(videos);
+        if (insErr) throw insErr;
+      }
+
+      if (logId) {
+        await adminClient
+          .from("trend_refresh_logs")
+          .update({
+            status: "completed",
+            finished_at: new Date().toISOString(),
+            total_saved: videos.length,
+            general_saved: videos.length,
+            niche_stats: {
+              accounts_polled: VIRAL_ACCOUNTS.length,
+              raw_reels: allReels.length,
+            },
+          })
+          .eq("id", logId);
+      }
+    } catch (e: any) {
+      console.error("refresh-trends background error", e);
+      if (logId) {
+        await adminClient
+          .from("trend_refresh_logs")
+          .update({
+            status: "failed",
+            finished_at: new Date().toISOString(),
+            error_message: String(e?.message ?? e),
+          })
+          .eq("id", logId);
+      }
     }
-    return new Response(
-      JSON.stringify({ ok: false, error: String(e?.message ?? e) }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+  };
+
+  // @ts-ignore — EdgeRuntime exists in Supabase Edge runtime
+  if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) {
+    // @ts-ignore
+    EdgeRuntime.waitUntil(runJob());
+  } else {
+    runJob();
   }
+
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      queued: true,
+      log_id: logId,
+      accounts: VIRAL_ACCOUNTS.length,
+      message: "Запущено в фоне — обновлено будет через 1–3 минуты",
+    }),
+    { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
 });
