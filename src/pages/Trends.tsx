@@ -1,56 +1,68 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
-import { TrendingUp, WifiOff, Eye, Heart, MessageCircle, X, ExternalLink, BadgeCheck, Instagram } from "lucide-react";
-import { trackPlausible } from "@/components/TrackingPixels";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { TrendingUp, WifiOff, Instagram } from "lucide-react";
+import { trackPlausible, trackAddToFavorites } from "@/components/TrackingPixels";
 import { useOnlineStatus, saveTrendsCache, loadTrendsCache } from "@/hooks/useOfflineCache";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsFreePlan } from "@/hooks/useIsFreePlan";
+import { MemoVideoCard, VideoCardData } from "@/components/VideoCard";
+import { VideoAnalysisDialog } from "@/components/VideoAnalysisDialog";
+import { ScriptOnlyDialog } from "@/components/ScriptOnlyDialog";
+import { LockedVideoOverlay } from "@/components/trends/LockedVideoOverlay";
+
+const FREE_TRENDS_VISIBLE = 5;
 
 interface TrendVideo {
   id: string;
   shortcode: string | null;
   url: string;
+  platform_video_id: string | null;
   author_username: string | null;
   full_name: string | null;
   profile_pic_url: string | null;
+  author_avatar_url: string | null;
   is_verified: boolean | null;
   caption: string | null;
   thumbnail_url: string | null;
+  cover_url: string | null;
   view_count: number | null;
   like_count: number | null;
   comment_count: number | null;
   posted_at: string | null;
+  published_at: string | null;
   viral_score: number | null;
+  duration_sec: number | null;
+  velocity_views: number | null;
 }
-
-const formatNum = (n: number | null | undefined): string => {
-  const v = Number(n ?? 0);
-  if (v >= 1_000_000) return (v / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
-  if (v >= 1_000) return (v / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
-  return String(v);
-};
 
 export default function Trends() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isOnline = useOnlineStatus();
-  const [openVideo, setOpenVideo] = useState<TrendVideo | null>(null);
+  const { user } = useAuth();
+  const { isFreePlan } = useIsFreePlan();
+
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [analysisVideo, setAnalysisVideo] = useState<any>(null);
+  const [scriptVideo, setScriptVideo] = useState<any>(null);
 
   useEffect(() => {
     trackPlausible("Trends Viewed");
   }, []);
 
-  const { data: videos = [], isLoading } = useQuery<TrendVideo[]>({
+  const { data: videos = [] } = useQuery<TrendVideo[]>({
     queryKey: ["ig-trends"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("videos")
         .select(
-          "id, shortcode, url, author_username, full_name, profile_pic_url, is_verified, caption, thumbnail_url, view_count, like_count, comment_count, posted_at, viral_score",
+          "id, shortcode, url, platform_video_id, author_username, full_name, profile_pic_url, author_avatar_url, is_verified, caption, thumbnail_url, cover_url, view_count, like_count, comment_count, posted_at, published_at, viral_score, duration_sec, velocity_views",
         )
         .eq("source", "trends")
         .eq("platform", "instagram")
@@ -73,6 +85,33 @@ export default function Trends() {
   }, [videos]);
 
   const effectiveVideos = isOnline && videos.length > 0 ? videos : cachedVideos;
+
+  const { data: userFavorites = [] } = useQuery({
+    queryKey: ["user-favorites", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("favorites")
+        .select("video_id")
+        .eq("user_id", user!.id);
+      return data?.map((f) => f.video_id) || [];
+    },
+    enabled: !!user,
+  });
+
+  const toggleFav = useCallback(async (videoId: string) => {
+    if (!user) return;
+    const isFav = userFavorites.includes(videoId);
+    if (isFav) {
+      await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+      trackPlausible("Favorite Removed", { source: "trends" });
+    } else {
+      await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+      trackAddToFavorites(videoId);
+      trackPlausible("Favorite Added", { source: "trends" });
+    }
+    queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
+    queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
+  }, [user, userFavorites, queryClient]);
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["ig-trends"] });
@@ -114,122 +153,70 @@ export default function Trends() {
 
         {effectiveVideos.length > 0 && (
           <div className="px-4 md:px-6 lg:px-8 pb-10">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {effectiveVideos.map((v) => (
-                <TrendCard key={v.id} video={v} onOpen={() => setOpenVideo(v)} />
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4">
+              {effectiveVideos.map((v, i) => {
+                const cardData: VideoCardData = {
+                  id: v.id,
+                  platform_video_id: v.platform_video_id ?? v.shortcode ?? v.id,
+                  url: v.url,
+                  cover_url: v.cover_url ?? v.thumbnail_url ?? null,
+                  caption: v.caption,
+                  author_username: v.author_username,
+                  author_avatar_url: v.author_avatar_url ?? v.profile_pic_url ?? null,
+                  views: Number(v.view_count) || 0,
+                  likes: Number(v.like_count) || 0,
+                  comments: Number(v.comment_count) || 0,
+                  shares: 0,
+                  velocity_views: Number(v.velocity_views) || 0,
+                  published_at: v.published_at ?? v.posted_at,
+                  duration: Number(v.duration_sec) || 0,
+                };
+
+                const isLocked = isFreePlan && i >= FREE_TRENDS_VISIBLE;
+
+                return (
+                  <div
+                    key={v.id}
+                    className={cn(
+                      "relative",
+                      isLocked && "group/lock cursor-pointer rounded-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-glow-viral"
+                    )}
+                    onClick={isLocked ? () => navigate("/subscription") : undefined}
+                  >
+                    <div className={isLocked ? "pointer-events-none select-none" : ""}>
+                      <MemoVideoCard
+                        video={cardData}
+                        playingId={playingId}
+                        onPlay={setPlayingId}
+                        isFavorite={userFavorites.includes(v.id)}
+                        onToggleFav={toggleFav}
+                        onAnalyze={() => setAnalysisVideo(v)}
+                        onScript={() => setScriptVideo(v)}
+                        showTier={true}
+                        showAuthor={true}
+                        showAnalyzeButton={!isLocked}
+                        showScriptButton={!isLocked}
+                      />
+                    </div>
+                    {isLocked && <LockedVideoOverlay />}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
       </div>
 
-      {openVideo && (
-        <ReelModal video={openVideo} onClose={() => setOpenVideo(null)} />
-      )}
+      <VideoAnalysisDialog
+        video={analysisVideo}
+        open={!!analysisVideo}
+        onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
+      />
+      <ScriptOnlyDialog
+        video={scriptVideo}
+        open={!!scriptVideo}
+        onOpenChange={(open) => { if (!open) setScriptVideo(null); }}
+      />
     </AppLayout>
-  );
-}
-
-function TrendCard({ video, onOpen }: { video: TrendVideo; onOpen: () => void }) {
-  return (
-    <button
-      onClick={onOpen}
-      className="group relative aspect-[9/16] rounded-xl overflow-hidden bg-card border border-border/50 text-left transition-all hover:scale-[1.02] hover:border-primary/40 hover:shadow-glow-viral active:scale-[0.99]"
-    >
-      {video.thumbnail_url ? (
-        <img
-          src={video.thumbnail_url}
-          alt={video.caption ?? video.author_username ?? ""}
-          className="absolute inset-0 w-full h-full object-cover"
-          loading="lazy"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = "none";
-          }}
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
-          <Instagram className="h-8 w-8 text-muted-foreground/30" />
-        </div>
-      )}
-
-      {/* IG badge */}
-      <div className="absolute top-2 right-2 h-6 w-6 rounded-md bg-background/80 backdrop-blur-md flex items-center justify-center">
-        <Instagram className="h-3.5 w-3.5 text-foreground" />
-      </div>
-
-      {/* Bottom gradient overlay */}
-      <div className="absolute inset-x-0 bottom-0 p-2.5 pt-8 bg-gradient-to-t from-black/85 via-black/50 to-transparent">
-        <div className="flex items-center gap-1 mb-1.5 min-w-0">
-          <span className="text-white text-[12px] font-semibold truncate">
-            @{video.author_username ?? "unknown"}
-          </span>
-          {video.is_verified && (
-            <BadgeCheck className="h-3 w-3 text-[#3b9eff] shrink-0 fill-[#3b9eff] stroke-white" />
-          )}
-        </div>
-        <div className="flex items-center gap-2.5 text-white/90 text-[11px] tabular-nums">
-          <span className="flex items-center gap-0.5">
-            <Eye className="h-3 w-3" /> {formatNum(video.view_count)}
-          </span>
-          <span className="flex items-center gap-0.5">
-            <Heart className="h-3 w-3" /> {formatNum(video.like_count)}
-          </span>
-          <span className="flex items-center gap-0.5">
-            <MessageCircle className="h-3 w-3" /> {formatNum(video.comment_count)}
-          </span>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function ReelModal({ video, onClose }: { video: TrendVideo; onClose: () => void }) {
-  const embedUrl = video.shortcode
-    ? `https://www.instagram.com/reel/${video.shortcode}/embed/`
-    : null;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-fade-in"
-      onClick={onClose}
-    >
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-colors"
-        aria-label="Закрыть"
-      >
-        <X className="h-5 w-5 text-white" />
-      </button>
-
-      <div
-        className="relative w-full max-w-md aspect-[9/16] bg-black rounded-xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {embedUrl ? (
-          <iframe
-            src={embedUrl}
-            className="w-full h-full border-0"
-            allow="encrypted-media;"
-            allowFullScreen
-            title={video.caption ?? "Instagram reel"}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-white">
-            <p>Видео недоступно</p>
-          </div>
-        )}
-      </div>
-
-      <a
-        href={video.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-white/90 transition-colors"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ExternalLink className="h-4 w-4" />
-        Открыть в Instagram
-      </a>
-    </div>
   );
 }
