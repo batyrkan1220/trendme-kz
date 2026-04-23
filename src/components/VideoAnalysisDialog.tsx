@@ -3,7 +3,6 @@ import { trackViewContent } from "@/components/TrackingPixels";
 import { Eye, Heart, MessageCircle, Share2, ExternalLink, Clock, Loader2, Sparkles, X, Target, Copy, Play } from "lucide-react";
 import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -11,6 +10,7 @@ import { isNativePlatform } from "@/lib/native";
 
 import { hapticSuccess } from "@/lib/haptics";
 import { VideoAnalysisResults } from "./VideoAnalysisResults";
+import { analyzeVideo, type NormalizedAnalysis } from "@/lib/api/videoAnalysis";
 
 interface VideoData {
   id: string;
@@ -62,21 +62,21 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
-  const { data: analysis, isPending, mutate: analyze, reset } = useMutation({
-    mutationFn: async ({ v, lang }: { v: VideoData; lang: "ru" | "kk" }) => {
-      const { data, error } = await supabase.functions.invoke("socialkit", {
-        body: {
-          action: "analyze_video",
-          video_url: v.url,
-          platform_video_id: v.platform_video_id,
-          author_username: v.author_username || "",
-          caption: v.caption || "",
-          language: lang,
-        },
-      });
-      if (error) throw error;
-      return data;
-    },
+  // Single source of truth: always go through the unified analyzeVideo() API layer.
+  // Same call shape for TikTok and Instagram — platform is detected server-side.
+  const { data: analysis, isPending, mutate: analyze, reset } = useMutation<
+    NormalizedAnalysis,
+    Error,
+    { v: VideoData; lang: "ru" | "kk" }
+  >({
+    mutationFn: ({ v, lang }) =>
+      analyzeVideo({
+        url: v.url,
+        platform_video_id: v.platform_video_id,
+        author_username: v.author_username,
+        caption: v.caption,
+        language: lang,
+      }),
     onSuccess: () => {
       setAnalysisError(null);
       hapticSuccess();
@@ -152,24 +152,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     ? new Date(video.published_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
     : "";
 
-  // Parse summary_json
-  const rawSummary = analysis?.summary_json;
-  const summary = typeof rawSummary === "string"
-    ? (() => { try { return JSON.parse(rawSummary); } catch { return null; } })()
-    : rawSummary;
-
-  // Parse transcript
-  let transcript = analysis?.transcript_text || "";
-  if (typeof transcript !== "string") {
-    try { transcript = JSON.stringify(transcript); } catch { transcript = ""; }
-  }
-  // Clean up transcript if it's still JSON-like
-  if (transcript.startsWith("{") || transcript.startsWith("[")) {
-    try {
-      const parsed = JSON.parse(transcript);
-      transcript = parsed?.transcript || parsed?.text || parsed?.data?.transcript || transcript;
-    } catch { /* keep as is */ }
-  }
+  // Already normalized by analyzeVideo() — no per-platform parsing here.
+  const summary = analysis?.summary ?? null;
+  const transcript = analysis?.transcript ?? "";
 
   const isUnknownValue = (value: unknown) => {
     if (typeof value !== "string") return false;
