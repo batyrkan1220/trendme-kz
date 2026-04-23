@@ -112,32 +112,15 @@ export default function Trends() {
           </p>
         </div>
 
-        <div className="px-4 md:px-6 lg:px-8 pb-10">
-          {isLoading && effectiveVideos.length === 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="aspect-[9/16] rounded-xl bg-card/50 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : effectiveVideos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <TrendingUp className="h-10 w-10 text-muted-foreground/40 mb-3" />
-              <p className="text-base font-medium mb-1">Тренды пока пустые</p>
-              <p className="text-sm text-muted-foreground">
-                Администратор скоро обновит ленту
-              </p>
-            </div>
-          ) : (
+        {effectiveVideos.length > 0 && (
+          <div className="px-4 md:px-6 lg:px-8 pb-10">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {effectiveVideos.map((v) => (
                 <TrendCard key={v.id} video={v} onOpen={() => setOpenVideo(v)} />
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {openVideo && (
