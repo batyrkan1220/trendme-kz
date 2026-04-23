@@ -108,20 +108,40 @@ async function getCachedUserId(
   return (data as any)?.user_id ?? null;
 }
 
+async function fetchWithRetry(
+  url: string,
+  attempts = 3,
+  baseDelay = 400,
+): Promise<Response | null> {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 12_000);
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (res.ok) return res;
+      // Retry only on 5xx / 429
+      if (res.status < 500 && res.status !== 429) return res;
+      console.warn(`retry ${i + 1}/${attempts} -> ${res.status}`);
+    } catch (e) {
+      console.warn(`retry ${i + 1}/${attempts} net`, (e as Error).message);
+    }
+    await new Promise((r) => setTimeout(r, baseDelay * Math.pow(2, i)));
+  }
+  return null;
+}
+
 async function resolveUserId(
   supabase: ReturnType<typeof createClient>,
   username: string,
 ): Promise<string | null> {
   let userId = await getCachedUserId(supabase, username);
   if (userId) return userId;
+  const res = await fetchWithRetry(
+    `${EDA}/instagram/user/info?username=${encodeURIComponent(username)}&token=${TOKEN}`,
+  );
+  if (!res || !res.ok) return null;
   try {
-    const res = await fetch(
-      `${EDA}/instagram/user/info?username=${encodeURIComponent(username)}&token=${TOKEN}`,
-    );
-    if (!res.ok) {
-      console.warn(`user/info ${username} -> ${res.status}`);
-      return null;
-    }
     const json = await res.json();
     const pk = json?.data?.pk ?? json?.data?.user?.pk ?? json?.data?.id ?? null;
     if (!pk) return null;
@@ -131,26 +151,44 @@ async function resolveUserId(
       .upsert({ username, user_id: userId, resolved_at: new Date().toISOString() });
     return userId;
   } catch (e) {
-    console.error(`resolve ${username}`, e);
+    console.error(`resolve parse ${username}`, e);
     return null;
   }
 }
 
 async function fetchReels(userId: string): Promise<any[]> {
+  const res = await fetchWithRetry(
+    `${EDA}/instagram/user/reels?user_id=${userId}&depth=1&chunk_size=10&include_feed_video=true&token=${TOKEN}`,
+  );
+  if (!res || !res.ok) return [];
   try {
-    const res = await fetch(
-      `${EDA}/instagram/user/reels?user_id=${userId}&depth=1&chunk_size=10&include_feed_video=true&token=${TOKEN}`,
-    );
-    if (!res.ok) {
-      console.warn(`user/reels ${userId} -> ${res.status}`);
-      return [];
-    }
     const json = await res.json();
     return json?.data?.reels ?? [];
   } catch (e) {
-    console.error(`fetchReels ${userId}`, e);
+    console.error(`fetchReels parse ${userId}`, e);
     return [];
   }
+}
+
+// Process items in parallel chunks. Errors per item are swallowed so one
+// failure doesn't abort the whole batch.
+async function processInChunks<T, R>(
+  items: T[],
+  chunkSize: number,
+  worker: (item: T) => Promise<R | null>,
+): Promise<(R | null)[]> {
+  const out: (R | null)[] = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const slice = items.slice(i, i + chunkSize);
+    const results = await Promise.all(
+      slice.map((it) => worker(it).catch((e) => {
+        console.error("chunk worker error", e);
+        return null;
+      })),
+    );
+    out.push(...results);
+  }
+  return out;
 }
 
 Deno.serve(async (req) => {
