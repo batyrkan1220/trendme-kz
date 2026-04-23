@@ -229,19 +229,19 @@ Deno.serve(async (req) => {
       .slice(0, MAX_VIDEOS);
 
     // Replace trend rows
-    await supabase
+    await adminClient
       .from("videos")
       .delete()
       .eq("source", "trends")
       .eq("platform", "instagram");
 
     if (videos.length > 0) {
-      const { error: insErr } = await supabase.from("videos").insert(videos);
+      const { error: insErr } = await adminClient.from("videos").insert(videos);
       if (insErr) throw insErr;
     }
 
     if (logId) {
-      await supabase
+      await adminClient
         .from("trend_refresh_logs")
         .update({
           status: "completed",
@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
   } catch (e: any) {
     console.error("refresh-trends error", e);
     if (logId) {
-      await supabase
+      await adminClient
         .from("trend_refresh_logs")
         .update({
           status: "failed",
