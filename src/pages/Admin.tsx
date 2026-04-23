@@ -1975,6 +1975,16 @@ function TrendsManagementTab() {
     refetchInterval: 5000,
   });
 
+  const startedAtMs = lastLog?.started_at ? new Date(lastLog.started_at).getTime() : null;
+  const isStaleRunning = !!(
+    lastLog?.status === "running" &&
+    startedAtMs &&
+    Date.now() - startedAtMs > 5 * 60 * 1000
+  );
+  const isBusy = running || (lastLog?.status === "running" && !isStaleRunning);
+  const progressAccounts = Number((lastLog as any)?.niche_stats?.processed_accounts ?? 0);
+  const totalAccounts = Number((lastLog as any)?.niche_stats?.accounts_polled ?? 38);
+
   const lastRefreshLabel = lastLog?.finished_at
     ? format(new Date(lastLog.finished_at), "dd MMM yyyy, HH:mm")
     : lastLog?.started_at
@@ -2045,18 +2055,31 @@ function TrendsManagementTab() {
             </div>
           )}
 
+          {lastLog?.status === "running" && (
+            <div className="rounded-md border border-border/50 bg-muted/20 p-3 text-xs text-muted-foreground space-y-1.5">
+              <div>
+                Обработано аккаунтов: <span className="font-semibold text-foreground">{progressAccounts}/{totalAccounts}</span>
+              </div>
+              {isStaleRunning && (
+                <div className="text-red-500">
+                  Похоже, прошлый запуск завис — можно безопасно запустить refresh ещё раз.
+                </div>
+              )}
+            </div>
+          )}
+
           <Button
             onClick={handleRefresh}
-            disabled={running || lastLog?.status === "running"}
+            disabled={isBusy}
             className="w-full gap-2"
             size="lg"
           >
-            {running || lastLog?.status === "running" ? (
+            {isBusy ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            {running ? "Обновляем..." : "🔄 Обновить тренды"}
+            {isBusy ? "Обновляем..." : "🔄 Обновить тренды"}
           </Button>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
