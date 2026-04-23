@@ -1990,6 +1990,8 @@ function TrendsManagementTab() {
 
       if (error || !data?.ok) {
         toast.error(data?.error || error?.message || "Ошибка обновления трендов");
+      } else if (data?.queued) {
+        toast.success("Запущено в фоне — результат через 1–3 минуты");
       } else {
         toast.success(`Обновлено: ${data.count} видео из ${data.raw} собранных`);
       }
