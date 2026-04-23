@@ -2002,14 +2002,6 @@ function TrendsManagementTab() {
       queryClient.invalidateQueries({ queryKey: ["ig-trends"] });
     }
   };
-      toast.error(e?.message || "Сетевая ошибка");
-    } finally {
-      setRunning(false);
-      queryClient.invalidateQueries({ queryKey: ["ig-trends-count"] });
-      queryClient.invalidateQueries({ queryKey: ["ig-trends-last-log"] });
-      queryClient.invalidateQueries({ queryKey: ["ig-trends"] });
-    }
-  };
 
   return (
     <div className="space-y-4 max-w-2xl">
