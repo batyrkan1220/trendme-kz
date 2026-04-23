@@ -281,6 +281,30 @@ export function FullscreenVideoPlayer({
             allowFullScreen
             scrolling="no"
           />
+        ) : playUrl === "instagram_embed" ? (
+          (() => {
+            const m = video.url.match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
+            const sc = m ? m[1] : video.platform_video_id;
+            return sc ? (
+              <iframe
+                src={`https://www.instagram.com/reel/${sc}/embed/`}
+                className="w-full h-full border-0"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                scrolling="no"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <p className="text-white/50 text-xs">Видео недоступно</p>
+                <button
+                  onClick={() => window.open(video.url, '_blank')}
+                  className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium"
+                >
+                  Открыть в Instagram
+                </button>
+              </div>
+            );
+          })()
         ) : !loading && !playUrl ? (
           <div className="flex flex-col items-center gap-3">
             <p className="text-white/50 text-xs">Видео недоступно</p>
