@@ -311,6 +311,12 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     reportBrokenCover(video.id);
   }, [video.id]);
 
+  const isInstagramUrl = (u: string) => /(?:instagram\.com|instagr\.am)/i.test(u);
+  const extractInstagramShortcode = (u: string): string | null => {
+    const m = u.match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
+    return m ? m[1] : null;
+  };
+
   const handlePlay = async () => {
     if (playingId === video.id) {
       onPlay(null);
@@ -318,6 +324,12 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
       return;
     }
     onPlay(video.id);
+
+    // Instagram — use native embed (socialkit/EnsembleData supports TikTok only)
+    if (isInstagramUrl(video.url)) {
+      setPlayUrl("instagram_embed");
+      return;
+    }
 
     // Check global cache first
     const cached = playUrlCache.get(video.url);
