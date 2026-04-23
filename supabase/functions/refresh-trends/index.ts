@@ -191,6 +191,119 @@ async function processInChunks<T, R>(
   return out;
 }
 
+const INTERNAL_HEADER = "x-refresh-internal";
+const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/refresh-trends`;
+const ACCOUNT_CHUNK = 3;
+const INSERT_BATCH = 25;
+const MAX_CANDIDATES = Math.max(MAX_VIDEOS * 2, 100);
+
+type RefreshBody = {
+  logId?: string;
+  offset?: number;
+};
+
+type RefreshStats = {
+  accounts_polled?: number;
+  chunk_size?: number;
+  insert_batch?: number;
+  processed_accounts?: number;
+  raw_reels?: number;
+  last_offset?: number;
+  candidates?: MappedVideo[];
+};
+
+function parseBody(body: unknown): RefreshBody {
+  if (!body || typeof body !== "object") return {};
+  const raw = body as Record<string, unknown>;
+  return {
+    logId: typeof raw.logId === "string" ? raw.logId : undefined,
+    offset: Number.isFinite(Number(raw.offset)) ? Math.max(0, Number(raw.offset)) : 0,
+  };
+}
+
+function dedupeRankedVideos(videos: MappedVideo[], limit: number): MappedVideo[] {
+  const unique = new Map<string, MappedVideo>();
+  for (const video of videos) {
+    const key = video.shortcode || video.url || video.platform_video_id;
+    const existing = unique.get(key);
+    if (!existing || video.viral_score > existing.viral_score) {
+      unique.set(key, video);
+    }
+  }
+
+  return [...unique.values()]
+    .sort((a, b) => b.viral_score - a.viral_score)
+    .slice(0, limit);
+}
+
+async function scheduleNextChunk(logId: string, offset: number): Promise<void> {
+  const res = await fetch(FUNCTION_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      [INTERNAL_HEADER]: SERVICE_KEY,
+    },
+    body: JSON.stringify({ logId, offset }),
+  });
+
+  if (!res.ok) {
+    const message = await res.text();
+    throw new Error(`Failed to queue chunk ${offset}: ${res.status} ${message}`);
+  }
+}
+
+async function finalizeRefresh(
+  adminClient: ReturnType<typeof createClient>,
+  logId: string,
+  stats: RefreshStats,
+): Promise<number> {
+  const videos = dedupeRankedVideos(stats.candidates ?? [], MAX_VIDEOS);
+
+  await adminClient
+    .from("videos")
+    .delete()
+    .eq("source", "trends")
+    .eq("platform", "instagram");
+
+  let inserted = 0;
+  for (let i = 0; i < videos.length; i += INSERT_BATCH) {
+    const batch = videos.slice(i, i + INSERT_BATCH);
+    let attempt = 0;
+    while (attempt < 3) {
+      const { error: insErr } = await adminClient.from("videos").insert(batch);
+      if (!insErr) {
+        inserted += batch.length;
+        break;
+      }
+      attempt++;
+      console.warn(`insert batch retry ${attempt}/3`, insErr.message);
+      await new Promise((r) => setTimeout(r, 500 * attempt));
+      if (attempt === 3) {
+        throw new Error(`Insert batch failed: ${insErr.message}`);
+      }
+    }
+  }
+
+  await adminClient
+    .from("trend_refresh_logs")
+    .update({
+      status: "completed",
+      finished_at: new Date().toISOString(),
+      total_saved: inserted,
+      general_saved: inserted,
+      niche_stats: {
+        accounts_polled: stats.accounts_polled ?? VIRAL_ACCOUNTS.length,
+        processed_accounts: stats.processed_accounts ?? VIRAL_ACCOUNTS.length,
+        raw_reels: stats.raw_reels ?? 0,
+        chunk_size: stats.chunk_size ?? ACCOUNT_CHUNK,
+        insert_batch: stats.insert_batch ?? INSERT_BATCH,
+      },
+    })
+    .eq("id", logId);
+
+  return inserted;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -198,8 +311,117 @@ Deno.serve(async (req) => {
 
   const adminClient = createClient(SUPABASE_URL, SERVICE_KEY);
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const startedAt = new Date().toISOString();
-  let logId: string | null = null;
+  const isInternal = req.headers.get(INTERNAL_HEADER) === SERVICE_KEY;
+  const body = parseBody(await req.json().catch(() => ({})));
+
+  if (isInternal) {
+    const logId = body.logId;
+    const offset = body.offset ?? 0;
+
+    if (!logId) {
+      return new Response(JSON.stringify({ error: "missing_log_id" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      const { data: logRow } = await adminClient
+        .from("trend_refresh_logs")
+        .select("id, status, niche_stats")
+        .eq("id", logId)
+        .maybeSingle();
+
+      if (!logRow || logRow.status !== "running") {
+        return new Response(JSON.stringify({ ok: false, skipped: true }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const existingStats = ((logRow as any).niche_stats ?? {}) as RefreshStats;
+      const batchAccounts = VIRAL_ACCOUNTS.slice(offset, offset + ACCOUNT_CHUNK);
+
+      console.info(`refresh-trends chunk start offset=${offset} size=${batchAccounts.length}`);
+
+      const reelLists = await processInChunks(
+        batchAccounts,
+        batchAccounts.length || 1,
+        async (username) => {
+          const userId = await resolveUserId(adminClient, username);
+          if (!userId) return [] as any[];
+          return await fetchReels(userId);
+        },
+      );
+
+      const allReels = reelLists.flat().filter(Boolean) as any[];
+      const mappedBatch = allReels
+        .map(mapReel)
+        .filter((v): v is MappedVideo => v !== null && v.view_count >= MIN_VIEWS)
+        .map((v) => ({ ...v, viral_score: calcViralScore(v) }));
+
+      const mergedCandidates = dedupeRankedVideos(
+        [...(existingStats.candidates ?? []), ...mappedBatch],
+        MAX_CANDIDATES,
+      );
+
+      const processedAccounts = Math.min(offset + batchAccounts.length, VIRAL_ACCOUNTS.length);
+      const updatedStats: RefreshStats = {
+        accounts_polled: VIRAL_ACCOUNTS.length,
+        chunk_size: ACCOUNT_CHUNK,
+        insert_batch: INSERT_BATCH,
+        processed_accounts: processedAccounts,
+        raw_reels: Number(existingStats.raw_reels ?? 0) + allReels.length,
+        last_offset: offset,
+        candidates: mergedCandidates,
+      };
+
+      await adminClient
+        .from("trend_refresh_logs")
+        .update({ niche_stats: updatedStats })
+        .eq("id", logId);
+
+      const nextOffset = offset + ACCOUNT_CHUNK;
+      if (nextOffset < VIRAL_ACCOUNTS.length) {
+        // @ts-ignore
+        if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) {
+          // @ts-ignore
+          EdgeRuntime.waitUntil(scheduleNextChunk(logId, nextOffset));
+        } else {
+          scheduleNextChunk(logId, nextOffset);
+        }
+
+        return new Response(JSON.stringify({ ok: true, queued: true, log_id: logId, next_offset: nextOffset }), {
+          status: 202,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const inserted = await finalizeRefresh(adminClient, logId, updatedStats);
+      console.info(`refresh-trends completed log_id=${logId} inserted=${inserted}`);
+
+      return new Response(JSON.stringify({ ok: true, completed: true, inserted, log_id: logId }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (e: any) {
+      console.error("refresh-trends chunk error", e);
+      await adminClient
+        .from("trend_refresh_logs")
+        .update({
+          status: "failed",
+          finished_at: new Date().toISOString(),
+          error_message: String(e?.message ?? e),
+        })
+        .eq("id", logId);
+
+      return new Response(JSON.stringify({ error: String(e?.message ?? e) }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   let callerId: string | null = null;
 
   try {
@@ -233,109 +455,40 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Log start
-  const { data: logRow } = await adminClient
+  const { data: logRow, error: logError } = await adminClient
     .from("trend_refresh_logs")
-    .insert({ status: "running", mode: "ig-viral", started_at: startedAt, triggered_by: callerId })
+    .insert({
+      status: "running",
+      mode: "ig-viral",
+      started_at: new Date().toISOString(),
+      triggered_by: callerId,
+      niche_stats: {
+        accounts_polled: VIRAL_ACCOUNTS.length,
+        chunk_size: ACCOUNT_CHUNK,
+        insert_batch: INSERT_BATCH,
+        processed_accounts: 0,
+        raw_reels: 0,
+        candidates: [],
+      },
+    })
     .select()
     .single();
-  logId = (logRow as any)?.id ?? null;
 
-  // Background job — return 202 immediately so Edge runtime doesn't time out at 150s.
-  // Strategy: process accounts in parallel chunks of 5 (with retries baked in),
-  // then upsert videos in batches of 25 so partial progress is preserved.
-  const ACCOUNT_CHUNK = 5;
-  const INSERT_BATCH = 25;
+  if (logError || !(logRow as any)?.id) {
+    return new Response(JSON.stringify({ error: logError?.message ?? "log_create_failed" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
-  const runJob = async () => {
-    try {
-      // 1) Fetch reels for all accounts in parallel chunks
-      const reelLists = await processInChunks(
-        VIRAL_ACCOUNTS,
-        ACCOUNT_CHUNK,
-        async (username) => {
-          const userId = await resolveUserId(adminClient, username);
-          if (!userId) return [] as any[];
-          return await fetchReels(userId);
-        },
-      );
-      const allReels = reelLists.flat().filter(Boolean) as any[];
+  const logId = (logRow as any).id as string;
 
-      // 2) Dedupe by shortcode
-      const unique = new Map<string, any>();
-      for (const r of allReels) {
-        const code = r?.media?.code ?? r?.code;
-        if (code && !unique.has(code)) unique.set(code, r);
-      }
-
-      // 3) Map + filter + score + sort + cap
-      const videos = [...unique.values()]
-        .map(mapReel)
-        .filter((v): v is MappedVideo => v !== null && v.view_count >= MIN_VIEWS)
-        .map((v) => ({ ...v, viral_score: calcViralScore(v) }))
-        .sort((a, b) => b.viral_score - a.viral_score)
-        .slice(0, MAX_VIDEOS);
-
-      // 4) Replace previous trend rows
-      await adminClient
-        .from("videos")
-        .delete()
-        .eq("source", "trends")
-        .eq("platform", "instagram");
-
-      // 5) Insert in batches so a transient error doesn't lose everything
-      let inserted = 0;
-      for (let i = 0; i < videos.length; i += INSERT_BATCH) {
-        const batch = videos.slice(i, i + INSERT_BATCH);
-        let attempt = 0;
-        while (attempt < 3) {
-          const { error: insErr } = await adminClient.from("videos").insert(batch);
-          if (!insErr) { inserted += batch.length; break; }
-          attempt++;
-          console.warn(`insert batch retry ${attempt}/3`, insErr.message);
-          await new Promise((r) => setTimeout(r, 500 * attempt));
-          if (attempt === 3) console.error("insert batch failed permanently", insErr);
-        }
-      }
-
-      if (logId) {
-        await adminClient
-          .from("trend_refresh_logs")
-          .update({
-            status: "completed",
-            finished_at: new Date().toISOString(),
-            total_saved: inserted,
-            general_saved: inserted,
-            niche_stats: {
-              accounts_polled: VIRAL_ACCOUNTS.length,
-              raw_reels: allReels.length,
-              chunk_size: ACCOUNT_CHUNK,
-              insert_batch: INSERT_BATCH,
-            },
-          })
-          .eq("id", logId);
-      }
-    } catch (e: any) {
-      console.error("refresh-trends background error", e);
-      if (logId) {
-        await adminClient
-          .from("trend_refresh_logs")
-          .update({
-            status: "failed",
-            finished_at: new Date().toISOString(),
-            error_message: String(e?.message ?? e),
-          })
-          .eq("id", logId);
-      }
-    }
-  };
-
-  // @ts-ignore — EdgeRuntime exists in Supabase Edge runtime
+  // @ts-ignore
   if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) {
     // @ts-ignore
-    EdgeRuntime.waitUntil(runJob());
+    EdgeRuntime.waitUntil(scheduleNextChunk(logId, 0));
   } else {
-    runJob();
+    scheduleNextChunk(logId, 0);
   }
 
   return new Response(
@@ -344,7 +497,7 @@ Deno.serve(async (req) => {
       queued: true,
       log_id: logId,
       accounts: VIRAL_ACCOUNTS.length,
-      message: "Запущено в фоне — обновлено будет через 1–3 минуты",
+      message: "Запущено по чанкам — обновление будет готово через 1–3 минуты",
     }),
     { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
   );
