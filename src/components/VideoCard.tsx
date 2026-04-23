@@ -458,38 +458,65 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
               </div>
             )}
 
-            {/* Top bar — HOT/TOP pill (left) + favorite (right) */}
+            {/* Top bar — tier pill + platform badge (left) + favorite (right) */}
             <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-2.5 z-20 gap-2">
-              {tier ? (() => {
-                const TierIcon = tierConfig[tier].icon;
-                const showVel = velViews >= 500 && tier === "strong";
-                return (
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1 pl-1.5 pr-1.5 sm:pr-2 py-[3px] rounded-full text-[9px] sm:text-[10px] font-bold tracking-wide shadow-soft max-w-[calc(100%-40px)]",
-                      tierConfig[tier].className,
-                      tier === "strong" && "animate-viral-pulse",
-                    )}
-                  >
-                    <TierIcon className={cn("h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0", tierConfig[tier].iconClassName)} strokeWidth={2.5} />
-                    <span className="leading-none truncate">{tierConfig[tier].label}</span>
-                    {showVel && (
-                      <>
-                        <span className="opacity-30 hidden sm:inline">·</span>
-                        <span className="opacity-80 font-semibold tabular-nums hidden sm:inline">
-                          {fmt(Math.round(velViews))}/ч
-                        </span>
-                      </>
-                    )}
-                  </span>
-                );
-              })() : <span />}
+              <div className="flex items-center gap-1.5 min-w-0">
+                {tier ? (() => {
+                  const TierIcon = tierConfig[tier].icon;
+                  const showVel = velViews >= 500 && tier === "strong";
+                  return (
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 pl-1.5 pr-1.5 sm:pr-2 py-[3px] rounded-full text-[9px] sm:text-[10px] font-bold tracking-wide shadow-soft max-w-[calc(100%-40px)]",
+                        tierConfig[tier].className,
+                        tier === "strong" && "animate-viral-pulse",
+                      )}
+                    >
+                      <TierIcon className={cn("h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0", tierConfig[tier].iconClassName)} strokeWidth={2.5} />
+                      <span className="leading-none truncate">{tierConfig[tier].label}</span>
+                      {showVel && (
+                        <>
+                          <span className="opacity-30 hidden sm:inline">·</span>
+                          <span className="opacity-80 font-semibold tabular-nums hidden sm:inline">
+                            {fmt(Math.round(velViews))}/ч
+                          </span>
+                        </>
+                      )}
+                    </span>
+                  );
+                })() : null}
+
+                {(() => {
+                  const platform = detectVideoPlatform(video.url);
+                  if (platform === "unknown") return null;
+                  const isTikTok = platform === "tiktok";
+                  return (
+                    <span
+                      className="inline-flex items-center gap-1 px-1.5 py-[3px] rounded-full bg-black/55 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-semibold tracking-wide shadow-soft shrink-0"
+                      aria-label={isTikTok ? "TikTok" : "Instagram Reels"}
+                    >
+                      {isTikTok ? (
+                        <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="currentColor" aria-hidden>
+                          <path d="M19.6 6.7a5.3 5.3 0 0 1-3.2-1.1 5.3 5.3 0 0 1-2-3.6h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V8.7a5.7 5.7 0 1 0 4.9 5.6V9.1a8.4 8.4 0 0 0 5.2 1.8V7.7a5.3 5.3 0 0 1 0-1z" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                          <rect x="3" y="3" width="18" height="18" rx="5" />
+                          <circle cx="12" cy="12" r="4" />
+                          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                        </svg>
+                      )}
+                      <span className="leading-none">{isTikTok ? "TikTok" : "Reels"}</span>
+                    </span>
+                  );
+                })()}
+              </div>
 
               <button
                 type="button"
                 onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFav(video.id); }}
-                className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-2xl ring-1 ring-white/25 flex items-center justify-center shadow-soft active:scale-90 transition-all hover:bg-white/25"
+                className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-2xl ring-1 ring-white/25 flex items-center justify-center shadow-soft active:scale-90 transition-all hover:bg-white/25 shrink-0"
                 style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
                 aria-label="Избранное"
               >
