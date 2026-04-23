@@ -897,6 +897,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_cache: {
+        Row: {
+          resolved_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          resolved_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          resolved_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1046,93 +1064,123 @@ export type Database = {
           author_display_name: string | null
           author_username: string | null
           caption: string | null
-          categories: string[] | null
+          comment_count: number | null
           comments: number | null
           cover_url: string | null
           created_at: string
           duration_sec: number | null
+          external_id: string | null
           fetched_at: string
+          full_name: string | null
           id: string
+          is_broken: boolean | null
+          is_verified: boolean | null
           lang: string | null
+          like_count: number | null
           likes: number | null
-          niche: string | null
           platform: string
           platform_video_id: string
           play_url: string | null
           play_url_fetched_at: string | null
+          posted_at: string | null
+          profile_pic_url: string | null
           published_at: string | null
           region: string
           shares: number | null
+          shortcode: string | null
+          source: string | null
           source_query_id: string | null
-          sub_niche: string | null
+          thumbnail_url: string | null
           trend_score: number | null
           url: string
           velocity_comments: number | null
           velocity_likes: number | null
           velocity_views: number | null
+          view_count: number | null
           views: number | null
+          viral_score: number | null
         }
         Insert: {
           author_avatar_url?: string | null
           author_display_name?: string | null
           author_username?: string | null
           caption?: string | null
-          categories?: string[] | null
+          comment_count?: number | null
           comments?: number | null
           cover_url?: string | null
           created_at?: string
           duration_sec?: number | null
+          external_id?: string | null
           fetched_at?: string
+          full_name?: string | null
           id?: string
+          is_broken?: boolean | null
+          is_verified?: boolean | null
           lang?: string | null
+          like_count?: number | null
           likes?: number | null
-          niche?: string | null
           platform?: string
           platform_video_id: string
           play_url?: string | null
           play_url_fetched_at?: string | null
+          posted_at?: string | null
+          profile_pic_url?: string | null
           published_at?: string | null
           region?: string
           shares?: number | null
+          shortcode?: string | null
+          source?: string | null
           source_query_id?: string | null
-          sub_niche?: string | null
+          thumbnail_url?: string | null
           trend_score?: number | null
           url: string
           velocity_comments?: number | null
           velocity_likes?: number | null
           velocity_views?: number | null
+          view_count?: number | null
           views?: number | null
+          viral_score?: number | null
         }
         Update: {
           author_avatar_url?: string | null
           author_display_name?: string | null
           author_username?: string | null
           caption?: string | null
-          categories?: string[] | null
+          comment_count?: number | null
           comments?: number | null
           cover_url?: string | null
           created_at?: string
           duration_sec?: number | null
+          external_id?: string | null
           fetched_at?: string
+          full_name?: string | null
           id?: string
+          is_broken?: boolean | null
+          is_verified?: boolean | null
           lang?: string | null
+          like_count?: number | null
           likes?: number | null
-          niche?: string | null
           platform?: string
           platform_video_id?: string
           play_url?: string | null
           play_url_fetched_at?: string | null
+          posted_at?: string | null
+          profile_pic_url?: string | null
           published_at?: string | null
           region?: string
           shares?: number | null
+          shortcode?: string | null
+          source?: string | null
           source_query_id?: string | null
-          sub_niche?: string | null
+          thumbnail_url?: string | null
           trend_score?: number | null
           url?: string
           velocity_comments?: number | null
           velocity_likes?: number | null
           velocity_views?: number | null
+          view_count?: number | null
           views?: number | null
+          viral_score?: number | null
         }
         Relationships: []
       }
