@@ -81,28 +81,8 @@ export function VideoAnalysisResults({
     ? "text-yellow-500 border-yellow-500/30 bg-yellow-500/10"
     : "text-red-500 border-red-500/30 bg-red-500/10";
 
-  const nicheKey: string | null = summary?.niches?.[0] || null;
-  const [bench, setBench] = useState<{ avgViews: number; avgEr: number; count: number } | null>(null);
-  useEffect(() => {
-    if (!nicheKey) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("videos")
-        .select("views, likes, comments, shares")
-        .eq("niche", nicheKey)
-        .gt("views", 0)
-        .order("fetched_at", { ascending: false })
-        .limit(200);
-      if (cancelled || !data || data.length === 0) return;
-      const totalV = data.reduce((a, v: any) => a + Number(v.views || 0), 0);
-      const totalEng = data.reduce((a, v: any) => a + Number(v.likes || 0) + Number(v.comments || 0) + Number(v.shares || 0), 0);
-      const avgViews = totalV / data.length;
-      const avgEr = totalV > 0 ? (totalEng / totalV) * 100 : 0;
-      setBench({ avgViews, avgEr, count: data.length });
-    })();
-    return () => { cancelled = true; };
-  }, [nicheKey]);
+  // Niche benchmark removed: niche column dropped after Instagram-only trends migration.
+  const [bench] = useState<{ avgViews: number; avgEr: number; count: number } | null>(null);
 
   const hookStrength = useMemo(() => {
     if (!transcript) return null;
