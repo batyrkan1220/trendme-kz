@@ -16,6 +16,7 @@ import {
   TIKTOK_EMBED_FALLBACK,
   INSTAGRAM_EMBED,
 } from "@/lib/api/videoPlayback";
+import { detectVideoPlatform } from "@/lib/api/videoAnalysis";
 
 // Re-export so existing call sites `import { fetchPlayUrlDeduped } from "./VideoCard"` keep working.
 export const fetchPlayUrlDeduped = _fetchPlayUrlDeduped;
@@ -547,6 +548,34 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                 <Flag className="h-3 w-3 text-white/80" />
               </button>
             </div>
+
+            {/* Platform badge — top-left */}
+            {(() => {
+              const platform = detectVideoPlatform(video.url);
+              if (platform === "unknown") return null;
+              const isTikTok = platform === "tiktok";
+              return (
+                <div
+                  className="absolute top-2 left-2 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/55 backdrop-blur-md text-white text-[9.5px] font-semibold uppercase tracking-wide shadow-soft"
+                  aria-label={isTikTok ? "TikTok" : "Instagram"}
+                >
+                  {isTikTok ? (
+                    // TikTok glyph
+                    <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="currentColor" aria-hidden>
+                      <path d="M19.6 6.7a5.3 5.3 0 0 1-3.2-1.1 5.3 5.3 0 0 1-2-3.6h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V8.7a5.7 5.7 0 1 0 4.9 5.6V9.1a8.4 8.4 0 0 0 5.2 1.8V7.7a5.3 5.3 0 0 1 0-1z" />
+                    </svg>
+                  ) : (
+                    // Instagram glyph
+                    <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                      <rect x="3" y="3" width="18" height="18" rx="5" />
+                      <circle cx="12" cy="12" r="4" />
+                      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                    </svg>
+                  )}
+                  <span>{isTikTok ? "TikTok" : "Reels"}</span>
+                </div>
+              );
+            })()}
 
             {/* Duration */}
             {video.duration && video.duration > 0 && (
