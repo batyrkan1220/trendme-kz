@@ -1,6 +1,6 @@
 // Instagram-only viral trends refresh via EnsembleData.
 // Strategy: curated accounts -> cache username->user_id -> fetch reels -> dedupe -> score -> top 50.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { VIRAL_ACCOUNTS, MAX_VIDEOS, MIN_VIEWS } from "./config.ts";
 
 const corsHeaders = {
