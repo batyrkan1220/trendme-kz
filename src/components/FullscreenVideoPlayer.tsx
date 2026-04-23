@@ -9,6 +9,12 @@ import { ReportContentDialog } from "./ReportContentDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import {
+  TIKTOK_EMBED_FALLBACK,
+  INSTAGRAM_EMBED,
+  isEmbedSentinel,
+  type PlayValue,
+} from "@/lib/api/videoPlayback";
 interface VideoInfo {
   id: string;
   url: string;

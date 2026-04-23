@@ -334,7 +334,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   <span className="text-white/80 text-[13px] font-medium tracking-tight">Загрузка</span>
                 </div>
               </div>
-            ) : playUrl === "tiktok_embed_fallback" ? (
+            ) : playUrl === TIKTOK_EMBED_FALLBACK ? (
               <div className="w-full h-full bg-black overflow-hidden relative">
                 <iframe
                   src={`https://www.tiktok.com/player/v1/${videoId}?&music_info=0&description=0&rel=0`}
@@ -344,7 +344,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   scrolling="no"
                 />
               </div>
-            ) : playUrl === "instagram_embed" ? (
+            ) : playUrl === INSTAGRAM_EMBED ? (
               (() => {
                 const sc = extractInstagramShortcode(video.url) || video.platform_video_id;
                 return sc ? (
