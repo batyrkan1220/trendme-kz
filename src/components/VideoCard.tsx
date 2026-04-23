@@ -57,46 +57,6 @@ function reportBrokenCover(videoId: string) {
   brokenCoverTimer = setTimeout(flushBrokenCovers, 5000); // 5s debounce
 }
 
-/** Centralized function to fetch play URL with deduplication */
-export async function fetchPlayUrlDeduped(videoUrl: string): Promise<string | null> {
-  // Check memory cache first
-  const cached = playUrlCache.get(videoUrl);
-  if (cached) return cached;
-
-  // Check error cache — skip if recently failed
-  const failedAt = errorCache.get(videoUrl);
-  if (failedAt && Date.now() - failedAt < ERROR_CACHE_TTL) return null;
-
-  // Check if request is already in progress
-  const existing = inFlightRequests.get(videoUrl);
-  if (existing) return existing;
-
-  // Create new request
-  const promise = (async (): Promise<string | null> => {
-    try {
-      const { data } = await supabase.functions.invoke("socialkit", {
-        body: { action: "get_play_url", video_url: videoUrl },
-      });
-      if (data?.play_url) {
-        playUrlCache.set(videoUrl, data.play_url);
-        persistCache();
-        return data.play_url;
-      }
-      // No play_url returned — mark as error
-      errorCache.set(videoUrl, Date.now());
-      return null;
-    } catch {
-      errorCache.set(videoUrl, Date.now());
-      return null;
-    } finally {
-      inFlightRequests.delete(videoUrl);
-    }
-  })();
-
-  inFlightRequests.set(videoUrl, promise);
-  return promise;
-}
-
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
