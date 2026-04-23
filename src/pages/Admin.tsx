@@ -1942,1303 +1942,140 @@ function ChangePlanDialog({
 
 
 
-/* ==================== TRENDS MANAGEMENT TAB (combined) ==================== */
+/* ==================== TRENDS MANAGEMENT TAB (Instagram Viral) ==================== */
 function TrendsManagementTab() {
-  const [section, setSection] = useState<"refresh" | "keywords" | "stats" | "recat">("refresh");
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {[
-          { key: "refresh" as const, label: "Обновление", icon: Play },
-          { key: "keywords" as const, label: "Запросы", icon: Hash },
-          { key: "stats" as const, label: "По категориям", icon: BarChart3 },
-          { key: "recat" as const, label: "Рекатегоризация", icon: Sparkles },
-        ].map(({ key, label, icon: Icon }) => (
-          <Button key={key} variant={section === key ? "default" : "outline"} size="sm" onClick={() => setSection(key)} className="gap-1.5">
-            <Icon className="h-4 w-4" />{label}
-          </Button>
-        ))}
-      </div>
-      {section === "refresh" && <RefreshSection />}
-      {section === "keywords" && <KeywordsSection />}
-      {section === "stats" && <StatsSection />}
-      {section === "recat" && <RecategorizeSection />}
-    </div>
-  );
-}
-
-
-
-
-function RefreshSection() {
   const queryClient = useQueryClient();
-  const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
-  const [selectAll, setSelectAll] = useState(true);
-  const [refreshLangs, setRefreshLangs] = useState<string[]>(["all"]);
-  const [expandedRefreshGroup, setExpandedRefreshGroup] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
 
-  const { data: nicheQueries = {} } = useQuery({
-    queryKey: ["trend-settings", "niche_queries"],
+  const { data: count = 0 } = useQuery({
+    queryKey: ["ig-trends-count"],
     queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
-      return (data?.value as Record<string, string[]>) || {};
-    },
-  });
-
-  const { data: categoryLimits = {} } = useQuery({
-    queryKey: ["trend-settings", "category_limits"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
-      const raw = (data?.value as Record<string, any>) || {};
-      // Normalize: if value is {kk, ru, en} object, sum them; if number, use as-is
-      const normalized: Record<string, number> = {};
-      for (const [k, v] of Object.entries(raw)) {
-        if (typeof v === "number") {
-          normalized[k] = v;
-        } else if (v && typeof v === "object") {
-          const obj = v as Record<string, number | null>;
-          const sum = (obj.kk ?? 0) + (obj.ru ?? 0) + (obj.en ?? 0);
-          normalized[k] = sum > 0 ? sum : 100;
-        }
-      }
-      return normalized;
-    },
-  });
-
-  const { data: videoCounts = {} } = useQuery({
-    queryKey: ["video-counts-by-category"],
-    queryFn: async () => {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      const counts: Record<string, number> = {};
-      let from = 0;
-      const PAGE = 1000;
-      while (true) {
-        const { data, error } = await supabase
-          .from("videos")
-          .select("sub_niche")
-          .gte("published_at", sevenDaysAgo)
-          .not("sub_niche", "is", null)
-          .range(from, from + PAGE - 1);
-        if (error || !data || data.length === 0) break;
-        for (const row of data) {
-          const sn = (row as any).sub_niche as string | null;
-          if (sn) counts[sn] = (counts[sn] || 0) + 1;
-        }
-        if (data.length < PAGE) break;
-        from += PAGE;
-      }
-      return counts;
+      const { count } = await supabase
+        .from("videos")
+        .select("*", { count: "exact", head: true })
+        .eq("source", "trends")
+        .eq("platform", "instagram");
+      return count || 0;
     },
     refetchInterval: 10000,
   });
 
-  // Build sub-niche label map
-  const subNicheLabels: Record<string, string> = {};
-  for (const g of NICHE_GROUPS) for (const s of g.subNiches) subNicheLabels[s.key] = s.label;
-  const allNiches = Object.keys(nicheQueries).sort();
-
-  const { data: totalVideos7d = 0 } = useQuery({
-    queryKey: ["videos-count-7d"],
+  const { data: lastLog } = useQuery({
+    queryKey: ["ig-trends-last-log"],
     queryFn: async () => {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      const { count } = await supabase
-        .from("videos")
-        .select("*", { count: "exact", head: true })
-        .gte("published_at", sevenDaysAgo);
-      return count || 0;
-    },
-    refetchInterval: 30000,
-  });
-
-  const { data: totalVideosAll = 0 } = useQuery({
-    queryKey: ["videos-count-all"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("videos")
-        .select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-    refetchInterval: 30000,
-  });
-
-  const { data: logs = [] } = useQuery({
-    queryKey: ["refresh-logs"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_refresh_logs").select("*").order("started_at", { ascending: false }).limit(20);
-      return data || [];
+      const { data } = await supabase
+        .from("trend_refresh_logs")
+        .select("*")
+        .eq("mode", "ig-viral")
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
     },
     refetchInterval: 5000,
   });
 
-  const isRunning = logs.some((l: any) => l.status === "running");
+  const lastRefreshLabel = lastLog?.finished_at
+    ? format(new Date(lastLog.finished_at), "dd MMM yyyy, HH:mm")
+    : lastLog?.started_at
+    ? `${format(new Date(lastLog.started_at), "dd MMM yyyy, HH:mm")} (в процессе)`
+    : "никогда";
 
-  const toggleNiche = (niche: string) => {
-    setSelectAll(false);
-    setSelectedNiches(prev => prev.includes(niche) ? prev.filter(n => n !== niche) : [...prev, niche]);
-  };
-
-  const toggleRefreshLang = (key: string) => {
-    if (key === "all") {
-      setRefreshLangs(["all"]);
-      return;
-    }
-    setRefreshLangs(prev => {
-      const without = prev.filter(l => l !== "all");
-      if (without.includes(key)) {
-        const next = without.filter(l => l !== key);
-        return next.length === 0 ? ["all"] : next;
-      }
-      return [...without, key];
-    });
-  };
-
-  const triggerRefresh = async () => {
-    const niches = selectAll ? null : selectedNiches;
-    if (!selectAll && selectedNiches.length === 0) {
-      toast.error("Выберите хотя бы одну категорию");
-      return;
-    }
-    const langLabels: Record<string, string> = { all: "все языки", kk: "🇰🇿 қазақша", ru: "🇷🇺 русский", en: "🇬🇧 English" };
-    const label = selectAll ? "все категории" : `${selectedNiches.length} категорий`;
-    const langLabel = refreshLangs.includes("all") ? langLabels.all : refreshLangs.map(l => langLabels[l] || l).join(", ");
-    toast.info(`Обновление запущено: ${label}, ${langLabel}`);
-
-    const langsToRun = refreshLangs.includes("all") ? [null] : [...refreshLangs];
-    // Fire sequentially with delay to avoid superseding each other's logs
-    const fireNext = async (idx: number) => {
-      if (idx >= langsToRun.length) return;
-      const lang = langsToRun[idx];
-      try {
-        await supabase.functions.invoke("refresh-trends", { 
-          body: { 
-            mode: "mass", 
-            ...(niches ? { target_niches: niches } : {}),
-            ...(lang ? { lang } : {}),
-          } 
-        });
-      } catch { /* ignore */ }
-      queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
-      // Wait 3s before firing next language to let first run create its log
-      if (idx + 1 < langsToRun.length) {
-        setTimeout(() => fireNext(idx + 1), 3000);
-      }
-    };
-    fireNext(0);
-    setTimeout(() => queryClient.invalidateQueries({ queryKey: ["refresh-logs"] }), 2000);
-  };
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader><CardTitle className="text-lg">Обновление трендов</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          {/* Category selection */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Button
-                variant={selectAll ? "default" : "outline"}
-                size="sm"
-                onClick={() => { setSelectAll(true); setSelectedNiches([]); }}
-                className="gap-1.5"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Все категории
-              </Button>
-              <Button
-                variant={!selectAll ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectAll(false)}
-                className="gap-1.5"
-              >
-                <Hash className="h-3.5 w-3.5" />
-                Выбрать категории
-              </Button>
-            </div>
-
-            {!selectAll && (
-              <div className="space-y-2">
-                <div className="flex gap-2 flex-wrap">
-                  <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedNiches([...allNiches])}>
-                    Выбрать все
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => {
-                    const unfilled = allNiches.filter(n => (videoCounts[n] || 0) < (categoryLimits[n] || 100));
-                    setSelectedNiches(unfilled);
-                  }}>
-                    Только незаполненные
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedNiches([])}>
-                    Сбросить
-                  </Button>
-                  {selectedNiches.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">{selectedNiches.length} выбрано</Badge>
-                  )}
-                </div>
-                <div className="space-y-1 max-h-[400px] overflow-y-auto">
-                  {NICHE_GROUPS.map((group) => {
-                    const groupSubKeys = group.subNiches.map(s => s.key).filter(k => allNiches.includes(k));
-                    if (groupSubKeys.length === 0) return null;
-                    const isExpanded = expandedRefreshGroup === group.key;
-                    const selectedInGroup = groupSubKeys.filter(k => selectedNiches.includes(k)).length;
-                    const allInGroupSelected = selectedInGroup === groupSubKeys.length;
-                    const someInGroupSelected = selectedInGroup > 0 && !allInGroupSelected;
-                    const groupVideoCount = groupSubKeys.reduce((sum, k) => sum + (videoCounts[k] || 0), 0);
-                    const groupLimit = groupSubKeys.reduce((sum, k) => sum + (categoryLimits[k] || 100), 0);
-
-                    return (
-                      <div key={group.key} className="border border-border/50 rounded-lg overflow-hidden">
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => setExpandedRefreshGroup(isExpanded ? null : group.key)}
-                            className="flex-1 flex items-center gap-2 px-3 py-2 hover:bg-muted/30 transition-colors text-sm"
-                          >
-                            <ChevronRight className={`h-4 w-4 transition-transform shrink-0 ${isExpanded ? "rotate-90" : ""}`} />
-                            <span className="text-base">{group.emoji}</span>
-                            <span className="font-semibold">{group.label}</span>
-                            <span className="text-[10px] text-muted-foreground ml-auto mr-2">
-                              {groupVideoCount}/{groupLimit}
-                            </span>
-                            {someInGroupSelected && <Badge variant="secondary" className="text-[10px] px-1.5">{selectedInGroup}/{groupSubKeys.length}</Badge>}
-                            {allInGroupSelected && <Badge className="text-[10px] px-1.5 bg-primary text-primary-foreground">✓ все</Badge>}
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (allInGroupSelected) {
-                                setSelectedNiches(prev => prev.filter(n => !groupSubKeys.includes(n)));
-                              } else {
-                                setSelectedNiches(prev => [...new Set([...prev, ...groupSubKeys])]);
-                              }
-                            }}
-                            className={`px-3 py-2 text-xs font-medium border-l border-border/50 hover:bg-muted/30 transition-colors ${
-                              allInGroupSelected ? "text-primary" : "text-muted-foreground"
-                            }`}
-                          >
-                            {allInGroupSelected ? "Убрать" : "Все"}
-                          </button>
-                        </div>
-                        {isExpanded && (
-                          <div className="px-3 pb-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                            {group.subNiches.map((sub) => {
-                              if (!allNiches.includes(sub.key)) return null;
-                              const count = videoCounts[sub.key] || 0;
-                              const limit = categoryLimits[sub.key] || 100;
-                              const isFull = count >= limit;
-                              const isSelected = selectedNiches.includes(sub.key);
-                              return (
-                                <button
-                                  key={sub.key}
-                                  onClick={() => toggleNiche(sub.key)}
-                                  className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs border transition-colors ${
-                                    isSelected
-                                      ? "bg-primary text-primary-foreground border-primary"
-                                      : isFull
-                                        ? "bg-muted/30 border-border/50 text-muted-foreground"
-                                        : "bg-background border-border hover:border-primary/50"
-                                  }`}
-                                >
-                                  <span className="font-medium truncate">{sub.label}</span>
-                                  <span className={`ml-1 text-[10px] ${isFull ? "text-primary" : ""}`}>
-                                    {count}/{limit}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Language selector */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">Тіл / Язык запросов:</p>
-            <div className="flex gap-2 flex-wrap">
-              {[
-                { key: "all", label: "🌐 Все языки" },
-                { key: "kk", label: "🇰🇿 Қазақша" },
-                { key: "ru", label: "🇷🇺 Русский" },
-                { key: "en", label: "🇬🇧 English" },
-              ].map(l => (
-                <Button
-                  key={l.key}
-                  variant={refreshLangs.includes(l.key) ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleRefreshLang(l.key)}
-                >
-                  {l.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <Button 
-            onClick={triggerRefresh} 
-            disabled={isRunning} 
-            size="lg"
-            className="w-full gap-3 h-14 text-base"
-          >
-            {isRunning ? <Loader2 className="h-5 w-5 animate-spin" /> : <Play className="h-5 w-5" />}
-            {isRunning 
-              ? "⏳ Обновление идёт на сервере..." 
-              : selectAll 
-                ? `🚀 Запустить (все категории, ${refreshLangs.includes("all") ? "все языки" : refreshLangs.map(l => l.toUpperCase()).join("+")})`
-                : `🚀 Запустить (${selectedNiches.length} категорий, ${refreshLangs.includes("all") ? "все языки" : refreshLangs.map(l => l.toUpperCase()).join("+")})`
-            }
-          </Button>
-          {isRunning && (
-            <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Обновление работает на сервере.</span>
-              </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="gap-1.5 shrink-0"
-                onClick={async () => {
-                  const runningLog = logs.find((l: any) => l.status === "running");
-                  if (!runningLog) return;
-                  const { error } = await supabase.from("trend_refresh_logs").update({
-                    status: "error",
-                    error_message: "Остановлено вручную администратором",
-                    finished_at: new Date().toISOString(),
-                  }).eq("id", runningLog.id);
-                  if (error) { toast.error("Не удалось остановить"); return; }
-                  toast.success("Обновление остановлено");
-                  queryClient.invalidateQueries({ queryKey: ["refresh-logs"] });
-                }}
-              >
-                <X className="h-4 w-4" />Остановить
-              </Button>
-            </div>
-          )}
-          <p className="text-sm text-muted-foreground">
-            Каждая категория заполняется до лимита, после чего переходит к следующей. Лимит достигнут — категория пропускается.
-          </p>
-        </CardContent>
-      </Card>
-
-      
-
-      {logs.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2"><ScrollText className="h-5 w-5" />Журнал обновлений</CardTitle>
-            {totalVideos7d > 0 && (
-              <p className="text-sm text-muted-foreground">📹 Добавлено видео за 7 дней: <span className="font-semibold text-foreground">{totalVideos7d}</span></p>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
-            {logs.map((log: any) => {
-              const startedAt = new Date(log.started_at);
-              const finishedAt = log.finished_at ? new Date(log.finished_at) : null;
-              const durationMs = finishedAt ? finishedAt.getTime() - startedAt.getTime() : null;
-              const durationStr = durationMs != null
-                ? durationMs < 60000
-                  ? `${Math.round(durationMs / 1000)}с`
-                  : `${Math.floor(durationMs / 60000)}м ${Math.round((durationMs % 60000) / 1000)}с`
-                : "—";
-              const nicheStatsRaw: Record<string, any> = (log.niche_stats as any) || {};
-              const nicheEntries = Object.entries(nicheStatsRaw)
-                .filter(([key]) => key !== "_rotation" && key !== "_lang")
-                .filter(([, val]) => typeof val === "number" || (typeof val === "object" && val !== null))
-                .sort(([, a], [, b]) => {
-                  const aVal = typeof a === "number" ? a : (a?.saved || 0);
-                  const bVal = typeof b === "number" ? b : (b?.saved || 0);
-                  return bVal - aVal;
-                });
-              const totalNiche = log.total_saved || 0;
-              const totalGeneral = log.general_saved || 0;
-              const grandTotal = totalNiche + totalGeneral;
-
-              // Calculate AI totals
-              let totalAccepted = 0, totalReassigned = 0, totalDiscarded = 0;
-              for (const [, val] of nicheEntries) {
-                if (typeof val === "object" && val !== null) {
-                  totalAccepted += val.accepted || 0;
-                  totalReassigned += val.reassigned || 0;
-                  totalDiscarded += val.discarded || 0;
-                }
-              }
-              const hasAiStats = totalAccepted > 0 || totalReassigned > 0 || totalDiscarded > 0;
-
-
-              return (
-                <div key={log.id} className="border border-border rounded-lg p-3 space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={
-                      log.status === "done" || log.status === "completed" ? "default" 
-                      : log.status === "running" ? "secondary" 
-                      : "destructive"
-                    }>
-                      {log.status === "done" || log.status === "completed" ? "✅ Готово" : log.status === "running" ? "⏳ В процессе" : `❌ ${log.status}`}
-                    </Badge>
-                    <Badge variant="outline">{log.mode?.toUpperCase()}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {startedAt.toLocaleString("ru-RU")}
-                    </span>
-                    {durationMs != null && (
-                      <Badge variant="secondary" className="text-xs">⏱ {durationStr}</Badge>
-                    )}
-                  </div>
-
-                  <div className={`grid ${hasAiStats ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-3"} gap-2 text-center`}>
-                    <div className="bg-muted/40 rounded-md p-2">
-                      <p className="text-lg font-bold text-foreground">{grandTotal}</p>
-                      <p className="text-xs text-muted-foreground">Этот запуск</p>
-                    </div>
-                    <div className="bg-muted/40 rounded-md p-2">
-                      <p className="text-lg font-bold text-foreground">{totalVideosAll}</p>
-                      <p className="text-xs text-muted-foreground">Всего в базе</p>
-                    </div>
-                    <div className="bg-primary/10 rounded-md p-2">
-                      <p className="text-lg font-bold text-primary">{totalVideos7d}</p>
-                      <p className="text-xs text-muted-foreground">За 7 дней</p>
-                    </div>
-                    {hasAiStats && (
-                      <>
-                        <div className="bg-emerald-500/10 rounded-md p-2">
-                          <p className="text-lg font-bold text-emerald-500">✅ {totalAccepted}</p>
-                          <p className="text-xs text-muted-foreground">Accepted</p>
-                        </div>
-                        <div className="bg-blue-500/10 rounded-md p-2">
-                          <p className="text-lg font-bold text-blue-500">♻️ {totalReassigned}</p>
-                          <p className="text-xs text-muted-foreground">Reassigned</p>
-                        </div>
-                        <div className="bg-red-500/10 rounded-md p-2">
-                          <p className="text-lg font-bold text-red-500">🗑️ {totalDiscarded}</p>
-                          <p className="text-xs text-muted-foreground">Discarded</p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {nicheEntries.length > 0 && (
-                    <details className="text-sm">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors text-xs font-medium">
-                        📊 По категориям ({nicheEntries.length})
-                      </summary>
-                      <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
-                        {nicheEntries.map(([niche, val]) => {
-                          const total7d = videoCounts[niche] || 0;
-                          const isObj = typeof val === "object" && val !== null;
-                          const saved = isObj ? (val.saved || 0) : (val as number);
-                          const accepted = isObj ? (val.accepted || 0) : null;
-                          const reassigned = isObj ? (val.reassigned || 0) : null;
-                          const discarded = isObj ? (val.discarded || 0) : null;
-                          return (
-                            <div key={niche} className="flex flex-col bg-muted/30 rounded px-2 py-1 text-xs">
-                              <div className="flex items-center justify-between">
-                                <span className="truncate font-medium">{niche}</span>
-                                <span className="ml-1 flex items-center gap-1 shrink-0">
-                                  <Badge variant={saved > 0 ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
-                                    +{saved}
-                                  </Badge>
-                                  <span className="text-[10px] text-muted-foreground">/ {total7d}</span>
-                                </span>
-                              </div>
-                              {isObj && (accepted !== null) && (
-                                <div className="flex gap-2 mt-0.5 text-[10px] text-muted-foreground">
-                                  <span className="text-emerald-500">✅{accepted}</span>
-                                  {reassigned! > 0 && <span className="text-blue-500">♻️{reassigned}</span>}
-                                  {discarded! > 0 && <span className="text-red-500">🗑️{discarded}</span>}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </details>
-                  )}
-
-                  {log.error_message && (
-                    <p className="text-xs text-destructive bg-destructive/10 rounded p-2">❌ {log.error_message}</p>
-                  )}
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-type LangQueries = { kk: string[]; ru: string[]; en: string[] };
-type NicheQueriesMap = Record<string, LangQueries>;
-const LANG_TABS = [
-  { key: "kk" as const, label: "🇰🇿 Қазақша", color: "text-emerald-600" },
-  { key: "ru" as const, label: "🇷🇺 Русский", color: "text-blue-600" },
-  { key: "en" as const, label: "🇬🇧 English", color: "text-red-600" },
-] as const;
-
-function KeywordsSection() {
-  const queryClient = useQueryClient();
-  const [selectedSubNiche, setSelectedSubNiche] = useState<string | null>(null);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-  const [activeLang, setActiveLang] = useState<"kk" | "ru" | "en">("kk");
-  const [newQuery, setNewQuery] = useState("");
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [bulkLoading, setBulkLoading] = useState(false);
-
-  const { data: nicheQueries = {} as NicheQueriesMap, isLoading } = useQuery({
-    queryKey: ["trend-settings", "niche_queries"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
-      return (data?.value as NicheQueriesMap) || {};
-    },
-  });
-
-  const getLangQueries = (key: string): LangQueries => {
-    const val = nicheQueries[key];
-    if (!val) return { kk: [], ru: [], en: [] };
-    // Backward compat: if old flat array format
-    if (Array.isArray(val)) return { kk: [], ru: val as any, en: [] };
-    return { kk: val.kk || [], ru: val.ru || [], en: val.en || [] };
-  };
-
-  const saveMutation = useMutation({
-    mutationFn: async (updated: NicheQueriesMap) => {
-      const { error } = await supabase.from("trend_settings").update({ value: updated as any, updated_at: new Date().toISOString() }).eq("key", "niche_queries");
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["trend-settings"] }); toast.success("Запросы сохранены"); },
-    onError: () => toast.error("Ошибка сохранения"),
-  });
-
-  const addQuery = () => {
-    if (!newQuery.trim() || !selectedSubNiche) return;
-    const updated = { ...nicheQueries };
-    const current = getLangQueries(selectedSubNiche);
-    current[activeLang] = [...current[activeLang], newQuery.trim()];
-    updated[selectedSubNiche] = current;
-    saveMutation.mutate(updated);
-    setNewQuery("");
-  };
-
-  const removeQuery = (index: number) => {
-    if (!selectedSubNiche) return;
-    const updated = { ...nicheQueries };
-    const current = getLangQueries(selectedSubNiche);
-    current[activeLang] = current[activeLang].filter((_, i) => i !== index);
-    updated[selectedSubNiche] = current;
-    saveMutation.mutate(updated);
-  };
-
-  const generateWithAI = async (seedWord?: string) => {
-    if (!selectedSubNiche) return;
-    setAiLoading(true);
-    setAiSuggestions([]);
+  const handleRefresh = async () => {
+    setRunning(true);
     try {
-      const current = getLangQueries(selectedSubNiche);
       const session = (await supabase.auth.getSession()).data.session;
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-keywords`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/refresh-trends`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token ?? ""}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
         },
-        body: JSON.stringify({
-          niche: selectedSubNiche,
-          lang: activeLang,
-          existing_queries: current[activeLang],
-          ...(seedWord ? { seed_word: seedWord } : {}),
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Ошибка генерации");
-      }
-      const data = await res.json();
-      setAiSuggestions(data.keywords || []);
-      if ((data.keywords || []).length === 0) toast.info("AI не сгенерировал новых запросов");
-      else toast.success(`Сгенерировано ${data.keywords.length} запросов`);
-    } catch (e: any) {
-      toast.error(e.message || "Ошибка AI генерации");
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const generateFromSeed = () => {
-    const word = newQuery.trim();
-    if (!word || !selectedSubNiche) {
-      toast.error("Введите ключевое слово");
-      return;
-    }
-    generateWithAI(word);
-    setNewQuery("");
-  };
-
-  const acceptSuggestion = (keyword: string) => {
-    if (!selectedSubNiche) return;
-    const updated = { ...nicheQueries };
-    const current = getLangQueries(selectedSubNiche);
-    current[activeLang] = [...current[activeLang], keyword];
-    updated[selectedSubNiche] = current;
-    saveMutation.mutate(updated);
-    setAiSuggestions((prev) => prev.filter((k) => k !== keyword));
-  };
-
-  const acceptAllSuggestions = () => {
-    if (!selectedSubNiche || aiSuggestions.length === 0) return;
-    const updated = { ...nicheQueries };
-    const current = getLangQueries(selectedSubNiche);
-    current[activeLang] = [...current[activeLang], ...aiSuggestions];
-    updated[selectedSubNiche] = current;
-    saveMutation.mutate(updated);
-    setAiSuggestions([]);
-    toast.success("Все запросы добавлены");
-  };
-
-  const bulkRegenerate = async () => {
-    setBulkLoading(true);
-    try {
-      const res = await supabase.functions.invoke("generate-keywords", { body: { bulk: true } });
-      if (res.error) throw new Error("Ошибка генерации");
-      const stats = res.data?.stats || {};
-      const total = Object.values(stats).reduce((a: number, b: any) => a + (typeof b === "number" ? b : 0), 0);
-      toast.success(`Обновлено ${Object.keys(stats).length} категорий, всего ${total} запросов`);
-      queryClient.invalidateQueries({ queryKey: ["trend-settings"] });
-    } catch (e: any) {
-      toast.error(e.message || "Ошибка");
-    } finally {
-      setBulkLoading(false);
-    }
-  };
-
-  const selectedSubNicheLabel = selectedSubNiche
-    ? NICHE_GROUPS.flatMap(g => g.subNiches).find(s => s.key === selectedSubNiche)?.label || selectedSubNiche
-    : "";
-
-  const activeQueries = selectedSubNiche ? getLangQueries(selectedSubNiche)[activeLang] : [];
-
-  // Count total queries per group (all langs)
-  const groupQueryCount = (group: typeof NICHE_GROUPS[0]) =>
-    group.subNiches.reduce((sum, sub) => {
-      const q = getLangQueries(sub.key);
-      return sum + q.kk.length + q.ru.length + q.en.length;
-    }, 0);
-
-  // Count total for a sub-niche (all langs)
-  const subNicheCount = (key: string) => {
-    const q = getLangQueries(key);
-    return q.kk.length + q.ru.length + q.en.length;
-  };
-
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Button onClick={bulkRegenerate} disabled={bulkLoading} variant="outline" className="gap-2">
-          {bulkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {bulkLoading ? "Генерация..." : "🔄 Обновить все запросы (AI)"}
-        </Button>
-      </div>
-
-      {/* Niche groups with expandable sub-niches */}
-      <div className="space-y-1">
-        {NICHE_GROUPS.map((group) => {
-          const isExpanded = expandedGroup === group.key;
-          const totalQ = groupQueryCount(group);
-          return (
-            <div key={group.key} className="border border-border/50 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setExpandedGroup(isExpanded ? null : group.key)}
-                className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/30 transition-colors text-sm"
-              >
-                <span className="flex items-center gap-2 font-medium">
-                  <span>{group.emoji}</span>
-                  <span>{group.label}</span>
-                  <Badge variant="secondary" className="text-[10px] px-1.5">{totalQ}</Badge>
-                </span>
-                <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-              </button>
-              {isExpanded && (
-                <div className="px-3 pb-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                  {group.subNiches.map((sub) => {
-                    const count = subNicheCount(sub.key);
-                    const q = getLangQueries(sub.key);
-                    const isActive = selectedSubNiche === sub.key;
-                    return (
-                      <button
-                        key={sub.key}
-                        onClick={() => { setSelectedSubNiche(isActive ? null : sub.key); setAiSuggestions([]); }}
-                        className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs border transition-colors ${
-                          isActive
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : count === 0
-                              ? "bg-destructive/10 border-destructive/30 text-destructive"
-                              : "bg-background border-border hover:border-primary/50"
-                        }`}
-                      >
-                        <span className="font-medium truncate">{sub.label}</span>
-                        <span className="ml-1 text-[10px] flex gap-0.5">
-                          <span title="KK">{q.kk.length}</span>/<span title="RU">{q.ru.length}</span>/<span title="EN">{q.en.length}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {selectedSubNiche && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <CardTitle className="text-lg">Запросы: <span className="text-primary">{selectedSubNicheLabel}</span></CardTitle>
-              <Button onClick={() => generateWithAI()} disabled={aiLoading} size="sm" variant="outline" className="gap-1.5">
-                {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                AI запросы
-              </Button>
-            </div>
-            {/* Language tabs */}
-            <div className="flex gap-1 mt-2">
-              {LANG_TABS.map(({ key, label, color }) => {
-                const count = getLangQueries(selectedSubNiche)[key].length;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setActiveLang(key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                      activeLang === key
-                        ? "gradient-hero text-primary-foreground border-transparent"
-                        : "bg-card border-border/50 text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {label} <span className="ml-1">({count})</span>
-                  </button>
-                );
-              })}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                placeholder={
-                  activeLang === "kk" ? "Қазақша сөз енгізіңіз..."
-                    : activeLang === "en" ? "Enter English keyword..."
-                    : "Введите слово..."
-                }
-                value={newQuery}
-                onChange={(e) => setNewQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addQuery()}
-              />
-              <Button onClick={addQuery} size="sm" disabled={saveMutation.isPending} title="Добавить как есть"><Plus className="h-4 w-4" /></Button>
-              <Button onClick={generateFromSeed} size="sm" variant="secondary" disabled={aiLoading || !newQuery.trim()} title="AI: найти запросы по слову" className="gap-1.5">
-                {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                AI
-              </Button>
-            </div>
-
-            {aiSuggestions.length > 0 && (
-              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-primary" />AI предложения</span>
-                  <Button size="sm" variant="default" onClick={acceptAllSuggestions} className="h-7 text-xs gap-1">
-                    <Check className="h-3 w-3" />Добавить все ({aiSuggestions.length})
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {aiSuggestions.map((k, i) => (
-                    <Badge key={i} variant="outline" className="gap-1 pr-1 cursor-pointer border-primary/40 hover:bg-primary/10" onClick={() => acceptSuggestion(k)}>
-                      <Plus className="h-3 w-3 text-primary" />{k}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
-              {activeQueries.map((q, i) => (
-                <Badge key={i} variant="secondary" className="gap-1 pr-1">
-                  {q}
-                  <button onClick={() => removeQuery(i)} className="ml-1 hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
-                </Badge>
-              ))}
-              {activeQueries.length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {activeLang === "kk" ? "Қазақша запростар жоқ. Қолмен немесе AI арқылы қосыңыз." 
-                   : activeLang === "en" ? "No English queries. Add manually or via AI."
-                   : "Запросов нет. Добавьте вручную или через AI."}
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-
-
-
-type LangLimits = { kk: number | null; ru: number | null; en: number | null };
-
-function StatsSection() {
-  const queryClient = useQueryClient();
-  const [categoryLimits, setCategoryLimits] = useState<Record<string, LangLimits>>({});
-  const [hasChanges, setHasChanges] = useState(false);
-  const [initialized, setInitialized] = useState(false);
-  const [selectedNiches, setSelectedNiches] = useState<Set<string>>(new Set());
-  const [bulkLimitKk, setBulkLimitKk] = useState("");
-  const [bulkLimitRu, setBulkLimitRu] = useState("");
-  const [bulkLimitEn, setBulkLimitEn] = useState("");
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-
-  const { data: subNicheCounts = {}, isLoading } = useQuery({
-    queryKey: ["admin-subniche-stats"],
-    queryFn: async () => {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000).toISOString();
-      const counts: Record<string, number> = {};
-      let from = 0;
-      const PAGE = 1000;
-      while (true) {
-        const { data, error } = await supabase
-          .from("videos")
-          .select("sub_niche")
-          .gte("published_at", sevenDaysAgo)
-          .range(from, from + PAGE - 1);
-        if (error || !data || data.length === 0) break;
-        for (const v of data) {
-          const sn = (v as any).sub_niche;
-          if (sn) counts[sn] = (counts[sn] || 0) + 1;
-        }
-        if (data.length < PAGE) break;
-        from += PAGE;
-      }
-      return counts;
-    },
-    refetchInterval: 10000,
-  });
-
-  const { data: savedLimits } = useQuery({
-    queryKey: ["category-limits-setting"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "category_limits").maybeSingle();
-      return (data?.value as Record<string, any>) || {};
-    },
-  });
-
-  const { data: nicheQueries = {} } = useQuery({
-    queryKey: ["niche-queries-for-stats"],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_settings").select("value").eq("key", "niche_queries").single();
-      return (data?.value as Record<string, any>) || {};
-    },
-  });
-
-  if (savedLimits && !initialized) {
-    const parsed: Record<string, LangLimits> = {};
-    for (const [k, v] of Object.entries(savedLimits)) {
-      if (typeof v === "number") {
-        parsed[k] = { kk: v, ru: v, en: v };
-      } else if (v && typeof v === "object") {
-        parsed[k] = { kk: (v as any).kk ?? null, ru: (v as any).ru ?? null, en: (v as any).en ?? null };
-      }
-    }
-    setCategoryLimits(parsed);
-    setInitialized(true);
-  }
-
-  const getLimit = (subKey: string, lang: "kk" | "ru" | "en"): number | null => {
-    return categoryLimits[subKey]?.[lang] ?? null;
-  };
-
-  const cleanLimits = () => {
-    const clean: Record<string, LangLimits> = {};
-    for (const [k, v] of Object.entries(categoryLimits)) {
-      if (v && (v.kk != null || v.ru != null || v.en != null)) {
-        clean[k] = { kk: v.kk ?? null, ru: v.ru ?? null, en: v.en ?? null };
-      }
-    }
-    return clean;
-  };
-
-  const saveLimits = useMutation({
-    mutationFn: async () => {
-      const limits = cleanLimits();
-      const { data: existing } = await supabase.from("trend_settings").select("id").eq("key", "category_limits").maybeSingle();
-      if (existing) {
-        await supabase.from("trend_settings").update({ value: limits as any, updated_at: new Date().toISOString() }).eq("key", "category_limits");
+      );
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        toast.error(json.error || "Ошибка обновления трендов");
       } else {
-        await supabase.from("trend_settings").insert({ key: "category_limits", value: limits as any });
+        toast.success(`Обновлено: ${json.count} видео из ${json.raw} собранных`);
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["category-limits-setting"] });
-      setHasChanges(false);
-      toast.success("Лимиттер сақталды");
-    },
-    onError: () => toast.error("Қате болды"),
-  });
-
-  const updateLangLimit = (subKey: string, lang: "kk" | "ru" | "en", rawVal: string) => {
-    setCategoryLimits(prev => {
-      const existing = prev[subKey] || { kk: null, ru: null, en: null };
-      return { ...prev, [subKey]: { ...existing, [lang]: rawVal === "" ? null : Number(rawVal) } };
-    });
-    setHasChanges(true);
-  };
-
-  const totalVideos7d = Object.values(subNicheCounts).reduce((a, b) => a + b, 0);
-  const allSubNicheKeys = NICHE_GROUPS.flatMap(g => g.subNiches.map(s => s.key));
-
-  const getLangCounts = (subKey: string) => {
-    const q = nicheQueries[subKey];
-    if (!q || Array.isArray(q)) return { kk: 0, ru: 0, en: 0 };
-    return { kk: (q.kk || []).length, ru: (q.ru || []).length, en: (q.en || []).length };
-  };
-
-  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mx-auto mt-8" />;
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            Нишалар статистикасы
-            <Badge variant="secondary">{totalVideos7d} видео / 7 күн</Badge>
-          </CardTitle>
-          {hasChanges && (
-            <Button size="sm" onClick={() => saveLimits.mutate()} disabled={saveLimits.isPending} className="gap-1.5">
-              {saveLimits.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Сақтау
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {/* Bulk limit controls */}
-        <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/50">
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs h-7"
-            onClick={() => {
-              if (selectedNiches.size === allSubNicheKeys.length) setSelectedNiches(new Set());
-              else setSelectedNiches(new Set(allSubNicheKeys));
-            }}
-          >
-            {selectedNiches.size === allSubNicheKeys.length && selectedNiches.size > 0 ? "Бәрін алу" : "Бәрін таңдау"}
-          </Button>
-          <span className="text-xs text-muted-foreground">
-            {selectedNiches.size > 0 ? `Таңдалды: ${selectedNiches.size}` : "Под-ниша таңдаңыз"}
-          </span>
-          <div className="flex items-center gap-1 ml-auto flex-wrap">
-            <Input type="number" className="w-14 h-7 text-xs text-center" placeholder="KK" value={bulkLimitKk} onChange={(e) => setBulkLimitKk(e.target.value)} />
-            <Input type="number" className="w-14 h-7 text-xs text-center" placeholder="RU" value={bulkLimitRu} onChange={(e) => setBulkLimitRu(e.target.value)} />
-            <Input type="number" className="w-14 h-7 text-xs text-center" placeholder="EN" value={bulkLimitEn} onChange={(e) => setBulkLimitEn(e.target.value)} />
-            <Button
-              size="sm"
-              variant="default"
-              className="h-7 text-xs gap-1"
-              disabled={selectedNiches.size === 0 || (!bulkLimitKk && !bulkLimitRu && !bulkLimitEn)}
-              onClick={() => {
-                setCategoryLimits(prev => {
-                  const updated = { ...prev };
-                  selectedNiches.forEach(n => {
-                    updated[n] = {
-                      kk: bulkLimitKk ? Number(bulkLimitKk) : null,
-                      ru: bulkLimitRu ? Number(bulkLimitRu) : null,
-                      en: bulkLimitEn ? Number(bulkLimitEn) : null,
-                    };
-                  });
-                  return updated;
-                });
-                setHasChanges(true);
-                toast.success(`Лимиттер ${selectedNiches.size} под-нишаға орнатылды`);
-                setSelectedNiches(new Set());
-                setBulkLimitKk(""); setBulkLimitRu(""); setBulkLimitEn("");
-              }}
-            >
-              <Edit2 className="h-3 w-3" />Қолдану
-            </Button>
-          </div>
-        </div>
-
-        {/* Hierarchical niche list */}
-        <div className="space-y-1 max-h-[600px] overflow-y-auto">
-          {NICHE_GROUPS.map((group) => {
-            const isExpanded = expandedGroup === group.key;
-            const groupVideoCount = group.subNiches.reduce((sum, s) => sum + (subNicheCounts[s.key] || 0), 0);
-
-            return (
-              <div key={group.key}>
-                <button
-                  onClick={() => setExpandedGroup(isExpanded ? null : group.key)}
-                  className="w-full flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors"
-                >
-                  <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                  <span className="text-base">{group.emoji}</span>
-                  <span className="font-semibold text-sm text-foreground">{group.label}</span>
-                  <Badge variant="secondary" className="text-xs ml-auto">{groupVideoCount} / 7д</Badge>
-                  <Badge variant="outline" className="text-xs">{group.subNiches.length}</Badge>
-                </button>
-
-                {isExpanded && (
-                  <div className="ml-4 space-y-0.5 pb-2">
-                    <div className="flex items-center gap-1 px-2 py-1 text-[10px] text-muted-foreground uppercase tracking-wider">
-                      <span className="w-5" />
-                      <span className="flex-1">Под-ниша</span>
-                      <span className="w-10 text-center">7д</span>
-                      <span className="w-7 text-center">KK</span>
-                      <span className="w-7 text-center">RU</span>
-                      <span className="w-7 text-center">EN</span>
-                      <span className="w-[132px] text-center">Лимит KK / RU / EN</span>
-                    </div>
-                    {group.subNiches.map((sub) => {
-                      const count7d = subNicheCounts[sub.key] || 0;
-                      const langCounts = getLangCounts(sub.key);
-                      const isChecked = selectedNiches.has(sub.key);
-                      const limKk = getLimit(sub.key, "kk");
-                      const limRu = getLimit(sub.key, "ru");
-                      const limEn = getLimit(sub.key, "en");
-
-                      return (
-                        <div key={sub.key} className="flex items-center gap-1 py-1 px-2 rounded hover:bg-muted/30">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => {
-                              setSelectedNiches(prev => {
-                                const next = new Set(prev);
-                                if (next.has(sub.key)) next.delete(sub.key);
-                                else next.add(sub.key);
-                                return next;
-                              });
-                            }}
-                            className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer"
-                          />
-                          <span className="flex-1 text-xs font-medium truncate">{sub.label}</span>
-                          <Badge
-                            variant={count7d === 0 ? "destructive" : "secondary"}
-                            className="text-[10px] w-10 justify-center"
-                          >
-                            {count7d}
-                          </Badge>
-                          <span className={`text-[10px] w-7 text-center ${langCounts.kk === 0 ? "text-destructive" : "text-muted-foreground"}`}>{langCounts.kk}</span>
-                          <span className={`text-[10px] w-7 text-center ${langCounts.ru === 0 ? "text-destructive" : "text-muted-foreground"}`}>{langCounts.ru}</span>
-                          <span className={`text-[10px] w-7 text-center ${langCounts.en === 0 ? "text-destructive" : "text-muted-foreground"}`}>{langCounts.en}</span>
-                          <div className="flex gap-0.5 w-[132px]">
-                            <Input type="number" className="w-11 h-6 text-[10px] text-center px-1" placeholder="KK" value={limKk ?? ""} onChange={(e) => updateLangLimit(sub.key, "kk", e.target.value)} />
-                            <Input type="number" className="w-11 h-6 text-[10px] text-center px-1" placeholder="RU" value={limRu ?? ""} onChange={(e) => updateLangLimit(sub.key, "ru", e.target.value)} />
-                            <Input type="number" className="w-11 h-6 text-[10px] text-center px-1" placeholder="EN" value={limEn ?? ""} onChange={(e) => updateLangLimit(sub.key, "en", e.target.value)} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <p className="text-xs text-muted-foreground pt-2">
-          Лимиттер тіл бойынша жеке. Refresh кезінде таңдалған тілдің лимиті тексеріледі. KK/RU/EN — запрос саны. Бос = шексіз.
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-
-function RecategorizeSection() {
-  const queryClient = useQueryClient();
-  const [isStarting, setIsStarting] = useState(false);
-
-  const { data: totalVideos } = useQuery({
-    queryKey: ["total-videos-count"],
-    queryFn: async () => {
-      const { count } = await supabase.from("videos").select("id", { count: "exact", head: true });
-      return count || 0;
-    },
-  });
-
-  const { data: logs = [] } = useQuery({
-    queryKey: ["recat-logs"],
-    queryFn: async () => {
-      const { data } = await supabase.from("recat_logs").select("*").order("started_at", { ascending: false }).limit(10);
-      return data || [];
-    },
-    refetchInterval: 3000,
-  });
-
-  const isRunning = logs.some((l: any) => l.status === "running");
-  const runningLog = logs.find((l: any) => l.status === "running");
-
-  // Reset isStarting when server confirms running
-  if (isRunning && isStarting) setIsStarting(false);
-
-  const startRecategorize = async () => {
-    if (isStarting || isRunning) return;
-    setIsStarting(true);
-    toast.info("🔄 Рекатегоризация іске қосылды...");
-    try {
-      const session = (await supabase.auth.getSession()).data.session;
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/recategorize-videos`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ offset: 0, limit: 200 }),
-      });
-      queryClient.invalidateQueries({ queryKey: ["recat-logs"] });
     } catch (e: any) {
-      toast.error(e.message || "Ошибка");
-      setIsStarting(false);
+      toast.error(e?.message || "Сетевая ошибка");
+    } finally {
+      setRunning(false);
+      queryClient.invalidateQueries({ queryKey: ["ig-trends-count"] });
+      queryClient.invalidateQueries({ queryKey: ["ig-trends-last-log"] });
+      queryClient.invalidateQueries({ queryKey: ["ig-trends"] });
     }
-    setTimeout(() => queryClient.invalidateQueries({ queryKey: ["recat-logs"] }), 2000);
   };
-
-  const stopRecategorize = async () => {
-    if (!runningLog) return;
-    const { error } = await supabase.from("recat_logs").update({
-      status: "stopped",
-      error_message: "Остановлено вручную администратором",
-      finished_at: new Date().toISOString(),
-    }).eq("id", runningLog.id);
-    if (error) { toast.error("Не удалось остановить"); return; }
-    toast.success("Рекатегоризация остановлена");
-    queryClient.invalidateQueries({ queryKey: ["recat-logs"] });
-  };
-
-  const progressPercent = runningLog && runningLog.total_videos > 0
-    ? Math.round((runningLog.total_processed / runningLog.total_videos) * 100)
-    : 0;
 
   return (
-    <div className="space-y-4">
-      <Card>
+    <div className="space-y-4 max-w-2xl">
+      <Card className="border-primary/30">
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            AI Рекатегоризация (Нишалар)
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            Viral Worldwide (Instagram)
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            AI caption бойынша әр видеоны жаңа ниша → под-ниша жүйесіне бөледі. 3 тілді (KK/RU/EN) автоматты анықтайды.
-          </p>
-
-          <div className="bg-muted/40 rounded-md p-3 text-sm space-y-1">
-            {totalVideos !== undefined && (
-              <p>📊 Жалпы видеолар: <strong>{totalVideos}</strong></p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              🏷️ 23 ниша, 100+ под-ниша | 🌐 3 тіл: 🇰🇿 KK, 🇷🇺 RU, 🇬🇧 EN
-            </p>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-lg border border-border/50 p-4 bg-muted/30">
+              <div className="text-xs text-muted-foreground mb-1">Видео в ленте</div>
+              <div className="text-2xl font-bold tabular-nums">{count}</div>
+            </div>
+            <div className="rounded-lg border border-border/50 p-4 bg-muted/30">
+              <div className="text-xs text-muted-foreground mb-1">Последний refresh</div>
+              <div className="text-sm font-semibold">{lastRefreshLabel}</div>
+              {lastLog?.status && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "mt-1.5 text-[10px]",
+                    lastLog.status === "completed" && "border-green-500/40 text-green-500",
+                    lastLog.status === "running" && "border-blue-500/40 text-blue-500",
+                    lastLog.status === "failed" && "border-red-500/40 text-red-500",
+                  )}
+                >
+                  {lastLog.status}
+                </Badge>
+              )}
+            </div>
           </div>
 
-          <Button
-            onClick={startRecategorize}
-            disabled={isRunning || isStarting}
-            size="lg"
-            className="w-full gap-3 h-14 text-base"
-          >
-            {(isRunning || isStarting) ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
-            {(isRunning || isStarting) ? "⏳ Рекатегоризация жүріп жатыр..." : "🔄 AI рекатегоризацияны бастау"}
-          </Button>
-
-          {isRunning && runningLog && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Серверде жұмыс жасауда...</span>
-                </div>
-                <Button variant="destructive" size="sm" className="gap-1.5 shrink-0" onClick={stopRecategorize}>
-                  <X className="h-4 w-4" />Тоқтату
-                </Button>
-              </div>
-              <div className="bg-muted/40 rounded-md p-3 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Прогресс</span>
-                  <span className="font-bold">{progressPercent}%</span>
-                </div>
-                <Progress value={progressPercent} className="h-2" />
-                <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                  <div>Өңделді: <span className="font-semibold text-foreground">{runningLog.total_processed}</span></div>
-                  <div>Жаңартылды: <span className="font-semibold text-foreground">{runningLog.total_updated}</span></div>
-                  <div>Өзгерген жоқ: <span className="font-semibold text-foreground">{runningLog.total_unchanged}</span></div>
-                </div>
-              </div>
+          {lastLog?.error_message && (
+            <div className="rounded-md border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-500">
+              {lastLog.error_message}
             </div>
           )}
 
-          <p className="text-xs text-muted-foreground">
-            ⚡ Self-chaining: бетті жапсаңыз да сервер фонда барлық видеоларды автоматты өңдейді.
+          <Button
+            onClick={handleRefresh}
+            disabled={running || lastLog?.status === "running"}
+            className="w-full gap-2"
+            size="lg"
+          >
+            {running || lastLog?.status === "running" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            {running ? "Обновляем..." : "🔄 Обновить тренды"}
+          </Button>
+
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Опрашивает курированный список вирусных Instagram-аккаунтов через EnsembleData,
+            считает viral_score = (views + likes×2 + comments×3) / часы с публикации,
+            оставляет топ-50 с не менее 100K просмотров.
           </p>
         </CardContent>
       </Card>
-
-      {/* Logs */}
-      {logs.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ScrollText className="h-5 w-5" /> Журнал рекатегоризации
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
-            {logs.map((log: any) => {
-              const startedAt = new Date(log.started_at);
-              const finishedAt = log.finished_at ? new Date(log.finished_at) : null;
-              const durationMs = finishedAt ? finishedAt.getTime() - startedAt.getTime() : null;
-              const durationStr = durationMs != null
-                ? durationMs < 60000
-                  ? `${Math.round(durationMs / 1000)}с`
-                  : `${Math.floor(durationMs / 60000)}м ${Math.round((durationMs % 60000) / 1000)}с`
-                : "—";
-
-              return (
-                <div key={log.id} className="bg-muted/30 rounded-lg p-3 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {log.status === "running" && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />}
-                      {log.status === "done" && <span className="text-primary">✅</span>}
-                      {log.status === "stopped" && <span className="text-destructive">⛔</span>}
-                      {log.status === "error" && <span className="text-destructive">❌</span>}
-                      <span className="text-xs text-muted-foreground">
-                        {startedAt.toLocaleString("ru-RU")}
-                      </span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">⏱ {durationStr}</span>
-                  </div>
-                  <div className="flex gap-4 text-xs">
-                    <span>Өңделді: <strong>{log.total_processed}</strong></span>
-                    <span>Жаңартылды: <strong>{log.total_updated}</strong></span>
-                    <span>Өзгерген жоқ: <strong>{log.total_unchanged}</strong></span>
-                  </div>
-                  {log.error_message && (
-                    <p className="text-xs text-destructive">{log.error_message}</p>
-                  )}
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
-
-/* ==================== TARIFFS TAB ==================== */
-// Tariffs management UI removed — subscriptions are assigned via UsersTab.
 
 
 /* ==================== CLEANUP LOGS SECTION ==================== */
