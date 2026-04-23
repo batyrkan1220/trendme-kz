@@ -781,20 +781,70 @@ Deno.serve(async (req: Request) => {
         const fallbackVideoId = String(body.platform_video_id || "").trim();
         const fallbackUsername = normalizeTikTokUsername(body.author_username || "");
 
-        if ((!video_url || !validateTikTokUrl(video_url)) && fallbackVideoId) {
+        // Detect Instagram URL
+        const igMatch = video_url.match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
+        const isInstagram = !!igMatch;
+        const igShortcode = igMatch ? igMatch[1] : null;
+
+        if (!isInstagram && (!video_url || !validateTikTokUrl(video_url)) && fallbackVideoId) {
           const builtUrl = buildFallbackVideoUrl(fallbackVideoId, fallbackUsername);
           if (builtUrl) video_url = builtUrl;
         }
 
-        const isValidVideoUrl = !!video_url && validateTikTokUrl(video_url);
+        const isValidVideoUrl = !isInstagram && !!video_url && validateTikTokUrl(video_url);
         if (isValidVideoUrl) {
           video_url = await resolveShortUrl(video_url);
-        } else {
+        } else if (!isInstagram) {
           console.warn("analyze_video: invalid or missing TikTok URL, using caption-only fallback");
         }
 
         const awemeId = (isValidVideoUrl ? extractAwemeId(video_url) : null) || fallbackVideoId || null;
-        console.log("analyze_video: resolved URL =", video_url || "[missing]", "awemeId =", awemeId);
+        console.log("analyze_video: resolved URL =", video_url || "[missing]", "platform =", isInstagram ? "instagram" : "tiktok", "awemeId =", awemeId, "igShortcode =", igShortcode);
+
+        // === Instagram analysis path: fetch post details + comments via EnsembleData ===
+        let igStats: any = {};
+        let igCaption = "";
+        let igCommentsText = "";
+        let igDuration = "";
+        let igEnsembleCalls = 0;
+        if (isInstagram && igShortcode) {
+          try {
+            const [detailsRes, commentsRes] = await Promise.allSettled([
+              callEnsemble("/instagram/post/details", { code: igShortcode }),
+              callEnsemble("/instagram/post/comments", { code: igShortcode }),
+            ]);
+
+            if (detailsRes.status === "fulfilled") {
+              igEnsembleCalls += 1;
+              const d = detailsRes.value?.data || detailsRes.value || {};
+              igCaption = String(d?.caption?.text || d?.caption || "").trim();
+              igStats = {
+                views: Number(d?.play_count || d?.video_play_count || d?.view_count || 0),
+                likes: Number(d?.like_count || 0),
+                comments: Number(d?.comment_count || 0),
+                shares: 0,
+              };
+              igDuration = d?.video_duration ? `${Math.round(Number(d.video_duration))} сек` : "";
+            } else {
+              console.error("IG details failed:", detailsRes.reason);
+            }
+
+            if (commentsRes.status === "fulfilled") {
+              igEnsembleCalls += 1;
+              const c = commentsRes.value?.data || commentsRes.value || {};
+              const list = Array.isArray(c?.comments) ? c.comments : (Array.isArray(c) ? c : []);
+              igCommentsText = list
+                .slice(0, 15)
+                .map((x: any) => String(x?.text || x?.comment || "").trim())
+                .filter(Boolean)
+                .join("\n");
+            } else {
+              console.error("IG comments failed:", commentsRes.reason);
+            }
+          } catch (e) {
+            console.error("IG analyze fetch error:", e);
+          }
+        }
 
         const socialKitKey = Deno.env.get("SOCIALKIT_ACCESS_KEY") || "";
 
@@ -865,22 +915,27 @@ Deno.serve(async (req: Request) => {
         // 2. Use Lovable AI to generate structured analysis
         let aiAnalysis: any = null;
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        const caption = cleanForPrompt(body.caption || statsCaption || "", 500);
+        const caption = cleanForPrompt(body.caption || statsCaption || igCaption || "", 500);
         const analysisLang = body.language === "kk" ? "kk" : "ru";
 
-        const videoTitle = cleanForPrompt(statsCaption || body.caption || "", 500);
-        const videoDuration = skStats?.data?.duration || "";
+        const videoTitle = cleanForPrompt(statsCaption || igCaption || body.caption || "", 500);
+        const videoDuration = skStats?.data?.duration || igDuration || "";
+
+        // Merge: prefer SocialKit (TikTok), fallback to Instagram EnsembleData
+        const finalStats = videoStats.views ? videoStats : igStats;
+        const finalComments = topCommentsText || igCommentsText;
 
         // Build context for AI from all available data
         const contextParts: string[] = [];
+        if (isInstagram) contextParts.push(`Платформа: Instagram Reels`);
         if (videoTitle) contextParts.push(`Название/описание: ${videoTitle}`);
         if (videoDuration) contextParts.push(`Длительность: ${videoDuration}`);
-        if (videoStats.views) {
-          contextParts.push(`Статистика: ${videoStats.views} просмотров, ${videoStats.likes} лайков, ${videoStats.comments} комментариев, ${videoStats.shares} репостов`);
+        if (finalStats?.views) {
+          contextParts.push(`Статистика: ${finalStats.views} просмотров, ${finalStats.likes} лайков, ${finalStats.comments} комментариев, ${finalStats.shares || 0} репостов`);
         }
-        if (topCommentsText) contextParts.push(`Топ комментарии:\n${topCommentsText.slice(0, 2000)}`);
+        if (finalComments) contextParts.push(`Топ комментарии:\n${finalComments.slice(0, 2000)}`);
         if (transcriptText) contextParts.push(`Транскрипт (речь из видео):\n${transcriptText.slice(0, 5000)}`);
-        contextParts.push(`Надежность источника речи: ${transcriptText.length >= 120 ? "высокая" : "низкая"}`);
+        contextParts.push(`Надежность источника речи: ${transcriptText.length >= 120 ? "высокая" : (isInstagram ? "нет транскрипта (Instagram) — опирайся на caption и комментарии" : "низкая")}`);
 
         const hasContent = contextParts.length > 0;
 
@@ -1097,11 +1152,11 @@ ${contextParts.join("\n\n")}`;
           if (saved) analysis = saved;
         }
 
-        // Log API usage (3 SocialKit calls: transcript + stats + comments)
+        // Log API usage
         const skCredits = (skTranscript?.success ? 1 : 0) + (skStats?.success ? 1 : 0) + (skComments?.success ? 1 : 0);
-        await logApiUsage("analyze_video", skCredits, {
+        await logApiUsage("analyze_video", skCredits + igEnsembleCalls, {
           video_url: normalizedVideoUrl || null,
-          provider: "socialkit",
+          provider: isInstagram ? "ensembledata" : "socialkit",
         });
 
         return json(analysis);
