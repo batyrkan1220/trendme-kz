@@ -257,42 +257,26 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
     }
     onPlay(video.id);
 
-    // Check global cache first
-    const cached = playUrlCache.get(video.url);
+    // 1) Cached direct URL — render immediately
+    const cached = getCachedPlayUrl(video.url);
     if (cached) {
       setPlayUrl(cached);
       return;
     }
 
-    // Use preloaded URL if available
+    // 2) Preloaded URL hint — promote to shared cache
     if (preloadedUrlRef.current) {
       setPlayUrl(preloadedUrlRef.current);
-      playUrlCache.set(video.url, preloadedUrlRef.current);
+      setCachedPlayUrl(video.url, preloadedUrlRef.current);
       return;
     }
 
+    // 3) Resolve through the unified playback layer.
+    //    Always returns either a direct URL or an embed sentinel — never null.
     setLoadingPlay(true);
     try {
-      // Use centralized deduped fetch (works for both TikTok and Instagram via EnsembleData)
-      const url = await fetchPlayUrlDeduped(video.url);
-      if (!url) {
-        // Platform-specific embed fallback
-        if (/instagram\.com|instagr\.am/i.test(video.url)) {
-          setPlayUrl("instagram_embed");
-        } else {
-          console.warn("Play URL unavailable, using TikTok embed fallback");
-          setPlayUrl("tiktok_embed_fallback");
-        }
-      } else {
-        setPlayUrl(url);
-      }
-    } catch (e) {
-      console.warn("Play URL fetch error, using embed fallback:", e);
-      if (/instagram\.com|instagr\.am/i.test(video.url)) {
-        setPlayUrl("instagram_embed");
-      } else {
-        setPlayUrl("tiktok_embed_fallback");
-      }
+      const { value } = await resolvePlayback(video.url);
+      setPlayUrl(value);
     } finally {
       setLoadingPlay(false);
     }
