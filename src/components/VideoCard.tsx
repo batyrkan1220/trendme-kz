@@ -425,6 +425,30 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                   scrolling="no"
                 />
               </div>
+            ) : playUrl === "instagram_embed" ? (
+              (() => {
+                const sc = extractInstagramShortcode(video.url) || video.platform_video_id;
+                return sc ? (
+                  <div className="w-full h-full bg-black overflow-hidden relative">
+                    <iframe
+                      src={`https://www.instagram.com/reel/${sc}/embed/`}
+                      className="absolute inset-0 w-full h-full border-0"
+                      allow="autoplay; encrypted-media"
+                      allowFullScreen
+                      scrolling="no"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-black">
+                    <button
+                      onClick={() => window.open(video.url, '_blank')}
+                      className="px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium"
+                    >
+                      Открыть в Instagram
+                    </button>
+                  </div>
+                );
+              })()
             ) : playUrl ? (
               <video
                 ref={videoRef}
