@@ -209,7 +209,7 @@ export function VideoAnalysisResults({
 
       {/* Niche benchmark */}
       {bench && bench.count >= 5 && (
-        <SectionCard icon={BarChart3} title={isKk ? `«${nicheKey}» нишасымен салыстыру` : `Сравнение с нишей «${nicheKey}»`}>
+        <SectionCard icon={BarChart3} title={isKk ? "Ниша бойынша салыстыру" : "Сравнение с нишей"}>
           <div className="space-y-1.5">
             {bench.avgViews > 0 && (
               <div className="flex items-center justify-between text-[12px]">
