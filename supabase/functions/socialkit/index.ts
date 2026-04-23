@@ -1152,11 +1152,11 @@ ${contextParts.join("\n\n")}`;
           if (saved) analysis = saved;
         }
 
-        // Log API usage (3 SocialKit calls: transcript + stats + comments)
+        // Log API usage
         const skCredits = (skTranscript?.success ? 1 : 0) + (skStats?.success ? 1 : 0) + (skComments?.success ? 1 : 0);
-        await logApiUsage("analyze_video", skCredits, {
+        await logApiUsage("analyze_video", skCredits + igEnsembleCalls, {
           video_url: normalizedVideoUrl || null,
-          provider: "socialkit",
+          provider: isInstagram ? "ensembledata" : "socialkit",
         });
 
         return json(analysis);
