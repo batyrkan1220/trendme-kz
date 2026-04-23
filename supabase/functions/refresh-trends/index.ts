@@ -242,22 +242,33 @@ Deno.serve(async (req) => {
   logId = (logRow as any)?.id ?? null;
 
   // Background job — return 202 immediately so Edge runtime doesn't time out at 150s.
+  // Strategy: process accounts in parallel chunks of 5 (with retries baked in),
+  // then upsert videos in batches of 25 so partial progress is preserved.
+  const ACCOUNT_CHUNK = 5;
+  const INSERT_BATCH = 25;
+
   const runJob = async () => {
     try {
-      const allReels: any[] = [];
-      for (const username of VIRAL_ACCOUNTS) {
-        const userId = await resolveUserId(adminClient, username);
-        if (!userId) continue;
-        const reels = await fetchReels(userId);
-        allReels.push(...reels);
-      }
+      // 1) Fetch reels for all accounts in parallel chunks
+      const reelLists = await processInChunks(
+        VIRAL_ACCOUNTS,
+        ACCOUNT_CHUNK,
+        async (username) => {
+          const userId = await resolveUserId(adminClient, username);
+          if (!userId) return [] as any[];
+          return await fetchReels(userId);
+        },
+      );
+      const allReels = reelLists.flat().filter(Boolean) as any[];
 
+      // 2) Dedupe by shortcode
       const unique = new Map<string, any>();
       for (const r of allReels) {
         const code = r?.media?.code ?? r?.code;
         if (code && !unique.has(code)) unique.set(code, r);
       }
 
+      // 3) Map + filter + score + sort + cap
       const videos = [...unique.values()]
         .map(mapReel)
         .filter((v): v is MappedVideo => v !== null && v.view_count >= MIN_VIEWS)
@@ -265,15 +276,26 @@ Deno.serve(async (req) => {
         .sort((a, b) => b.viral_score - a.viral_score)
         .slice(0, MAX_VIDEOS);
 
+      // 4) Replace previous trend rows
       await adminClient
         .from("videos")
         .delete()
         .eq("source", "trends")
         .eq("platform", "instagram");
 
-      if (videos.length > 0) {
-        const { error: insErr } = await adminClient.from("videos").insert(videos);
-        if (insErr) throw insErr;
+      // 5) Insert in batches so a transient error doesn't lose everything
+      let inserted = 0;
+      for (let i = 0; i < videos.length; i += INSERT_BATCH) {
+        const batch = videos.slice(i, i + INSERT_BATCH);
+        let attempt = 0;
+        while (attempt < 3) {
+          const { error: insErr } = await adminClient.from("videos").insert(batch);
+          if (!insErr) { inserted += batch.length; break; }
+          attempt++;
+          console.warn(`insert batch retry ${attempt}/3`, insErr.message);
+          await new Promise((r) => setTimeout(r, 500 * attempt));
+          if (attempt === 3) console.error("insert batch failed permanently", insErr);
+        }
       }
 
       if (logId) {
@@ -282,11 +304,13 @@ Deno.serve(async (req) => {
           .update({
             status: "completed",
             finished_at: new Date().toISOString(),
-            total_saved: videos.length,
-            general_saved: videos.length,
+            total_saved: inserted,
+            general_saved: inserted,
             niche_stats: {
               accounts_polled: VIRAL_ACCOUNTS.length,
               raw_reels: allReels.length,
+              chunk_size: ACCOUNT_CHUNK,
+              insert_batch: INSERT_BATCH,
             },
           })
           .eq("id", logId);
