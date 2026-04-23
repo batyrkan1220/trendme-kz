@@ -9,6 +9,12 @@ import { ReportContentDialog } from "./ReportContentDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import {
+  TIKTOK_EMBED_FALLBACK,
+  INSTAGRAM_EMBED,
+  isEmbedSentinel,
+  type PlayValue,
+} from "@/lib/api/videoPlayback";
 interface VideoInfo {
   id: string;
   url: string;
@@ -29,7 +35,8 @@ interface VideoInfo {
 
 interface FullscreenVideoPlayerProps {
   video: VideoInfo;
-  playUrl: string | null;
+  /** Direct streamable URL or an embed sentinel from the unified playback layer */
+  playUrl: PlayValue;
   loading: boolean;
   onClose: () => void;
   isFavorite: boolean;
@@ -170,7 +177,7 @@ export function FullscreenVideoPlayer({
   // Auto-play when URL is ready & loop
   useEffect(() => {
     const vid = videoRef.current;
-    if (!vid || !playUrl || playUrl === "tiktok_embed_fallback") return;
+    if (!vid || !playUrl || isEmbedSentinel(playUrl)) return;
 
     const onEnded = () => {
       setEnded(true);
@@ -273,7 +280,7 @@ export function FullscreenVideoPlayer({
 
       {/* Video area — full screen, no controls */}
       <div className="absolute inset-0 flex items-center justify-center">
-        {playUrl === "tiktok_embed_fallback" ? (
+        {playUrl === TIKTOK_EMBED_FALLBACK ? (
           <iframe
             src={`https://www.tiktok.com/player/v1/${videoId}?&music_info=0&description=0&rel=0`}
             className="w-full h-full border-0"
@@ -281,7 +288,7 @@ export function FullscreenVideoPlayer({
             allowFullScreen
             scrolling="no"
           />
-        ) : playUrl === "instagram_embed" ? (
+        ) : playUrl === INSTAGRAM_EMBED ? (
           (() => {
             const m = video.url.match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
             const sc = m ? m[1] : video.platform_video_id;
@@ -320,7 +327,7 @@ export function FullscreenVideoPlayer({
             {/* Video element is ALWAYS mounted so play() can be called as soon as src arrives */}
             <video
               ref={videoRef}
-              src={playUrl && playUrl !== "tiktok_embed_fallback" ? playUrl : undefined}
+              src={playUrl && !isEmbedSentinel(playUrl) ? playUrl : undefined}
               className="w-full h-full object-contain"
               autoPlay
               playsInline
