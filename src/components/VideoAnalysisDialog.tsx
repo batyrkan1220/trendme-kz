@@ -152,24 +152,9 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     ? new Date(video.published_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
     : "";
 
-  // Parse summary_json
-  const rawSummary = analysis?.summary_json;
-  const summary = typeof rawSummary === "string"
-    ? (() => { try { return JSON.parse(rawSummary); } catch { return null; } })()
-    : rawSummary;
-
-  // Parse transcript
-  let transcript = analysis?.transcript_text || "";
-  if (typeof transcript !== "string") {
-    try { transcript = JSON.stringify(transcript); } catch { transcript = ""; }
-  }
-  // Clean up transcript if it's still JSON-like
-  if (transcript.startsWith("{") || transcript.startsWith("[")) {
-    try {
-      const parsed = JSON.parse(transcript);
-      transcript = parsed?.transcript || parsed?.text || parsed?.data?.transcript || transcript;
-    } catch { /* keep as is */ }
-  }
+  // Already normalized by analyzeVideo() — no per-platform parsing here.
+  const summary = analysis?.summary ?? null;
+  const transcript = analysis?.transcript ?? "";
 
   const isUnknownValue = (value: unknown) => {
     if (typeof value !== "string") return false;
