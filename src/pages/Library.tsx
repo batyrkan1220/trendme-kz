@@ -163,12 +163,12 @@ export default function Library() {
         )}
       </div>
       <ScriptOnlyDialog
-        video={scriptVideo as any}
+        video={scriptVideo}
         open={!!scriptVideo}
         onOpenChange={(open) => { if (!open) setScriptVideo(null); }}
       />
       <VideoAnalysisDialog
-        video={analysisVideo as any}
+        video={analysisVideo}
         open={!!analysisVideo}
         onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
       />

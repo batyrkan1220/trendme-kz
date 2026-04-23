@@ -2,22 +2,10 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScriptGenerationPanel } from "./ScriptGenerationPanel";
 import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
+import type { VideoDialogProps } from "@/lib/types/dialogVideo";
 
-interface VideoData {
-  id: string;
-  url: string;
-  cover_url?: string | null;
-  caption?: string | null;
-  author_username?: string | null;
-  duration?: number | null;
-  duration_sec?: number | null;
-}
-
-interface Props {
-  video: VideoData | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+// Standardized prop contract — see src/lib/types/dialogVideo.ts
+type Props = VideoDialogProps;
 
 /**
  * Бейне карточкасынан "Сценарий" батырмасын басқанда ашылатын диалог.

@@ -11,28 +11,11 @@ import { isNativePlatform } from "@/lib/native";
 import { hapticSuccess } from "@/lib/haptics";
 import { VideoAnalysisResults } from "./VideoAnalysisResults";
 import { analyzeVideo, type NormalizedAnalysis } from "@/lib/api/videoAnalysis";
+import type { DialogVideoInput, VideoDialogProps } from "@/lib/types/dialogVideo";
 
-interface VideoData {
-  id: string;
-  url: string;
-  cover_url?: string | null;
-  platform_video_id: string;
-  author_username?: string | null;
-  author_avatar_url?: string | null;
-  author_display_name?: string | null;
-  views?: number | null;
-  likes?: number | null;
-  comments?: number | null;
-  shares?: number | null;
-  published_at?: string | null;
-  caption?: string | null;
-}
-
-interface Props {
-  video: VideoData | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+// Standardized: every page passes the same shape — no per-call-site casting.
+type VideoData = DialogVideoInput;
+type Props = VideoDialogProps;
 
 const fmt = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -72,7 +55,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
     mutationFn: ({ v, lang }) =>
       analyzeVideo({
         url: v.url,
-        platform_video_id: v.platform_video_id,
+        platform_video_id: v.platform_video_id ?? "",
         author_username: v.author_username,
         caption: v.caption,
         language: lang,
