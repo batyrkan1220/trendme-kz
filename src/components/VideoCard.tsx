@@ -20,44 +20,6 @@ import {
 // Re-export so existing call sites `import { fetchPlayUrlDeduped } from "./VideoCard"` keep working.
 export const fetchPlayUrlDeduped = _fetchPlayUrlDeduped;
 
-/** Persistent play URL cache — survives page reloads on native mobile */
-const PLAY_CACHE_KEY = "playUrlCache";
-const PLAY_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours
-const ERROR_CACHE_TTL = 5 * 60 * 1000; // 5 min for failed URLs
-
-interface CachedEntry { url: string; ts: number }
-
-// Load from localStorage on startup
-const playUrlCache = new Map<string, string>();
-const errorCache = new Map<string, number>(); // videoUrl → timestamp of failure
-
-try {
-  const stored = localStorage.getItem(PLAY_CACHE_KEY);
-  if (stored) {
-    const entries: Record<string, CachedEntry> = JSON.parse(stored);
-    const now = Date.now();
-    for (const [key, val] of Object.entries(entries)) {
-      if (now - val.ts < PLAY_CACHE_TTL) {
-        playUrlCache.set(key, val.url);
-      }
-    }
-  }
-} catch { /* ignore */ }
-
-function persistCache() {
-  try {
-    const obj: Record<string, CachedEntry> = {};
-    const now = Date.now();
-    for (const [key, url] of playUrlCache.entries()) {
-      obj[key] = { url, ts: now };
-    }
-    localStorage.setItem(PLAY_CACHE_KEY, JSON.stringify(obj));
-  } catch { /* quota exceeded — ignore */ }
-}
-
-/** Global in-flight request tracker to prevent duplicate concurrent API calls */
-const inFlightRequests = new Map<string, Promise<string | null>>();
-
 /** Broken cover collector — batches broken video IDs and sends to cleanup function */
 const brokenCoverIds = new Set<string>();
 let brokenCoverTimer: ReturnType<typeof setTimeout> | null = null;
