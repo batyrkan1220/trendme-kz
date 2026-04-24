@@ -121,7 +121,7 @@ Deno.serve(async (req: Request) => {
       };
     };
 
-    /** Normalize video to standard format */
+    /** Normalize TikTok video to standard format */
     const normalizeVideo = (raw: any) => {
       const v = unwrapVideo(raw);
       const rawStats = v.statistics || v.stats || {};
@@ -142,6 +142,7 @@ Deno.serve(async (req: Request) => {
       };
 
       return {
+        platform: "tiktok",
         aweme_id: awemeId,
         platform_video_id: String(awemeId),
         caption: desc,
@@ -154,6 +155,76 @@ Deno.serve(async (req: Request) => {
         stats,
         ...stats,
         createTime: v.create_time || v.createTime || 0,
+      };
+    };
+
+    /** Normalize Instagram Reel to standard format */
+    const normalizeInstagramReel = (raw: any): any | null => {
+      // EnsembleData IG hashtag returns items with `node` or directly a media object
+      const node = raw?.node || raw;
+      if (!node) return null;
+
+      // Only video/reel content
+      const isVideo =
+        node.is_video === true ||
+        node.media_type === 2 ||
+        node.product_type === "clips" ||
+        !!node.video_url ||
+        !!node.video_versions;
+      if (!isVideo) return null;
+
+      const shortcode = node.shortcode || node.code || node.pk || node.id || "";
+      const id = String(node.pk || node.id || shortcode || "");
+      if (!id) return null;
+
+      const owner = node.owner || node.user || {};
+      const username = owner.username || node.username || "";
+      const avatar = owner.profile_pic_url || node.profile_pic_url || "";
+      const cover =
+        node.display_url ||
+        node.thumbnail_src ||
+        node.image_versions2?.candidates?.[0]?.url ||
+        node.thumbnail_url ||
+        "";
+      const caption =
+        node.caption?.text ||
+        node.edge_media_to_caption?.edges?.[0]?.node?.text ||
+        node.title ||
+        "";
+
+      const views =
+        node.video_view_count ??
+        node.play_count ??
+        node.view_count ??
+        node.ig_play_count ??
+        0;
+      const likes =
+        node.edge_liked_by?.count ??
+        node.edge_media_preview_like?.count ??
+        node.like_count ??
+        0;
+      const comments =
+        node.edge_media_to_comment?.count ??
+        node.comment_count ??
+        0;
+
+      const ts = node.taken_at_timestamp || node.taken_at || 0;
+      const stats = { views: Number(views) || 0, likes: Number(likes) || 0, comments: Number(comments) || 0, shares: 0 };
+
+      return {
+        platform: "instagram",
+        aweme_id: `ig_${id}`,
+        platform_video_id: `ig_${id}`,
+        caption,
+        url: shortcode ? `https://www.instagram.com/reel/${shortcode}/` : "",
+        cover_url: cover,
+        author_username: username,
+        author_display_name: owner.full_name || node.full_name || "",
+        author_avatar_url: avatar,
+        duration: Math.round(node.video_duration || 0),
+        stats,
+        ...stats,
+        createTime: ts,
       };
     };
 
