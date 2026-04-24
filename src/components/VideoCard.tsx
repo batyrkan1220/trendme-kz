@@ -539,27 +539,26 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
             {/* Bottom overlay — author + caption */}
             <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10 text-white pointer-events-none">
               {(showAuthor && video.author_username) && (
-                <div className="flex items-center gap-1.5 text-[11px] opacity-90 mb-1">
-                  {video.author_avatar_url ? (
+                <div className="flex items-center gap-2 text-[11px] opacity-90 mb-1.5">
+                  {avatarSrc ? (
                     <img
-                      src={video.author_avatar_url}
+                      src={avatarSrc}
                       alt=""
                       referrerPolicy="no-referrer"
                       loading="lazy"
                       decoding="async"
-                      className="w-4 h-4 rounded-full bg-white/20 object-cover"
-                      onError={(e) => {
-                        const img = e.currentTarget;
-                        img.style.display = "none";
-                        const fallback = img.nextElementSibling as HTMLElement | null;
-                        if (fallback) fallback.style.display = "block";
+                      className="w-5 h-5 rounded-full bg-white/20 object-cover ring-1 ring-white/20 shrink-0"
+                      onError={() => {
+                        if (avatarSrc !== `https://unavatar.io/instagram/${video.author_username}`) {
+                          setAvatarSrc(`https://unavatar.io/instagram/${video.author_username}`);
+                          return;
+                        }
+                        setAvatarSrc(null);
                       }}
                     />
-                  ) : null}
-                  <div
-                    className="w-4 h-4 rounded-full bg-white/30"
-                    style={{ display: video.author_avatar_url ? "none" : "block" }}
-                  />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-white/30 ring-1 ring-white/15 shrink-0" />
+                  )}
                   <span className="truncate font-medium">@{video.author_username}</span>
                 </div>
               )}
