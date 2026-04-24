@@ -1,9 +1,20 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { trackSearchEvent, trackAddToFavorites, trackPlausible } from "@/components/TrackingPixels";
 import {
-  Search as SearchIcon, Clock, Loader2, Sparkles, TrendingUp
+  Search as SearchIcon,
+  Clock,
+  Loader2,
+  Sparkles,
+  TrendingUp,
+  Globe,
+  Music2,
+  Instagram,
+  X,
+  Check,
+  Eye,
+  Lock as LockIcon,
 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,6 +33,33 @@ import { cn } from "@/lib/utils";
 const FREE_SEARCH_VISIBLE = 5;
 
 type PlatformFilter = "all" | "tiktok" | "instagram";
+
+const PLATFORM_TABS: Array<{ key: PlatformFilter; label: string; shortLabel: string; icon: typeof Globe }> = [
+  { key: "all", label: "Все", shortLabel: "Все", icon: Globe },
+  { key: "tiktok", label: "TikTok", shortLabel: "TT", icon: Music2 },
+  { key: "instagram", label: "Instagram", shortLabel: "IG", icon: Instagram },
+];
+
+const POPULAR_NICHES: Array<{ emoji: string; name: string; query: string; tag?: PlatformFilter }> = [
+  { emoji: "🍜", name: "Еда и рецепты", query: "рецепты завтрака" },
+  { emoji: "💄", name: "Beauty", query: "skincare routine" },
+  { emoji: "👗", name: "Fashion", query: "outfit ideas", tag: "instagram" },
+  { emoji: "💪", name: "Фитнес", query: "fitness motivation" },
+  { emoji: "🎧", name: "Lifestyle", query: "morning routine" },
+  { emoji: "😂", name: "Юмор", query: "funny skits", tag: "tiktok" },
+];
+
+const LOADING_STEPS_ALL = [
+  "Ищем в TikTok",
+  "Ищем в Instagram",
+  "Объединяем и сортируем по вирусности",
+  "Готовим результаты",
+];
+const LOADING_STEPS_ONE = (label: string) => [
+  `Ищем в ${label}`,
+  "Сортируем по вирусности",
+  "Готовим результаты",
+];
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
@@ -50,7 +88,13 @@ export default function SearchPage() {
     enabled: !!user,
   });
 
-  const { data: searchResults, isPending: isSearching, mutate: doSearch } = useMutation({
+  const {
+    data: searchResults,
+    isPending: isSearching,
+    mutate: doSearch,
+    variables: searchVars,
+    reset: resetSearch,
+  } = useMutation({
     mutationFn: async ({ q, platform }: { q: string; platform: PlatformFilter }) => {
       const { data, error } = await supabase.functions.invoke("ensemble-search", {
         body: { query: q, platform },
@@ -67,12 +111,13 @@ export default function SearchPage() {
     },
     onSuccess: (data, vars) => {
       trackSearchEvent(vars.q);
-      trackPlausible("Search Performed", { query: String(vars.q).slice(0, 100), platform: vars.platform });
+      trackPlausible("Search Performed", {
+        query: String(vars.q).slice(0, 100),
+        platform: vars.platform,
+      });
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
-      if (data.warnings?.length) {
-        data.warnings.forEach((w) => toast.warning(w));
-      }
+      data.warnings?.forEach((w) => toast.warning(w));
     },
     onError: () => {
       toast.error("Не удалось выполнить поиск. Попробуйте позже.");
@@ -91,20 +136,23 @@ export default function SearchPage() {
     enabled: !!user,
   });
 
-  const toggleFav = useCallback(async (videoId: string) => {
-    if (!user) return;
-    const isFav = userFavorites.includes(videoId);
-    if (isFav) {
-      await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
-      trackPlausible("Favorite Removed", { source: "search" });
-    } else {
-      await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
-      trackAddToFavorites(videoId);
-      trackPlausible("Favorite Added", { source: "search" });
-    }
-    queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
-    queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
-  }, [user, userFavorites, queryClient]);
+  const toggleFav = useCallback(
+    async (videoId: string) => {
+      if (!user) return;
+      const isFav = userFavorites.includes(videoId);
+      if (isFav) {
+        await supabase.from("favorites").delete().eq("user_id", user.id).eq("video_id", videoId);
+        trackPlausible("Favorite Removed", { source: "search" });
+      } else {
+        await supabase.from("favorites").insert({ user_id: user.id, video_id: videoId });
+        trackAddToFavorites(videoId);
+        trackPlausible("Favorite Added", { source: "search" });
+      }
+      queryClient.invalidateQueries({ queryKey: ["user-favorites"] });
+      queryClient.invalidateQueries({ queryKey: ["favorites-count"] });
+    },
+    [user, userFavorites, queryClient],
+  );
 
   const handleSearch = async () => {
     const q = query.trim();
@@ -117,76 +165,221 @@ export default function SearchPage() {
     doSearch({ q, platform: platformFilter });
   };
 
-  const handleSearchDirect = async (q: string) => {
+  const handleSearchDirect = async (q: string, platform: PlatformFilter = platformFilter) => {
     if (!q.trim()) return;
     const ok = await checkAndLog("search", `Поиск: ${q.trim()}`);
     if (!ok) return;
-    doSearch({ q: q.trim(), platform: platformFilter });
+    setQuery(q.trim());
+    if (platform !== platformFilter) setPlatformFilter(platform);
+    doSearch({ q: q.trim(), platform });
   };
 
-  // Viral score: weighted combo of reach (views), engagement rate, and velocity (views/hour since publish)
+  const handleNewSearch = () => {
+    resetSearch();
+    setQuery("");
+  };
+
+  // Viral score
   const computeViralScore = (v: any) => {
     const views = Number(v.views) || 0;
     const likes = Number(v.likes) || 0;
     const comments = Number(v.comments) || 0;
     const shares = Number(v.shares) || 0;
-    if (views < 1000) return 0; // filter out junk
+    if (views < 1000) return 0;
     const engagement = (likes + comments * 2 + shares * 3) / views;
     let velocity = Number(v.velocity_views) || 0;
     if (!velocity && v.published_at) {
       const hours = Math.max(1, (Date.now() - new Date(v.published_at).getTime()) / 3_600_000);
       velocity = views / hours;
     }
-    // Log-scale views so a 50M video doesn't completely dominate, but still wins over a 5k one
     const reachScore = Math.log10(views + 1) * 10;
     const velocityScore = Math.log10(velocity + 1) * 8;
-    const engagementScore = Math.min(engagement * 1000, 50); // cap at 50
+    const engagementScore = Math.min(engagement * 1000, 50);
     return reachScore + velocityScore + engagementScore;
   };
 
-  const allResults = [...(searchResults?.videos || [])]
-    .filter((v: any) => (Number(v.views) || 0) >= 1000) // hide junk videos
-    .map((v: any) => ({ ...v, _viral: computeViralScore(v) }))
-    .sort((a: any, b: any) => b._viral - a._viral);
+  const allResults = useMemo(
+    () =>
+      [...(searchResults?.videos || [])]
+        .filter((v: any) => (Number(v.views) || 0) >= 1000)
+        .map((v: any) => ({ ...v, _viral: computeViralScore(v) }))
+        .sort((a: any, b: any) => b._viral - a._viral),
+    [searchResults],
+  );
+
   const tiktokCount = allResults.filter((v: any) => (v.platform || "tiktok") === "tiktok").length;
   const instagramCount = allResults.filter((v: any) => v.platform === "instagram").length;
+
   const results =
     platformFilter === "all"
       ? allResults
       : allResults.filter((v: any) => (v.platform || "tiktok") === platformFilter);
+
   const relatedKeywords: string[] = searchResults?.relatedKeywords || [];
 
-  // Shared lux search bar (used in both empty + results states)
-  const renderSearchBar = (compact = false) => (
+  const hasResults = !!searchResults && !isSearching;
+
+  // ----- Loading checklist progress -----
+  const loadingPlatform: PlatformFilter = (searchVars?.platform as PlatformFilter) || platformFilter;
+  const loadingSteps =
+    loadingPlatform === "all"
+      ? LOADING_STEPS_ALL
+      : LOADING_STEPS_ONE(loadingPlatform === "tiktok" ? "TikTok" : "Instagram");
+  const [loadingStep, setLoadingStep] = useState(0);
+  useEffect(() => {
+    if (!isSearching) {
+      setLoadingStep(0);
+      return;
+    }
+    const total = loadingSteps.length;
+    const interval = setInterval(() => {
+      setLoadingStep((s) => Math.min(s + 1, total - 1));
+    }, 2200);
+    return () => clearInterval(interval);
+  }, [isSearching, loadingSteps.length]);
+
+  // ===========================================================
+  // Sub-components — rendered inline per state
+  // ===========================================================
+
+  const SearchInputBar = ({
+    showClear = false,
+    fullWidthOnMobile = true,
+  }: {
+    showClear?: boolean;
+    fullWidthOnMobile?: boolean;
+  }) => (
     <form
-      onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
-      className={cnFlex(compact)}
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSearch();
+      }}
+      className={cn("flex gap-2 w-full", fullWidthOnMobile ? "flex-col sm:flex-row" : "flex-row")}
     >
       <div className="relative flex-1">
-        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
         <Input
-          placeholder="Введите ключевое слово..."
+          placeholder="Ключевое слово — RU / EN / KZ"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="h-12 pl-11 pr-4 bg-card/80 backdrop-blur-xl border-border/60 rounded-2xl shadow-soft text-base"
+          className="h-12 pl-10 pr-10 bg-card/85 backdrop-blur-xl border-border/60 rounded-2xl shadow-soft text-sm md:text-[15px]"
         />
+        {showClear && query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full grid place-items-center text-muted-foreground hover:bg-foreground/5 transition-colors"
+            aria-label="Очистить"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
       </div>
       <Button
         type="submit"
         disabled={isSearching}
-        className="h-12 bg-foreground text-background hover:bg-foreground/90 px-6 rounded-2xl font-bold text-sm shadow-soft ring-1 ring-foreground/10"
+        className={cn(
+          "h-12 rounded-2xl font-extrabold text-[13px] px-6 shadow-soft ring-1 ring-foreground/10 tracking-tight",
+          "bg-foreground text-background hover:bg-foreground/90",
+          fullWidthOnMobile && "w-full sm:w-auto justify-center",
+        )}
       >
         {isSearching ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <>
-            <SearchIcon className="h-4 w-4 mr-1.5" />
+            <SearchIcon className="h-3.5 w-3.5 mr-1.5" />
             Искать
           </>
         )}
       </Button>
     </form>
   );
+
+  const PlatformToggle = ({
+    showCounts = false,
+    size = "md",
+  }: {
+    showCounts?: boolean;
+    size?: "sm" | "md";
+  }) => (
+    <div className="flex items-center gap-2.5 flex-wrap">
+      {!showCounts && (
+        <span className="eyebrow text-[10.5px]">Платформа</span>
+      )}
+      <div
+        className={cn(
+          "inline-flex items-center gap-1 p-1 rounded-full bg-card/80 backdrop-blur-xl border border-border/60 shadow-soft",
+          size === "sm" ? "p-0.5" : "p-1",
+        )}
+      >
+        {PLATFORM_TABS.map((tab) => {
+          const Icon = tab.icon;
+          const active = platformFilter === tab.key;
+          const count =
+            tab.key === "all"
+              ? allResults.length
+              : tab.key === "tiktok"
+                ? tiktokCount
+                : instagramCount;
+          const disabled = showCounts && count === 0 && tab.key !== "all";
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              disabled={disabled}
+              onClick={() => setPlatformFilter(tab.key)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full font-extrabold tracking-tight transition-all",
+                size === "sm" ? "h-7 px-2.5 text-[12px]" : "h-8 px-3 text-[12.5px]",
+                active
+                  ? "bg-foreground text-background shadow-soft"
+                  : "text-muted-foreground hover:text-foreground",
+                disabled && "opacity-40 cursor-not-allowed hover:text-muted-foreground",
+              )}
+            >
+              <Icon className="h-3 w-3" />
+              {showCounts && size === "sm" ? tab.shortLabel : tab.label}
+              {showCounts && (
+                <span
+                  className={cn(
+                    "inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-extrabold",
+                    active
+                      ? "bg-background/20 text-background"
+                      : "bg-foreground/10 text-foreground/70",
+                  )}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // Platform badge overlay (TikTok / Reels) over each card
+  const PlatformBadge = ({ platform }: { platform: "tiktok" | "instagram" }) => (
+    <div className="absolute top-1.5 left-1.5 z-[2] pointer-events-none">
+      {platform === "instagram" ? (
+        <span className="inline-flex items-center gap-1 h-[22px] px-2 rounded-full text-white text-[10.5px] font-extrabold tracking-tight backdrop-blur-md border border-white/15 shadow-md
+          bg-gradient-to-br from-[#F58529] via-[#DD2A7B] to-[#515BD4]">
+          <Instagram className="h-2.5 w-2.5" />
+          Reels
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 h-[22px] px-2 rounded-full text-white text-[10.5px] font-extrabold tracking-tight backdrop-blur-md border border-white/15 shadow-md bg-black/85">
+          <Music2 className="h-2.5 w-2.5" />
+          TikTok
+        </span>
+      )}
+    </div>
+  );
+
+  // ===========================================================
+  // Render
+  // ===========================================================
 
   return (
     <AppLayout>
@@ -200,38 +393,36 @@ export default function SearchPage() {
           }}
         >
           <div className="px-4 pb-3 md:p-6 lg:p-8 max-w-3xl mx-auto">
-            <div className="space-y-6">
-              {/* Hero header — same style as /trends */}
+            <div className="space-y-5">
+              {/* Header */}
               <div className="space-y-1.5">
                 <span className="eyebrow">Поиск</span>
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+                <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight">
                   Найдите свои тренды
                 </h1>
-                <p className="text-[13px] md:text-sm text-muted-foreground">
-                  Введите ключевое слово — соберём релевантные TikTok и Instagram Reels
+                <p className="text-[13px] md:text-sm text-muted-foreground leading-relaxed">
+                  Соберём свежие вирусные видео в{" "}
+                  <span className="text-foreground font-bold">TikTok</span> и{" "}
+                  <span className="text-foreground font-bold">Instagram Reels</span> по вашему слову
                 </p>
               </div>
 
-              {renderSearchBar()}
+              <SearchInputBar />
+              <PlatformToggle />
 
-              {/* Recent queries — pill chips like /trends niche filters */}
+              {/* Recent queries */}
               {recentQueries && recentQueries.length > 0 && (
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Недавние запросы
-                    </span>
+                    <span className="eyebrow">Недавние запросы</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {recentQueries.slice(0, 8).map((q) => (
                       <button
                         key={q.id}
-                        onClick={() => {
-                          setQuery(q.query_text);
-                          handleSearchDirect(q.query_text);
-                        }}
-                        className="px-3.5 py-1.5 rounded-full bg-card/70 backdrop-blur-md border border-border/60 text-[13px] font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft"
+                        onClick={() => handleSearchDirect(q.query_text)}
+                        className="px-3.5 h-[30px] rounded-full bg-card/75 backdrop-blur-md border border-border/60 text-[12.5px] font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft"
                       >
                         {q.query_text}
                       </button>
@@ -240,44 +431,124 @@ export default function SearchPage() {
                 </div>
               )}
 
-              {/* Tips card */}
-              <div className="rounded-2xl bg-card/60 backdrop-blur-xl border border-border/60 p-4 md:p-5 shadow-soft">
-                <div className="flex items-center gap-2 mb-2.5">
-                  <div className="h-7 w-7 rounded-lg bg-viral/15 flex items-center justify-center ring-1 ring-viral/30">
+              {/* Popular niches */}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="eyebrow">Популярные ниши</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {POPULAR_NICHES.map((n) => {
+                    const TagIcon = n.tag === "instagram" ? Instagram : n.tag === "tiktok" ? Music2 : null;
+                    return (
+                      <button
+                        key={n.name}
+                        onClick={() => handleSearchDirect(n.query, n.tag || "all")}
+                        className="flex items-center gap-2.5 p-3 rounded-2xl bg-card/75 backdrop-blur-md border border-border/60 shadow-soft hover:bg-card hover:-translate-y-0.5 transition-all active:scale-[0.98] text-left"
+                      >
+                        <span className="text-xl leading-none">{n.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] font-extrabold text-foreground truncate">{n.name}</div>
+                          <div className="text-[11px] text-muted-foreground truncate">{n.query}</div>
+                        </div>
+                        {TagIcon && <TagIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Tip card */}
+              <div className="rounded-2xl bg-card/70 backdrop-blur-xl border border-border/60 p-4 md:p-5 shadow-soft">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-7 w-7 rounded-lg bg-viral/15 flex items-center justify-center ring-1 ring-viral/35">
                     <Sparkles className="h-3.5 w-3.5 text-viral" />
                   </div>
-                  <h3 className="font-bold text-[13px] text-foreground">Совет</h3>
+                  <h3 className="font-extrabold text-[13px] text-foreground">Как искать лучше</h3>
                 </div>
-                <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                  Используйте конкретные ключевые слова на русском, английском или казахском.
-                  Например: <span className="text-foreground font-semibold">«рецепты завтрака»</span>,{" "}
-                  <span className="text-foreground font-semibold">«morning routine»</span>.
-                </p>
+                <ul className="space-y-1.5">
+                  {[
+                    <>Используйте конкретные слова: <b className="text-foreground font-semibold">«рецепты завтрака»</b>, а не «еда»</>,
+                    <>Ищите на языке вашей аудитории — <b className="text-foreground font-semibold">RU / EN / KZ</b></>,
+                    <>Переключайтесь между <b className="text-foreground font-semibold">TikTok</b> и <b className="text-foreground font-semibold">Instagram</b> — тренды разные</>,
+                  ].map((line, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-2 text-[12.5px] text-muted-foreground leading-relaxed"
+                    >
+                      <span className="text-viral shrink-0">•</span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
         </div>
-      ) : isSearching && !searchResults ? (
-        /* ========= LOADING STATE ========= */
+      ) : isSearching && !hasResults ? (
+        /* ========= LOADING STATE — checklist ========= */
         <div
-          className="flex flex-col items-center justify-center p-4 animate-fade-in bg-background-subtle"
+          className="flex flex-col items-center justify-center px-4 animate-fade-in bg-background-subtle"
           style={{
             minHeight: "calc(100dvh - 8rem)",
-            paddingTop: "max(env(safe-area-inset-top, 0px) + 16px, 16px)",
+            paddingTop: "max(env(safe-area-inset-top, 0px) + 24px, 24px)",
           }}
         >
-          <div className="w-full max-w-lg flex flex-col items-center gap-5">
+          <div className="w-full max-w-md flex flex-col items-center gap-5">
             <div className="relative">
-              <span className="absolute inset-0 rounded-2xl bg-viral/40 blur-2xl -z-10" />
-              <div className="w-20 h-20 rounded-2xl bg-viral flex items-center justify-center shadow-glow-primary animate-scale-in ring-1 ring-white/20">
-                <Sparkles className="h-9 w-9 text-foreground animate-pulse" />
+              <span className="absolute -inset-1.5 rounded-2xl bg-viral/30 blur-2xl -z-10" />
+              <div className="w-16 h-16 rounded-2xl bg-viral grid place-items-center shadow-glow-primary ring-1 ring-foreground/10">
+                <Sparkles className="h-7 w-7 text-foreground animate-pulse" />
               </div>
             </div>
-            <p className="text-muted-foreground font-medium text-center text-sm md:text-base animate-fade-in">
-              Ищем видео по вашему запросу...<br />
-              Это займёт 1–2 минуты
-            </p>
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            <div className="text-center space-y-1">
+              <div className="eyebrow">Поиск трендов</div>
+              <h2 className="text-lg font-extrabold tracking-tight text-foreground">
+                «{searchVars?.q || query}»
+              </h2>
+              <p className="text-[12.5px] text-muted-foreground">Это займёт 30–90 секунд</p>
+            </div>
+            <ul className="w-full p-2 rounded-2xl bg-card/85 border border-border/60 shadow-soft space-y-0.5">
+              {loadingSteps.map((label, i) => {
+                const done = i < loadingStep;
+                const active = i === loadingStep;
+                return (
+                  <li
+                    key={label}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors",
+                      active && "bg-viral/12",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "w-6 h-6 rounded-full grid place-items-center text-[11px] font-extrabold shrink-0",
+                        done && "bg-viral text-foreground",
+                        active && "bg-viral/20 ring-1 ring-viral/55 text-foreground",
+                        !done && !active && "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {done ? (
+                        <Check className="h-3 w-3" strokeWidth={3} />
+                      ) : active ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        i + 1
+                      )}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[13px] font-bold",
+                        done && "text-muted-foreground line-through decoration-muted-foreground/40",
+                        !done && "text-foreground",
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
       ) : (
@@ -291,105 +562,81 @@ export default function SearchPage() {
             }}
           >
             <div className="px-4 pb-3 md:p-6 lg:p-8">
-              <div className="space-y-4 md:space-y-6">
-                {/* Hero header */}
-                <div className="space-y-1.5">
-                  <span className="eyebrow">Поиск</span>
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                    Результаты 🔍
-                  </h1>
-                  {allResults.length > 0 && (
-                    <p className="text-[13px] md:text-sm text-muted-foreground">
-                      <span className="font-bold text-foreground">{allResults.length}</span> видео — TikTok{" "}
-                      <span className="font-semibold text-foreground">{tiktokCount}</span>, Instagram{" "}
-                      <span className="font-semibold text-foreground">{instagramCount}</span>
-                    </p>
-                  )}
+              <div className="space-y-4 md:space-y-5">
+                {/* Header row + new search button */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5 min-w-0">
+                    <span className="eyebrow">Результаты</span>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight truncate">
+                      «{searchVars?.q || query}»
+                    </h1>
+                    {allResults.length > 0 && (
+                      <p className="text-[13px] text-muted-foreground flex items-center gap-x-1.5 flex-wrap">
+                        <span>
+                          <b className="text-foreground font-extrabold tabular-nums">{allResults.length}</b> видео
+                        </span>
+                        <span className="text-border">·</span>
+                        <span className="inline-flex items-center gap-1">
+                          <Music2 className="h-3 w-3" />
+                          <b className="text-foreground font-extrabold tabular-nums">{tiktokCount}</b> TikTok
+                        </span>
+                        <span className="text-border">·</span>
+                        <span className="inline-flex items-center gap-1">
+                          <Instagram className="h-3 w-3" />
+                          <b className="text-foreground font-extrabold tabular-nums">{instagramCount}</b> Instagram
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleNewSearch}
+                    className="shrink-0 h-9 px-3.5 rounded-full bg-card/75 backdrop-blur-md border border-border/60 text-[12.5px] font-bold inline-flex items-center gap-1.5 hover:bg-card transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                    Новый
+                  </button>
                 </div>
 
-                {renderSearchBar(true)}
+                <SearchInputBar showClear />
 
-                {/* Platform filter tabs */}
-                {allResults.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {([
-                      { key: "all" as const, label: "Все", count: allResults.length },
-                      { key: "tiktok" as const, label: "TikTok", count: tiktokCount },
-                      { key: "instagram" as const, label: "Instagram", count: instagramCount },
-                    ]).map((tab) => {
-                      const active = platformFilter === tab.key;
-                      const disabled = tab.count === 0 && tab.key !== "all";
-                      return (
-                        <button
-                          key={tab.key}
-                          disabled={disabled}
-                          onClick={() => setPlatformFilter(tab.key)}
-                          className={cn(
-                            "px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95 shadow-soft border",
-                            active
-                              ? "bg-foreground text-background border-foreground"
-                              : "bg-card/70 backdrop-blur-md border-border/60 text-foreground hover:bg-foreground/10",
-                            disabled && "opacity-40 cursor-not-allowed hover:bg-card/70"
-                          )}
-                        >
-                          {tab.label}
-                          <span className={cn(
-                            "ml-1.5 text-[11px] font-semibold opacity-70",
-                            active && "opacity-90"
-                          )}>
-                            {tab.count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                {/* Compact platform toggle with counts */}
+                <PlatformToggle showCounts size="sm" />
 
-                {/* Related keywords as pill chips */}
+                {/* Related keywords */}
                 {relatedKeywords.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Похожие запросы
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {relatedKeywords.map((kw) => (
-                        <button
-                          key={kw}
-                          onClick={() => {
-                            setQuery(kw);
-                            doSearch({ q: kw, platform: platformFilter });
-                          }}
-                          className="px-3.5 py-1.5 rounded-full bg-card/70 backdrop-blur-md border border-border/60 text-[13px] font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft"
-                        >
-                          {kw}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="eyebrow text-[10.5px]">Похожие:</span>
+                    {relatedKeywords.map((kw) => (
+                      <button
+                        key={kw}
+                        onClick={() => handleSearchDirect(kw)}
+                        className="h-[26px] px-2.5 rounded-full bg-card/75 backdrop-blur-md border border-border/60 text-[11.5px] font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft"
+                      >
+                        {kw}
+                      </button>
+                    ))}
                   </div>
                 )}
 
                 {/* Empty results */}
-                {results.length === 0 && searchResults && !isSearching && (
+                {results.length === 0 && (
                   <div
-                    className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in"
-                    style={{ minHeight: "calc(100dvh - 22rem)" }}
+                    className="flex flex-col items-center justify-center gap-3 animate-fade-in py-12"
+                    style={{ minHeight: "40vh" }}
                   >
-                    <div className="h-16 w-16 rounded-2xl bg-card/60 border border-border/60 flex items-center justify-center">
+                    <div className="h-16 w-16 rounded-2xl bg-card/70 border border-border/60 grid place-items-center">
                       <SearchIcon className="h-8 w-8 text-muted-foreground/40" />
                     </div>
-                    <p className="text-lg font-bold text-foreground">Ничего не найдено</p>
+                    <p className="text-base font-extrabold text-foreground">Ничего не найдено</p>
                     <p className="text-sm text-muted-foreground text-center max-w-sm">
-                      По запросу «{query}» не найдено видео. Попробуйте изменить запрос.
+                      По запросу «{query}» в выбранной платформе ничего нет. Попробуйте переключить платформу или изменить запрос.
                     </p>
                   </div>
                 )}
 
-                {/* Grid — identical to /trends VirtualTrendGrid */}
+                {/* Grid */}
                 {results.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 md:gap-3.5">
                     {results.map((video: any, i: number) => {
                       const cardData: VideoCardData = {
                         id: video.id,
@@ -408,6 +655,9 @@ export default function SearchPage() {
                         duration: Number(video.duration_sec) || 0,
                       };
 
+                      const platform: "tiktok" | "instagram" =
+                        video.platform === "instagram" ? "instagram" : "tiktok";
+
                       const isLocked = isFreePlan && i >= FREE_SEARCH_VISIBLE;
 
                       return (
@@ -415,10 +665,12 @@ export default function SearchPage() {
                           key={video.id || i}
                           className={cn(
                             "relative",
-                            isLocked && "group/lock cursor-pointer rounded-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-glow-viral"
+                            isLocked &&
+                              "group/lock cursor-pointer rounded-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-glow-viral",
                           )}
                           onClick={isLocked ? () => navigate("/subscription") : undefined}
                         >
+                          <PlatformBadge platform={platform} />
                           <div className={isLocked ? "pointer-events-none select-none" : ""}>
                             <MemoVideoCard
                               video={cardData}
@@ -447,19 +699,19 @@ export default function SearchPage() {
           <VideoAnalysisDialog
             video={analysisVideo}
             open={!!analysisVideo}
-            onOpenChange={(open) => { if (!open) setAnalysisVideo(null); }}
+            onOpenChange={(open) => {
+              if (!open) setAnalysisVideo(null);
+            }}
           />
           <ScriptOnlyDialog
             video={scriptVideo}
             open={!!scriptVideo}
-            onOpenChange={(open) => { if (!open) setScriptVideo(null); }}
+            onOpenChange={(open) => {
+              if (!open) setScriptVideo(null);
+            }}
           />
         </>
       )}
     </AppLayout>
   );
-}
-
-function cnFlex(compact: boolean) {
-  return `flex flex-col sm:flex-row gap-2 w-full ${compact ? "" : "max-w-2xl"}`;
 }
