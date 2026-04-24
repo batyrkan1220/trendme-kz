@@ -261,7 +261,12 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const [coverFailed, setCoverFailed] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(video.author_avatar_url ?? null);
+  const avatarChain = useMemo(
+    () => buildAvatarChain(video.url, video.author_username, video.author_avatar_url ?? null),
+    [video.url, video.author_username, video.author_avatar_url],
+  );
+  const [avatarIndex, setAvatarIndex] = useState(0);
+  const avatarSrc = avatarChain[avatarIndex] ?? null;
   const videoRef = useRef<HTMLVideoElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
   const isMobileFromHook = useIsMobile();
