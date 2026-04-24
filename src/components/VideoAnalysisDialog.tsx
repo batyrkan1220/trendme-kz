@@ -100,8 +100,10 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
   const views = Number(video.views || 0);
   const likes = Number(video.likes || 0);
   const commentsCount = Number(video.comments || 0);
+  const isInstagram = /instagram\.com/i.test(video.url || "");
   const shares = Number(video.shares || 0);
-  const er = views > 0 ? ((likes + commentsCount + shares) / views * 100).toFixed(2) : "0";
+  const showShares = !isInstagram;
+  const er = views > 0 ? ((likes + commentsCount + (showShares ? shares : 0)) / views * 100).toFixed(2) : "0";
 
   const publishedDate = video.published_at
     ? new Date(video.published_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", year: "numeric" })
