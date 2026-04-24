@@ -269,10 +269,16 @@ Deno.serve(async (req: Request) => {
       return { hashtags: [], relatedKeywords: [] };
     };
 
-    // 1. Keyword search (5 pages) + AI hashtags in parallel
+    // 1. TikTok keyword search (5 pages) + IG hashtag search + AI hashtags in parallel
     const PAGES = 5;
-    const [aiResult, ...pageResults] = await Promise.allSettled([
+    const igTag = trimmedQuery.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase();
+
+    const [aiResult, igResult, ...pageResults] = await Promise.allSettled([
       generateHashtagsAndKeywords(trimmedQuery),
+      // IG hashtag posts (Reels) — single call, single hashtag (cleaned)
+      igTag
+        ? callEnsemble("/instagram/hashtag/posts", { name: igTag })
+        : Promise.resolve(null),
       ...Array.from({ length: PAGES }, (_, page) =>
         callEnsemble("/tt/keyword/search", {
           name: trimmedQuery,
@@ -293,25 +299,54 @@ Deno.serve(async (req: Request) => {
     for (const r of pageResults) {
       if (r.status === "fulfilled") allRaw.push(...extractVideos(r.value));
     }
-    console.log(`Keyword search returned ${allRaw.length} videos`);
+    console.log(`TikTok keyword search returned ${allRaw.length} videos`);
 
-    // 2. Hashtag search in parallel
-    if (hashtags.length > 0) {
-      const hashResults = await Promise.allSettled(
-        hashtags.map((tag: string) =>
-          callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" })
-        )
-      );
-      for (const r of hashResults) {
-        if (r.status === "fulfilled") {
-          const vids = extractVideos(r.value);
-          console.log(`Hashtag "${hashtags}" returned ${vids.length} videos`);
-          allRaw.push(...vids);
-        }
+    // 2. TikTok hashtag search in parallel + IG hashtag fan-out for AI tags
+    const igTagList: string[] = Array.from(
+      new Set(
+        [igTag, ...hashtags.map((t: string) => t.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase())]
+          .filter((t) => t && t.length > 0)
+      )
+    ).slice(0, 4);
+
+    const tiktokHashPromise =
+      hashtags.length > 0
+        ? Promise.allSettled(
+            hashtags.map((tag: string) =>
+              callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" })
+            )
+          )
+        : Promise.resolve([] as any[]);
+
+    const igExtraPromise = Promise.allSettled(
+      igTagList.slice(1).map((tag) =>
+        callEnsemble("/instagram/hashtag/posts", { name: tag })
+      )
+    );
+
+    const [tiktokHashResults, igExtraResults] = await Promise.all([
+      tiktokHashPromise,
+      igExtraPromise,
+    ]);
+
+    for (const r of tiktokHashResults as any[]) {
+      if (r.status === "fulfilled") {
+        const vids = extractVideos(r.value);
+        allRaw.push(...vids);
       }
     }
 
-    // 3. Normalize + Deduplicate
+    // Collect IG raw items
+    const igRaw: any[] = [];
+    if ((igResult as any).status === "fulfilled" && (igResult as any).value) {
+      igRaw.push(...extractVideos((igResult as any).value));
+    }
+    for (const r of igExtraResults) {
+      if (r.status === "fulfilled") igRaw.push(...extractVideos(r.value));
+    }
+    console.log(`Instagram hashtag search returned ${igRaw.length} raw items`);
+
+    // 3. Normalize + Deduplicate (TikTok + IG)
     const seen = new Set<string>();
     const uniqueVideos: any[] = [];
     for (const raw of allRaw) {
@@ -320,16 +355,22 @@ Deno.serve(async (req: Request) => {
       seen.add(v.aweme_id);
       uniqueVideos.push(v);
     }
-    console.log(`Total unique videos: ${uniqueVideos.length}`);
+    for (const raw of igRaw) {
+      const v = normalizeInstagramReel(raw);
+      if (!v || !v.aweme_id || seen.has(v.aweme_id)) continue;
+      seen.add(v.aweme_id);
+      uniqueVideos.push(v);
+    }
+    console.log(`Total unique videos: ${uniqueVideos.length} (incl. IG)`);
 
-    // 4. Prepare DB rows + upsert
+    // 4. Prepare DB rows + upsert (per-platform)
     const now = new Date().toISOString();
     const videoRows = uniqueVideos
       .filter((v) => v.aweme_id)
       .map((v) => {
         const trends = computeTrend(v, v.stats);
         return {
-          platform: "tiktok",
+          platform: v.platform || "tiktok",
           platform_video_id: v.platform_video_id,
           url: v.url,
           caption: v.caption || "",
