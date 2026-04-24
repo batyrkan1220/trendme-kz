@@ -63,7 +63,7 @@ export default function Trends() {
       const { data, error } = await supabase
         .from("videos")
         .select(
-          "id, shortcode, url, platform_video_id, author_username, full_name, profile_pic_url, author_avatar_url, is_verified, caption, thumbnail_url, cover_url, view_count, like_count, comment_count, posted_at, published_at, viral_score, duration_sec, velocity_views",
+          "id, shortcode, url, platform_video_id, author_username, full_name, profile_pic_url, author_avatar_url, is_verified, caption, thumbnail_url, cover_url, view_count, like_count, comment_count, shares, posted_at, published_at, viral_score, duration_sec, velocity_views",
         )
         .eq("source", "trends")
         .eq("platform", "instagram")
