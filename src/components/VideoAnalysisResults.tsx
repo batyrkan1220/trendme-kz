@@ -17,6 +17,7 @@ interface AnalysisResultsProps {
   er: string;
   onGenerateScript: () => void;
   language: "ru" | "kk" | null;
+  hideShares?: boolean;
 }
 
 // ───────────────────────── Helpers ─────────────────────────
@@ -146,7 +147,7 @@ const RadialGauge = ({ score, label, sublabel }: { score: number; label: string;
 
 // ───────────────────────── Main ─────────────────────────
 export function VideoAnalysisResults({
-  summary, transcript, stats, views, likes, commentsCount, shares, er, onGenerateScript, language,
+  summary, transcript, stats, views, likes, commentsCount, shares, er, onGenerateScript, language, hideShares,
 }: AnalysisResultsProps) {
   const isKk = language === "kk";
   const duration = Number(stats?.duration || stats?.duration_sec || stats?.video?.duration || 0);
@@ -328,11 +329,13 @@ export function VideoAnalysisResults({
       </div>
 
       {/* ═════ QUICK STATS ═════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+      <div className={`grid grid-cols-2 sm:grid-cols-3 ${hideShares ? "lg:grid-cols-4" : "lg:grid-cols-5"} gap-2`}>
         <StatPill icon={Eye} label={isKk ? "Көрулер" : "Просмотры"} value={fmt(views)} accent />
         <StatPill icon={Heart} label={isKk ? "Лайктар" : "Лайки"} value={fmt(likes)} />
         <StatPill icon={MessageCircle} label={isKk ? "Пікірлер" : "Комментарии"} value={fmt(commentsCount)} />
-        <StatPill icon={Share2} label={isKk ? "Бөлісулер" : "Репосты"} value={fmt(shares)} />
+        {!hideShares && (
+          <StatPill icon={Share2} label={isKk ? "Бөлісулер" : "Репосты"} value={fmt(shares)} />
+        )}
         <StatPill icon={TrendingUp} label="ER" value={er + "%"} accent />
       </div>
 
