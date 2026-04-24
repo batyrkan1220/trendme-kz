@@ -90,6 +90,14 @@ Deno.serve(async (req: Request) => {
       if (data?.data?.posts && Array.isArray(data.data.posts)) return data.data.posts;
       if (Array.isArray(data?.data?.aweme_list)) return data.data.aweme_list;
       if (Array.isArray(data?.data?.videos)) return data.data.videos;
+      // Instagram hashtag posts: data.top_posts + data.recent_posts (each item = { node: {...} })
+      const igCombined: any[] = [];
+      if (Array.isArray(data?.data?.top_posts)) igCombined.push(...data.data.top_posts);
+      if (Array.isArray(data?.data?.recent_posts)) igCombined.push(...data.data.recent_posts);
+      if (Array.isArray(data?.data?.recent?.posts)) igCombined.push(...data.data.recent.posts);
+      if (Array.isArray(data?.top_posts)) igCombined.push(...data.top_posts);
+      if (Array.isArray(data?.recent_posts)) igCombined.push(...data.recent_posts);
+      if (igCombined.length > 0) return igCombined;
       if (Array.isArray(data?.items)) return data.items;
       if (Array.isArray(data?.videos)) return data.videos;
       return [];
