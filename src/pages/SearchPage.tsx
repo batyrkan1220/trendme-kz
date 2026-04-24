@@ -279,6 +279,42 @@ export default function SearchPage() {
 
                 {renderSearchBar(true)}
 
+                {/* Platform filter tabs */}
+                {allResults.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { key: "all" as const, label: "Все", count: allResults.length },
+                      { key: "tiktok" as const, label: "TikTok", count: tiktokCount },
+                      { key: "instagram" as const, label: "Instagram", count: instagramCount },
+                    ]).map((tab) => {
+                      const active = platformFilter === tab.key;
+                      const disabled = tab.count === 0 && tab.key !== "all";
+                      return (
+                        <button
+                          key={tab.key}
+                          disabled={disabled}
+                          onClick={() => setPlatformFilter(tab.key)}
+                          className={cn(
+                            "px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95 shadow-soft border",
+                            active
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-card/70 backdrop-blur-md border-border/60 text-foreground hover:bg-foreground/10",
+                            disabled && "opacity-40 cursor-not-allowed hover:bg-card/70"
+                          )}
+                        >
+                          {tab.label}
+                          <span className={cn(
+                            "ml-1.5 text-[11px] font-semibold opacity-70",
+                            active && "opacity-90"
+                          )}>
+                            {tab.count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {/* Related keywords as pill chips */}
                 {relatedKeywords.length > 0 && (
                   <div className="space-y-2">
