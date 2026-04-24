@@ -180,7 +180,7 @@ export default function SearchPage() {
                   Найдите свои тренды
                 </h1>
                 <p className="text-[13px] md:text-sm text-muted-foreground">
-                  Введите ключевое слово — соберём релевантные TikTok видео
+                  Введите ключевое слово — соберём релевантные TikTok и Instagram Reels
                 </p>
               </div>
 
