@@ -277,16 +277,13 @@ Deno.serve(async (req: Request) => {
       return { hashtags: [], instagramHashtags: [], relatedKeywords: [] };
     };
 
-    // 1. TikTok keyword search (5 pages) + IG hashtag search + AI hashtags in parallel
+    // 1. TikTok keyword search (5 pages) + AI hashtags in parallel
+    //    IG основной поиск делается ВТОРЫМ запросом, после того как AI вернёт латинские теги
     const PAGES = 5;
-    const igTag = trimmedQuery.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase();
+    const igTagFromQuery = trimmedQuery.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase();
 
-    const [aiResult, igResult, ...pageResults] = await Promise.allSettled([
+    const [aiResult, ...pageResults] = await Promise.allSettled([
       generateHashtagsAndKeywords(trimmedQuery),
-      // IG hashtag posts (Reels) — single call, single hashtag (cleaned)
-      igTag
-        ? callEnsemble("/instagram/hashtag/posts", { name: igTag })
-        : Promise.resolve(null),
       ...Array.from({ length: PAGES }, (_, page) =>
         callEnsemble("/tt/keyword/search", {
           name: trimmedQuery,
@@ -300,7 +297,7 @@ Deno.serve(async (req: Request) => {
       ),
     ]);
 
-    const { hashtags = [], relatedKeywords = [] } =
+    const { hashtags = [], instagramHashtags = [], relatedKeywords = [] } =
       (aiResult as any).status === "fulfilled" ? (aiResult as any).value : {};
 
     let allRaw: any[] = [];
@@ -309,13 +306,19 @@ Deno.serve(async (req: Request) => {
     }
     console.log(`TikTok keyword search returned ${allRaw.length} videos`);
 
-    // 2. TikTok hashtag search in parallel + IG hashtag fan-out for AI tags
+    // 2. TikTok hashtag posts + IG keyword-driven hashtag fan-out (parallel)
+    //    IG-те "keyword search" эндпойнты жоқ, сондықтан кілт сөзді IG-ке тән
+    //    латын/біріккен хэштегтерге айналдырамыз (AI арқылы) — TikTok-тағыдай
+    //    нәтиже алу үшін.
     const igTagList: string[] = Array.from(
       new Set(
-        [igTag, ...hashtags.map((t: string) => t.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase())]
-          .filter((t) => t && t.length > 0)
+        [igTagFromQuery, ...instagramHashtags]
+          .map((t: string) => (t || "").replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase())
+          .filter((t: string) => t && t.length > 1)
       )
-    ).slice(0, 4);
+    ).slice(0, 6);
+
+    console.log(`Instagram hashtag fan-out: [${igTagList.join(", ")}]`);
 
     const tiktokHashPromise =
       hashtags.length > 0
@@ -326,15 +329,15 @@ Deno.serve(async (req: Request) => {
           )
         : Promise.resolve([] as any[]);
 
-    const igExtraPromise = Promise.allSettled(
-      igTagList.slice(1).map((tag) =>
+    const igHashPromise = Promise.allSettled(
+      igTagList.map((tag) =>
         callEnsemble("/instagram/hashtag/posts", { name: tag })
       )
     );
 
-    const [tiktokHashResults, igExtraResults] = await Promise.all([
+    const [tiktokHashResults, igHashResults] = await Promise.all([
       tiktokHashPromise,
-      igExtraPromise,
+      igHashPromise,
     ]);
 
     for (const r of tiktokHashResults as any[]) {
@@ -343,6 +346,13 @@ Deno.serve(async (req: Request) => {
         allRaw.push(...vids);
       }
     }
+
+    // Collect IG raw items
+    const igRaw: any[] = [];
+    for (const r of igHashResults) {
+      if (r.status === "fulfilled") igRaw.push(...extractVideos(r.value));
+    }
+    console.log(`Instagram hashtag search returned ${igRaw.length} raw items`);
 
     // Collect IG raw items
     const igRaw: any[] = [];
