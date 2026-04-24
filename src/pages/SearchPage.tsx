@@ -21,11 +21,14 @@ import { cn } from "@/lib/utils";
 
 const FREE_SEARCH_VISIBLE = 5;
 
+type PlatformFilter = "all" | "tiktok" | "instagram";
+
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [scriptVideo, setScriptVideo] = useState<any>(null);
+  const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("all");
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -114,9 +117,15 @@ export default function SearchPage() {
     doSearch(q.trim());
   };
 
-  const results = [...(searchResults?.videos || [])].sort(
+  const allResults = [...(searchResults?.videos || [])].sort(
     (a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0)
   );
+  const tiktokCount = allResults.filter((v: any) => (v.platform || "tiktok") === "tiktok").length;
+  const instagramCount = allResults.filter((v: any) => v.platform === "instagram").length;
+  const results =
+    platformFilter === "all"
+      ? allResults
+      : allResults.filter((v: any) => (v.platform || "tiktok") === platformFilter);
   const relatedKeywords: string[] = searchResults?.relatedKeywords || [];
 
   // Shared lux search bar (used in both empty + results states)
@@ -171,7 +180,7 @@ export default function SearchPage() {
                   Найдите свои тренды
                 </h1>
                 <p className="text-[13px] md:text-sm text-muted-foreground">
-                  Введите ключевое слово — соберём релевантные TikTok видео
+                  Введите ключевое слово — соберём релевантные TikTok и Instagram Reels
                 </p>
               </div>
 
@@ -261,14 +270,52 @@ export default function SearchPage() {
                   <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
                     Результаты 🔍
                   </h1>
-                  {results.length > 0 && (
+                  {allResults.length > 0 && (
                     <p className="text-[13px] md:text-sm text-muted-foreground">
-                      <span className="font-bold text-foreground">{results.length}</span> видео найдено
+                      <span className="font-bold text-foreground">{allResults.length}</span> видео — TikTok{" "}
+                      <span className="font-semibold text-foreground">{tiktokCount}</span>, Instagram{" "}
+                      <span className="font-semibold text-foreground">{instagramCount}</span>
                     </p>
                   )}
                 </div>
 
                 {renderSearchBar(true)}
+
+                {/* Platform filter tabs */}
+                {allResults.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { key: "all" as const, label: "Все", count: allResults.length },
+                      { key: "tiktok" as const, label: "TikTok", count: tiktokCount },
+                      { key: "instagram" as const, label: "Instagram", count: instagramCount },
+                    ]).map((tab) => {
+                      const active = platformFilter === tab.key;
+                      const disabled = tab.count === 0 && tab.key !== "all";
+                      return (
+                        <button
+                          key={tab.key}
+                          disabled={disabled}
+                          onClick={() => setPlatformFilter(tab.key)}
+                          className={cn(
+                            "px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95 shadow-soft border",
+                            active
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-card/70 backdrop-blur-md border-border/60 text-foreground hover:bg-foreground/10",
+                            disabled && "opacity-40 cursor-not-allowed hover:bg-card/70"
+                          )}
+                        >
+                          {tab.label}
+                          <span className={cn(
+                            "ml-1.5 text-[11px] font-semibold opacity-70",
+                            active && "opacity-90"
+                          )}>
+                            {tab.count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Related keywords as pill chips */}
                 {relatedKeywords.length > 0 && (

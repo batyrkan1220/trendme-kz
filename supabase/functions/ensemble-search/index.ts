@@ -121,7 +121,7 @@ Deno.serve(async (req: Request) => {
       };
     };
 
-    /** Normalize video to standard format */
+    /** Normalize TikTok video to standard format */
     const normalizeVideo = (raw: any) => {
       const v = unwrapVideo(raw);
       const rawStats = v.statistics || v.stats || {};
@@ -142,6 +142,7 @@ Deno.serve(async (req: Request) => {
       };
 
       return {
+        platform: "tiktok",
         aweme_id: awemeId,
         platform_video_id: String(awemeId),
         caption: desc,
@@ -154,6 +155,76 @@ Deno.serve(async (req: Request) => {
         stats,
         ...stats,
         createTime: v.create_time || v.createTime || 0,
+      };
+    };
+
+    /** Normalize Instagram Reel to standard format */
+    const normalizeInstagramReel = (raw: any): any | null => {
+      // EnsembleData IG hashtag returns items with `node` or directly a media object
+      const node = raw?.node || raw;
+      if (!node) return null;
+
+      // Only video/reel content
+      const isVideo =
+        node.is_video === true ||
+        node.media_type === 2 ||
+        node.product_type === "clips" ||
+        !!node.video_url ||
+        !!node.video_versions;
+      if (!isVideo) return null;
+
+      const shortcode = node.shortcode || node.code || node.pk || node.id || "";
+      const id = String(node.pk || node.id || shortcode || "");
+      if (!id) return null;
+
+      const owner = node.owner || node.user || {};
+      const username = owner.username || node.username || "";
+      const avatar = owner.profile_pic_url || node.profile_pic_url || "";
+      const cover =
+        node.display_url ||
+        node.thumbnail_src ||
+        node.image_versions2?.candidates?.[0]?.url ||
+        node.thumbnail_url ||
+        "";
+      const caption =
+        node.caption?.text ||
+        node.edge_media_to_caption?.edges?.[0]?.node?.text ||
+        node.title ||
+        "";
+
+      const views =
+        node.video_view_count ??
+        node.play_count ??
+        node.view_count ??
+        node.ig_play_count ??
+        0;
+      const likes =
+        node.edge_liked_by?.count ??
+        node.edge_media_preview_like?.count ??
+        node.like_count ??
+        0;
+      const comments =
+        node.edge_media_to_comment?.count ??
+        node.comment_count ??
+        0;
+
+      const ts = node.taken_at_timestamp || node.taken_at || 0;
+      const stats = { views: Number(views) || 0, likes: Number(likes) || 0, comments: Number(comments) || 0, shares: 0 };
+
+      return {
+        platform: "instagram",
+        aweme_id: `ig_${id}`,
+        platform_video_id: `ig_${id}`,
+        caption,
+        url: shortcode ? `https://www.instagram.com/reel/${shortcode}/` : "",
+        cover_url: cover,
+        author_username: username,
+        author_display_name: owner.full_name || node.full_name || "",
+        author_avatar_url: avatar,
+        duration: Math.round(node.video_duration || 0),
+        stats,
+        ...stats,
+        createTime: ts,
       };
     };
 
@@ -198,10 +269,16 @@ Deno.serve(async (req: Request) => {
       return { hashtags: [], relatedKeywords: [] };
     };
 
-    // 1. Keyword search (5 pages) + AI hashtags in parallel
+    // 1. TikTok keyword search (5 pages) + IG hashtag search + AI hashtags in parallel
     const PAGES = 5;
-    const [aiResult, ...pageResults] = await Promise.allSettled([
+    const igTag = trimmedQuery.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase();
+
+    const [aiResult, igResult, ...pageResults] = await Promise.allSettled([
       generateHashtagsAndKeywords(trimmedQuery),
+      // IG hashtag posts (Reels) — single call, single hashtag (cleaned)
+      igTag
+        ? callEnsemble("/instagram/hashtag/posts", { name: igTag })
+        : Promise.resolve(null),
       ...Array.from({ length: PAGES }, (_, page) =>
         callEnsemble("/tt/keyword/search", {
           name: trimmedQuery,
@@ -222,25 +299,54 @@ Deno.serve(async (req: Request) => {
     for (const r of pageResults) {
       if (r.status === "fulfilled") allRaw.push(...extractVideos(r.value));
     }
-    console.log(`Keyword search returned ${allRaw.length} videos`);
+    console.log(`TikTok keyword search returned ${allRaw.length} videos`);
 
-    // 2. Hashtag search in parallel
-    if (hashtags.length > 0) {
-      const hashResults = await Promise.allSettled(
-        hashtags.map((tag: string) =>
-          callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" })
-        )
-      );
-      for (const r of hashResults) {
-        if (r.status === "fulfilled") {
-          const vids = extractVideos(r.value);
-          console.log(`Hashtag "${hashtags}" returned ${vids.length} videos`);
-          allRaw.push(...vids);
-        }
+    // 2. TikTok hashtag search in parallel + IG hashtag fan-out for AI tags
+    const igTagList: string[] = Array.from(
+      new Set(
+        [igTag, ...hashtags.map((t: string) => t.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase())]
+          .filter((t) => t && t.length > 0)
+      )
+    ).slice(0, 4);
+
+    const tiktokHashPromise =
+      hashtags.length > 0
+        ? Promise.allSettled(
+            hashtags.map((tag: string) =>
+              callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" })
+            )
+          )
+        : Promise.resolve([] as any[]);
+
+    const igExtraPromise = Promise.allSettled(
+      igTagList.slice(1).map((tag) =>
+        callEnsemble("/instagram/hashtag/posts", { name: tag })
+      )
+    );
+
+    const [tiktokHashResults, igExtraResults] = await Promise.all([
+      tiktokHashPromise,
+      igExtraPromise,
+    ]);
+
+    for (const r of tiktokHashResults as any[]) {
+      if (r.status === "fulfilled") {
+        const vids = extractVideos(r.value);
+        allRaw.push(...vids);
       }
     }
 
-    // 3. Normalize + Deduplicate
+    // Collect IG raw items
+    const igRaw: any[] = [];
+    if ((igResult as any).status === "fulfilled" && (igResult as any).value) {
+      igRaw.push(...extractVideos((igResult as any).value));
+    }
+    for (const r of igExtraResults) {
+      if (r.status === "fulfilled") igRaw.push(...extractVideos(r.value));
+    }
+    console.log(`Instagram hashtag search returned ${igRaw.length} raw items`);
+
+    // 3. Normalize + Deduplicate (TikTok + IG)
     const seen = new Set<string>();
     const uniqueVideos: any[] = [];
     for (const raw of allRaw) {
@@ -249,16 +355,22 @@ Deno.serve(async (req: Request) => {
       seen.add(v.aweme_id);
       uniqueVideos.push(v);
     }
-    console.log(`Total unique videos: ${uniqueVideos.length}`);
+    for (const raw of igRaw) {
+      const v = normalizeInstagramReel(raw);
+      if (!v || !v.aweme_id || seen.has(v.aweme_id)) continue;
+      seen.add(v.aweme_id);
+      uniqueVideos.push(v);
+    }
+    console.log(`Total unique videos: ${uniqueVideos.length} (incl. IG)`);
 
-    // 4. Prepare DB rows + upsert
+    // 4. Prepare DB rows + upsert (per-platform)
     const now = new Date().toISOString();
     const videoRows = uniqueVideos
       .filter((v) => v.aweme_id)
       .map((v) => {
         const trends = computeTrend(v, v.stats);
         return {
-          platform: "tiktok",
+          platform: v.platform || "tiktok",
           platform_video_id: v.platform_video_id,
           url: v.url,
           caption: v.caption || "",
