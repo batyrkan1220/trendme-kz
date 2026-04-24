@@ -343,6 +343,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                       shares={shares}
                       er={er}
                       language={language}
+                      hideShares={!showShares}
                       onGenerateScript={() => setShowScript(true)}
                     />
                   </div>
