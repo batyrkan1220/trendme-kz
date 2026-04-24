@@ -147,7 +147,7 @@ const RadialGauge = ({ score, label, sublabel }: { score: number; label: string;
 
 // ───────────────────────── Main ─────────────────────────
 export function VideoAnalysisResults({
-  summary, transcript, stats, views, likes, commentsCount, shares, er, onGenerateScript, language,
+  summary, transcript, stats, views, likes, commentsCount, shares, er, onGenerateScript, language, hideShares,
 }: AnalysisResultsProps) {
   const isKk = language === "kk";
   const duration = Number(stats?.duration || stats?.duration_sec || stats?.video?.duration || 0);
