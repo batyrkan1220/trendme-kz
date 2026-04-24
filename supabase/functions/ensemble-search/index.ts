@@ -244,10 +244,11 @@ Deno.serve(async (req: Request) => {
             messages: [
               {
                 role: "system",
-                content: `Дан поисковый запрос для TikTok. Сгенерируй:
+                content: `Дан поисковый запрос для соцсетей. Сгенерируй JSON:
 1. "hashtags": 3-5 хэштегов TikTok (без #) ТОЛЬКО на русском и казахском языках.
-2. "related_keywords": 8-12 связанных поисковых слов ТОЛЬКО на русском и казахском языках.
-Верни ТОЛЬКО валидный JSON: {"hashtags":["..."],"related_keywords":["..."]}`,
+2. "instagram_hashtags": 5-8 популярных хэштегов Instagram (без #), СЛИТНО написанных, ЛАТИНИЦЕЙ (английский язык), без пробелов и спецсимволов. Это самые ходовые теги по теме запроса (например для "утренние привычки" → ["morningroutine","morningvibes","morningmotivation","selfcare","healthylifestyle"]).
+3. "related_keywords": 8-12 связанных поисковых слов ТОЛЬКО на русском и казахском языках.
+Верни ТОЛЬКО валидный JSON: {"hashtags":["..."],"instagram_hashtags":["..."],"related_keywords":["..."]}`,
               },
               { role: "user", content: q },
             ],
@@ -258,15 +259,22 @@ Deno.serve(async (req: Request) => {
         const match = content.match(/\{[\s\S]*?\}/);
         if (match) {
           const parsed = JSON.parse(match[0]);
+          const cleanTag = (t: any) =>
+            typeof t === "string"
+              ? t.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase()
+              : "";
           return {
             hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags.filter((t: any) => typeof t === "string").slice(0, 5) : [],
+            instagramHashtags: Array.isArray(parsed.instagram_hashtags)
+              ? parsed.instagram_hashtags.map(cleanTag).filter((t: string) => t.length > 1).slice(0, 8)
+              : [],
             relatedKeywords: Array.isArray(parsed.related_keywords) ? parsed.related_keywords.filter((t: any) => typeof t === "string").slice(0, 12) : [],
           };
         }
       } catch (e) {
         console.error("AI keyword generation failed:", e);
       }
-      return { hashtags: [], relatedKeywords: [] };
+      return { hashtags: [], instagramHashtags: [], relatedKeywords: [] };
     };
 
     // 1. TikTok keyword search (5 pages) + IG hashtag search + AI hashtags in parallel
