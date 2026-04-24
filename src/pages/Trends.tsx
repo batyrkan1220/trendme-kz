@@ -187,8 +187,8 @@ export default function Trends() {
                         onPlay={setPlayingId}
                         isFavorite={userFavorites.includes(v.id)}
                         onToggleFav={toggleFav}
-                        onAnalyze={() => setAnalysisVideo(v)}
-                        onScript={() => setScriptVideo(v)}
+                        onAnalyze={() => setAnalysisVideo(cardData)}
+                        onScript={() => setScriptVideo(cardData)}
                         showTier={true}
                         showAuthor={false}
                         showAnalyzeButton={!isLocked}
