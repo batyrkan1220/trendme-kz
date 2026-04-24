@@ -131,15 +131,16 @@ function optimizeCoverUrl(url: string | null | undefined): string | null | undef
 /**
  * Build a deterministic avatar fallback chain for a video author.
  * Order:
- *   1. unavatar.io (resolves IG/TikTok handles to a stable image)
- *   2. original CDN avatar (TikTok/IG profile_pic_url) — may break due to expired sigs / referrer
- *   3. unavatar.io with `?fallback=...` to a generated avatar (always 200)
+ *   1. unavatar.io handle lookup
+ *   2. raw profile image URLs from the dataset
+ *   3. deterministic username-based generated avatar
  *   4. null → CSS placeholder dot
  */
 function buildAvatarChain(
   videoUrl: string,
   authorUsername?: string,
   authorAvatarUrl?: string | null,
+  profilePicUrl?: string | null,
 ): string[] {
   const platform = detectVideoPlatform(videoUrl);
   const chain: string[] = [];
@@ -153,13 +154,13 @@ function buildAvatarChain(
     }
   }
 
+  if (profilePicUrl) chain.push(profilePicUrl);
   if (authorAvatarUrl) chain.push(authorAvatarUrl);
 
   if (handle) {
-    // Generated avatar — guaranteed 200 OK, used as last network attempt
+    // Guaranteed username-based fallback when network providers fail.
     const seed = encodeURIComponent(handle);
-    const generated = `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`;
-    chain.push(`https://unavatar.io/${handle}?fallback=${encodeURIComponent(generated)}`);
+    chain.push(`https://api.dicebear.com/7.x/initials/svg?seed=${seed}`);
   }
 
   // Dedupe while preserving order
@@ -170,8 +171,9 @@ function getPreferredAvatarUrl(
   videoUrl: string,
   authorUsername?: string,
   authorAvatarUrl?: string | null,
+  profilePicUrl?: string | null,
 ): string | null {
-  return buildAvatarChain(videoUrl, authorUsername, authorAvatarUrl)[0] ?? null;
+  return buildAvatarChain(videoUrl, authorUsername, authorAvatarUrl, profilePicUrl)[0] ?? null;
 }
 
 type TrendTier = "strong" | "mid" | "micro";
@@ -215,6 +217,7 @@ export interface VideoCardData {
   desc?: string;
   author_username?: string;
   author_avatar_url?: string;
+  profile_pic_url?: string;
   views: number;
   likes: number;
   comments: number;
@@ -262,8 +265,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const avatarChain = useMemo(
-    () => buildAvatarChain(video.url, video.author_username, video.author_avatar_url ?? null),
-    [video.url, video.author_username, video.author_avatar_url],
+    () => buildAvatarChain(video.url, video.author_username, video.author_avatar_url ?? null, video.profile_pic_url ?? null),
+    [video.url, video.author_username, video.author_avatar_url, video.profile_pic_url],
   );
   const [avatarIndex, setAvatarIndex] = useState(0);
   const avatarSrc = avatarChain[avatarIndex] ?? null;
@@ -274,7 +277,7 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
 
   useEffect(() => {
     setAvatarIndex(0);
-  }, [video.url, video.author_username, video.author_avatar_url]);
+  }, [video.url, video.author_username, video.author_avatar_url, video.profile_pic_url]);
 
   // On mobile: open fullscreen overlay instead of in-card player
   // On mobile, open fullscreen immediately when play starts (don't wait for URL)
