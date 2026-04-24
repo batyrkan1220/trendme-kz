@@ -599,11 +599,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                       decoding="async"
                       className="w-5 h-5 rounded-full bg-white/20 object-cover ring-1 ring-white/20 shrink-0"
                       onError={() => {
-                        if (avatarSrc !== `https://unavatar.io/instagram/${video.author_username}`) {
-                          setAvatarSrc(`https://unavatar.io/instagram/${video.author_username}`);
-                          return;
-                        }
-                        setAvatarSrc(null);
+                        // Step through the chain on each error; the last item is a guaranteed-OK
+                        // generated avatar, so we usually never reach the placeholder branch.
+                        setAvatarIndex((i) => Math.min(i + 1, avatarChain.length));
                       }}
                     />
                   ) : (
