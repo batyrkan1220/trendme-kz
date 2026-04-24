@@ -477,10 +477,36 @@ Deno.serve(async (req: Request) => {
 
     // ===== Run platforms in parallel based on `platform` param =====
     const warnings: string[] = [];
+
     const ttPromise =
-      platform === "instagram" ? Promise.resolve([] as any[]) : runTikTokPipeline();
+      platform === "instagram"
+        ? Promise.resolve([] as any[])
+        : (sendEvent("stage", { stage: "tiktok_start" }),
+          runTikTokPipeline().then(
+            (v) => {
+              sendEvent("stage", { stage: "tiktok_done", count: v.length });
+              return v;
+            },
+            (err) => {
+              sendEvent("stage", { stage: "tiktok_failed" });
+              throw err;
+            },
+          ));
+
     const igPromise =
-      platform === "tiktok" ? Promise.resolve([] as any[]) : runInstagramPipeline();
+      platform === "tiktok"
+        ? Promise.resolve([] as any[])
+        : (sendEvent("stage", { stage: "instagram_start" }),
+          runInstagramPipeline().then(
+            (v) => {
+              sendEvent("stage", { stage: "instagram_done", count: v.length });
+              return v;
+            },
+            (err) => {
+              sendEvent("stage", { stage: "instagram_failed" });
+              throw err;
+            },
+          ));
 
     const [ttSettled, igSettled] = await Promise.allSettled([ttPromise, igPromise]);
 
@@ -500,6 +526,8 @@ Deno.serve(async (req: Request) => {
       console.error("Instagram pipeline failed:", igSettled.reason);
       warnings.push("Instagram временно недоступен");
     }
+
+    sendEvent("stage", { stage: "merge_start", tt: ttVideos.length, ig: igVideos.length });
 
     // Cap per-platform → MAX_PER_PLATFORM, sorted by views DESC
     const sortByViews = (a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0);
