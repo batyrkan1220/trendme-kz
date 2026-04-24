@@ -164,7 +164,7 @@ export default function Trends() {
                   views: Number(v.view_count) || 0,
                   likes: Number(v.like_count) || 0,
                   comments: Number(v.comment_count) || 0,
-                  shares: 0,
+                  shares: Number(v.shares) || 0,
                   velocity_views: Number(v.velocity_views) || 0,
                   published_at: v.published_at ?? v.posted_at,
                   duration: Number(v.duration_sec) || 0,
