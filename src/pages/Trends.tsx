@@ -145,10 +145,6 @@ export default function Trends() {
             <TrendingUp className="h-5 w-5 text-primary" />
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Тренды</h1>
           </div>
-          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-            <Instagram className="h-3.5 w-3.5" />
-            Вирусное сейчас в Instagram
-          </p>
         </div>
 
         {effectiveVideos.length > 0 && (
