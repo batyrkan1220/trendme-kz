@@ -51,21 +51,28 @@ export default function SearchPage() {
   });
 
   const { data: searchResults, isPending: isSearching, mutate: doSearch } = useMutation({
-    mutationFn: async (q: string) => {
+    mutationFn: async ({ q, platform }: { q: string; platform: PlatformFilter }) => {
       const { data, error } = await supabase.functions.invoke("ensemble-search", {
-        body: { query: q },
+        body: { query: q, platform },
       });
       if (error) {
         if (data?.error) throw new Error(data.error);
         throw error;
       }
-      return { videos: data.videos || [], relatedKeywords: data.relatedKeywords || [] };
+      return {
+        videos: data.videos || [],
+        relatedKeywords: data.relatedKeywords || [],
+        warnings: (data.warnings as string[] | undefined) || [],
+      };
     },
-    onSuccess: (_, query) => {
-      trackSearchEvent(query);
-      trackPlausible("Search Performed", { query: String(query).slice(0, 100) });
+    onSuccess: (data, vars) => {
+      trackSearchEvent(vars.q);
+      trackPlausible("Search Performed", { query: String(vars.q).slice(0, 100), platform: vars.platform });
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
+      if (data.warnings?.length) {
+        data.warnings.forEach((w) => toast.warning(w));
+      }
     },
     onError: () => {
       toast.error("Не удалось выполнить поиск. Попробуйте позже.");
