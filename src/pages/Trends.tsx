@@ -190,7 +190,7 @@ export default function Trends() {
                         onAnalyze={() => setAnalysisVideo(v)}
                         onScript={() => setScriptVideo(v)}
                         showTier={true}
-                        showAuthor={true}
+                        showAuthor={false}
                         showAnalyzeButton={!isLocked}
                         showScriptButton={!isLocked}
                       />
