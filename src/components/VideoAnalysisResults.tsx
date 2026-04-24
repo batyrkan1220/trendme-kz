@@ -17,6 +17,7 @@ interface AnalysisResultsProps {
   er: string;
   onGenerateScript: () => void;
   language: "ru" | "kk" | null;
+  hideShares?: boolean;
 }
 
 // ───────────────────────── Helpers ─────────────────────────
