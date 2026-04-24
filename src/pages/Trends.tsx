@@ -158,6 +158,7 @@ export default function Trends() {
                   cover_url: v.cover_url ?? v.thumbnail_url ?? null,
                   caption: v.caption,
                   author_username: v.author_username,
+                  profile_pic_url: v.profile_pic_url ?? null,
                   author_avatar_url: v.author_avatar_url ?? v.profile_pic_url ?? null,
                   views: Number(v.view_count) || 0,
                   likes: Number(v.like_count) || 0,
