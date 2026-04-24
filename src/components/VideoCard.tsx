@@ -128,12 +128,50 @@ function optimizeCoverUrl(url: string | null | undefined): string | null | undef
   return url;
 }
 
-function getPreferredAvatarUrl(videoUrl: string, authorUsername?: string, authorAvatarUrl?: string | null): string | null {
+/**
+ * Build a deterministic avatar fallback chain for a video author.
+ * Order:
+ *   1. unavatar.io (resolves IG/TikTok handles to a stable image)
+ *   2. original CDN avatar (TikTok/IG profile_pic_url) — may break due to expired sigs / referrer
+ *   3. unavatar.io with `?fallback=...` to a generated avatar (always 200)
+ *   4. null → CSS placeholder dot
+ */
+function buildAvatarChain(
+  videoUrl: string,
+  authorUsername?: string,
+  authorAvatarUrl?: string | null,
+): string[] {
   const platform = detectVideoPlatform(videoUrl);
-  if (platform === "instagram" && authorUsername) {
-    return `https://unavatar.io/instagram/${authorUsername}`;
+  const chain: string[] = [];
+  const handle = authorUsername?.replace(/^@/, "").trim();
+
+  if (handle) {
+    if (platform === "instagram") {
+      chain.push(`https://unavatar.io/instagram/${handle}`);
+    } else if (platform === "tiktok") {
+      chain.push(`https://unavatar.io/tiktok/${handle}`);
+    }
   }
-  return authorAvatarUrl ?? null;
+
+  if (authorAvatarUrl) chain.push(authorAvatarUrl);
+
+  if (handle) {
+    // Generated avatar — guaranteed 200 OK, used as last network attempt
+    const seed = encodeURIComponent(handle);
+    const generated = `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`;
+    chain.push(`https://unavatar.io/${handle}?fallback=${encodeURIComponent(generated)}`);
+  }
+
+  // Dedupe while preserving order
+  return Array.from(new Set(chain));
+}
+
+function getPreferredAvatarUrl(
+  videoUrl: string,
+  authorUsername?: string,
+  authorAvatarUrl?: string | null,
+): string | null {
+  return buildAvatarChain(videoUrl, authorUsername, authorAvatarUrl)[0] ?? null;
 }
 
 type TrendTier = "strong" | "mid" | "micro";
