@@ -79,6 +79,10 @@ export default function SearchPage() {
   const { isFreePlan } = useIsFreePlan();
   const navigate = useNavigate();
 
+  // Live progress: stage names received from the SSE backend
+  const [reachedStages, setReachedStages] = useState<Set<string>>(new Set());
+
+
   const { data: recentQueries } = useQuery({
     queryKey: ["search-queries", user?.id],
     queryFn: async () => {
