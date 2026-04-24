@@ -49,17 +49,22 @@ const POPULAR_NICHES: Array<{ emoji: string; name: string; query: string; tag?: 
   { emoji: "😂", name: "Юмор", query: "funny skits", tag: "tiktok" },
 ];
 
-const LOADING_STEPS_ALL = [
-  "Ищем в TikTok",
-  "Ищем в Instagram",
-  "Объединяем и сортируем по вирусности",
-  "Готовим результаты",
+// Real backend stages → checklist labels.
+// Stage names match `event: stage / data.stage` from ensemble-search SSE.
+const STEP_DEFS_ALL: Array<{ key: string; label: string; matches: string[] }> = [
+  { key: "cache", label: "Проверяем кэш", matches: ["cache_check", "cache_miss", "cache_hit"] },
+  { key: "ai", label: "Подбираем хэштеги", matches: ["ai_keywords_start", "ai_keywords_done"] },
+  { key: "tiktok", label: "Ищем в TikTok", matches: ["tiktok_start", "tiktok_done", "tiktok_failed"] },
+  { key: "instagram", label: "Ищем в Instagram", matches: ["instagram_start", "instagram_done", "instagram_failed"] },
+  { key: "merge", label: "Объединяем и сортируем", matches: ["merge_start"] },
+  { key: "done", label: "Готовим результаты", matches: ["done"] },
 ];
-const LOADING_STEPS_ONE = (label: string) => [
-  `Ищем в ${label}`,
-  "Сортируем по вирусности",
-  "Готовим результаты",
-];
+
+const buildStepDefs = (platform: "all" | "tiktok" | "instagram") => {
+  if (platform === "all") return STEP_DEFS_ALL;
+  if (platform === "tiktok") return STEP_DEFS_ALL.filter((s) => s.key !== "instagram");
+  return STEP_DEFS_ALL.filter((s) => s.key !== "tiktok");
+};
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
