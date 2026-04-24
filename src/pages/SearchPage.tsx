@@ -117,9 +117,15 @@ export default function SearchPage() {
     doSearch(q.trim());
   };
 
-  const results = [...(searchResults?.videos || [])].sort(
+  const allResults = [...(searchResults?.videos || [])].sort(
     (a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0)
   );
+  const tiktokCount = allResults.filter((v: any) => (v.platform || "tiktok") === "tiktok").length;
+  const instagramCount = allResults.filter((v: any) => v.platform === "instagram").length;
+  const results =
+    platformFilter === "all"
+      ? allResults
+      : allResults.filter((v: any) => (v.platform || "tiktok") === platformFilter);
   const relatedKeywords: string[] = searchResults?.relatedKeywords || [];
 
   // Shared lux search bar (used in both empty + results states)
