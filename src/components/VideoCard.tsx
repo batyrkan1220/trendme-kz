@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo, forwardRef, memo } from "react";
 import {
   Eye, Heart, MessageCircle, Play, ExternalLink, X,
   Loader2, Maximize, Flag, Sparkles, Flame, TrendingUp, Star, FileText
@@ -128,12 +128,50 @@ function optimizeCoverUrl(url: string | null | undefined): string | null | undef
   return url;
 }
 
-function getPreferredAvatarUrl(videoUrl: string, authorUsername?: string, authorAvatarUrl?: string | null): string | null {
+/**
+ * Build a deterministic avatar fallback chain for a video author.
+ * Order:
+ *   1. unavatar.io (resolves IG/TikTok handles to a stable image)
+ *   2. original CDN avatar (TikTok/IG profile_pic_url) — may break due to expired sigs / referrer
+ *   3. unavatar.io with `?fallback=...` to a generated avatar (always 200)
+ *   4. null → CSS placeholder dot
+ */
+function buildAvatarChain(
+  videoUrl: string,
+  authorUsername?: string,
+  authorAvatarUrl?: string | null,
+): string[] {
   const platform = detectVideoPlatform(videoUrl);
-  if (platform === "instagram" && authorUsername) {
-    return `https://unavatar.io/instagram/${authorUsername}`;
+  const chain: string[] = [];
+  const handle = authorUsername?.replace(/^@/, "").trim();
+
+  if (handle) {
+    if (platform === "instagram") {
+      chain.push(`https://unavatar.io/instagram/${handle}`);
+    } else if (platform === "tiktok") {
+      chain.push(`https://unavatar.io/tiktok/${handle}`);
+    }
   }
-  return authorAvatarUrl ?? null;
+
+  if (authorAvatarUrl) chain.push(authorAvatarUrl);
+
+  if (handle) {
+    // Generated avatar — guaranteed 200 OK, used as last network attempt
+    const seed = encodeURIComponent(handle);
+    const generated = `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`;
+    chain.push(`https://unavatar.io/${handle}?fallback=${encodeURIComponent(generated)}`);
+  }
+
+  // Dedupe while preserving order
+  return Array.from(new Set(chain));
+}
+
+function getPreferredAvatarUrl(
+  videoUrl: string,
+  authorUsername?: string,
+  authorAvatarUrl?: string | null,
+): string | null {
+  return buildAvatarChain(videoUrl, authorUsername, authorAvatarUrl)[0] ?? null;
 }
 
 type TrendTier = "strong" | "mid" | "micro";
@@ -223,15 +261,20 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const [coverFailed, setCoverFailed] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(video.author_avatar_url ?? null);
+  const avatarChain = useMemo(
+    () => buildAvatarChain(video.url, video.author_username, video.author_avatar_url ?? null),
+    [video.url, video.author_username, video.author_avatar_url],
+  );
+  const [avatarIndex, setAvatarIndex] = useState(0);
+  const avatarSrc = avatarChain[avatarIndex] ?? null;
   const videoRef = useRef<HTMLVideoElement>(null);
   const preloadedUrlRef = useRef<string | null>(null);
   const isMobileFromHook = useIsMobile();
   const isMobile = isMobileOverride ?? isMobileFromHook;
 
   useEffect(() => {
-    setAvatarSrc(video.author_avatar_url ?? null);
-  }, [video.author_avatar_url]);
+    setAvatarIndex(0);
+  }, [video.url, video.author_username, video.author_avatar_url]);
 
   // On mobile: open fullscreen overlay instead of in-card player
   // On mobile, open fullscreen immediately when play starts (don't wait for URL)
@@ -556,11 +599,9 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                       decoding="async"
                       className="w-5 h-5 rounded-full bg-white/20 object-cover ring-1 ring-white/20 shrink-0"
                       onError={() => {
-                        if (avatarSrc !== `https://unavatar.io/instagram/${video.author_username}`) {
-                          setAvatarSrc(`https://unavatar.io/instagram/${video.author_username}`);
-                          return;
-                        }
-                        setAvatarSrc(null);
+                        // Step through the chain on each error; the last item is a guaranteed-OK
+                        // generated avatar, so we usually never reach the placeholder branch.
+                        setAvatarIndex((i) => Math.min(i + 1, avatarChain.length));
                       }}
                     />
                   ) : (
