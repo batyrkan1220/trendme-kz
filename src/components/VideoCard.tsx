@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, forwardRef, memo } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo, forwardRef, memo } from "react";
 import {
   Eye, Heart, MessageCircle, Play, ExternalLink, X,
   Loader2, Maximize, Flag, Sparkles, Flame, TrendingUp, Star, FileText
@@ -273,8 +273,8 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const isMobile = isMobileOverride ?? isMobileFromHook;
 
   useEffect(() => {
-    setAvatarSrc(video.author_avatar_url ?? null);
-  }, [video.author_avatar_url]);
+    setAvatarIndex(0);
+  }, [video.url, video.author_username, video.author_avatar_url]);
 
   // On mobile: open fullscreen overlay instead of in-card player
   // On mobile, open fullscreen immediately when play starts (don't wait for URL)
