@@ -276,7 +276,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                   { icon: Eye, label: "Просмотры", value: fmt(views) },
                   { icon: Heart, label: "Лайки", value: fmt(likes) },
                   { icon: MessageCircle, label: "Комментарии", value: fmt(commentsCount) },
-                  { icon: Share2, label: "Репосты", value: fmt(shares) },
+                  ...(showShares ? [{ icon: Share2, label: "Репосты", value: fmt(shares) }] : []),
                   { icon: TrendingUp, label: "Engagement Rate", value: er + "%", accent: true },
                 ].map((s) => (
                   <div
