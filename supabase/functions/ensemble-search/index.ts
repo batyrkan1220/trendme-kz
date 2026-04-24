@@ -354,15 +354,7 @@ Deno.serve(async (req: Request) => {
     }
     console.log(`Instagram hashtag search returned ${igRaw.length} raw items`);
 
-    // Collect IG raw items
-    const igRaw: any[] = [];
-    if ((igResult as any).status === "fulfilled" && (igResult as any).value) {
-      igRaw.push(...extractVideos((igResult as any).value));
-    }
-    for (const r of igExtraResults) {
-      if (r.status === "fulfilled") igRaw.push(...extractVideos(r.value));
-    }
-    console.log(`Instagram hashtag search returned ${igRaw.length} raw items`);
+
 
     // 3. Normalize + Deduplicate (TikTok + IG)
     const seen = new Set<string>();
