@@ -34,6 +34,7 @@ interface TrendVideo {
   view_count: number | null;
   like_count: number | null;
   comment_count: number | null;
+  shares: number | null;
   posted_at: string | null;
   published_at: string | null;
   viral_score: number | null;
@@ -62,7 +63,7 @@ export default function Trends() {
       const { data, error } = await supabase
         .from("videos")
         .select(
-          "id, shortcode, url, platform_video_id, author_username, full_name, profile_pic_url, author_avatar_url, is_verified, caption, thumbnail_url, cover_url, view_count, like_count, comment_count, posted_at, published_at, viral_score, duration_sec, velocity_views",
+          "id, shortcode, url, platform_video_id, author_username, full_name, profile_pic_url, author_avatar_url, is_verified, caption, thumbnail_url, cover_url, view_count, like_count, comment_count, shares, posted_at, published_at, viral_score, duration_sec, velocity_views",
         )
         .eq("source", "trends")
         .eq("platform", "instagram")
@@ -163,7 +164,7 @@ export default function Trends() {
                   views: Number(v.view_count) || 0,
                   likes: Number(v.like_count) || 0,
                   comments: Number(v.comment_count) || 0,
-                  shares: 0,
+                  shares: Number(v.shares) || 0,
                   velocity_views: Number(v.velocity_views) || 0,
                   published_at: v.published_at ?? v.posted_at,
                   duration: Number(v.duration_sec) || 0,
