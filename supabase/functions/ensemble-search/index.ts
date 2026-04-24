@@ -7,6 +7,10 @@ const corsHeaders = {
 };
 
 const ENSEMBLE_BASE = "https://ensembledata.com/apis";
+const CACHE_TTL_HOURS = 6;
+const MAX_PER_PLATFORM = 60;
+
+type PlatformParam = "all" | "tiktok" | "instagram";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -31,7 +35,6 @@ Deno.serve(async (req: Request) => {
       return json({ error: "ENSEMBLE_DATA_TOKEN not configured" }, 500);
     }
 
-    // Try to verify user (optional — native mobile may not have auth)
     let userId: string | null = null;
     let userClient: any = null;
     if (authHeader?.startsWith("Bearer ")) {
@@ -48,11 +51,22 @@ Deno.serve(async (req: Request) => {
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();
-    const { query, period = "7", sorting = "0", country = "", region = "world" } = body;
+    const {
+      query,
+      platform: platformRaw,
+      period = "7",
+      sorting = "0",
+      country = "",
+      region = "world",
+    } = body;
 
     if (!query || typeof query !== "string" || query.trim().length === 0) {
       return json({ error: "query is required" }, 400);
     }
+
+    // Validate platform — default to "all" for new contract; old clients omit it.
+    const platform: PlatformParam =
+      platformRaw === "tiktok" || platformRaw === "instagram" ? platformRaw : "all";
 
     const trimmedQuery = query.trim();
 
@@ -66,7 +80,34 @@ Deno.serve(async (req: Request) => {
       edPeriod = "7";
     }
 
-    console.log(`EnsembleData search: query="${trimmedQuery}", period=${edPeriod}, sorting=${edSorting}`);
+    const cacheKey = `${trimmedQuery.toLowerCase()}__${platform}__${edPeriod}__${edSorting}`;
+    console.log(
+      `ensemble-search: q="${trimmedQuery}", platform=${platform}, period=${edPeriod}, sorting=${edSorting}`,
+    );
+
+    // ---- 0. Cache lookup (6h) ----
+    try {
+      const { data: cached } = await adminClient
+        .from("search_cache")
+        .select("videos, related_keywords, warnings, created_at")
+        .eq("cache_key", cacheKey)
+        .maybeSingle();
+
+      if (cached?.created_at) {
+        const ageH = (Date.now() - new Date(cached.created_at).getTime()) / 3_600_000;
+        if (ageH < CACHE_TTL_HOURS) {
+          console.log(`Cache HIT (age ${ageH.toFixed(2)}h) for ${cacheKey}`);
+          return json({
+            videos: cached.videos || [],
+            relatedKeywords: cached.related_keywords || [],
+            ...(cached.warnings?.length ? { warnings: cached.warnings } : {}),
+            cached: true,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Cache lookup failed (non-fatal):", e);
+    }
 
     /** Call EnsembleData API */
     const callEnsemble = async (path: string, params: Record<string, string>) => {
@@ -77,20 +118,16 @@ Deno.serve(async (req: Request) => {
       if (!res.ok) {
         const text = await res.text();
         console.error(`EnsembleData error ${res.status} for ${path}:`, text);
-        throw new Error(`EnsembleData error ${res.status}: ${text}`);
+        throw new Error(`EnsembleData ${res.status}: ${text.slice(0, 200)}`);
       }
       return await res.json();
     };
 
-    /** Extract videos from EnsembleData response */
+    /** Extract videos from EnsembleData response (handles many shapes) */
     const extractVideos = (data: any): any[] => {
       if (Array.isArray(data)) return data;
-      if (data?.data?.data && Array.isArray(data.data.data)) return data.data.data;
-      if (Array.isArray(data?.data)) return data.data;
-      if (data?.data?.posts && Array.isArray(data.data.posts)) return data.data.posts;
-      if (Array.isArray(data?.data?.aweme_list)) return data.data.aweme_list;
-      if (Array.isArray(data?.data?.videos)) return data.data.videos;
-      // Instagram hashtag posts: data.top_posts + data.recent_posts (each item = { node: {...} })
+      // Instagram hashtag responses use top_posts/recent_posts — check FIRST
+      // before falling through to generic data.posts.
       const igCombined: any[] = [];
       if (Array.isArray(data?.data?.top_posts)) igCombined.push(...data.data.top_posts);
       if (Array.isArray(data?.data?.recent_posts)) igCombined.push(...data.data.recent_posts);
@@ -98,6 +135,12 @@ Deno.serve(async (req: Request) => {
       if (Array.isArray(data?.top_posts)) igCombined.push(...data.top_posts);
       if (Array.isArray(data?.recent_posts)) igCombined.push(...data.recent_posts);
       if (igCombined.length > 0) return igCombined;
+
+      if (data?.data?.data && Array.isArray(data.data.data)) return data.data.data;
+      if (Array.isArray(data?.data)) return data.data;
+      if (data?.data?.posts && Array.isArray(data.data.posts)) return data.data.posts;
+      if (Array.isArray(data?.data?.aweme_list)) return data.data.aweme_list;
+      if (Array.isArray(data?.data?.videos)) return data.data.videos;
       if (Array.isArray(data?.items)) return data.items;
       if (Array.isArray(data?.videos)) return data.videos;
       return [];
@@ -124,13 +167,16 @@ Deno.serve(async (req: Request) => {
         velocity_views: views / hoursSince,
         velocity_likes: likes / hoursSince,
         velocity_comments: comments / hoursSince,
-        trend_score: 0.6 * (views / hoursSince) + 0.3 * (likes / hoursSince) + 0.1 * (comments / hoursSince),
+        trend_score:
+          0.6 * (views / hoursSince) +
+          0.3 * (likes / hoursSince) +
+          0.1 * (comments / hoursSince),
         published_at: publishedAt.toISOString(),
       };
     };
 
-    /** Normalize TikTok video to standard format */
-    const normalizeVideo = (raw: any) => {
+    /** Normalize TikTok video */
+    const normalizeTikTok = (raw: any) => {
       const v = unwrapVideo(raw);
       const rawStats = v.statistics || v.stats || {};
       const author = v.author || {};
@@ -138,14 +184,17 @@ Deno.serve(async (req: Request) => {
 
       const awemeId = v.aweme_id || v.id || "";
       const uniqueId = author.unique_id || author.uniqueId || author.search_user_name || "";
-      const avatarUrl = author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
-      const coverUrl = videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
+      const avatarUrl =
+        author.avatar_thumb?.url_list?.[0] || author.avatar_larger?.url_list?.[0] || "";
+      const coverUrl =
+        videoInfo.cover?.url_list?.[0] || videoInfo.origin_cover?.url_list?.[0] || "";
       const desc = v.desc || v.caption || v.title || "";
 
       const stats = {
         views: rawStats.play_count ?? rawStats.views ?? v.views ?? v.playCount ?? 0,
         likes: rawStats.digg_count ?? rawStats.likes ?? v.likes ?? v.diggCount ?? 0,
-        comments: rawStats.comment_count ?? rawStats.comments ?? v.comments ?? v.commentCount ?? 0,
+        comments:
+          rawStats.comment_count ?? rawStats.comments ?? v.comments ?? v.commentCount ?? 0,
         shares: rawStats.share_count ?? rawStats.shares ?? v.shares ?? v.shareCount ?? 0,
       };
 
@@ -166,13 +215,11 @@ Deno.serve(async (req: Request) => {
       };
     };
 
-    /** Normalize Instagram Reel to standard format */
+    /** Normalize Instagram Reel */
     const normalizeInstagramReel = (raw: any): any | null => {
-      // EnsembleData IG hashtag returns items with `node` or directly a media object
       const node = raw?.node || raw;
       if (!node) return null;
 
-      // Only video/reel content
       const isVideo =
         node.is_video === true ||
         node.media_type === 2 ||
@@ -211,19 +258,23 @@ Deno.serve(async (req: Request) => {
         node.edge_media_preview_like?.count ??
         node.like_count ??
         0;
-      const comments =
-        node.edge_media_to_comment?.count ??
-        node.comment_count ??
-        0;
+      const comments = node.edge_media_to_comment?.count ?? node.comment_count ?? 0;
 
       const ts = node.taken_at_timestamp || node.taken_at || 0;
-      // IG sometimes returns 0 views for reels — fallback: estimate from likes (typical 5-10x ratio)
       let viewsNum = Number(views) || 0;
       const likesNum = Number(likes) || 0;
+      // IG sometimes returns 0 views — fallback estimate from likes.
       if (viewsNum === 0 && likesNum > 0) {
-        viewsNum = likesNum * 8; // conservative estimate
+        viewsNum = likesNum * 8;
       }
-      const stats = { views: viewsNum, likes: likesNum, comments: Number(comments) || 0, shares: 0 };
+      const stats = {
+        views: viewsNum,
+        likes: likesNum,
+        comments: Number(comments) || 0,
+        shares: 0,
+      };
+
+      const createTimeSec = typeof ts === "number" && ts > 0 ? ts : 0;
 
       return {
         platform: "instagram",
@@ -238,14 +289,15 @@ Deno.serve(async (req: Request) => {
         duration: Math.round(node.video_duration || 0),
         stats,
         ...stats,
-        createTime: ts,
+        createTime: createTimeSec,
       };
     };
 
-    /** AI: Generate hashtags + related keywords */
+    /** AI: hashtags + related keywords */
     const generateHashtagsAndKeywords = async (q: string) => {
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-      if (!LOVABLE_API_KEY) return { hashtags: [], relatedKeywords: [] };
+      if (!LOVABLE_API_KEY)
+        return { hashtags: [], instagramHashtags: [], relatedKeywords: [] };
       try {
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -260,7 +312,7 @@ Deno.serve(async (req: Request) => {
                 role: "system",
                 content: `Дан поисковый запрос для соцсетей. Сгенерируй JSON:
 1. "hashtags": 3-5 хэштегов TikTok (без #) ТОЛЬКО на русском и казахском языках.
-2. "instagram_hashtags": 5-8 популярных хэштегов Instagram (без #), СЛИТНО написанных, ЛАТИНИЦЕЙ (английский язык), без пробелов и спецсимволов. Это самые ходовые теги по теме запроса (например для "утренние привычки" → ["morningroutine","morningvibes","morningmotivation","selfcare","healthylifestyle"]).
+2. "instagram_hashtags": 5-8 популярных хэштегов Instagram (без #), СЛИТНО написанных, ЛАТИНИЦЕЙ (английский язык), без пробелов и спецсимволов.
 3. "related_keywords": 8-12 связанных поисковых слов ТОЛЬКО на русском и казахском языках.
 Верни ТОЛЬКО валидный JSON: {"hashtags":["..."],"instagram_hashtags":["..."],"related_keywords":["..."]}`,
               },
@@ -274,15 +326,20 @@ Deno.serve(async (req: Request) => {
         if (match) {
           const parsed = JSON.parse(match[0]);
           const cleanTag = (t: any) =>
-            typeof t === "string"
-              ? t.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase()
-              : "";
+            typeof t === "string" ? t.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase() : "";
           return {
-            hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags.filter((t: any) => typeof t === "string").slice(0, 5) : [],
-            instagramHashtags: Array.isArray(parsed.instagram_hashtags)
-              ? parsed.instagram_hashtags.map(cleanTag).filter((t: string) => t.length > 1).slice(0, 8)
+            hashtags: Array.isArray(parsed.hashtags)
+              ? parsed.hashtags.filter((t: any) => typeof t === "string").slice(0, 5)
               : [],
-            relatedKeywords: Array.isArray(parsed.related_keywords) ? parsed.related_keywords.filter((t: any) => typeof t === "string").slice(0, 12) : [],
+            instagramHashtags: Array.isArray(parsed.instagram_hashtags)
+              ? parsed.instagram_hashtags
+                  .map(cleanTag)
+                  .filter((t: string) => t.length > 1)
+                  .slice(0, 8)
+              : [],
+            relatedKeywords: Array.isArray(parsed.related_keywords)
+              ? parsed.related_keywords.filter((t: any) => typeof t === "string").slice(0, 12)
+              : [],
           };
         }
       } catch (e) {
@@ -291,103 +348,145 @@ Deno.serve(async (req: Request) => {
       return { hashtags: [], instagramHashtags: [], relatedKeywords: [] };
     };
 
-    // 1. TikTok keyword search (5 pages) + AI hashtags in parallel
-    //    IG основной поиск делается ВТОРЫМ запросом, после того как AI вернёт латинские теги
-    const PAGES = 5;
-    const igTagFromQuery = trimmedQuery.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase();
+    // ---- AI hashtags first ----
+    const aiData = await generateHashtagsAndKeywords(trimmedQuery).catch(() => ({
+      hashtags: [],
+      instagramHashtags: [],
+      relatedKeywords: [],
+    }));
+    const { hashtags = [], instagramHashtags = [], relatedKeywords = [] } = aiData;
 
-    const [aiResult, ...pageResults] = await Promise.allSettled([
-      generateHashtagsAndKeywords(trimmedQuery),
-      ...Array.from({ length: PAGES }, (_, page) =>
-        callEnsemble("/tt/keyword/search", {
-          name: trimmedQuery,
-          cursor: String(page * 20),
-          period: edPeriod,
-          sorting: edSorting,
-          country,
-          match_exactly: "false",
-          get_author_stats: "false",
-        })
-      ),
-    ]);
+    // ===== TikTok pipeline =====
+    const runTikTokPipeline = async (): Promise<any[]> => {
+      const PAGES = 5;
+      const pageResults = await Promise.allSettled(
+        Array.from({ length: PAGES }, (_, page) =>
+          callEnsemble("/tt/keyword/search", {
+            name: trimmedQuery,
+            cursor: String(page * 20),
+            period: edPeriod,
+            sorting: edSorting,
+            country,
+            match_exactly: "false",
+            get_author_stats: "false",
+          }),
+        ),
+      );
 
-    const { hashtags = [], instagramHashtags = [], relatedKeywords = [] } =
-      (aiResult as any).status === "fulfilled" ? (aiResult as any).value : {};
+      const raw: any[] = [];
+      for (const r of pageResults) {
+        if (r.status === "fulfilled") raw.push(...extractVideos(r.value));
+      }
+      console.log(`TikTok keyword search: ${raw.length} raw items`);
 
-    let allRaw: any[] = [];
-    for (const r of pageResults) {
-      if (r.status === "fulfilled") allRaw.push(...extractVideos(r.value));
+      if (hashtags.length > 0) {
+        const tagResults = await Promise.allSettled(
+          hashtags.map((tag: string) =>
+            callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" }),
+          ),
+        );
+        for (const r of tagResults) {
+          if (r.status === "fulfilled") raw.push(...extractVideos(r.value));
+        }
+      }
+
+      // Normalize + dedupe within TT
+      const seen = new Set<string>();
+      const out: any[] = [];
+      for (const item of raw) {
+        const v = normalizeTikTok(item);
+        if (!v.aweme_id || seen.has(v.aweme_id)) continue;
+        seen.add(v.aweme_id);
+        out.push(v);
+      }
+      return out;
+    };
+
+    // ===== Instagram pipeline =====
+    const runInstagramPipeline = async (): Promise<any[]> => {
+      const igTagFromQuery = trimmedQuery.replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase();
+      const igTagList: string[] = Array.from(
+        new Set(
+          [igTagFromQuery, ...instagramHashtags]
+            .map((t: string) => (t || "").replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase())
+            .filter((t: string) => t && t.length > 1),
+        ),
+      ).slice(0, 6);
+
+      console.log(`Instagram hashtag fan-out: [${igTagList.join(", ")}]`);
+
+      if (igTagList.length === 0) return [];
+
+      const tagResults = await Promise.allSettled(
+        igTagList.map((tag) => callEnsemble("/instagram/hashtag/posts", { name: tag })),
+      );
+
+      const raw: any[] = [];
+      for (const r of tagResults) {
+        if (r.status === "fulfilled") raw.push(...extractVideos(r.value));
+      }
+      console.log(`Instagram hashtag posts: ${raw.length} raw items`);
+
+      const seen = new Set<string>();
+      const out: any[] = [];
+      for (const item of raw) {
+        const v = normalizeInstagramReel(item);
+        if (!v || !v.aweme_id || seen.has(v.aweme_id)) continue;
+        seen.add(v.aweme_id);
+        out.push(v);
+      }
+      return out;
+    };
+
+    // ===== Run platforms in parallel based on `platform` param =====
+    const warnings: string[] = [];
+    const ttPromise =
+      platform === "instagram" ? Promise.resolve([] as any[]) : runTikTokPipeline();
+    const igPromise =
+      platform === "tiktok" ? Promise.resolve([] as any[]) : runInstagramPipeline();
+
+    const [ttSettled, igSettled] = await Promise.allSettled([ttPromise, igPromise]);
+
+    let ttVideos: any[] = [];
+    let igVideos: any[] = [];
+
+    if (ttSettled.status === "fulfilled") {
+      ttVideos = ttSettled.value;
+    } else if (platform !== "instagram") {
+      console.error("TikTok pipeline failed:", ttSettled.reason);
+      warnings.push("TikTok временно недоступен");
     }
-    console.log(`TikTok keyword search returned ${allRaw.length} videos`);
 
-    // 2. TikTok hashtag posts + IG keyword-driven hashtag fan-out (parallel)
-    //    IG-те "keyword search" эндпойнты жоқ, сондықтан кілт сөзді IG-ке тән
-    //    латын/біріккен хэштегтерге айналдырамыз (AI арқылы) — TikTok-тағыдай
-    //    нәтиже алу үшін.
-    const igTagList: string[] = Array.from(
-      new Set(
-        [igTagFromQuery, ...instagramHashtags]
-          .map((t: string) => (t || "").replace(/[^\p{L}\p{N}_]+/gu, "").toLowerCase())
-          .filter((t: string) => t && t.length > 1)
-      )
-    ).slice(0, 6);
+    if (igSettled.status === "fulfilled") {
+      igVideos = igSettled.value;
+    } else if (platform !== "tiktok") {
+      console.error("Instagram pipeline failed:", igSettled.reason);
+      warnings.push("Instagram временно недоступен");
+    }
 
-    console.log(`Instagram hashtag fan-out: [${igTagList.join(", ")}]`);
+    // Cap per-platform → MAX_PER_PLATFORM, sorted by views DESC
+    const sortByViews = (a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0);
+    ttVideos.sort(sortByViews);
+    igVideos.sort(sortByViews);
+    ttVideos = ttVideos.slice(0, MAX_PER_PLATFORM);
+    igVideos = igVideos.slice(0, MAX_PER_PLATFORM);
 
-    const tiktokHashPromise =
-      hashtags.length > 0
-        ? Promise.allSettled(
-            hashtags.map((tag: string) =>
-              callEnsemble("/tt/hashtag/posts", { name: tag, cursor: "0" })
-            )
-          )
-        : Promise.resolve([] as any[]);
-
-    const igHashPromise = Promise.allSettled(
-      igTagList.map((tag) =>
-        callEnsemble("/instagram/hashtag/posts", { name: tag })
-      )
+    const uniqueVideos = [...ttVideos, ...igVideos].sort(sortByViews);
+    console.log(
+      `Total: ${uniqueVideos.length} (TT=${ttVideos.length}, IG=${igVideos.length}), warnings=[${warnings.join("|")}]`,
     );
 
-    const [tiktokHashResults, igHashResults] = await Promise.all([
-      tiktokHashPromise,
-      igHashPromise,
-    ]);
-
-    for (const r of tiktokHashResults as any[]) {
-      if (r.status === "fulfilled") {
-        const vids = extractVideos(r.value);
-        allRaw.push(...vids);
-      }
+    if (uniqueVideos.length === 0) {
+      return json(
+        {
+          error: "Не найдено результатов. Попробуйте другой запрос.",
+          ...(warnings.length ? { warnings } : {}),
+        },
+        warnings.length ? 503 : 200,
+      );
     }
 
-    // Collect IG raw items
-    const igRaw: any[] = [];
-    for (const r of igHashResults) {
-      if (r.status === "fulfilled") igRaw.push(...extractVideos(r.value));
-    }
-    console.log(`Instagram hashtag search returned ${igRaw.length} raw items`);
-
-
-
-    // 3. Normalize + Deduplicate (TikTok + IG)
-    const seen = new Set<string>();
-    const uniqueVideos: any[] = [];
-    for (const raw of allRaw) {
-      const v = normalizeVideo(raw);
-      if (!v.aweme_id || seen.has(v.aweme_id)) continue;
-      seen.add(v.aweme_id);
-      uniqueVideos.push(v);
-    }
-    for (const raw of igRaw) {
-      const v = normalizeInstagramReel(raw);
-      if (!v || !v.aweme_id || seen.has(v.aweme_id)) continue;
-      seen.add(v.aweme_id);
-      uniqueVideos.push(v);
-    }
-    console.log(`Total unique videos: ${uniqueVideos.length} (incl. IG)`);
-
-    // 4. Prepare DB rows + upsert (per-platform)
+    // ---- Upsert to videos ----
     const now = new Date().toISOString();
     const videoRows = uniqueVideos
       .filter((v) => v.aweme_id)
@@ -414,60 +513,112 @@ Deno.serve(async (req: Request) => {
         };
       });
 
-    // Upsert videos always; search_queries only if authenticated
-    const upsertPromise = adminClient
+    const { data: upsertData } = await adminClient
       .from("videos")
       .upsert(videoRows, { onConflict: "platform,platform_video_id" })
       .select();
 
-    const promises: Promise<any>[] = [upsertPromise];
+    const upsertedVideos = upsertData || [];
+
+    // ---- search_queries log (per-platform) ----
     if (userId && userClient) {
-      promises.push(
-        userClient
+      try {
+        await userClient
           .from("search_queries")
           .upsert(
-            { user_id: userId, query_text: trimmedQuery, last_run_at: now, total_results_saved: videoRows.length },
-            { onConflict: "user_id,query_text", ignoreDuplicates: false }
-          )
-          .select()
-          .single()
-      );
+            {
+              user_id: userId,
+              query_text: trimmedQuery,
+              platform,
+              last_run_at: now,
+              total_results_saved: videoRows.length,
+            },
+            { onConflict: "user_id,query_text", ignoreDuplicates: false },
+          );
+      } catch (e) {
+        console.warn("search_queries upsert failed (non-fatal):", e);
+      }
     }
 
-    const [upsertResult] = await Promise.all(promises);
+    // ---- Merge IG hashtags into related keywords (dedupe, max 12) ----
+    const relatedSet = new Map<string, string>();
+    const pushRelated = (s: string) => {
+      const key = s.toLowerCase().trim();
+      if (key && !relatedSet.has(key)) relatedSet.set(key, s);
+    };
+    relatedKeywords.forEach((k: string) => pushRelated(k));
+    if (platform !== "tiktok") instagramHashtags.forEach((k: string) => pushRelated(k));
+    const mergedRelated = Array.from(relatedSet.values()).slice(0, 12);
 
-    const upsertedVideos = upsertResult.data || [];
-
-    // Log API usage
+    // ---- API usage log ----
     try {
       await adminClient.from("api_usage_log").insert({
         function_name: "ensemble-search",
         action: "user_search",
-        credits_used: PAGES + hashtags.length,
-        metadata: { query: trimmedQuery, period: edPeriod, sorting: edSorting, results: uniqueVideos.length },
+        credits_used:
+          (platform === "instagram" ? 0 : 5 + hashtags.length) +
+          (platform === "tiktok" ? 0 : 6),
+        metadata: {
+          query: trimmedQuery,
+          platform,
+          period: edPeriod,
+          sorting: edSorting,
+          results: uniqueVideos.length,
+          tt: ttVideos.length,
+          ig: igVideos.length,
+          warnings,
+        },
       });
     } catch (e) {
       console.error("Failed to log API usage:", e);
     }
 
-    // Fire-and-forget: AI categorize uncategorized videos
+    // ---- Cache result (6h) ----
+    const responseVideos = upsertedVideos.length > 0 ? upsertedVideos : uniqueVideos;
+    try {
+      await adminClient.from("search_cache").upsert({
+        cache_key: cacheKey,
+        videos: responseVideos as any,
+        related_keywords: mergedRelated,
+        warnings,
+        created_at: now,
+      });
+    } catch (e) {
+      console.warn("Cache upsert failed (non-fatal):", e);
+    }
+
+    // ---- Fire-and-forget: AI categorize uncategorized videos ----
     const uncategorized = upsertedVideos.filter((v: any) => !v.niche);
     if (uncategorized.length > 0) {
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
       if (LOVABLE_API_KEY) {
         (async () => {
           try {
-            const NICHE_KEYS = ["finance","marketing","business","psychology","therapy","education","mama","beauty","fitness","fashion","law","realestate","esoteric","food","home","travel","lifestyle","animals","gaming","music","tattoo","career","auto","diy","kids","ai_news","ai_art","ai_avatar","humor","other","daily_routines","morning_routine","life_hacks","minimalism","aesthetic","self_care"];
+            const NICHE_KEYS = [
+              "finance","marketing","business","psychology","therapy","education","mama",
+              "beauty","fitness","fashion","law","realestate","esoteric","food","home",
+              "travel","lifestyle","animals","gaming","music","tattoo","career","auto",
+              "diy","kids","ai_news","ai_art","ai_avatar","humor","other","daily_routines",
+              "morning_routine","life_hacks","minimalism","aesthetic","self_care",
+            ];
             for (let i = 0; i < uncategorized.length; i += 30) {
               const batch = uncategorized.slice(i, i + 30);
-              const captions = batch.map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`).join("\n");
+              const captions = batch
+                .map((v: any, idx: number) => `${idx}: ${(v.caption || "").slice(0, 150)}`)
+                .join("\n");
               const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                 method: "POST",
-                headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+                headers: {
+                  Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
                 body: JSON.stringify({
                   model: "google/gemini-2.5-flash-lite",
                   messages: [
-                    { role: "system", content: `Classify each video caption into ONE niche from: ${NICHE_KEYS.join(", ")}. Return JSON array: [{"idx":0,"niche":"..."},...]` },
+                    {
+                      role: "system",
+                      content: `Classify each video caption into ONE niche from: ${NICHE_KEYS.join(", ")}. Return JSON array: [{"idx":0,"niche":"..."},...]`,
+                    },
                     { role: "user", content: captions },
                   ],
                 }),
@@ -478,8 +629,15 @@ Deno.serve(async (req: Request) => {
               if (match) {
                 const items = JSON.parse(match[0]);
                 for (const item of items) {
-                  if (typeof item.idx === "number" && batch[item.idx] && NICHE_KEYS.includes(item.niche)) {
-                    await adminClient.from("videos").update({ niche: item.niche }).eq("id", batch[item.idx].id);
+                  if (
+                    typeof item.idx === "number" &&
+                    batch[item.idx] &&
+                    NICHE_KEYS.includes(item.niche)
+                  ) {
+                    await adminClient
+                      .from("videos")
+                      .update({ niche: item.niche })
+                      .eq("id", batch[item.idx].id);
                   }
                 }
               }
@@ -491,10 +649,11 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Return videos with DB IDs + related keywords
-    const responseVideos = upsertedVideos.length > 0 ? upsertedVideos : uniqueVideos;
-
-    return json({ videos: responseVideos, relatedKeywords });
+    return json({
+      videos: responseVideos,
+      relatedKeywords: mergedRelated,
+      ...(warnings.length ? { warnings } : {}),
+    });
   } catch (err) {
     console.error("ensemble-search error:", err);
     return json({ error: "Unable to process request. Please try again later." }, 500);
