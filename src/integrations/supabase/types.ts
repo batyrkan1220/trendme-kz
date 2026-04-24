@@ -711,11 +711,36 @@ export type Database = {
         }
         Relationships: []
       }
+      search_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          related_keywords: string[]
+          videos: Json
+          warnings: string[]
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          related_keywords?: string[]
+          videos: Json
+          warnings?: string[]
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          related_keywords?: string[]
+          videos?: Json
+          warnings?: string[]
+        }
+        Relationships: []
+      }
       search_queries: {
         Row: {
           created_at: string
           id: string
           last_run_at: string
+          platform: string
           query_text: string
           total_results_saved: number | null
           user_id: string
@@ -724,6 +749,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_run_at?: string
+          platform?: string
           query_text: string
           total_results_saved?: number | null
           user_id: string
@@ -732,6 +758,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_run_at?: string
+          platform?: string
           query_text?: string
           total_results_saved?: number | null
           user_id?: string
