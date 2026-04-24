@@ -73,7 +73,7 @@ export const VirtualTrendGrid = forwardRef<HTMLDivElement, VirtualTrendGridProps
                   onAnalyze={onAnalyze}
                   onScript={onScript}
                   showTier={true}
-                  showAuthor={true}
+                  showAuthor={false}
                   showAnalyzeButton={!isLocked}
                   showScriptButton={!isLocked && !!onScript}
                 />

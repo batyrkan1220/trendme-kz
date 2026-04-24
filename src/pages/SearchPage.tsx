@@ -401,7 +401,7 @@ export default function SearchPage() {
                               onAnalyze={() => setAnalysisVideo(video)}
                               onScript={() => setScriptVideo(video)}
                               showTier={true}
-                              showAuthor={true}
+                              showAuthor={false}
                               showAnalyzeButton={!isLocked}
                               showScriptButton={!isLocked}
                             />
