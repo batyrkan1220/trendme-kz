@@ -303,24 +303,29 @@ export default function SearchPage() {
 
   const hasResults = !!searchResults && !isSearching;
 
-  // ----- Loading checklist progress -----
+  // ----- Loading checklist progress (driven by real backend stages) -----
   const loadingPlatform: PlatformFilter = (searchVars?.platform as PlatformFilter) || platformFilter;
-  const loadingSteps =
-    loadingPlatform === "all"
-      ? LOADING_STEPS_ALL
-      : LOADING_STEPS_ONE(loadingPlatform === "tiktok" ? "TikTok" : "Instagram");
-  const [loadingStep, setLoadingStep] = useState(0);
+  const stepDefs = useMemo(() => buildStepDefs(loadingPlatform), [loadingPlatform]);
+
+  // A step is "done" when ANY of its stage matches has been reached AND a later step
+  // has also started. The currently-active step is the latest reached step that
+  // doesn't yet have a successor reached. Computed from `reachedStages` Set.
+  const { loadingStep, loadingSteps } = useMemo(() => {
+    const labels = stepDefs.map((s) => s.label);
+    let lastReachedIdx = -1;
+    stepDefs.forEach((step, i) => {
+      if (step.matches.some((m) => reachedStages.has(m))) {
+        lastReachedIdx = Math.max(lastReachedIdx, i);
+      }
+    });
+    return { loadingStep: Math.max(0, lastReachedIdx), loadingSteps: labels };
+  }, [stepDefs, reachedStages]);
+
+  // Reset progress when a new search starts
   useEffect(() => {
-    if (!isSearching) {
-      setLoadingStep(0);
-      return;
-    }
-    const total = loadingSteps.length;
-    const interval = setInterval(() => {
-      setLoadingStep((s) => Math.min(s + 1, total - 1));
-    }, 2200);
-    return () => clearInterval(interval);
-  }, [isSearching, loadingSteps.length]);
+    if (!isSearching) return;
+    // setReachedStages handled inside mutationFn; nothing to do here
+  }, [isSearching]);
 
   // ===========================================================
   // Sub-components — rendered inline per state
