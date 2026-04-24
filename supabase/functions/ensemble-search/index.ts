@@ -217,7 +217,13 @@ Deno.serve(async (req: Request) => {
         0;
 
       const ts = node.taken_at_timestamp || node.taken_at || 0;
-      const stats = { views: Number(views) || 0, likes: Number(likes) || 0, comments: Number(comments) || 0, shares: 0 };
+      // IG sometimes returns 0 views for reels — fallback: estimate from likes (typical 5-10x ratio)
+      let viewsNum = Number(views) || 0;
+      const likesNum = Number(likes) || 0;
+      if (viewsNum === 0 && likesNum > 0) {
+        viewsNum = likesNum * 8; // conservative estimate
+      }
+      const stats = { views: viewsNum, likes: likesNum, comments: Number(comments) || 0, shares: 0 };
 
       return {
         platform: "instagram",
