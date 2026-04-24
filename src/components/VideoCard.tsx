@@ -221,6 +221,10 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
   const isMobileFromHook = useIsMobile();
   const isMobile = isMobileOverride ?? isMobileFromHook;
 
+  useEffect(() => {
+    setAvatarSrc(video.author_avatar_url ?? null);
+  }, [video.author_avatar_url]);
+
   // On mobile: open fullscreen overlay instead of in-card player
   // On mobile, open fullscreen immediately when play starts (don't wait for URL)
   useEffect(() => {
