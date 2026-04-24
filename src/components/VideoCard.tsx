@@ -544,7 +544,6 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     <img
                       src={avatarSrc}
                       alt=""
-                      referrerPolicy="no-referrer"
                       loading="lazy"
                       decoding="async"
                       className="w-5 h-5 rounded-full bg-white/20 object-cover ring-1 ring-white/20 shrink-0"
