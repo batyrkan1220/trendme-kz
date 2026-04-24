@@ -539,11 +539,24 @@ export const VideoCard = forwardRef<HTMLDivElement, VideoCardProps>(function Vid
                     <img
                       src={video.author_avatar_url}
                       alt=""
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      loading="lazy"
+                      decoding="async"
                       className="w-4 h-4 rounded-full bg-white/20 object-cover"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        // Hide broken image and show fallback dot
+                        img.style.display = "none";
+                        const fallback = img.nextElementSibling as HTMLElement | null;
+                        if (fallback) fallback.style.display = "block";
+                      }}
                     />
-                  ) : (
-                    <div className="w-4 h-4 rounded-full bg-white/30" />
-                  )}
+                  ) : null}
+                  <div
+                    className="w-4 h-4 rounded-full bg-white/30"
+                    style={{ display: video.author_avatar_url ? "none" : "block" }}
+                  />
                   <span className="truncate font-medium">@{video.author_username}</span>
                 </div>
               )}
