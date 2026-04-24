@@ -17,13 +17,40 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const json = (data: any, status = 200) =>
-    new Response(JSON.stringify(data), {
+  // Detect SSE mode via Accept header or ?stream=1 query param.
+  const url = new URL(req.url);
+  const wantsStream =
+    url.searchParams.get("stream") === "1" ||
+    (req.headers.get("accept") || "").includes("text/event-stream");
+
+  // Stream plumbing
+  let streamController: ReadableStreamDefaultController<Uint8Array> | null = null;
+  const encoder = new TextEncoder();
+  const sendEvent = (event: string, data: any) => {
+    if (!streamController) return;
+    try {
+      streamController.enqueue(
+        encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
+      );
+    } catch (_) {
+      /* stream closed */
+    }
+  };
+
+  const json = (data: any, status = 200) => {
+    if (wantsStream) {
+      // In stream mode we always reply 200 and emit either `done` or `error` events.
+      // The actual response is built via the ReadableStream below; this helper is
+      // used only by the inner handler to build the final payload.
+      return { __payload: data, __status: status } as any;
+    }
+    return new Response(JSON.stringify(data), {
       status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  };
 
-  try {
+  const runHandler = async (): Promise<any> => {
     const authHeader = req.headers.get("Authorization");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -86,6 +113,7 @@ Deno.serve(async (req: Request) => {
     );
 
     // ---- 0. Cache lookup (6h) ----
+    sendEvent("stage", { stage: "cache_check", platform });
     try {
       const { data: cached } = await adminClient
         .from("search_cache")
@@ -97,6 +125,7 @@ Deno.serve(async (req: Request) => {
         const ageH = (Date.now() - new Date(cached.created_at).getTime()) / 3_600_000;
         if (ageH < CACHE_TTL_HOURS) {
           console.log(`Cache HIT (age ${ageH.toFixed(2)}h) for ${cacheKey}`);
+          sendEvent("stage", { stage: "cache_hit", ageHours: ageH });
           return json({
             videos: cached.videos || [],
             relatedKeywords: cached.related_keywords || [],
@@ -105,8 +134,10 @@ Deno.serve(async (req: Request) => {
           });
         }
       }
+      sendEvent("stage", { stage: "cache_miss" });
     } catch (e) {
       console.warn("Cache lookup failed (non-fatal):", e);
+      sendEvent("stage", { stage: "cache_miss" });
     }
 
     /** Call EnsembleData API */
@@ -349,12 +380,18 @@ Deno.serve(async (req: Request) => {
     };
 
     // ---- AI hashtags first ----
+    sendEvent("stage", { stage: "ai_keywords_start" });
     const aiData = await generateHashtagsAndKeywords(trimmedQuery).catch(() => ({
       hashtags: [],
       instagramHashtags: [],
       relatedKeywords: [],
     }));
     const { hashtags = [], instagramHashtags = [], relatedKeywords = [] } = aiData;
+    sendEvent("stage", {
+      stage: "ai_keywords_done",
+      hashtags: hashtags.length,
+      instagramHashtags: instagramHashtags.length,
+    });
 
     // ===== TikTok pipeline =====
     const runTikTokPipeline = async (): Promise<any[]> => {
@@ -440,10 +477,36 @@ Deno.serve(async (req: Request) => {
 
     // ===== Run platforms in parallel based on `platform` param =====
     const warnings: string[] = [];
+
     const ttPromise =
-      platform === "instagram" ? Promise.resolve([] as any[]) : runTikTokPipeline();
+      platform === "instagram"
+        ? Promise.resolve([] as any[])
+        : (sendEvent("stage", { stage: "tiktok_start" }),
+          runTikTokPipeline().then(
+            (v) => {
+              sendEvent("stage", { stage: "tiktok_done", count: v.length });
+              return v;
+            },
+            (err) => {
+              sendEvent("stage", { stage: "tiktok_failed" });
+              throw err;
+            },
+          ));
+
     const igPromise =
-      platform === "tiktok" ? Promise.resolve([] as any[]) : runInstagramPipeline();
+      platform === "tiktok"
+        ? Promise.resolve([] as any[])
+        : (sendEvent("stage", { stage: "instagram_start" }),
+          runInstagramPipeline().then(
+            (v) => {
+              sendEvent("stage", { stage: "instagram_done", count: v.length });
+              return v;
+            },
+            (err) => {
+              sendEvent("stage", { stage: "instagram_failed" });
+              throw err;
+            },
+          ));
 
     const [ttSettled, igSettled] = await Promise.allSettled([ttPromise, igPromise]);
 
@@ -463,6 +526,8 @@ Deno.serve(async (req: Request) => {
       console.error("Instagram pipeline failed:", igSettled.reason);
       warnings.push("Instagram временно недоступен");
     }
+
+    sendEvent("stage", { stage: "merge_start", tt: ttVideos.length, ig: igVideos.length });
 
     // Cap per-platform → MAX_PER_PLATFORM, sorted by views DESC
     const sortByViews = (a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0);
@@ -654,8 +719,68 @@ Deno.serve(async (req: Request) => {
       relatedKeywords: mergedRelated,
       ...(warnings.length ? { warnings } : {}),
     });
-  } catch (err) {
-    console.error("ensemble-search error:", err);
-    return json({ error: "Unable to process request. Please try again later." }, 500);
+  }; // end runHandler
+
+  // Non-stream path: run handler and return its Response directly.
+  if (!wantsStream) {
+    try {
+      return await runHandler();
+    } catch (err) {
+      console.error("ensemble-search error:", err);
+      return new Response(
+        JSON.stringify({ error: "Unable to process request. Please try again later." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
   }
+
+  // Stream path: open SSE stream, run handler, and emit events from it.
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      streamController = controller;
+      // Initial hello so the client opens the stream immediately.
+      sendEvent("open", { ts: Date.now() });
+
+      runHandler()
+        .then((result) => {
+          if (result && result.__payload) {
+            sendEvent("done", result.__payload);
+          } else if (result instanceof Response) {
+            // Shouldn't happen in stream mode (json() returns __payload), but handle anyway.
+            result
+              .clone()
+              .json()
+              .then((p) => sendEvent("done", p))
+              .catch(() => sendEvent("done", {}));
+          } else {
+            sendEvent("done", result || {});
+          }
+        })
+        .catch((err) => {
+          console.error("ensemble-search stream error:", err);
+          sendEvent("error", { error: "Unable to process request. Please try again later." });
+        })
+        .finally(() => {
+          try {
+            controller.close();
+          } catch (_) {
+            /* already closed */
+          }
+        });
+    },
+    cancel() {
+      streamController = null;
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no",
+      Connection: "keep-alive",
+    },
+  });
 });

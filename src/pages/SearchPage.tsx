@@ -49,17 +49,22 @@ const POPULAR_NICHES: Array<{ emoji: string; name: string; query: string; tag?: 
   { emoji: "😂", name: "Юмор", query: "funny skits", tag: "tiktok" },
 ];
 
-const LOADING_STEPS_ALL = [
-  "Ищем в TikTok",
-  "Ищем в Instagram",
-  "Объединяем и сортируем по вирусности",
-  "Готовим результаты",
+// Real backend stages → checklist labels.
+// Stage names match `event: stage / data.stage` from ensemble-search SSE.
+const STEP_DEFS_ALL: Array<{ key: string; label: string; matches: string[] }> = [
+  { key: "cache", label: "Проверяем кэш", matches: ["cache_check", "cache_miss", "cache_hit"] },
+  { key: "ai", label: "Подбираем хэштеги", matches: ["ai_keywords_start", "ai_keywords_done"] },
+  { key: "tiktok", label: "Ищем в TikTok", matches: ["tiktok_start", "tiktok_done", "tiktok_failed"] },
+  { key: "instagram", label: "Ищем в Instagram", matches: ["instagram_start", "instagram_done", "instagram_failed"] },
+  { key: "merge", label: "Объединяем и сортируем", matches: ["merge_start"] },
+  { key: "done", label: "Готовим результаты", matches: ["done"] },
 ];
-const LOADING_STEPS_ONE = (label: string) => [
-  `Ищем в ${label}`,
-  "Сортируем по вирусности",
-  "Готовим результаты",
-];
+
+const buildStepDefs = (platform: "all" | "tiktok" | "instagram") => {
+  if (platform === "all") return STEP_DEFS_ALL;
+  if (platform === "tiktok") return STEP_DEFS_ALL.filter((s) => s.key !== "instagram");
+  return STEP_DEFS_ALL.filter((s) => s.key !== "tiktok");
+};
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
@@ -73,6 +78,10 @@ export default function SearchPage() {
   const { checkAndLog } = useSubscription();
   const { isFreePlan } = useIsFreePlan();
   const navigate = useNavigate();
+
+  // Live progress: stage names received from the SSE backend
+  const [reachedStages, setReachedStages] = useState<Set<string>>(new Set());
+
 
   const { data: recentQueries } = useQuery({
     queryKey: ["search-queries", user?.id],
@@ -96,17 +105,92 @@ export default function SearchPage() {
     reset: resetSearch,
   } = useMutation({
     mutationFn: async ({ q, platform }: { q: string; platform: PlatformFilter }) => {
-      const { data, error } = await supabase.functions.invoke("ensemble-search", {
-        body: { query: q, platform },
+      // Reset live progress
+      setReachedStages(new Set<string>());
+
+      const projectId = (import.meta as any).env.VITE_SUPABASE_PROJECT_ID;
+      const fnUrl = `https://${projectId}.supabase.co/functions/v1/ensemble-search?stream=1`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      const res = await fetch(fnUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          apikey: (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+        },
+        body: JSON.stringify({ query: q, platform }),
       });
-      if (error) {
-        if (data?.error) throw new Error(data.error);
-        throw error;
+
+      if (!res.ok || !res.body) {
+        let msg = "Search failed";
+        try {
+          const j = await res.json();
+          if (j?.error) msg = j.error;
+        } catch (_) {/* ignore */}
+        throw new Error(msg);
       }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let finalPayload: any = null;
+
+      const handleEvent = (eventName: string, dataStr: string) => {
+        let parsed: any = null;
+        try {
+          parsed = JSON.parse(dataStr);
+        } catch (_) {
+          return;
+        }
+        if (eventName === "stage" && parsed?.stage) {
+          setReachedStages((prev) => {
+            const next = new Set(prev);
+            next.add(parsed.stage);
+            return next;
+          });
+        } else if (eventName === "done") {
+          // Ensure all stages light up at the end
+          setReachedStages((prev) => {
+            const next = new Set(prev);
+            next.add("done");
+            return next;
+          });
+          finalPayload = parsed;
+        } else if (eventName === "error") {
+          throw new Error(parsed?.error || "Search failed");
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE blocks separated by blank lines
+        let idx;
+        while ((idx = buffer.indexOf("\n\n")) !== -1) {
+          const block = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          let eventName = "message";
+          let dataLines: string[] = [];
+          for (const line of block.split("\n")) {
+            if (line.startsWith("event:")) eventName = line.slice(6).trim();
+            else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+          }
+          if (dataLines.length) handleEvent(eventName, dataLines.join("\n"));
+        }
+      }
+
+      if (!finalPayload) throw new Error("No response from server");
+      if (finalPayload.error) throw new Error(finalPayload.error);
+
       return {
-        videos: data.videos || [],
-        relatedKeywords: data.relatedKeywords || [],
-        warnings: (data.warnings as string[] | undefined) || [],
+        videos: finalPayload.videos || [],
+        relatedKeywords: finalPayload.relatedKeywords || [],
+        warnings: (finalPayload.warnings as string[] | undefined) || [],
       };
     },
     onSuccess: (data, vars) => {
@@ -119,8 +203,8 @@ export default function SearchPage() {
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
       data.warnings?.forEach((w) => toast.warning(w));
     },
-    onError: () => {
-      toast.error("Не удалось выполнить поиск. Попробуйте позже.");
+    onError: (err: any) => {
+      toast.error(err?.message || "Не удалось выполнить поиск. Попробуйте позже.");
     },
   });
 
@@ -219,24 +303,29 @@ export default function SearchPage() {
 
   const hasResults = !!searchResults && !isSearching;
 
-  // ----- Loading checklist progress -----
+  // ----- Loading checklist progress (driven by real backend stages) -----
   const loadingPlatform: PlatformFilter = (searchVars?.platform as PlatformFilter) || platformFilter;
-  const loadingSteps =
-    loadingPlatform === "all"
-      ? LOADING_STEPS_ALL
-      : LOADING_STEPS_ONE(loadingPlatform === "tiktok" ? "TikTok" : "Instagram");
-  const [loadingStep, setLoadingStep] = useState(0);
+  const stepDefs = useMemo(() => buildStepDefs(loadingPlatform), [loadingPlatform]);
+
+  // A step is "done" when ANY of its stage matches has been reached AND a later step
+  // has also started. The currently-active step is the latest reached step that
+  // doesn't yet have a successor reached. Computed from `reachedStages` Set.
+  const { loadingStep, loadingSteps } = useMemo(() => {
+    const labels = stepDefs.map((s) => s.label);
+    let lastReachedIdx = -1;
+    stepDefs.forEach((step, i) => {
+      if (step.matches.some((m) => reachedStages.has(m))) {
+        lastReachedIdx = Math.max(lastReachedIdx, i);
+      }
+    });
+    return { loadingStep: Math.max(0, lastReachedIdx), loadingSteps: labels };
+  }, [stepDefs, reachedStages]);
+
+  // Reset progress when a new search starts
   useEffect(() => {
-    if (!isSearching) {
-      setLoadingStep(0);
-      return;
-    }
-    const total = loadingSteps.length;
-    const interval = setInterval(() => {
-      setLoadingStep((s) => Math.min(s + 1, total - 1));
-    }, 2200);
-    return () => clearInterval(interval);
-  }, [isSearching, loadingSteps.length]);
+    if (!isSearching) return;
+    // setReachedStages handled inside mutationFn; nothing to do here
+  }, [isSearching]);
 
   // ===========================================================
   // Sub-components — rendered inline per state
