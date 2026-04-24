@@ -212,11 +212,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 </button>
               )}
               <div className="flex-1 min-w-0">
-                {video.author_username && (
-                  <span className="text-[13px] font-semibold text-foreground block truncate mb-1 tracking-tight">
-                    @{video.author_username}
-                  </span>
-                )}
                 <div className="flex items-center gap-3 text-[11.5px] text-muted-foreground tabular-nums">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" />
