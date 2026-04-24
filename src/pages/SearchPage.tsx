@@ -21,11 +21,14 @@ import { cn } from "@/lib/utils";
 
 const FREE_SEARCH_VISIBLE = 5;
 
+type PlatformFilter = "all" | "tiktok" | "instagram";
+
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [analysisVideo, setAnalysisVideo] = useState<any>(null);
   const [scriptVideo, setScriptVideo] = useState<any>(null);
+  const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("all");
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
