@@ -114,14 +114,14 @@ export default function SearchPage() {
     }
     const ok = await checkAndLog("search", `Поиск: ${q}`);
     if (!ok) return;
-    doSearch(q);
+    doSearch({ q, platform: platformFilter });
   };
 
   const handleSearchDirect = async (q: string) => {
     if (!q.trim()) return;
     const ok = await checkAndLog("search", `Поиск: ${q.trim()}`);
     if (!ok) return;
-    doSearch(q.trim());
+    doSearch({ q: q.trim(), platform: platformFilter });
   };
 
   // Viral score: weighted combo of reach (views), engagement rate, and velocity (views/hour since publish)
@@ -360,7 +360,7 @@ export default function SearchPage() {
                           key={kw}
                           onClick={() => {
                             setQuery(kw);
-                            doSearch(kw);
+                            doSearch({ q: kw, platform: platformFilter });
                           }}
                           className="px-3.5 py-1.5 rounded-full bg-card/70 backdrop-blur-md border border-border/60 text-[13px] font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft"
                         >
