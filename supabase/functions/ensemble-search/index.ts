@@ -17,13 +17,40 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const json = (data: any, status = 200) =>
-    new Response(JSON.stringify(data), {
+  // Detect SSE mode via Accept header or ?stream=1 query param.
+  const url = new URL(req.url);
+  const wantsStream =
+    url.searchParams.get("stream") === "1" ||
+    (req.headers.get("accept") || "").includes("text/event-stream");
+
+  // Stream plumbing
+  let streamController: ReadableStreamDefaultController<Uint8Array> | null = null;
+  const encoder = new TextEncoder();
+  const sendEvent = (event: string, data: any) => {
+    if (!streamController) return;
+    try {
+      streamController.enqueue(
+        encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
+      );
+    } catch (_) {
+      /* stream closed */
+    }
+  };
+
+  const json = (data: any, status = 200) => {
+    if (wantsStream) {
+      // In stream mode we always reply 200 and emit either `done` or `error` events.
+      // The actual response is built via the ReadableStream below; this helper is
+      // used only by the inner handler to build the final payload.
+      return { __payload: data, __status: status } as any;
+    }
+    return new Response(JSON.stringify(data), {
       status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  };
 
-  try {
+  const runHandler = async (): Promise<any> => {
     const authHeader = req.headers.get("Authorization");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
