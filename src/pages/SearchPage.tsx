@@ -117,9 +117,30 @@ export default function SearchPage() {
     doSearch(q.trim());
   };
 
-  const allResults = [...(searchResults?.videos || [])].sort(
-    (a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0)
-  );
+  // Viral score: weighted combo of reach (views), engagement rate, and velocity (views/hour since publish)
+  const computeViralScore = (v: any) => {
+    const views = Number(v.views) || 0;
+    const likes = Number(v.likes) || 0;
+    const comments = Number(v.comments) || 0;
+    const shares = Number(v.shares) || 0;
+    if (views < 1000) return 0; // filter out junk
+    const engagement = (likes + comments * 2 + shares * 3) / views;
+    let velocity = Number(v.velocity_views) || 0;
+    if (!velocity && v.published_at) {
+      const hours = Math.max(1, (Date.now() - new Date(v.published_at).getTime()) / 3_600_000);
+      velocity = views / hours;
+    }
+    // Log-scale views so a 50M video doesn't completely dominate, but still wins over a 5k one
+    const reachScore = Math.log10(views + 1) * 10;
+    const velocityScore = Math.log10(velocity + 1) * 8;
+    const engagementScore = Math.min(engagement * 1000, 50); // cap at 50
+    return reachScore + velocityScore + engagementScore;
+  };
+
+  const allResults = [...(searchResults?.videos || [])]
+    .filter((v: any) => (Number(v.views) || 0) >= 1000) // hide junk videos
+    .map((v: any) => ({ ...v, _viral: computeViralScore(v) }))
+    .sort((a: any, b: any) => b._viral - a._viral);
   const tiktokCount = allResults.filter((v: any) => (v.platform || "tiktok") === "tiktok").length;
   const instagramCount = allResults.filter((v: any) => v.platform === "instagram").length;
   const results =
