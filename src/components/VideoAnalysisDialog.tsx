@@ -212,11 +212,6 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
                 </button>
               )}
               <div className="flex-1 min-w-0">
-                {video.author_username && (
-                  <span className="text-[13px] font-semibold text-foreground block truncate mb-1 tracking-tight">
-                    @{video.author_username}
-                  </span>
-                )}
                 <div className="flex items-center gap-3 text-[11.5px] text-muted-foreground tabular-nums">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" />
@@ -260,15 +255,7 @@ export function VideoAnalysisDialog({ video, open, onOpenChange }: Props) {
 
               <div className="px-4 pt-1 pb-3">
                 <div className="flex items-center gap-2.5">
-                  {video.author_avatar_url ? (
-                    <img src={video.author_avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border/60" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-muted" />
-                  )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13.5px] font-bold text-foreground truncate tracking-tight">
-                      @{video.author_username}
-                    </p>
                     <p className="text-[11px] text-muted-foreground">{publishedDate}</p>
                   </div>
                   <button
