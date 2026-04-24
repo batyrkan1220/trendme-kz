@@ -51,21 +51,28 @@ export default function SearchPage() {
   });
 
   const { data: searchResults, isPending: isSearching, mutate: doSearch } = useMutation({
-    mutationFn: async (q: string) => {
+    mutationFn: async ({ q, platform }: { q: string; platform: PlatformFilter }) => {
       const { data, error } = await supabase.functions.invoke("ensemble-search", {
-        body: { query: q },
+        body: { query: q, platform },
       });
       if (error) {
         if (data?.error) throw new Error(data.error);
         throw error;
       }
-      return { videos: data.videos || [], relatedKeywords: data.relatedKeywords || [] };
+      return {
+        videos: data.videos || [],
+        relatedKeywords: data.relatedKeywords || [],
+        warnings: (data.warnings as string[] | undefined) || [],
+      };
     },
-    onSuccess: (_, query) => {
-      trackSearchEvent(query);
-      trackPlausible("Search Performed", { query: String(query).slice(0, 100) });
+    onSuccess: (data, vars) => {
+      trackSearchEvent(vars.q);
+      trackPlausible("Search Performed", { query: String(vars.q).slice(0, 100), platform: vars.platform });
       queryClient.invalidateQueries({ queryKey: ["search-queries"] });
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
+      if (data.warnings?.length) {
+        data.warnings.forEach((w) => toast.warning(w));
+      }
     },
     onError: () => {
       toast.error("Не удалось выполнить поиск. Попробуйте позже.");
@@ -107,14 +114,14 @@ export default function SearchPage() {
     }
     const ok = await checkAndLog("search", `Поиск: ${q}`);
     if (!ok) return;
-    doSearch(q);
+    doSearch({ q, platform: platformFilter });
   };
 
   const handleSearchDirect = async (q: string) => {
     if (!q.trim()) return;
     const ok = await checkAndLog("search", `Поиск: ${q.trim()}`);
     if (!ok) return;
-    doSearch(q.trim());
+    doSearch({ q: q.trim(), platform: platformFilter });
   };
 
   // Viral score: weighted combo of reach (views), engagement rate, and velocity (views/hour since publish)
@@ -353,7 +360,7 @@ export default function SearchPage() {
                           key={kw}
                           onClick={() => {
                             setQuery(kw);
-                            doSearch(kw);
+                            doSearch({ q: kw, platform: platformFilter });
                           }}
                           className="px-3.5 py-1.5 rounded-full bg-card/70 backdrop-blur-md border border-border/60 text-[13px] font-medium text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all active:scale-95 shadow-soft"
                         >
