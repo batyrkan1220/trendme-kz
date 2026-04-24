@@ -34,6 +34,7 @@ interface TrendVideo {
   view_count: number | null;
   like_count: number | null;
   comment_count: number | null;
+  shares: number | null;
   posted_at: string | null;
   published_at: string | null;
   viral_score: number | null;
