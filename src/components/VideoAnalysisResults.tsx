@@ -161,12 +161,41 @@ export function VideoAnalysisResults({
 
   const viralityScore = useMemo(() => {
     let s = 0;
-    if (erNum > 5) s += 30;
-    if (shareRatio > 0.003) s += 25;
-    if (likeRatio > 0.02) s += 25;
-    if (commentRatio > 0.0005) s += 20;
-    return s;
-  }, [erNum, shareRatio, likeRatio, commentRatio]);
+
+    // 1) Reach (абсолютные просмотры) — до 35 баллов
+    //    Логарифмическая шкала: 10k=10, 100k=20, 1M=28, 10M=33, 50M+=35
+    if (views >= 50_000_000) s += 35;
+    else if (views >= 10_000_000) s += 33;
+    else if (views >= 1_000_000) s += 28;
+    else if (views >= 100_000) s += 20;
+    else if (views >= 10_000) s += 10;
+    else if (views >= 1_000) s += 4;
+
+    // 2) Engagement Rate — до 25 баллов
+    if (erNum >= 10) s += 25;
+    else if (erNum >= 5) s += 18;
+    else if (erNum >= 2) s += 10;
+    else if (erNum >= 0.5) s += 4;
+
+    // 3) Share velocity (репосты — главный сигнал вирусности) — до 20 баллов
+    if (shareRatio >= 0.01) s += 20;
+    else if (shareRatio >= 0.003) s += 14;
+    else if (shareRatio >= 0.001) s += 8;
+    else if (shareRatio >= 0.0003) s += 3;
+
+    // 4) Like ratio — до 12 баллов
+    if (likeRatio >= 0.08) s += 12;
+    else if (likeRatio >= 0.04) s += 9;
+    else if (likeRatio >= 0.02) s += 6;
+    else if (likeRatio >= 0.01) s += 3;
+
+    // 5) Comment ratio — до 8 баллов
+    if (commentRatio >= 0.005) s += 8;
+    else if (commentRatio >= 0.002) s += 6;
+    else if (commentRatio >= 0.0005) s += 3;
+
+    return Math.min(100, s);
+  }, [views, erNum, shareRatio, likeRatio, commentRatio]);
 
   const viralityLabel = viralityScore >= 70
     ? (isKk ? "Жоғары әлеует" : "Высокий потенциал")
