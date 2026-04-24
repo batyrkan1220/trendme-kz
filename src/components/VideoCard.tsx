@@ -128,6 +128,14 @@ function optimizeCoverUrl(url: string | null | undefined): string | null | undef
   return url;
 }
 
+function getPreferredAvatarUrl(videoUrl: string, authorUsername?: string, authorAvatarUrl?: string | null): string | null {
+  const platform = detectVideoPlatform(videoUrl);
+  if (platform === "instagram" && authorUsername) {
+    return `https://unavatar.io/instagram/${authorUsername}`;
+  }
+  return authorAvatarUrl ?? null;
+}
+
 type TrendTier = "strong" | "mid" | "micro";
 
 const getTier = (views: number): TrendTier | null => {
