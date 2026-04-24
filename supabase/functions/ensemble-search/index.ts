@@ -113,6 +113,7 @@ Deno.serve(async (req: Request) => {
     );
 
     // ---- 0. Cache lookup (6h) ----
+    sendEvent("stage", { stage: "cache_check", platform });
     try {
       const { data: cached } = await adminClient
         .from("search_cache")
@@ -124,6 +125,7 @@ Deno.serve(async (req: Request) => {
         const ageH = (Date.now() - new Date(cached.created_at).getTime()) / 3_600_000;
         if (ageH < CACHE_TTL_HOURS) {
           console.log(`Cache HIT (age ${ageH.toFixed(2)}h) for ${cacheKey}`);
+          sendEvent("stage", { stage: "cache_hit", ageHours: ageH });
           return json({
             videos: cached.videos || [],
             relatedKeywords: cached.related_keywords || [],
@@ -132,8 +134,10 @@ Deno.serve(async (req: Request) => {
           });
         }
       }
+      sendEvent("stage", { stage: "cache_miss" });
     } catch (e) {
       console.warn("Cache lookup failed (non-fatal):", e);
+      sendEvent("stage", { stage: "cache_miss" });
     }
 
     /** Call EnsembleData API */
