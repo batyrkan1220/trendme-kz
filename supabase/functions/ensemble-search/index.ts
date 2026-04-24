@@ -681,8 +681,68 @@ Deno.serve(async (req: Request) => {
       relatedKeywords: mergedRelated,
       ...(warnings.length ? { warnings } : {}),
     });
-  } catch (err) {
-    console.error("ensemble-search error:", err);
-    return json({ error: "Unable to process request. Please try again later." }, 500);
+  }; // end runHandler
+
+  // Non-stream path: run handler and return its Response directly.
+  if (!wantsStream) {
+    try {
+      return await runHandler();
+    } catch (err) {
+      console.error("ensemble-search error:", err);
+      return new Response(
+        JSON.stringify({ error: "Unable to process request. Please try again later." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
   }
+
+  // Stream path: open SSE stream, run handler, and emit events from it.
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      streamController = controller;
+      // Initial hello so the client opens the stream immediately.
+      sendEvent("open", { ts: Date.now() });
+
+      runHandler()
+        .then((result) => {
+          if (result && result.__payload) {
+            sendEvent("done", result.__payload);
+          } else if (result instanceof Response) {
+            // Shouldn't happen in stream mode (json() returns __payload), but handle anyway.
+            result
+              .clone()
+              .json()
+              .then((p) => sendEvent("done", p))
+              .catch(() => sendEvent("done", {}));
+          } else {
+            sendEvent("done", result || {});
+          }
+        })
+        .catch((err) => {
+          console.error("ensemble-search stream error:", err);
+          sendEvent("error", { error: "Unable to process request. Please try again later." });
+        })
+        .finally(() => {
+          try {
+            controller.close();
+          } catch (_) {
+            /* already closed */
+          }
+        });
+    },
+    cancel() {
+      streamController = null;
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no",
+      Connection: "keep-alive",
+    },
+  });
 });
