@@ -1,12 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Flame, Search, Sparkles, Heart, User, type LucideIcon } from "lucide-react";
+import { Flame, Search, Crown, Heart, User, type LucideIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useIsFreePlan } from "@/hooks/useIsFreePlan";
 import { useFreeCredits } from "@/hooks/useFreeCredits";
 
 interface MobileBottomNavProps {
-  /** Free-плана үшін Analyze басылғанда paywall ашу. */
+  /** Сақталған: бұрын Analyze үшін paywall ашатын. Қазір қолданылмайды. */
   onOpenPaywall?: () => void;
 }
 
@@ -22,7 +22,7 @@ type NavItem = {
 const ITEMS: NavItem[] = [
   { key: "trends", icon: Flame, label: "Тренды", path: "/trends" },
   { key: "search", icon: Search, label: "Поиск", path: "/search" },
-  { key: "analyze", icon: Sparkles, label: "Анализ", path: "/account-analysis", freeGated: true },
+  { key: "subscription", icon: Crown, label: "Подписка", path: "/subscription" },
   { key: "library", icon: Heart, label: "Избранное", path: "/library" },
   { key: "profile", icon: User, label: "Профиль", path: "/" },
 ];
