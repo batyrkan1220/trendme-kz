@@ -101,17 +101,92 @@ export default function SearchPage() {
     reset: resetSearch,
   } = useMutation({
     mutationFn: async ({ q, platform }: { q: string; platform: PlatformFilter }) => {
-      const { data, error } = await supabase.functions.invoke("ensemble-search", {
-        body: { query: q, platform },
+      // Reset live progress
+      setReachedStages(new Set<string>());
+
+      const projectId = (import.meta as any).env.VITE_SUPABASE_PROJECT_ID;
+      const fnUrl = `https://${projectId}.supabase.co/functions/v1/ensemble-search?stream=1`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      const res = await fetch(fnUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          apikey: (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+        },
+        body: JSON.stringify({ query: q, platform }),
       });
-      if (error) {
-        if (data?.error) throw new Error(data.error);
-        throw error;
+
+      if (!res.ok || !res.body) {
+        let msg = "Search failed";
+        try {
+          const j = await res.json();
+          if (j?.error) msg = j.error;
+        } catch (_) {/* ignore */}
+        throw new Error(msg);
       }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let finalPayload: any = null;
+
+      const handleEvent = (eventName: string, dataStr: string) => {
+        let parsed: any = null;
+        try {
+          parsed = JSON.parse(dataStr);
+        } catch (_) {
+          return;
+        }
+        if (eventName === "stage" && parsed?.stage) {
+          setReachedStages((prev) => {
+            const next = new Set(prev);
+            next.add(parsed.stage);
+            return next;
+          });
+        } else if (eventName === "done") {
+          // Ensure all stages light up at the end
+          setReachedStages((prev) => {
+            const next = new Set(prev);
+            next.add("done");
+            return next;
+          });
+          finalPayload = parsed;
+        } else if (eventName === "error") {
+          throw new Error(parsed?.error || "Search failed");
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE blocks separated by blank lines
+        let idx;
+        while ((idx = buffer.indexOf("\n\n")) !== -1) {
+          const block = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          let eventName = "message";
+          let dataLines: string[] = [];
+          for (const line of block.split("\n")) {
+            if (line.startsWith("event:")) eventName = line.slice(6).trim();
+            else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+          }
+          if (dataLines.length) handleEvent(eventName, dataLines.join("\n"));
+        }
+      }
+
+      if (!finalPayload) throw new Error("No response from server");
+      if (finalPayload.error) throw new Error(finalPayload.error);
+
       return {
-        videos: data.videos || [],
-        relatedKeywords: data.relatedKeywords || [],
-        warnings: (data.warnings as string[] | undefined) || [],
+        videos: finalPayload.videos || [],
+        relatedKeywords: finalPayload.relatedKeywords || [],
+        warnings: (finalPayload.warnings as string[] | undefined) || [],
       };
     },
     onSuccess: (data, vars) => {
@@ -124,8 +199,8 @@ export default function SearchPage() {
       queryClient.invalidateQueries({ queryKey: ["recent-queries"] });
       data.warnings?.forEach((w) => toast.warning(w));
     },
-    onError: () => {
-      toast.error("Не удалось выполнить поиск. Попробуйте позже.");
+    onError: (err: any) => {
+      toast.error(err?.message || "Не удалось выполнить поиск. Попробуйте позже.");
     },
   });
 
