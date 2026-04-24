@@ -380,12 +380,18 @@ Deno.serve(async (req: Request) => {
     };
 
     // ---- AI hashtags first ----
+    sendEvent("stage", { stage: "ai_keywords_start" });
     const aiData = await generateHashtagsAndKeywords(trimmedQuery).catch(() => ({
       hashtags: [],
       instagramHashtags: [],
       relatedKeywords: [],
     }));
     const { hashtags = [], instagramHashtags = [], relatedKeywords = [] } = aiData;
+    sendEvent("stage", {
+      stage: "ai_keywords_done",
+      hashtags: hashtags.length,
+      instagramHashtags: instagramHashtags.length,
+    });
 
     // ===== TikTok pipeline =====
     const runTikTokPipeline = async (): Promise<any[]> => {
