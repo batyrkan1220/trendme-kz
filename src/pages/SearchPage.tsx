@@ -270,9 +270,11 @@ export default function SearchPage() {
                   <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
                     Результаты 🔍
                   </h1>
-                  {results.length > 0 && (
+                  {allResults.length > 0 && (
                     <p className="text-[13px] md:text-sm text-muted-foreground">
-                      <span className="font-bold text-foreground">{results.length}</span> видео найдено
+                      <span className="font-bold text-foreground">{allResults.length}</span> видео — TikTok{" "}
+                      <span className="font-semibold text-foreground">{tiktokCount}</span>, Instagram{" "}
+                      <span className="font-semibold text-foreground">{instagramCount}</span>
                     </p>
                   )}
                 </div>
